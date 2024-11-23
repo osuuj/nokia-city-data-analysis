@@ -30,7 +30,7 @@ Thumbs.db
 # Ignore Foam folder
 foam/
 .foam/templates/*
-!.foam/templates/new-not.md
+!.foam/templates/new-note.md
 !.foam/templates/project-template.md
 
 # Ignore personal or environment-specific documentation
