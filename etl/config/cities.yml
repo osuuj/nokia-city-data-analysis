@@ -1,0 +1,14 @@
+cities:
+  - name: NOKIA
+    metadata:
+      population: 33000
+      region: "Pirkanmaa"
+  - name: TAMPERE
+    metadata:
+      population: 238000
+      region: "Pirkanmaa"
+
+directory_structure:
+  city_dir: "etl/data/processed/{city}"
+  filtered_dir: "etl/data/processed/{city}/filtered"
+  split_dir: "etl/data/processed/{city}/splitted"

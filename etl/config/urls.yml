@@ -1,0 +1,6 @@
+urls:
+  all_companies: 'https://avoindata.prh.fi/opendata-ytj-api/v3/all_companies'
+  post_codes_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=en'
+  post_codes_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=fi'
+  description_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=en'
+  description_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=fi'

@@ -1,8 +1,8 @@
 import csv
 import json
 import os
-from config import SPLIT_DIR, CLEANED_DIR, CITY
-from mappings import Mappings
+from etl.pipeline.mappings import Mappings
+from etl.config.config import get_city_paths, CLEANED_DIR, CITY
 
 # Function to extract English descriptions only
 def filter_english_descriptions(descriptions):
@@ -22,6 +22,8 @@ def save_to_csv(filename, data, headers):
 def process_json_file(file_path, part):
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
+
+    split_dir = get_city_paths(CITY)["split_dir"]
 
     # Tables for export
     business_info = []
@@ -124,34 +126,24 @@ def process_json_file(file_path, part):
                 })
 
     # Save tables to CSV
-    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_part_{part}_business_info.csv', business_info, [
+    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_business_info.csv', business_info, [
         "business_id", "registration_date", "eu_id", "primary_name", 
         "main_business_line", "status", 
         "registration_date", "end_date", "last_modified",  "website"
     ])
 
-    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_part_{part}_names.csv', names_table, [
+    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_names.csv', names_table, [
         "business_id", "name", "type", "registration_date", "end_date", "name_version"
     ])
 
-    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_part_{part}_company_forms.csv', company_forms_table, [
+    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_company_forms.csv', company_forms_table, [
         "business_id", "description", "registration_date", "end_date"
     ])
 
-    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_part_{part}_registered_entries.csv', registered_entries_table, [
+    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_registered_entries.csv', registered_entries_table, [
         "business_id", "description", "registration_date", "register", "authority"
     ])
 
-    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_part_{part}_addresses.csv', addresses_table, [
+    save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_addresses.csv', addresses_table, [
         "business_id", "address_type", "address", "building_number", "entrance", "apartment_number", "post_code", "city", "municipality_code", "co", "country"
     ])
-
-def main():
-    # Iterate over all JSON files in the input directory
-    for part, filename in enumerate(os.listdir(SPLIT_DIR)):
-        if filename.endswith('.json'):
-            file_path = os.path.join(SPLIT_DIR, filename)
-            process_json_file(file_path, part)
-
-if __name__ == "__main__":
-    main()

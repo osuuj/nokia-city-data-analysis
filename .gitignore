@@ -1,6 +1,9 @@
 # Ignore Python virtual environment
 env/
-env/data-env/
+venvs/etl_env/
+
+# Ignore
+etl/data/
 
 # Ignore Python cache files
 __pycache__/
