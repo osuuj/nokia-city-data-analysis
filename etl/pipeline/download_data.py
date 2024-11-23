@@ -6,17 +6,16 @@ import yaml
 from typing import Dict
 from etl.config.config import FILE_PATHS
 
-# Configure logging
-log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'etl', 'logs')
-os.makedirs(log_dir, exist_ok=True)
-log_file_path = os.path.join(log_dir, 'etl.log')
-logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def read_urls_from_config(config_path: str) -> Dict[str, str]:
     """Read URLs from a YAML configuration file."""
-    with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
-    return config['urls']
+    try:
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        logging.info(f"Read URLs from config file: {config_path}")
+        return config['urls']
+    except Exception as e:
+        logging.error(f"Failed to read URLs from config file {config_path}. Error: {e}")
+        return {}
 
 def download_file(url: str, file_path: str) -> None:
     """Download a file from a URL to a specified path."""

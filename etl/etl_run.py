@@ -1,18 +1,19 @@
-# etl/etl_run.py
 import os
 import sys
 import logging
 from dotenv import load_dotenv
+from typing import Dict, List
 
 # Load environment variables from a .env file
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
 # Add the project directory to sys.path
-project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_dir)
+
+# Configure logging
+from etl.utils.logging_config import configure_logging
+configure_logging()
 
 # Import constants and functions from config
 from etl.config.config import URLS, FILE_PATHS, EXTRACTED_DIR, PROCESSED_DIR, get_city_paths, get_supported_cities
