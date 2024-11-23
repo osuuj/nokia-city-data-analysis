@@ -1,33 +1,38 @@
 import os
 import sys
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ModuleNotFoundError:
-    print("Warning: 'dotenv' module not found. Environment variables might not be loaded.")
-
+import logging
+from typing import Dict, List
+from dotenv import load_dotenv
 import yaml
 
-# Helper to load YAML configuration files
+# Load environment variables from .env file
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def load_yaml(file_path: str) -> dict:
+    """Load a YAML configuration file."""
     try:
         with open(file_path, 'r') as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
 
+# Define project directory and configuration file paths
 project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 urls_path = os.path.join(project_dir, 'etl', 'config', 'urls.yml')
 cities_path = os.path.join(project_dir, 'etl', 'config', 'cities.yml')
 
+# Load URLs and cities from configuration files
 try:
     URLS = load_yaml(urls_path)['urls']
     CITIES = load_yaml(cities_path)
 except FileNotFoundError as e:
-    print(f"Error: {e}")
+    logging.error(f"Error: {e}")
     sys.exit(1)
 
-# New constant to map keys to file paths
+# Define file paths for different data sources
 FILE_PATHS = {
     'all_companies': 'data/raw/all_companies.zip',
     'post_codes_en': 'data/raw/post_codes_en.json',
@@ -49,17 +54,17 @@ DB_CONFIG = {
 EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', 'extracted'))
 PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', 'processed'))
 SPLIT_DIR = os.getenv('SPLIT_DIR', os.path.join(project_dir, 'etl', 'data', 'splitted'))
-CLEANED_DIR = os.getenv('CLEANED_DIR', os.path.join(project_dir, 'etl', 'data', 'cleaned'))  # Ensure CLEANED_DIR is defined
-CITY = os.getenv('CITY', 'default_city')  # Ensure CITY is defined
+CLEANED_DIR = os.getenv('CLEANED_DIR', os.path.join(project_dir, 'etl', 'data', 'cleaned'))
+CITY = os.getenv('CITY', 'default_city')
 
-# Generate paths for a given city dynamically
-def get_city_paths(city: str) -> dict:
+def get_city_paths(city: str) -> Dict[str, str]:
+    """Generate paths for a given city dynamically."""
     return {
         "city_dir": os.path.join(PROCESSED_DIR, city),
         "filtered_dir": os.path.join(PROCESSED_DIR, city, 'filtered'),
         "split_dir": os.path.join(PROCESSED_DIR, city, 'splitted'),
     }
 
-# Fetch all supported cities
-def get_supported_cities():
+def get_supported_cities() -> List[str]:
+    """Fetch all supported cities."""
     return [city['name'] for city in CITIES['cities']]
