@@ -1,5 +1,6 @@
 # Ignore Python virtual environment
 env/
+env/data-env/
 
 # Ignore Python cache files
 __pycache__/
@@ -25,7 +26,15 @@ Thumbs.db
 
 # Ignore editor/IDE config files
 .vscode/
-.idea/
+
+# Ignore Foam folder
+foam/
+.foam/templates/*
+!.foam/templates/new-not.md
+!.foam/templates/project-template.md
+
+# Ignore personal or environment-specific documentation
+docs/
 
 # Ignore temporary files created by text editors
 *~
@@ -43,15 +52,3 @@ Thumbs.db
 *.so
 *.a
 *.out
-
-# Ignore Foam-generated temporary or cache files
-foam/_layouts/*.tmp
-foam/assets/css/*.tmp
-foam/assets/images/*.tmp
-
-# Ignore personal or environment-specific documentation
-docs/daily/*.log
-docs/daily/*.tmp
-
-# Ignore other temporary or sensitive data
-docs/project-notes/*.backup
