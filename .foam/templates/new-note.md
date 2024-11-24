@@ -8,7 +8,7 @@ foam_template:
 # Daily Note - $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE
 
 ## 🔗 Yesterday's Note
-- **Yesterday's Note**: [[docs/daily/$FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE]]
+- **Yesterday's Note**: [[docs/daily/$FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE#Daily Summary]]
 
 ## 📌 Remember This
 > ⚠️ **Reminder**: [Write your critical focus for today.]
