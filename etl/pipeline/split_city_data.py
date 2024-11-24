@@ -21,7 +21,7 @@ def find_latest_json_file(directory: str) -> Optional[str]:
     latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
     return latest_file
 
-def split_json_file(input_file_path: str, output_dir: str, city: str, chunk_size: int = 1000) -> None:
+def split_json_file(input_file_path: str, output_dir: str, city: str, project_dir: str, chunk_size: int = 1000) -> None:
     """Split data into smaller chunks and save to output directory."""
     try:
         with open(input_file_path, 'r') as file:
@@ -31,16 +31,16 @@ def split_json_file(input_file_path: str, output_dir: str, city: str, chunk_size
         
         for i in range(0, len(data), chunk_size):
             chunk = data[i:i + chunk_size]
-            chunk_file_name = f"splitted_{city}_{i//chunk_size}.json"
+            chunk_file_name = f"splitted_{city}_part_{i//chunk_size}.json"
             chunk_file_path = os.path.join(output_dir, chunk_file_name)
             with open(chunk_file_path, 'w') as chunk_file:
                 json.dump(chunk, chunk_file)
         
-        logging.info(f"Data split into chunks and saved to {output_dir}")
+        logging.info(f"Data split into chunks and saved to {os.path.relpath(output_dir, project_dir)}")
     except Exception as e:
         logging.error(f"An error occurred while splitting the JSON file. Error: {e}")
 
-def split_city_data(city: str) -> None:
+def split_city_data(city: str, project_dir: str) -> None:
     """Split the latest JSON file for the given city into smaller chunks."""
     try:
         city_paths = get_city_paths(city)
@@ -61,6 +61,6 @@ def split_city_data(city: str) -> None:
         output_dir = split_dir
 
         # Run the split
-        split_json_file(input_file_path, output_dir, city)
+        split_json_file(input_file_path, output_dir, city, project_dir)
     except Exception as e:
         logging.error(f"An error occurred while splitting city data for {city}. Error: {e}")

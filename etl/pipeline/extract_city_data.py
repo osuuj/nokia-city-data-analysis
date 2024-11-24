@@ -24,7 +24,7 @@ def extract_data_by_city(item: Dict[str, Any], city: str) -> bool:
         for post_office in address.get('postOffices', [])
     )
 
-def extract_and_filter_city_data(city: str) -> None:
+def extract_and_filter_city_data(city: str, project_dir: str) -> None:
     """Extract and filter data for a specific city."""
     try:
         # Get paths based on the city
@@ -50,7 +50,7 @@ def extract_and_filter_city_data(city: str) -> None:
             filtered_items = [item for item in parser if extract_data_by_city(item, city)]
             json.dump(filtered_items, output_file, indent=4)
 
-        logging.info(f"Filtered data saved to {output_file_path}")
+        logging.info(f"Filtered data saved to {os.path.relpath(output_file_path, project_dir)}")
         logging.info(f"Total items filtered: {len(filtered_items)}")
     except Exception as e:
         logging.error(f"An error occurred while extracting and filtering data for city {city}. Error: {e}")

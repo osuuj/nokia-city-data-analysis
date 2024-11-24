@@ -2,10 +2,11 @@ import csv
 import json
 import os
 import logging
+import time
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 from etl.config.mappings import Mappings
-from etl.config.config import get_city_paths, CLEANED_DIR, CITY
+from etl.config.config import get_city_paths
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,17 +29,16 @@ def save_to_csv(filename: str, data: List[Dict[str, Any]], headers: List[str]) -
             writer = csv.DictWriter(f, fieldnames=headers)
             writer.writeheader()
             writer.writerows(data)
-        logging.info(f"Data saved to {filename}")
+        logging.info(f"Data saved to {os.path.basename(filename)}")
     except Exception as e:
-        logging.error(f"Failed to save data to {filename}. Error: {e}")
+        logging.error(f"Failed to save data to {os.path.basename(filename)}. Error: {e}")
 
-def process_json_file(file_path: str, part: str) -> None:
+def process_json_file(file_path: str, part_number: int, city: str) -> None:
     """Process a single JSON file."""
+    start_time = time.time()
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-
-        split_dir = get_city_paths(CITY)["split_dir"]
 
         # Tables for export
         business_info = []
@@ -77,7 +77,6 @@ def process_json_file(file_path: str, part: str) -> None:
                 "primary_name": company['names'][0]['name'],
                 "main_business_line": main_business_line,
                 "status": business_id_status,
-                "registration_date": company.get('registrationDate'),
                 "end_date": company.get('endDate') if company.get('endDate') else "N/A",
                 "last_modified": company.get('lastModified'),
                 "website": website,
@@ -140,30 +139,38 @@ def process_json_file(file_path: str, part: str) -> None:
                         "country": "FINLAND",
                     })
 
+        # Get the cleaned directory path for the city
+        city_paths = get_city_paths(city)
+        cleaned_dir = city_paths['cleaned_dir']
+        
+        # Ensure the cleaned directory exists
+        ensure_directory_exists(cleaned_dir)
+
         # Save tables to CSV
-        save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_business_info.csv', business_info, [
+        save_to_csv(f'{cleaned_dir}/cleaned_{city}_part_{part_number}_business_info.csv', business_info, [
             "business_id", "registration_date", "eu_id", "primary_name", 
             "main_business_line", "status", 
-            "registration_date", "end_date", "last_modified",  "website"
+            "end_date", "last_modified",  "website"
         ])
 
-        save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_names.csv', names_table, [
+        save_to_csv(f'{cleaned_dir}/cleaned_{city}_part_{part_number}_names.csv', names_table, [
             "business_id", "name", "type", "registration_date", "end_date", "name_version"
         ])
 
-        save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_company_forms.csv', company_forms_table, [
+        save_to_csv(f'{cleaned_dir}/cleaned_{city}_part_{part_number}_company_forms.csv', company_forms_table, [
             "business_id", "description", "registration_date", "end_date"
         ])
 
-        save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_registered_entries.csv', registered_entries_table, [
+        save_to_csv(f'{cleaned_dir}/cleaned_{city}_part_{part_number}_registered_entries.csv', registered_entries_table, [
             "business_id", "description", "registration_date", "register", "authority"
         ])
 
-        save_to_csv(f'{CLEANED_DIR}/cleaned_{CITY}_{part}_addresses.csv', addresses_table, [
+        save_to_csv(f'{cleaned_dir}/cleaned_{city}_part_{part_number}_addresses.csv', addresses_table, [
             "business_id", "address_type", "address", "building_number", "entrance", "apartment_number", "post_code", "city", "municipality_code", "co", "country"
         ])
     except Exception as e:
-        logging.error(f"An error occurred while processing the JSON file {file_path}. Error: {e}")
-
-# Ensure output directory exists
-ensure_directory_exists(CLEANED_DIR)
+        logging.error(f"An error occurred while processing the JSON file {os.path.basename(file_path)}. Error: {e}")
+    finally:
+        end_time = time.time()
+        duration = end_time - start_time
+        logging.info(f"Processing {os.path.basename(file_path)} took {duration:.2f} seconds")

@@ -11,6 +11,14 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Define project directory
+project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Define configuration file paths
+urls_path = os.path.join(project_dir, 'etl', 'config', 'urls.yml')
+cities_path = os.path.join(project_dir, 'etl', 'config', 'cities.yml')
+
+# Load URLs and cities from configuration files
 def load_yaml(file_path: str) -> dict:
     """Load a YAML configuration file."""
     try:
@@ -19,18 +27,16 @@ def load_yaml(file_path: str) -> dict:
     except FileNotFoundError:
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
 
-# Define project directory and configuration file paths
-project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-urls_path = os.path.join(project_dir, 'etl', 'config', 'urls.yml')
-cities_path = os.path.join(project_dir, 'etl', 'config', 'cities.yml')
-
-# Load URLs and cities from configuration files
 try:
     URLS = load_yaml(urls_path)['urls']
-    CITIES = load_yaml(cities_path)
+    CITIES = load_yaml(cities_path)['cities']
 except FileNotFoundError as e:
     logging.error(f"Error: {e}")
     sys.exit(1)
+
+# Define directory paths
+EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', 'extracted'))
+PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', 'processed'))
 
 # Define file paths for different data sources
 FILE_PATHS = {
@@ -50,21 +56,15 @@ DB_CONFIG = {
     'port': int(os.getenv('DB_PORT', 5432)),
 }
 
-# Directory paths
-EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', 'extracted'))
-PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', 'processed'))
-SPLIT_DIR = os.getenv('SPLIT_DIR', os.path.join(project_dir, 'etl', 'data', 'splitted'))
-CLEANED_DIR = os.getenv('CLEANED_DIR', os.path.join(project_dir, 'etl', 'data', 'cleaned'))
-CITY = os.getenv('CITY', 'default_city')
-
 def get_city_paths(city: str) -> Dict[str, str]:
     """Generate paths for a given city dynamically."""
     return {
         "city_dir": os.path.join(PROCESSED_DIR, city),
         "filtered_dir": os.path.join(PROCESSED_DIR, city, 'filtered'),
         "split_dir": os.path.join(PROCESSED_DIR, city, 'splitted'),
+        "cleaned_dir": os.path.join(PROCESSED_DIR, city, 'cleaned')
     }
 
 def get_supported_cities() -> List[str]:
     """Fetch all supported cities."""
-    return [city['name'] for city in CITIES['cities']]
+    return [city['name'] for city in CITIES]
