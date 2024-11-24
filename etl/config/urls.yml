@@ -1,6 +1,7 @@
+# URLs for various data sources
 urls:
-  all_companies: 'https://avoindata.prh.fi/opendata-ytj-api/v3/all_companies'
-  post_codes_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=en'
-  post_codes_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=fi'
-  description_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=en'
-  description_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=fi'
+  all_companies: 'https://avoindata.prh.fi/opendata-ytj-api/v3/all_companies'  # URL for all companies data
+  post_codes_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=en'  # URL for English post codes
+  post_codes_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/post_codes?lang=fi'  # URL for Finnish post codes
+  description_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=en'  # URL for English descriptions
+  description_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=fi'  # URL for Finnish descriptions

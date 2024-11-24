@@ -1,3 +1,4 @@
+# List of supported cities with metadata
 cities:
   - name: NOKIA
     metadata:
@@ -8,6 +9,7 @@ cities:
       population: 238000
       region: "Pirkanmaa"
 
+# Directory structure for processing city data
 directory_structure:
   city_dir: "etl/data/processed/{city}"
   filtered_dir: "etl/data/processed/{city}/filtered"
