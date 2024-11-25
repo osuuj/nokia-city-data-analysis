@@ -2,3 +2,6 @@ python-dotenv
 PyYAML
 requests
 ijson
+sqlalchemy
+pandas
+psycopg2-binary
