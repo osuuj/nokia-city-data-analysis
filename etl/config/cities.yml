@@ -1,13 +1,16 @@
-# List of supported cities with metadata
+# List of supported cities
 cities:
-  - name: NOKIA
-    metadata:
-      population: 33000
-      region: "Pirkanmaa"
-  - name: TAMPERE
-    metadata:
-      population: 238000
-      region: "Pirkanmaa"
+  - NOKIA
+  - TAMPERE
+
+# Metadata for cities
+metadata:
+  NOKIA:
+    population: 33000
+    region: "Pirkanmaa"
+  TAMPERE:
+    population: 238000
+    region: "Pirkanmaa"
 
 # Directory structure for processing city data
 directory_structure:

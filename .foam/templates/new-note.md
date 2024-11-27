@@ -37,7 +37,7 @@ foam_template:
 
 ---
 
-# ✏️ Daily Summary
+# Daily Summary
 ## Achievements
 [Summarize what you achieved today.]
 

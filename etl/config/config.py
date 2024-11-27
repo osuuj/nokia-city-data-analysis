@@ -1,40 +1,20 @@
 import os
 import sys
-import logging
-from typing import Dict, List
-from dotenv import load_dotenv
-import yaml
+from etl.utils.config_operations import load_config
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Define project directory
-project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Define configuration file paths
-urls_path = os.path.join(project_dir, 'etl', 'config', 'urls.yml')
-cities_path = os.path.join(project_dir, 'etl', 'config', 'cities.yml')
+# Define paths to configuration files
+urls_path = os.path.join(os.path.dirname(__file__), 'urls.yml')
+cities_path = os.path.join(os.path.dirname(__file__), 'cities.yml')
 
 # Load URLs and cities from configuration files
-def load_yaml(file_path: str) -> dict:
-    """Load a YAML configuration file."""
-    try:
-        with open(file_path, 'r') as file:
-            return yaml.safe_load(file)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Configuration file not found: {file_path}")
-
 try:
-    URLS = load_yaml(urls_path)['urls']
-    CITIES = load_yaml(cities_path)['cities']
-except FileNotFoundError as e:
-    logging.error(f"Error: {e}")
+    URLS = load_config(urls_path, 'urls')
+    CITIES = load_config(cities_path, 'cities')
+except SystemExit:
     sys.exit(1)
 
 # Define directory paths
+project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', 'extracted'))
 PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', 'processed'))
 
@@ -56,15 +36,26 @@ DB_CONFIG = {
     'port': int(os.getenv('DB_PORT', 5432)),
 }
 
-def get_city_paths(city: str) -> Dict[str, str]:
-    """Generate paths for a given city dynamically."""
-    return {
-        "city_dir": os.path.join(PROCESSED_DIR, city),
-        "filtered_dir": os.path.join(PROCESSED_DIR, city, 'filtered'),
-        "split_dir": os.path.join(PROCESSED_DIR, city, 'splitted'),
-        "cleaned_dir": os.path.join(PROCESSED_DIR, city, 'cleaned')
-    }
-
-def get_supported_cities() -> List[str]:
-    """Fetch all supported cities."""
-    return [city['name'] for city in CITIES]
+CSV_COLUMNS = {
+    "business_info_table": [
+        "business_id", "registration_date", "eu_id", "primary_name", 
+        "main_business_line", "status", "end_date", "last_modified", "website"
+    ],
+    "names_table": [
+        "business_id", "name", "type", "registration_date", "start_date", "end_date", "name_version"
+    ],
+    "company_forms_table": [
+        "business_id", "description", "registration_date", "end_date"
+    ],
+    "registered_entries_table": [
+        "business_id", "description", "registration_date", "register", "authority"
+    ],
+    "addresses_table": [
+        "business_id", "address_type", "address", "building_number", 
+        "entrance", "apartment_number", "post_code", "city", 
+        "municipality_code", "co", "country"
+    ],
+    "business_name_history_table": [
+        "business_id", "previous_name", "new_name", "change_date"
+    ]
+}

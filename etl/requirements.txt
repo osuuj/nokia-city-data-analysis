@@ -5,3 +5,4 @@ ijson
 sqlalchemy
 pandas
 psycopg2-binary
+jupyter
