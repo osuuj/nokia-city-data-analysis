@@ -5,6 +5,12 @@ from etl.config.mappings import Mappings
 def process_registered_entries(json_part_data):
     """
     Process the `registeredEntries` data into a cleaned and structured DataFrame for the `registered_entries` table.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed registered entries data.
     """
     if json_part_data is None:
         return pd.DataFrame()  # Return an empty DataFrame if input is None
@@ -67,7 +73,7 @@ def process_registered_entries(json_part_data):
     df = handle_missing_values(df, default_values)
 
     # Step 5: Remove duplicates based on PRIMARY KEY columns
-    primary_key_columns = ["business_id", "description", "registration_date"]
-    df = df.drop_duplicates(subset=primary_key_columns, keep="first")
+    #primary_key_columns = ["business_id", "description", "registration_date"]
+    #df = df.drop_duplicates(subset=primary_key_columns, keep="first")
 
     return df

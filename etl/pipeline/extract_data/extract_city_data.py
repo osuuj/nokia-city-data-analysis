@@ -2,13 +2,13 @@ import os
 import json
 import ijson
 import logging
+import time
 from typing import Dict, Any
 from etl.config.config import EXTRACTED_DIR
 from etl.utils.file_operations import find_latest_json_file
 from etl.utils.config_operations import get_city_paths
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def extract_data_by_city(item: Dict[str, Any], city: str) -> bool:
     """Check if any post office in the item's addresses is in the specified city."""
@@ -20,6 +20,7 @@ def extract_data_by_city(item: Dict[str, Any], city: str) -> bool:
 
 def extract_and_filter_city_data(city: str, project_dir: str, city_paths: dict) -> None:
     """Extract and filter data for a specific city."""
+    start_time = time.time()
     try:
         paths = city_paths
         filtered_dir = paths['filtered_dir']
@@ -38,7 +39,14 @@ def extract_and_filter_city_data(city: str, project_dir: str, city_paths: dict) 
             filtered_items = [item for item in parser if extract_data_by_city(item, city)]
             json.dump(filtered_items, output_file, indent=4)
 
-        logging.info(f"Filtered data saved to {os.path.relpath(output_file_path, project_dir)}")
-        logging.info(f"Total items filtered: {len(filtered_items)}")
+        logger.info(f"Filtered data saved for city: {city}")
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        raise
     except Exception as e:
-        logging.error(f"An error occurred while extracting and filtering data for city {city}. Error: {e}")
+        logger.error(f"An error occurred while extracting and filtering data for city {city}. Error: {e}")
+        raise
+    finally:
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"Extracting and filtering data for city {city} took {elapsed_time:.2f} seconds")

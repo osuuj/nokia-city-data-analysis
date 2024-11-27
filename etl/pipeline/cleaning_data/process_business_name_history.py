@@ -5,6 +5,12 @@ from etl.config.mappings import Mappings
 def process_business_name_history(json_part_data):
     """
     Process the `names` data into a cleaned and structured DataFrame for the `business_name_history` table.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed business name history data.
     """
     if json_part_data is None:
         return pd.DataFrame()  # Return an empty DataFrame if input is None

@@ -1,13 +1,20 @@
 import pandas as pd
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 def filter_english_descriptions(descriptions: List[Dict[str, Any]]) -> List[str]:
     """Extract English descriptions only."""
     return [desc['description'] for desc in descriptions if desc['languageCode'] == "3"]
 
-def handle_missing_values(df, default_values):
+def handle_missing_values(df: pd.DataFrame, default_values: Dict[str, Any]) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame using a dictionary of default values.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to process.
+        default_values (Dict[str, Any]): A dictionary of default values for each column.
+
+    Returns:
+        pd.DataFrame: The DataFrame with missing values filled.
     """
     for col, default in default_values.items():
         if col in df.columns:
@@ -19,7 +26,7 @@ def handle_missing_values(df, default_values):
                 df[col] = df[col].fillna(default)
     return df
 
-def map_column_values(df, column, mapping_function, fallback="Unknown"):
+def map_column_values(df: pd.DataFrame, column: str, mapping_function, fallback: str = "Unknown") -> pd.DataFrame:
     """
     Map a column in a DataFrame using a specified mapping function.
 
@@ -38,7 +45,7 @@ def map_column_values(df, column, mapping_function, fallback="Unknown"):
         raise KeyError(f"Column '{column}' not found in the DataFrame.")
     return df
 
-def format_date(date_str):
+def format_date(date_str: str) -> Optional[str]:
     """
     Convert a date string to YYYY-MM-DD format.
     

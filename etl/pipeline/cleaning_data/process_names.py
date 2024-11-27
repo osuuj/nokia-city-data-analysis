@@ -13,6 +13,12 @@ logging.basicConfig(level=logging.ERROR)
 def process_names(json_part_data):
     """
     Process the `names` data into a cleaned and structured DataFrame for the `names_table`.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed names data.
     """
     # Return an empty DataFrame if input is invalid
     if not json_part_data or not isinstance(json_part_data, list):
@@ -97,4 +103,3 @@ def process_names(json_part_data):
     df = handle_missing_values(df, default_values)
 
     return df
-

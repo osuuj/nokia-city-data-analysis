@@ -5,6 +5,12 @@ from etl.config.mappings import Mappings
 def process_addresses(json_part_data):
     """
     Process the `addresses` data into a cleaned and structured DataFrame for the `addresses` table.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed addresses data.
     """
     if json_part_data is None:
         return pd.DataFrame()  # Return an empty DataFrame if input is None
@@ -72,11 +78,11 @@ def process_addresses(json_part_data):
     df = handle_missing_values(df, default_values)
 
     # Step 5: Remove duplicates
-    # unique_columns = [
-    #     "business_id", "address_type", "street", 
-    #     "building_number", "post_code", "city_id", 
-    #     "start_date"
-    # ]
-    # df = df.drop_duplicates(subset=unique_columns, keep="first")
+    #unique_columns = [
+    #    "business_id", "address_type", "street", 
+    #    "building_number", "post_code", "city_id", 
+    #    "start_date"
+    #]
+    #df = df.drop_duplicates(subset=unique_columns, keep="first")
 
     return df

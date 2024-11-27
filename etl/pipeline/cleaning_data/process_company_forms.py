@@ -5,6 +5,12 @@ from etl.config.mappings import Mappings
 def process_company_forms(json_part_data):
     """
     Process the `companyForms` data into a cleaned and structured DataFrame for the `company_forms` table.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed company forms data.
     """
     if json_part_data is None:
         return pd.DataFrame()  # Return an empty DataFrame if input is None
@@ -56,8 +62,7 @@ def process_company_forms(json_part_data):
     df = handle_missing_values(df, default_values)
 
     # Step 5: Remove duplicates based on PRIMARY KEY columns
-    # primary_key_columns = ["business_id", "form_type", "registration_date"]
-    # df = df.drop_duplicates(subset=primary_key_columns, keep="first")
+    #primary_key_columns = ["business_id", "form_type", "registration_date"]
+    #df = df.drop_duplicates(subset=primary_key_columns, keep="first")
 
     return df
-

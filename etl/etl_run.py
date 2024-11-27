@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List
 from etl.config.logging_config import configure_logging
 from etl.pipeline.extract_data.download_extract_files import download_and_extract_files
@@ -13,23 +14,45 @@ from etl.utils.directory_setup import setup_directories
 configure_logging()
 logger = logging.getLogger(__name__)
 
-def process_city_data(cities: List[str]) -> None:
-    """Orchestrate the processing of city data."""
-    for city in cities:
-        city_paths = get_city_paths(city, PROCESSED_DIR)
+def process_city_data(city: str) -> None:
+    """Process data for a single city."""
+    logger.info(f"Processing data for city: {city}")
+    city_paths = get_city_paths(city, PROCESSED_DIR)
+    try:
         extract_and_filter_city_data(city, project_dir, city_paths)
         split_city_data(city, project_dir, city_paths)
-        # Process data
         process_data(city, project_dir, city_paths)
-    
+        logger.info(f"Completed processing data for city: {city}")
+    except Exception as e:
+        logger.error(f"Error processing data for city {city}: {e}")
+        raise
+
+def process_all_cities(cities: List[str]) -> None:
+    """Orchestrate the processing of data for all cities."""
+    for city in cities:
+        try:
+            process_city_data(city)
+        except Exception as e:
+            logger.error(f"Error processing data for city {city}: {e}")
+
+def setup_environment() -> None:
+    """Set up the necessary directories and download data."""
+    logger.info("Setting up directories.")
+    setup_directories(CITIES, PROCESSED_DIR)
+    logger.info("Downloading and extracting files.")
+    download_and_extract_files(URLS, FILE_PATHS, project_dir)
+
 def main() -> None:
     """Main function to run the ETL process."""
-    #setup_directories(CITIES, PROCESSED_DIR)
-    #download_and_extract_files(URLS, FILE_PATHS, project_dir)
-    process_city_data(CITIES)
+    start_time = time.time()
+    setup_environment()
+    process_all_cities(CITIES)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    logger.info(f"Total ETL process time: {elapsed_time:.2f} seconds")
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        logger.error(f"An error occurred during the ETL process: {e}")

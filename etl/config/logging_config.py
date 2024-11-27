@@ -41,10 +41,16 @@ def configure_logging() -> None:
                 'level': log_level,
                 'propagate': True
             },
+            'etl': {
+                'handlers': ['console', 'file'],
+                'level': log_level,
+                'propagate': False
+            },
         }
     }
 
     logging.config.dictConfig(LOGGING_CONFIG)
+    logging.info("Logging is configured.")
 
 # Call the function to configure logging
 configure_logging()

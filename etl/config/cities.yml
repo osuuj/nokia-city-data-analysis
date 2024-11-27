@@ -14,6 +14,6 @@ metadata:
 
 # Directory structure for processing city data
 directory_structure:
-  city_dir: "etl/data/processed/{city}"
-  filtered_dir: "etl/data/processed/{city}/filtered"
-  split_dir: "etl/data/processed/{city}/splitted"
+  city_dir: "etl/data/3_processed/{city}"
+  filtered_dir: "etl/data/3_processed/{city}/filtered"
+  split_dir: "etl/data/3_processed/{city}/splitted"

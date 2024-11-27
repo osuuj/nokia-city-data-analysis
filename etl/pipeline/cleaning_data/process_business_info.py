@@ -5,6 +5,12 @@ from etl.config.mappings import Mappings
 def process_business_info(json_part_data):
     """
     Process the `business_info` data into a cleaned and structured DataFrame.
+
+    Args:
+        json_part_data (list): List of JSON objects containing business data.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the processed business info data.
     """
     if json_part_data is None:
         return pd.DataFrame()  # Return an empty DataFrame if input is None
@@ -61,7 +67,7 @@ def process_business_info(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    # Map status values using Mappings
+    # Step 5: Map status values using Mappings
     df = map_column_values(df, "status", Mappings.map_status)
 
     # Step 6: Format `last_modified` column using format_date

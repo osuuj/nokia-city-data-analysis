@@ -10,21 +10,21 @@ cities_path = os.path.join(os.path.dirname(__file__), 'cities.yml')
 try:
     URLS = load_config(urls_path, 'urls')
     CITIES = load_config(cities_path, 'cities')
-except SystemExit:
-    sys.exit(1)
+except (FileNotFoundError, ValueError) as e:
+    sys.exit(f"Error loading configuration: {e}")
 
 # Define directory paths
 project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', 'extracted'))
-PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', 'processed'))
+EXTRACTED_DIR = os.getenv('EXTRACTED_DIR', os.path.join(project_dir, 'etl', 'data', '2_extracted'))
+PROCESSED_DIR = os.getenv('PROCESSED_DIR', os.path.join(project_dir, 'etl', 'data', '3_processed'))
 
 # Define file paths for different data sources
 FILE_PATHS = {
-    'all_companies': 'data/raw/all_companies.zip',
-    'post_codes_en': 'data/raw/post_codes_en.json',
-    'post_codes_fi': 'data/raw/post_codes_fi.json',
-    'description_en': 'data/raw/description_en.json',
-    'description_fi': 'data/raw/description_fi.json',
+    'all_companies': 'data/1_raw/all_companies.zip',
+    'post_codes_en': 'data/1_raw/post_codes_en.json',
+    'post_codes_fi': 'data/1_raw/post_codes_fi.json',
+    'description_en': 'data/1_raw/description_en.json',
+    'description_fi': 'data/1_raw/description_fi.json',
 }
 
 # PostgreSQL connection details
@@ -34,28 +34,4 @@ DB_CONFIG = {
     'password': os.getenv('POSTGRES_PASSWORD'),
     'host': os.getenv('DB_HOST'),
     'port': int(os.getenv('DB_PORT', 5432)),
-}
-
-CSV_COLUMNS = {
-    "business_info_table": [
-        "business_id", "registration_date", "eu_id", "primary_name", 
-        "main_business_line", "status", "end_date", "last_modified", "website"
-    ],
-    "names_table": [
-        "business_id", "name", "type", "registration_date", "start_date", "end_date", "name_version"
-    ],
-    "company_forms_table": [
-        "business_id", "description", "registration_date", "end_date"
-    ],
-    "registered_entries_table": [
-        "business_id", "description", "registration_date", "register", "authority"
-    ],
-    "addresses_table": [
-        "business_id", "address_type", "address", "building_number", 
-        "entrance", "apartment_number", "post_code", "city", 
-        "municipality_code", "co", "country"
-    ],
-    "business_name_history_table": [
-        "business_id", "previous_name", "new_name", "change_date"
-    ]
 }
