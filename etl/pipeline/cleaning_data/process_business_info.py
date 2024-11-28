@@ -10,17 +10,19 @@ def process_business_info(json_part_data):
         json_part_data (list): List of JSON objects containing business data.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed business info data.
+        tuple: (processed DataFrame, error DataFrame)
     """
     if json_part_data is None:
-        return pd.DataFrame()  # Return an empty DataFrame if input is None
+        return pd.DataFrame(), pd.DataFrame()  # Return empty DataFrames if input is None
 
     rows = []
+    error_rows = []
 
     # Step 1: Iterate through each entry
     for entry in json_part_data:
         if entry is None:
             continue
+        
         # Safely access nested fields
         business_id_info = entry.get("businessId", {})
         business_id = business_id_info.get("value") if business_id_info else None
@@ -42,10 +44,17 @@ def process_business_info(json_part_data):
             "website_registered_date": website_registered_date,
             "last_modified": last_modified,
         }
+
+        # Validate row for schema compliance
+        if not business_id:  # PRIMARY KEY constraint
+            error_rows.append({**row, "error": "Missing business_id (PRIMARY KEY)"})
+            continue
+        
         rows.append(row)
 
     # Step 2: Convert rows to DataFrame
     df = pd.DataFrame(rows)
+    error_df = pd.DataFrame(error_rows)
 
     # Step 3: Ensure required columns exist
     required_columns = [
@@ -67,14 +76,21 @@ def process_business_info(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    # Step 5: Map status values using Mappings
-    df = map_column_values(df, "status", Mappings.map_status)
+    # Step 5: Enforce Data Types and Format Dates
+    df["registration_date"] = df["registration_date"].apply(format_date)  # Format as YYYY-MM-DD
+    df["website_registered_date"] = df["website_registered_date"].apply(format_date)
+    df["last_modified"] = df["last_modified"].apply(format_date)
 
-    # Step 6: Format `last_modified` column using format_date
-    if "last_modified" in df.columns:
-        df["last_modified"] = df["last_modified"].apply(format_date)
+    # Step 6: Map status values using Mappings
+    df = map_column_values(df, "status", Mappings.map_status)
 
     # Step 7: Remove duplicates
     df = df.drop_duplicates(subset=["business_id"], keep="first")
 
-    return df
+    # Step 8: Final Validation
+    for col in required_columns:
+        if col == "business_id" and df[col].isnull().any():
+            error_df = pd.concat([error_df, df[df[col].isnull()].assign(error="Missing PRIMARY KEY")])
+            df = df[df[col].notnull()]
+
+    return df, error_df

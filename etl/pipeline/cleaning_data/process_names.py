@@ -18,19 +18,21 @@ def process_names(json_part_data):
         json_part_data (list): List of JSON objects containing business data.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed names data.
+        tuple: (processed DataFrame, error DataFrame)
     """
-    # Return an empty DataFrame if input is invalid
+    # Return empty DataFrames if input is invalid
     if not json_part_data or not isinstance(json_part_data, list):
         logging.error("Input data is invalid or empty.")
-        return pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
 
     rows = []
+    error_rows = []
 
     # Step 1: Iterate through each business entry
     for entry in json_part_data:
         if not entry or not isinstance(entry, dict):
             logging.error(f"Invalid entry skipped: {entry}")
+            error_rows.append({"entry": entry, "error": "Invalid entry format"})
             continue
 
         # Extract business_id safely
@@ -40,6 +42,7 @@ def process_names(json_part_data):
         # Skip if business_id is missing
         if not business_id:
             logging.error(f"Missing business_id in entry: {entry}")
+            error_rows.append({"entry": entry, "error": "Missing business_id"})
             continue
 
         # Extract main business line descriptions (English only)
@@ -54,11 +57,13 @@ def process_names(json_part_data):
         names = entry.get("names", [])
         if not isinstance(names, list):
             logging.error(f"Invalid 'names' field in entry: {entry}")
+            error_rows.append({"entry": entry, "error": "Invalid 'names' field"})
             continue
 
         for name_entry in names:
             if not isinstance(name_entry, dict):
                 logging.error(f"Invalid name_entry skipped: {name_entry}")
+                error_rows.append({"entry": name_entry, "error": "Invalid name_entry format"})
                 continue
 
             # Safely extract name attributes
@@ -69,6 +74,12 @@ def process_names(json_part_data):
 
             # Determine if the name is active (no end date means active)
             is_active = end_date is None
+
+            # Skip rows missing critical fields
+            if not name:
+                logging.error(f"Missing name in name_entry: {name_entry}")
+                error_rows.append({"entry": name_entry, "error": "Missing name"})
+                continue
 
             # Build the row
             row = {
@@ -85,6 +96,7 @@ def process_names(json_part_data):
 
     # Step 3: Convert rows to a DataFrame
     df = pd.DataFrame(rows)
+    error_df = pd.DataFrame(error_rows)
 
     # Step 4: Map name types using Mappings
     df = map_column_values(df, "type", Mappings.map_name_type)
@@ -102,4 +114,8 @@ def process_names(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    return df
+    # Step 6: Remove duplicates based on PRIMARY KEY columns
+    #primary_key_columns = ["business_id", "name", "registration_date"]
+    #df = df.drop_duplicates(subset=primary_key_columns, keep="first")
+
+    return df, error_df

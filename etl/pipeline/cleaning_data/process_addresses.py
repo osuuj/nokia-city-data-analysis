@@ -10,12 +10,13 @@ def process_addresses(json_part_data):
         json_part_data (list): List of JSON objects containing business data.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed addresses data.
+        tuple: (processed DataFrame, error DataFrame)
     """
     if json_part_data is None:
-        return pd.DataFrame()  # Return an empty DataFrame if input is None
+        return pd.DataFrame(), pd.DataFrame()  # Return empty DataFrames if input is None
 
     rows = []
+    error_rows = []
 
     # Step 1: Iterate through each business entry
     for entry in json_part_data:
@@ -56,10 +57,20 @@ def process_addresses(json_part_data):
                 "start_date": start_date,
                 "end_date": end_date,
             }
+
+            # Validation: Check for missing required fields
+            if not business_id:
+                error_rows.append({**row, "error": "Missing business_id (PRIMARY KEY)"})
+                continue
+            if not address_type:
+                error_rows.append({**row, "error": "Missing address_type"})
+                continue
+
             rows.append(row)
 
     # Step 3: Convert rows to a DataFrame
     df = pd.DataFrame(rows)
+    error_df = pd.DataFrame(error_rows)
 
     # Step 4: Handle missing values
     default_values = {
@@ -77,12 +88,16 @@ def process_addresses(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    # Step 5: Remove duplicates
+    # Step 5: Enforce Data Types and Format Dates
+    df["start_date"] = df["start_date"].apply(format_date)
+    df["end_date"] = df["end_date"].apply(format_date)
+
+    # Step 6: Remove duplicates
     #unique_columns = [
-    #    "business_id", "address_type", "street", 
-    #    "building_number", "post_code", "city_id", 
+    #    "business_id", "address_type", "street",
+    #    "building_number", "post_code", "city_id",
     #    "start_date"
     #]
     #df = df.drop_duplicates(subset=unique_columns, keep="first")
 
-    return df
+    return df, error_df

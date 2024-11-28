@@ -1,4 +1,4 @@
-CREATE TABLE business_info (
+CREATE TABLE IF NOT EXISTS business_info (
     business_id VARCHAR(255) PRIMARY KEY,
     registration_date DATE,
     status VARCHAR(50),
@@ -7,7 +7,7 @@ CREATE TABLE business_info (
     last_modified DATE
 );
 
-CREATE TABLE addresses (
+CREATE TABLE IF NOT EXISTS addresses (
     address_id SERIAL PRIMARY KEY,
     business_id VARCHAR(255) REFERENCES business_info(business_id),
     address_type VARCHAR(50),
@@ -22,7 +22,7 @@ CREATE TABLE addresses (
     end_date DATE
 );
 
-CREATE TABLE business_name_history (
+CREATE TABLE IF NOT EXISTS business_name_history (
     id SERIAL PRIMARY KEY,
     business_id VARCHAR(255) REFERENCES business_info(business_id),
     name VARCHAR(255),
@@ -32,7 +32,7 @@ CREATE TABLE business_name_history (
     is_active BOOLEAN
 );
 
-CREATE TABLE names (
+CREATE TABLE IF NOT EXISTS names (
     id SERIAL PRIMARY KEY,
     business_id VARCHAR(255) REFERENCES business_info(business_id),
     name VARCHAR(255),
@@ -44,7 +44,7 @@ CREATE TABLE names (
     business_description VARCHAR(255)
 );
 
-CREATE TABLE company_forms (
+CREATE TABLE IF NOT EXISTS company_forms (
     form_id SERIAL PRIMARY KEY,
     business_id VARCHAR(255) REFERENCES business_info(business_id),
     form_type VARCHAR(50),
@@ -53,7 +53,7 @@ CREATE TABLE company_forms (
     end_date DATE
 );
 
-CREATE TABLE registered_entries (
+CREATE TABLE IF NOT EXISTS registered_entries (
     id SERIAL PRIMARY KEY,
     business_id VARCHAR(255) REFERENCES business_info(business_id),
     description VARCHAR(255),
@@ -62,4 +62,3 @@ CREATE TABLE registered_entries (
     authority VARCHAR(255),
     end_date DATE
 );
-

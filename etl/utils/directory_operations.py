@@ -7,9 +7,9 @@ def ensure_directory_exists(path: str) -> None:
     """Ensure that a directory exists."""
     try:
         os.makedirs(path, exist_ok=True)
-        logger.info(f"Directory ensured: {os.path.basename(path)}")
+        logger.info("Directory ensured.")
     except Exception as e:
-        logger.error(f"Failed to ensure directory {os.path.basename(path)}: {e}")
+        logger.error(f"Failed to ensure directory: {e}")
         raise
 
 def clear_directory(directory: str) -> None:
@@ -21,9 +21,9 @@ def clear_directory(directory: str) -> None:
                     os.remove(os.path.join(root, name))
                 for name in dirs:
                     os.rmdir(os.path.join(root, name))
-            logger.info(f"Cleared old extracted files in {os.path.basename(directory)}")
+            logger.info("Cleared old extracted files.")
         else:
-            logger.warning(f"Directory does not exist: {os.path.basename(directory)}")
+            logger.warning("Directory does not exist.")
     except Exception as e:
-        logger.error(f"Failed to clear directory {os.path.basename(directory)}: {e}")
+        logger.error(f"Failed to clear directory: {e}")
         raise

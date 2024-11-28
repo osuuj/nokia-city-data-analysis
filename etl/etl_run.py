@@ -1,5 +1,4 @@
 import logging
-import time
 from typing import List
 from etl.config.logging_config import configure_logging
 from etl.pipeline.extract_data.download_extract_files import download_and_extract_files
@@ -44,12 +43,8 @@ def setup_environment() -> None:
 
 def main() -> None:
     """Main function to run the ETL process."""
-    start_time = time.time()
     setup_environment()
     process_all_cities(CITIES)
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    logger.info(f"Total ETL process time: {elapsed_time:.2f} seconds")
 
 if __name__ == "__main__":
     try:

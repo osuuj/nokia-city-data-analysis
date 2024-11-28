@@ -15,7 +15,7 @@ def get_project_dir() -> str:
     """Get the project directory."""
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        logging.info(f"Project directory: {project_dir}")
+        logging.info("Project directory determined.")
         return project_dir
     except Exception as e:
         logging.error(f"Failed to get project directory: {e}")
@@ -26,7 +26,7 @@ def get_log_dir() -> str:
     try:
         project_dir = get_project_dir()
         log_dir = os.path.join(project_dir, 'etl', 'data', 'logs')
-        logging.info(f"Log directory: {log_dir}")
+        logging.info("Log directory determined.")
         return log_dir
     except Exception as e:
         logging.error(f"Failed to get log directory: {e}")

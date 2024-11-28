@@ -10,12 +10,13 @@ def process_company_forms(json_part_data):
         json_part_data (list): List of JSON objects containing business data.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed company forms data.
+        tuple: (processed DataFrame, error DataFrame)
     """
     if json_part_data is None:
-        return pd.DataFrame()  # Return an empty DataFrame if input is None
+        return pd.DataFrame(), pd.DataFrame()  # Return empty DataFrames if input is None
 
     rows = []
+    error_rows = []
 
     # Step 1: Iterate through each business entry
     for entry in json_part_data:
@@ -28,7 +29,7 @@ def process_company_forms(json_part_data):
         for form in company_forms:
             # Map form_type
             form_type = Mappings.map_company_form_type(form.get("type"))
-            
+
             # Extract English descriptions
             descriptions = form.get("descriptions", [])
             english_descriptions = filter_english_descriptions(descriptions)
@@ -46,10 +47,20 @@ def process_company_forms(json_part_data):
                 "registration_date": registration_date,
                 "end_date": end_date,
             }
+
+            # Validation: Check for missing critical fields
+            if not business_id:
+                error_rows.append({**row, "error": "Missing business_id (PRIMARY KEY)"})
+                continue
+            if not form_type:
+                error_rows.append({**row, "error": "Missing form_type"})
+                continue
+
             rows.append(row)
 
     # Step 3: Convert rows to a DataFrame
     df = pd.DataFrame(rows)
+    error_df = pd.DataFrame(error_rows)
 
     # Step 4: Handle missing values
     default_values = {
@@ -61,8 +72,8 @@ def process_company_forms(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    # Step 5: Remove duplicates based on PRIMARY KEY columns
+    # Step 5: Remove duplicates based on relevant columns
     #primary_key_columns = ["business_id", "form_type", "registration_date"]
     #df = df.drop_duplicates(subset=primary_key_columns, keep="first")
 
-    return df
+    return df, error_df

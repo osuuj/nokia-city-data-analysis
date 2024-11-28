@@ -10,12 +10,13 @@ def process_business_name_history(json_part_data):
         json_part_data (list): List of JSON objects containing business data.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed business name history data.
+        tuple: (processed DataFrame, error DataFrame)
     """
     if json_part_data is None:
-        return pd.DataFrame()  # Return an empty DataFrame if input is None
+        return pd.DataFrame(), pd.DataFrame()  # Return empty DataFrames if input is None
 
     rows = []
+    error_rows = []
 
     # Step 1: Iterate through each business entry
     for entry in json_part_data:
@@ -27,13 +28,12 @@ def process_business_name_history(json_part_data):
         names = entry.get("names", [])
         for name_entry in names:
             name = name_entry.get("name")
-            # Map name_type
-            name_type = Mappings.map_name_type(name_entry.get("type", 0))
+            name_type = Mappings.map_name_type(name_entry.get("type", 0))  # Map name_type
             
-            # Format start_date and end_date using format_date
+            # Format dates
             start_date = format_date(name_entry.get("registrationDate"))
             end_date = format_date(name_entry.get("endDate"))
-        
+
             # Determine if the name is active
             is_active = end_date is None
 
@@ -46,10 +46,20 @@ def process_business_name_history(json_part_data):
                 "end_date": end_date,
                 "is_active": is_active,
             }
+
+            # Validation: Check for missing critical fields
+            if not business_id:
+                error_rows.append({**row, "error": "Missing business_id (PRIMARY KEY)"})
+                continue
+            if not name:
+                error_rows.append({**row, "error": "Missing name"})
+                continue
+
             rows.append(row)
 
-    # Step 3: Convert rows to a DataFrame
+    # Step 3: Convert rows to DataFrame
     df = pd.DataFrame(rows)
+    error_df = pd.DataFrame(error_rows)
 
     # Step 4: Handle missing values
     default_values = {
@@ -62,8 +72,8 @@ def process_business_name_history(json_part_data):
     }
     df = handle_missing_values(df, default_values)
 
-    # Step 5: Remove duplicates based on PRIMARY KEY columns
+    # Step 5: Remove duplicates based on relevant columns
     #primary_key_columns = ["business_id", "name", "start_date"]
     #df = df.drop_duplicates(subset=primary_key_columns, keep="first")
 
-    return df
+    return df, error_df
