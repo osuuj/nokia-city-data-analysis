@@ -1,6 +1,6 @@
 # Ignore Python virtual environment
-env/
-venvs/etl_env/
+venvs/
+etl_env/
 
 # Ignore
 etl/data/
@@ -9,6 +9,7 @@ etl/data/
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyc
 
 # Ignore mypy cache
 .mypy_cache/
@@ -19,6 +20,8 @@ __pycache__/
 # Ignore logs and temporary files
 *.log
 *.tmp
+etl/data/v1/logs/
+etl/data/v2/logs/
 
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/

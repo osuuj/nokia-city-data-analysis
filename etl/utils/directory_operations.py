@@ -1,15 +1,26 @@
 import os
 import logging
+from typing import List
 
 logger = logging.getLogger(__name__)
+
+def setup_directories(directories: List[str]) -> None:
+    """Set up necessary directories."""
+    logger.info("Setting up directories.")
+    for directory in directories:
+        try:
+            ensure_directory_exists(directory)
+        except Exception as e:
+            logger.error(f"Error setting up directory {directory}: {e}")
+    logger.info("Completed setting up directories.")
 
 def ensure_directory_exists(path: str) -> None:
     """Ensure that a directory exists."""
     try:
         os.makedirs(path, exist_ok=True)
-        logger.info("Directory ensured.")
+        logger.debug(f"Directory ensured: {path}")
     except Exception as e:
-        logger.error(f"Failed to ensure directory: {e}")
+        logger.error(f"Failed to ensure directory {path}: {e}")
         raise
 
 def clear_directory(directory: str) -> None:
@@ -21,9 +32,9 @@ def clear_directory(directory: str) -> None:
                     os.remove(os.path.join(root, name))
                 for name in dirs:
                     os.rmdir(os.path.join(root, name))
-            logger.info("Cleared old extracted files.")
+            logger.info(f"Cleared directory: {directory}")
         else:
-            logger.warning("Directory does not exist.")
+            logger.warning(f"Directory does not exist: {directory}")
     except Exception as e:
-        logger.error(f"Failed to clear directory: {e}")
+        logger.error(f"Failed to clear directory {directory}: {e}")
         raise

@@ -1,50 +1,45 @@
+import json
 import os
-import csv
-import logging
-from typing import List, Dict, Any, Optional
+import ijson
+from etl.utils.directory_operations import ensure_directory_exists
 
-logger = logging.getLogger(__name__)
-
-def find_latest_json_file(directory: str) -> Optional[str]:
-    """Find the latest JSON file in the specified directory."""
+def get_unzipped_file_name(extracted_dir):
+    """Get the name of the file in the specified extracted directory."""
     try:
-        if not os.path.exists(directory):
-            logger.error("Directory does not exist")
-            return None
-        
-        json_files = [f for f in os.listdir(directory) if f.endswith('.json')]
-        if not json_files:
-            logger.warning("No JSON files found")
-            return None
-        
-        latest_file = max(json_files, key=lambda f: os.path.getmtime(os.path.join(directory, f)))
-        return latest_file
+        # List all files in the directory
+        files = os.listdir(extracted_dir)
+        # Filter out directories, keeping only files
+        files = [f for f in files if os.path.isfile(os.path.join(extracted_dir, f))]
+        # Ensure there is only one unzipped file
+        if len(files) == 1:
+            return files[0]
+        elif len(files) > 1:
+            print(f"Multiple files found in {extracted_dir}: {files}")
+        else:
+            print(f"No files found in {extracted_dir}.")
     except Exception as e:
-        logger.error(f"Error finding latest JSON file: {e}")
-        return None
+        print(f"Error accessing directory {extracted_dir}: {e}")
+    return None
 
-def is_valid_file_path(base_dir: str, file_path: str) -> bool:
-    """Check if the file path is within the base directory."""
-    try:
-        base_dir = os.path.abspath(base_dir)
-        file_path = os.path.abspath(file_path)
-        is_valid = os.path.commonpath([base_dir]) == os.path.commonpath([base_dir, file_path])
-        return is_valid
-    except Exception as e:
-        logger.error(f"Error validating file path: {e}")
-        return False
+def split_json_to_files(file_path, output_dir, chunk_size=1000):
+    """Splits a large JSON file into smaller JSON files."""
+    # Ensure the directory exists
+    ensure_directory_exists(output_dir) 
+    chunk = []
+    chunk_index = 1
 
-def save_to_csv(filename: str, data: List[Dict[str, Any]], headers: List[str]) -> None:
-    """Save tables to CSV."""
-    try:
-        if not is_valid_file_path(os.getcwd(), filename):
-            raise ValueError("Invalid file path")
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for record in ijson.items(file, 'item'):
+            chunk.append(record)
+            if len(chunk) >= chunk_size:
+                output_file = os.path.join(output_dir, f"chunk_{chunk_index}.json")
+                with open(output_file, 'w', encoding='utf-8') as out_file:
+                    json.dump(chunk, out_file, indent=4)
+                chunk = []  # Clear the buffer
+                chunk_index += 1
         
-        with open(filename, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=headers)
-            writer.writeheader()
-            writer.writerows(data)
-    except ValueError as ve:
-        logger.error(f"Value error: {ve}")
-    except Exception as e:
-        logger.error(f"Failed to save data: {e}")
+        # Write remaining records
+        if chunk:
+            output_file = os.path.join(output_dir, f"chunk_{chunk_index}.json")
+            with open(output_file, 'w', encoding='utf-8') as out_file:
+                json.dump(chunk, out_file, indent=4)

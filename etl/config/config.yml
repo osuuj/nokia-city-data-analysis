@@ -1,0 +1,26 @@
+db:
+  dbname: ${POSTGRES_DB}
+  user: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
+  host: ${DB_HOST}
+  port: ${DB_PORT:-5432}
+
+
+url:
+  all_companies: 'https://avoindata.prh.fi/opendata-ytj-api/v3/all_companies'
+  toimi3_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=fi'
+  toimi3_sv: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=sv'
+  toimi3_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=en'
+
+  YRMU_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
+  YRMU_sv: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
+  YRMU_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
+
+
+
+directory_structure:
+  raw_dir: etl/data/1_raw/
+  extracted_dir: etl/data/2_extracted
+  processed_dir: etl/data/3_processed
+  logs_dir: etl/data/logs
+  file_name: all_companies.zip
