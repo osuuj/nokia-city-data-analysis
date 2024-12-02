@@ -1,26 +1,42 @@
 db:
-  dbname: ${POSTGRES_DB}
-  user: ${POSTGRES_USER}
-  password: ${POSTGRES_PASSWORD}
-  host: ${DB_HOST}
+  dbname: ${POSTGRES_DB:-default_db}
+  user: ${POSTGRES_USER:-default_user}
+  password: ${POSTGRES_PASSWORD:-default_password}
+  host: ${DB_HOST:-localhost}
   port: ${DB_PORT:-5432}
 
-
-url:
-  all_companies: 'https://avoindata.prh.fi/opendata-ytj-api/v3/all_companies'
-  toimi3_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=fi'
-  toimi3_sv: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=sv'
-  toimi3_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=TOIMI3&lang=en'
-
-  YRMU_fi: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
-  YRMU_sv: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
-  YRMU_en: 'https://avoindata.prh.fi/opendata-ytj-api/v3/description?code=YRMU&lang=fi'
-
-
+url_templates:
+  base: 'https://avoindata.prh.fi/opendata-ytj-api/v3/'
+  endpoints:
+    all_companies: "all_companies"
+    description: "description?code={code}&lang={lang}"
 
 directory_structure:
   raw_dir: etl/data/1_raw/
   extracted_dir: etl/data/2_extracted
   processed_dir: etl/data/3_processed
   logs_dir: etl/data/logs
-  file_name: all_companies.zip
+
+entities:
+  - name: "companies"
+    extractor: "etl.pipeline.extract.extract_companies.extract_companies"
+  - name: "names"
+    extractor: "etl.pipeline.extract.extract_names.extract_names"
+  - name: "main_business_lines"
+    extractor: "etl.pipeline.extract.extract_main_business_lines.extract_main_business_lines"
+  - name: "business_line_descriptions"
+    extractor: "etl.pipeline.extract.extract_business_line_descriptions.extract_business_line_descriptions"
+  - name: "company_forms"
+    extractor: "etl.pipeline.extract.extract_company_forms.extract_company_forms"
+  - name: "company_form_descriptions"
+    extractor: "etl.pipeline.extract.extract_company_form_descriptions.extract_company_form_descriptions"
+  - name: "company_situations"
+    extractor: "etl.pipeline.extract.extract_company_situations.extract_company_situations"
+  - name: "registered_entries"
+    extractor: "etl.pipeline.extract.extract_registered_entries.extract_registered_entries"
+  - name: "registered_entry_descriptions"
+    extractor: "etl.pipeline.extract.extract_registered_entry_descriptions.extract_registered_entry_descriptions"
+  - name: "addresses"
+    extractor: "etl.pipeline.extract.extract_addresses.extract_addresses"
+  - name: "post_offices"
+    extractor: "etl.pipeline.extract.extract_post_offices.extract_post_offices"

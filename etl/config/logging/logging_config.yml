@@ -1,0 +1,48 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  standard:
+    format: '%(asctime)s - %(levelname)s - %(message)s'
+  debug:
+    format: '%(asctime)s - %(levelname)s - [%(module)s] %(message)s'
+  error:
+    format: '%(asctime)s - %(levelname)s - [%(module)s: %(lineno)d] %(message)s'
+
+handlers:
+  console_debug:
+    level: DEBUG
+    class: logging.StreamHandler
+    formatter: debug
+  console_error:
+    level: ERROR
+    class: logging.StreamHandler
+    formatter: error
+  file:
+    level: INFO
+    class: logging.handlers.RotatingFileHandler
+    filename: etl.log
+    maxBytes: 10485760  # 10 MB
+    backupCount: 5      # Keep 5 backup files
+    formatter: standard
+
+loggers:
+  development:
+    handlers: ['console_debug', 'file']
+    level: DEBUG
+    propagate: True
+  production:
+    handlers: ['console_error', 'file']
+    level: ERROR
+    propagate: True
+  etl.extract:
+    handlers: ['console_debug', 'file']
+    level: INFO
+    propagate: False
+  etl.transform:
+    handlers: ['console_debug', 'file']
+    level: INFO
+    propagate: False
+  etl.load:
+    handlers: ['console_debug', 'file']
+    level: INFO
+    propagate: False

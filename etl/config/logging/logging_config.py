@@ -3,6 +3,7 @@ import logging
 import logging.config
 import yaml
 from etl.config.config_loader import DIRECTORY_STRUCTURE
+from etl.config.logging.filters import SensitiveDataFilter
 
 def configure_logging() -> None:
     """Configure logging for the project."""
@@ -17,13 +18,25 @@ def configure_logging() -> None:
     with open(config_file_path, 'r') as file:
         config = yaml.safe_load(file)
 
-    # Update the log file path and log level in the configuration
+    # Update the log file path in the configuration
     config['handlers']['file']['filename'] = log_file_path
-    log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
-    config['handlers']['console']['level'] = log_level
-    config['handlers']['file']['level'] = log_level
-    config['loggers']['']['level'] = log_level
-    config['loggers']['etl']['level'] = log_level
 
+    # Determine the environment (development or production)
+    env = os.getenv('ENV', 'development')
+
+    # Apply the appropriate logger configuration
     logging.config.dictConfig(config)
-    logging.info("Logging is configured.")
+    logger = logging.getLogger(env)
+
+    # Add the sensitive data filter to the logger
+    sensitive_data_filter = SensitiveDataFilter()
+    for handler in logger.handlers:
+        handler.addFilter(sensitive_data_filter)
+
+    # Configure the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logger.level)
+    for handler in logger.handlers:
+        root_logger.addHandler(handler)
+
+    logging.info("Logging is configured for %s environment.", env)

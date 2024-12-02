@@ -3,7 +3,7 @@ venvs/
 etl_env/
 
 # Ignore
-etl/data/
+etl/data/*
 
 # Ignore Python cache files
 __pycache__/
