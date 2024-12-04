@@ -12,13 +12,12 @@ import os
 from etl.scripts.entity_processing import process_and_save_entity
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.scripts.extract_companies_data import process_json_directory
-from etl.utils.chunking_utils import split_json_to_files
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.json_utils import split_and_process_json
 from etl.utils.network_utils import get_url, download_json_files
-from etl.config.config_loader import load_config
+from etl.pipeline.transform.cleaning import clean_dataset
 from etl.config.logging.logging_config import configure_logging
-from etl.pipeline.transform.cleaning import process_all_files
+from etl.config.config_loader import load_all_configs
 
 # Configure logging
 configure_logging()
@@ -83,7 +82,7 @@ def process_entities(data_records, config):
     for entity in config['ENTITIES']:
         entity_name = entity['name']
         schema_file = os.path.join(config['SCHEMA_PATH'], f"{entity_name}_schema.yml")
-        process_all_files(extract_data_path, cleaned_path, entity_name, schema_file)
+        clean_dataset(extract_data_path, cleaned_path, entity_name, schema_file)
     logger.info("Entity processing and cleaning completed.")
 
 def run_etl_pipeline():
@@ -91,7 +90,7 @@ def run_etl_pipeline():
     Run the entire ETL pipeline.
     """
     start_time = time.time()
-    config = load_config()
+    config = load_all_configs()
 
     try:
         # Step 1: Environment setup

@@ -2,7 +2,6 @@
 Utilities for applying mappings to dataframes or values.
 """
 import logging
-import pandas as pd
 from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)

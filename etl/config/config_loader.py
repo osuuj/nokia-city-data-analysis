@@ -35,5 +35,3 @@ def load_all_configs():
 
     return resolve_env_vars(combined_config)
 
-# Load all configurations
-CONFIG = load_all_configs()

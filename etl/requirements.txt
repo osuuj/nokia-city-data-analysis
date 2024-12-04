@@ -1,9 +1,10 @@
-python-dotenv
-PyYAML
-requests
-ijson
-sqlalchemy
-pandas
-psycopg2-binary
-jupyter
-numpy
+#python==3.12.5
+python-dotenv== 1.0.1
+PyYAML==6.0.2
+requests==2.32.3
+ijson==3.3.0
+sqlalchemy==2.0.36
+pandas==2.2.3
+psycopg2-binary==2.9.10
+jupyter==1.1.1
+numpy==2.1.3
