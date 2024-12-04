@@ -1,0 +1,14 @@
+columns:
+  businessId:
+    type: string
+    nullable: false
+  entryType:
+    type: string
+    nullable: false
+  description:
+    type: string
+    nullable: true
+
+options:
+  remove_duplicates: true
+  validate_column_names: true

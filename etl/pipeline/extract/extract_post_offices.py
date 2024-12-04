@@ -1,21 +1,46 @@
 import logging
+from etl.config.mappings import post_office_language_code
 
 logger = logging.getLogger(__name__)
 
-def extract_post_offices(data):
+def extract_post_offices(data, lang):
+    """
+    Extracts post office details from JSON data, filtering by languageCode.
+
+    Args:
+        data (list): List of company data.
+        lang (str): Language abbreviation ("fi", "sv", "en").
+
+    Returns:
+        list: Extracted post office rows filtered by the specified language.
+    """
     rows = []
+
+    # Get the numeric language code for the specified language
+    lang_code = post_office_language_code.get(lang)
+    if lang_code is None:
+        logger.error(f"Invalid language code: {lang}")
+        return rows
+
+    # Process each company in the provided data
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = company.get('businessId', {}).get('value')
         if not business_id:
+            logger.warning("Skipping company without businessId.")
             continue  # Skip if no businessId
-        for address in company.get('addresses', []):
+
+        addresses = company.get('addresses', [])
+        for address in addresses:
             for post_office in address.get('postOffices', []):
-                rows.append({
-                    "businessId": business_id,
-                    "postCode": post_office.get('postCode', ''),
-                    "city": post_office.get('city', ''),
-                    "active": post_office.get('active', ''),
-                    "languageCode": post_office.get('languageCode', ''),
-                    "municipalityCode": post_office.get('municipalityCode', '')
-                })
+                # Check if the languageCode matches the target lang_code
+                if str(post_office.get('languageCode')) == lang_code:
+                    rows.append({
+                        "businessId": business_id,
+                        "postCode": post_office.get('postCode', ''),
+                        "city": post_office.get('city', ''),
+                        "active": post_office.get('active', ''),
+                        "languageCode": lang,  # Store as the original language string
+                        "municipalityCode": post_office.get('municipalityCode', '')
+                    })
+
     return rows

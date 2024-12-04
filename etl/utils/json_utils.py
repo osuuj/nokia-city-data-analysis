@@ -2,6 +2,7 @@ import os
 import json
 import ijson
 import logging
+import requests
 from etl.utils.directory_operations import ensure_directory_exists
 
 # Initialize logger for JSON utilities
@@ -100,3 +101,39 @@ def get_url(endpoint_name, url_templates, params=None):
     if params:
         endpoint = endpoint.format(**params)
     return f"{base_url}{endpoint}"
+
+def download_json_files(base_url, endpoint_template, codes, langs, output_dir):
+    """
+    Download JSON files based on codes and languages.
+
+    :param base_url: Base URL for the API
+    :param endpoint_template: Endpoint template for the API
+    :param codes: List of codes to include in the URL
+    :param langs: List of languages to include in the URL
+    :param output_dir: Directory where downloaded files will be saved
+    """
+    ensure_directory_exists(output_dir)
+    for code in codes:
+        for lang in langs:
+            url = f"{base_url}{endpoint_template.format(code=code, lang=lang)}"
+            file_name = f"{code}_{lang}.json"
+            file_path = os.path.join(output_dir, file_name)
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                # Validate JSON response
+                try:
+                    data = response.json()
+                    with open(file_path, 'w', encoding='utf-8') as file:
+                        json.dump(data, file, indent=4)
+                    json_utils_logger.info(f"Downloaded JSON file to {file_path}")
+                except json.JSONDecodeError:
+                    # Save as text if not a valid JSON
+                    text_file_path = file_path.replace('.json', '.txt')
+                    with open(text_file_path, 'w', encoding='utf-8') as file:
+                        file.write(response.text)
+                    json_utils_logger.info(f"Downloaded text file to {text_file_path}")
+            except requests.HTTPError as e:
+                json_utils_logger.error(f"HTTP error while downloading JSON file from {url}: {e}")
+            except requests.RequestException as e:
+                json_utils_logger.error(f"Failed to download JSON file from {url}: {e}")

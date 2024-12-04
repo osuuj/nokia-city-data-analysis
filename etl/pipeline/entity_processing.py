@@ -6,7 +6,7 @@ from etl.utils.extraction_helpers import get_extractor_function
 
 logger = logging.getLogger(__name__)
 
-def process_and_save_entity(data_records, entity_name, extract_data_path, chunk_size):
+def process_and_save_entity(data_records,lang, entity_name, extract_data_path, chunk_size):
     """
     Process and save data for a specific entity.
 
@@ -20,7 +20,7 @@ def process_and_save_entity(data_records, entity_name, extract_data_path, chunk_
 
     try:
         extractor_func = get_extractor_function(entity_name)
-        extracted_data = extractor_func(data_records)
+        extracted_data = extractor_func(data_records, lang)
         if not extracted_data:
             logger.warning(f"No data extracted for {entity_name}.")
             return

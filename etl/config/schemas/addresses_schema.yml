@@ -1,0 +1,61 @@
+columns:
+  businessId:
+    type: string
+    nullable: false
+  type:
+    type: string
+    nullable: true
+    mappings:
+      visiting address: "Visiting Address"
+      postal address: "Postal Address"
+  street:
+    type: string
+    nullable: true
+    default: ""
+  postCode:
+    type: string
+    nullable: true
+    default: ""
+  postOfficeBox:
+    type: string
+    nullable: true
+    default: ""
+  buildingNumber:
+    type: string
+    nullable: true
+    default: ""
+  entrance:
+    type: string
+    nullable: true
+    default: ""
+  apartmentNumber:
+    type: string
+    nullable: true
+    default: ""
+  apartmentIdSuffix:
+    type: string
+    nullable: true
+    default: ""
+  co:
+    type: string
+    nullable: true
+    default: ""
+  country:
+    type: string
+    nullable: true
+    default: "Finland"
+  freeAddressLine:
+    type: string
+    nullable: true
+    default: ""
+  registrationDate:
+    type: date
+    nullable: true
+  source:
+    type: string
+    nullable: true
+
+options:
+  remove_duplicates: true
+  validate_column_names: true
+  default_date_format: "%Y-%m-%d"

@@ -1,0 +1,182 @@
+version: 2
+
+models:
+  - name: addresses
+    description: "Contains address-related information for businesses."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: type
+        description: "Type of address."
+      - name: street
+        description: "Street name of the address."
+      - name: postcode
+        description: "Postal code of the address."
+      - name: postofficebox
+        description: "Post office box number."
+      - name: buildingnumber
+        description: "Building number of the address."
+      - name: entrance
+        description: "Entrance identifier."
+      - name: apartmentnumber
+        description: "Apartment number of the address."
+      - name: apartmentidsuffix
+        description: "Additional suffix for apartment ID."
+      - name: co
+        description: "Care of field for the address."
+      - name: country
+        description: "Country name of the address."
+      - name: freeaddressline
+        description: "Freeform address line."
+      - name: registrationdate
+        description: "Date when the address was registered."
+      - name: source
+        description: "Source of the address data."
+
+  - name: business_line_descriptions
+    description: "Descriptions of business lines in various languages."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: languagecode
+        description: "Language code for the description."
+      - name: description
+        description: "Business line description."
+
+  - name: companies
+    description: "Details of registered companies."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the company."
+      - name: registrationdate
+        description: "Date when the company was registered."
+      - name: traderegisterstatus
+        description: "Trade register status."
+      - name: status
+        description: "Current status of the company."
+      - name: registrationdatecompany
+        description: "Registration date of the company entity."
+      - name: enddate
+        description: "End date for the company's existence, if applicable."
+      - name: lastmodified
+        description: "Timestamp of the last modification."
+
+  - name: company_form_descriptions
+    description: "Descriptions of company forms in multiple languages."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: type
+        description: "Company form type identifier."
+      - name: languagecode
+        description: "Language code for the description."
+      - name: description
+        description: "Company form description."
+
+  - name: company_forms
+    description: "Details about different company forms."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: type
+        description: "Company form type identifier."
+      - name: registrationdate
+        description: "Registration date of the form."
+      - name: enddate
+        description: "End date for the form, if applicable."
+      - name: version
+        description: "Version of the company form."
+      - name: source
+        description: "Source of the company form data."
+
+  - name: company_situations
+    description: "Situations or statuses of companies."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the company."
+      - name: type
+        description: "Type of situation or status."
+      - name: registrationdate
+        description: "Date when the situation started."
+      - name: enddate
+        description: "End date of the situation, if applicable."
+      - name: source
+        description: "Source of the situation data."
+
+  - name: main_business_lines
+    description: "Main business lines of the companies."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: type
+        description: "Type code for the business line."
+      - name: typecodeset
+        description: "Set of codes for the business type."
+      - name: registrationdate
+        description: "Date when the business line was registered."
+      - name: source
+        description: "Source of the business line data."
+
+  - name: names
+    description: "Registered names of businesses."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: name
+        description: "Registered name of the business."
+      - name: type
+        description: "Type of the name."
+      - name: registrationdate
+        description: "Date when the name was registered."
+      - name: enddate
+        description: "End date for the name, if applicable."
+      - name: version
+        description: "Version of the name record."
+      - name: source
+        description: "Source of the name data."
+
+  - name: post_offices
+    description: "Information about post offices related to businesses."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: postcode
+        description: "Postal code."
+      - name: city
+        description: "City name."
+      - name: active
+        description: "Whether the post office is active."
+      - name: languagecode
+        description: "Language code."
+      - name: municipalitycode
+        description: "Code for the municipality."
+
+  - name: registered_entries
+    description: "Details of registered entries for businesses."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: type
+        description: "Type of registered entry."
+      - name: registrationdate
+        description: "Date when the entry was registered."
+      - name: enddate
+        description: "End date for the registered entry, if applicable."
+      - name: register
+        description: "Register associated with the entry."
+      - name: authority
+        description: "Authority responsible for the entry."
+      - name: source
+        description: "Source of the registered entry data."
+
+  - name: registered_entry_descriptions
+    description: "Descriptions for registered entry types in multiple languages."
+    columns:
+      - name: businessid
+        description: "Unique identifier for the business."
+      - name: entrytype
+        description: "Type of the registered entry."
+      - name: languagecode
+        description: "Language code for the description."
+      - name: description
+        description: "Description of the registered entry type."

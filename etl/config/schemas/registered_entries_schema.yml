@@ -1,0 +1,28 @@
+columns:
+  businessId:
+    type: string
+    nullable: false
+  type:
+    type: string
+    nullable: false
+    mappings:
+      1: "Registered"
+      41: "Employer Register"
+      82: "VAT-obliged"
+  registrationDate:
+    type: date
+    nullable: true
+  endDate:
+    type: date
+    nullable: true
+  register:
+    type: string
+    nullable: true
+  authority:
+    type: string
+    nullable: true
+
+options:
+  remove_duplicates: true
+  validate_column_names: true
+  default_date_format: "%Y-%m-%d"

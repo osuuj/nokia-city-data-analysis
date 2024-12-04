@@ -1,0 +1,30 @@
+columns:
+  businessId:
+    type: string
+    nullable: false
+  name:
+    type: string
+    nullable: false
+  type:
+    type: string
+    nullable: false
+    mappings:
+      Company name: "Official Name"
+      Auxiliary company name: "Auxiliary Name"
+  registrationDate:
+    type: date
+    nullable: true
+  endDate:
+    type: date
+    nullable: true
+  version:
+    type: integer
+    nullable: true
+  source:
+    type: string
+    nullable: true
+
+options:
+  remove_duplicates: true
+  validate_column_names: true
+  default_date_format: "%Y-%m-%d"
