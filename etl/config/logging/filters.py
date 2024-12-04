@@ -1,3 +1,9 @@
+"""
+Custom logging filters.
+
+This module provides filters to manage log output, including filtering
+specific log messages and sanitizing sensitive information.
+"""
 import logging
 import re
 

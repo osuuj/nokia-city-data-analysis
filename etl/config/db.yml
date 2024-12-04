@@ -1,0 +1,6 @@
+db:
+  name: ${POSTGRES_DB}
+  user: ${POSTGRES_USER}
+  password: ${POSTGRES_PASSWORD}
+  host: ${DB_HOST}
+  port: ${DB_PORT}

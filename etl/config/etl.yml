@@ -1,23 +1,9 @@
-db:
-  dbname: ${POSTGRES_DB:-default_db}
-  user: ${POSTGRES_USER:-default_user}
-  password: ${POSTGRES_PASSWORD:-default_password}
-  host: ${DB_HOST:-localhost}
-  port: ${DB_PORT:-5432}
-
+# etl.yml
 url_templates:
   base: 'https://avoindata.prh.fi/opendata-ytj-api/v3/'
   endpoints:
     all_companies: "all_companies"
     description: "description?code={code}&lang={lang}"
-
-directory_structure:
-  raw_dir: etl/data/1_raw/
-  extracted_dir: etl/data/2_extracted
-  processed_dir: etl/data/3_processed
-  logs_dir: etl/data/logs
-  base_schema_path: etl/config/schemas
-  db_schema_path: db/schema.sql
 
 lang:
   finnish: "fi"
@@ -68,7 +54,3 @@ entities:
   - name: "company_situations"
     table: "company_situations"
     extractor: "etl.pipeline.extract.extract_company_situations.extract_company_situations"
-  
-  
-  
-  

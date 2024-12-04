@@ -1,0 +1,8 @@
+# directory.yml
+directory_structure:
+  raw_dir: etl/data/1_raw/
+  extracted_dir: etl/data/2_extracted
+  processed_dir: etl/data/3_processed
+  logs_dir: etl/data/logs
+  base_schema_path: etl/config/schemas
+  db_schema_path: db/schema.sql
