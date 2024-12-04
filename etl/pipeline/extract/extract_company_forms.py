@@ -1,43 +1,39 @@
 import logging
-from etl.config.mappings import source_mapping
+from etl.utils.extract_utils import get_business_id, validate_language, map_value
+from etl.config.mappings.mappings import source_mapping
 
 logger = logging.getLogger(__name__)
 
 def extract_company_forms(data, lang):
     """
-    Extracts company forms from JSON data.
+    Extracts company forms with source mapping.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
+        lang (str): Language abbreviation for mappings (e.g., "fi", "en", "sv").
 
     Returns:
-        list: Extracted company form rows.
+        list: Extracted rows with company forms.
     """
     rows = []
-    source_lang = source_mapping.get(lang, None)
-
-    if source_lang is None:
-        logger.error(f"Invalid language code: {lang}")
+    if not validate_language(lang, source_mapping):
         return rows
 
+    source_lang = source_mapping[lang]
+
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = get_business_id(company)
         if not business_id:
-            continue  # Skip if no businessId
-        
+            continue
+
         for form in company.get('companyForms', []):
-            # Map source
-            raw_source = form.get('source', None)
-            mapped_source = source_lang.get(raw_source, raw_source)
-            
             rows.append({
                 "businessId": business_id,
                 "type": form.get('type', ''),
                 "registrationDate": form.get('registrationDate', ''),
                 "endDate": form.get('endDate', None),
                 "version": form.get('version', 0),
-                "source": mapped_source
+                "source": map_value(form.get('source', None), source_lang)
             })
     return rows
 

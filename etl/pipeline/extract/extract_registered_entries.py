@@ -1,45 +1,40 @@
 import logging
-from etl.config.mappings import register_mapping, authority_mapping
+from etl.utils.extract_utils import get_business_id, validate_language, map_value
+from etl.config.mappings.mappings import register_mapping, authority_mapping
 
 logger = logging.getLogger(__name__)
 
 def extract_registered_entries(data, lang):
     """
-    Extracts registered entry details from JSON data with register and authority mappings.
+    Extracts registered entry details with register and authority mappings.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
+        lang (str): Language abbreviation (e.g., "fi", "en", "sv").
 
     Returns:
-        list: Extracted registered entry rows.
+        list: Extracted rows with registered entries.
     """
     rows = []
-    register_lang = register_mapping.get(lang, None)
-    authority_lang = authority_mapping.get(lang, None)
-
-    if register_lang is None or authority_lang is None:
-        logger.error(f"Invalid language code: {lang}")
+    if not (validate_language(lang, register_mapping) and validate_language(lang, authority_mapping)):
         return rows
 
+    register_lang = register_mapping[lang]
+    authority_lang = authority_mapping[lang]
+
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = get_business_id(company)
         if not business_id:
             continue
-        
+
         for entry in company.get('registeredEntries', []):
-            raw_register = entry.get('register', None)
-            mapped_register = register_lang.get(raw_register, raw_register)
-            
-            raw_authority = entry.get('authority', None)
-            mapped_authority = authority_lang.get(raw_authority, raw_authority)
-            
             rows.append({
                 "businessId": business_id,
-                "type": entry.get('type', ''), 
+                "type": entry.get('type', ''),
                 "registrationDate": entry.get('registrationDate', ''),
                 "endDate": entry.get('endDate', None),
-                "register": mapped_register,
-                "authority": mapped_authority
+                "register": map_value(entry.get('register', None), register_lang),
+                "authority": map_value(entry.get('authority', None), authority_lang)
             })
+
     return rows

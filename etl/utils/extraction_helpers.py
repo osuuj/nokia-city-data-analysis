@@ -1,31 +1,32 @@
+"""
+Helpers for entity-specific data extraction.
+
+This module provides utilities for resolving extractor functions
+for specific entities based on configuration. It integrates with
+dynamic imports to retrieve the appropriate function for each entity.
+"""
 import logging
-import importlib
-from etl.config.config_loader import ENTITIES
+from etl.utils.dynamic_imports import import_function
 
 logger = logging.getLogger(__name__)
 
-def import_function(func_path: str):
+def get_extractor_function(entity_name: str, entities: list):
     """
-    Import a function dynamically from its fully qualified name.
-    :param func_path: Fully qualified function name (e.g., "module.submodule.function").
-    :return: The function object.
-    """
-    module_name, func_name = func_path.rsplit('.', 1)
-    module = importlib.import_module(module_name)
-    return getattr(module, func_name)
-
-def get_extractor_function(entity_name: str):
-    """
-    Get the extractor function for a given entity from the ENTITIES configuration.
+    Get the extractor function for a given entity from a list of entities.
     :param entity_name: Name of the entity.
+    :param entities: List of entity configurations.
     :return: The extractor function.
     """
     func_path = None
-    for entity in ENTITIES:
+    for entity in entities:
         if entity['name'] == entity_name:
             func_path = entity.get('extractor')
             break
+
     if not func_path:
+        logger.error(f"No extractor function found for entity: {entity_name}")
         raise ValueError(f"No extractor function found for entity: {entity_name}")
+
+    logger.info(f"Extractor function path resolved for entity {entity_name}: {func_path}")
     return import_function(func_path)
 

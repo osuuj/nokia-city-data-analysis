@@ -1,45 +1,37 @@
 import logging
-from etl.config.mappings import language_code_mapping
+from etl.utils.extract_utils import get_business_id, filter_by_language_code
+from etl.config.mappings.mappings import language_code_mapping
 
 logger = logging.getLogger(__name__)
 
 def extract_registered_entry_descriptions(data, lang):
     """
-    Extracts registered entry descriptions filtered by language.
+    Extracts descriptions of registered entries filtered by language.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for filtering ("fi", "sv", "en").
+        lang (str): Language abbreviation for filtering (e.g., "fi", "en", "sv").
 
     Returns:
-        list: Extracted registered entry description rows.
+        list: Extracted rows with registered entry descriptions.
     """
     rows = []
 
-    # Ensure `lang` is valid
-    if lang not in language_code_mapping:
-        logger.error(f"Invalid language code: {lang}")
+    if not validate_language(lang, language_code_mapping):
         return rows
 
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = get_business_id(company)
         if not business_id:
-            continue  # Skip if no businessId
+            continue
 
         for entry in company.get('registeredEntries', []):
-            descriptions = entry.get('descriptions', [])
+            descriptions = filter_by_language_code(entry.get('descriptions', []), lang, language_code_mapping)
             for desc in descriptions:
-                # Map raw language code back to language abbreviation
-                raw_language_code = desc.get('languageCode', None)
-                mapped_lang = next(
-                    (key for key, value in language_code_mapping.items() if value == str(raw_language_code)),
-                    None
-                )
+                rows.append({
+                    "businessId": business_id,
+                    "type": entry.get('type', ''),
+                    "description": desc.get('description', '')
+                })
 
-                if mapped_lang == lang:
-                    rows.append({
-                        "businessId": business_id,
-                        "entryType": entry.get('type', ''),  # Keep raw type value
-                        "description": desc.get('description', '')
-                    })
     return rows

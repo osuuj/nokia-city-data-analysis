@@ -1,51 +1,26 @@
 import logging
-from etl.config.mappings import language_code_mapping
+from etl.utils.extract_utils import get_business_id, validate_language
+from etl.config.mappings.mappings import language_code_mapping
 
 logger = logging.getLogger(__name__)
 
 def extract_business_line_descriptions(data, lang):
-    """
-    Extracts business line descriptions from JSON data.
-
-    Args:
-        data (list): List of company data.
-        lang (str): Target language code (e.g., 'en', 'fi', 'sv').
-
-    Returns:
-        list: Extracted business line description rows.
-    """
     rows = []
 
-    # Ensure `lang` is valid
-    if lang not in language_code_mapping:
-        logger.error(f"Invalid language code: {lang}")
+    if not validate_language(lang, language_code_mapping):
         return rows
 
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = get_business_id(company)
         if not business_id:
-            continue  # Skip if no businessId
+            continue
 
-        main_business_line = company.get('mainBusinessLine')
-        if main_business_line is None:
-            continue  # Skip if no mainBusinessLine
-
-        descriptions = main_business_line.get('descriptions', [])
+        descriptions = company.get('mainBusinessLine', {}).get('descriptions', [])
         for desc in descriptions:
-            # Extract raw language code and map it to a language abbreviation
-            raw_language_code = desc.get('languageCode', None)
-
-            # Reverse mapping: Convert numeric code back to language abbreviation
-            mapped_lang = next(
-                (key for key, value in language_code_mapping.items() if value == str(raw_language_code)),
-                None
-            )
-
-            # Check if the mapped language matches the desired `lang`
-            if mapped_lang == lang:
+            if str(desc.get('languageCode')) == language_code_mapping.get(lang):
                 rows.append({
                     "businessId": business_id,
-                    "languageCode": mapped_lang,
                     "description": desc.get('description', '')
                 })
+
     return rows

@@ -1,22 +1,25 @@
+"""
+Company-specific data extraction utilities.
+
+This module provides functionality to process JSON files in a directory
+and convert them into pandas DataFrames. Extracted data can be saved to
+CSV files in manageable chunks for downstream processing.
+"""
 import os
 import json
 import logging
 import pandas as pd
+from etl.utils.chunking_utils import save_to_csv_in_chunks
 
 logger = logging.getLogger(__name__)
 
-def save_to_csv_in_chunks(df: pd.DataFrame, output_base_name: str, chunk_size: int) -> None:
-    """Save a DataFrame to multiple CSV files in chunks."""
-    num_chunks = (len(df) + chunk_size - 1) // chunk_size
-    for i in range(num_chunks):
-        chunk = df.iloc[i * chunk_size:(i + 1) * chunk_size]
-        chunk_file_name = f"{output_base_name}_part{i + 1}.csv"
-        chunk.to_csv(chunk_file_name, index=False, encoding='utf-8')
-        logger.info(f"Saved chunk {i + 1} to {chunk_file_name}")
-
-
 def process_json_directory(directory_path: str) -> pd.DataFrame:
-    """Process JSON files in a directory into a DataFrame."""
+    """
+    Process JSON files in a directory into a DataFrame.
+
+    :param directory_path: Path to the directory containing JSON files.
+    :return: A DataFrame containing combined data from JSON files.
+    """
     all_rows = []
     for file_name in os.listdir(directory_path):
         if file_name.endswith('.json'):

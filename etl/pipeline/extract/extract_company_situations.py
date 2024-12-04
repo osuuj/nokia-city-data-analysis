@@ -1,46 +1,38 @@
 import logging
-from etl.config.mappings import type_mapping, source_mapping
+from etl.utils.extract_utils import get_business_id, validate_language, map_value
+from etl.config.mappings.mappings import type_mapping, source_mapping
 
 logger = logging.getLogger(__name__)
 
 def extract_company_situations(data, lang):
     """
-    Extracts company situations from JSON data for a specific language.
+    Extracts company situations with type and source mappings.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
+        lang (str): Language abbreviation for mappings (e.g., "fi", "en", "sv").
 
     Returns:
-        list: Extracted company situation rows.
+        list: Extracted rows with company situations.
     """
     rows = []
-    type_lang = type_mapping.get(lang, None)
-    source_lang = source_mapping.get(lang, None)
-
-    if type_lang is None or source_lang is None:
-        logger.error(f"Invalid language code: {lang}")
+    if not (validate_language(lang, type_mapping) and validate_language(lang, source_mapping)):
         return rows
 
+    type_lang = type_mapping[lang]
+    source_lang = source_mapping[lang]
+
     for company in data:
-        business_id = company.get('businessId', {}).get('value', None)
+        business_id = get_business_id(company)
         if not business_id:
-            continue  # Skip if no businessId
-        
+            continue
+
         for situation in company.get('companySituations', []):
-            # Map type
-            raw_type = situation.get('type', '')
-            mapped_type = type_lang.get(raw_type, raw_type)
-            
-            # Map source
-            raw_source = situation.get('source', None)
-            mapped_source = source_lang.get(raw_source, raw_source)
-            
             rows.append({
                 "businessId": business_id,
-                "type": mapped_type,
+                "type": map_value(situation.get('type', ''), type_lang),
                 "registrationDate": situation.get('registrationDate', ''),
                 "endDate": situation.get('endDate', None),
-                "source": mapped_source
+                "source": map_value(situation.get('source', None), source_lang)
             })
     return rows
