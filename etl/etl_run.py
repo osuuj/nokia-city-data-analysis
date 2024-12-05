@@ -7,7 +7,7 @@ from etl.utils.directory_operations import setup_directories
 from etl.utils.json_utils import split_and_process_json, get_url, download_json_files
 from etl.pipeline.entity_processing import process_and_save_entity
 from etl.ingestion.data_fetcher import download_and_extract_files
-from etl.config.config_loader import DIRECTORY_STRUCTURE, RAW_DIR, FILE_NAME, ENTITIES, CHUNK_SIZE, URL, LANG, SCHEMA_PATH
+from etl.config.config_loader import DIRECTORY_STRUCTURE, RAW_DIR, FILE_NAME, ENTITIES, CHUNK_SIZE, URL, LANG, SCHEMA_PATH,codes,langs
 from etl.extract_companies_data import process_json_directory
 from etl.pipeline.transform_data.cleaning import process_all_files
 # Configure logging
@@ -28,21 +28,19 @@ def run_etl_pipeline():
         setup_directories(directories_to_create)
 
         # Step 2: Download and extract data
-        #url = get_url("all_companies", URL)
-        #raw_file_path = os.path.join(RAW_DIR, FILE_NAME)
-        #extracted_dir = DIRECTORY_STRUCTURE['extracted_dir']
-        #download_and_extract_files(url, raw_file_path, extracted_dir, CHUNK_SIZE)
-
-        ## Step 3: Download JSON files based on codes and languages
-        #base_url = URL['base']
-        #endpoint_template = URL['endpoints']['description']
-        #mappings_path = os.path.join(RAW_DIR, 'mappings')
-        #os.makedirs(mappings_path, exist_ok=True)
-        #download_json_files(base_url, endpoint_template, codes, langs, mappings_path)
-
-        ## Step 4: Split and process JSON files
+        url = get_url("all_companies", URL)
+        raw_file_path = os.path.join(RAW_DIR, FILE_NAME)
+        extracted_dir = DIRECTORY_STRUCTURE['extracted_dir']
+        download_and_extract_files(url, raw_file_path, extracted_dir, CHUNK_SIZE)
+        # Step 3: Download JSON files based on codes and languages
+        base_url = URL['base']
+        endpoint_template = URL['endpoints']['description']
+        mappings_path = os.path.join(RAW_DIR, 'mappings')
+        os.makedirs(mappings_path, exist_ok=True)
+        download_json_files(base_url, endpoint_template, codes, langs, mappings_path)
+        # Step 4: Split and process JSON files
         processed_dir = DIRECTORY_STRUCTURE['processed_dir']
-        #split_dir = split_and_process_json(extracted_dir, processed_dir, CHUNK_SIZE)
+        split_dir = split_and_process_json(extracted_dir, processed_dir, CHUNK_SIZE)
 
         ## Step 5: Load and process data
         extract_data_path = os.path.join(processed_dir, 'extracted')
