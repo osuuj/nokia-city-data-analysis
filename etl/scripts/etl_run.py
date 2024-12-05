@@ -8,15 +8,17 @@ for clarity and maintainability.
 """
 import os
 import time
+import pandas as pd
+from pathlib import Path
 from etl.scripts.entity_processing import process_and_save_entity
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.scripts.extract_companies_data import process_json_directory
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.json_utils import split_and_process_json
 from etl.utils.network_utils import get_url, download_mapping_files
-from etl.pipeline.transform.cleaning import clean_dataset
 from etl.config.logging.logging_config import configure_logging, get_logger
 from etl.config.config_loader import load_all_configs
+from etl.pipeline.transform.cleaning import clean_entity_files
 
 # Configure logging
 configure_logging()
@@ -81,7 +83,30 @@ def process_entities(data_records, config):
 
     logger.info("Entity processing and cleaning completed.")
 
+def clean_entities(config):
+    """
+    Cleans processed entity files.
 
+    Args:
+        config (dict): Configuration dictionary with paths and entity information.
+    """
+    extract_data_path = os.path.join(config['directory_structure']['processed_dir'], 'extracted')
+    cleaned_data_path = os.path.join(config['directory_structure']['processed_dir'], 'cleaned')
+    os.makedirs(cleaned_data_path, exist_ok=True)
+
+    for entity in config['entities']:
+        entity_name = entity['name']
+        specific_columns = None
+
+        # Apply specific cleaning rules for the "addresses" entity
+        if entity_name == "addresses":
+            specific_columns = ["post_code", "apartment_number", "building_number","post_office_box"]
+
+        print(f"Cleaning data for entity: {entity_name}")
+        clean_entity_files(extract_data_path, cleaned_data_path, entity_name, specific_columns)
+
+    print("Cleaning of all entities completed.")
+    
 def run_etl_pipeline():
     """
     Run the entire ETL pipeline.
@@ -103,7 +128,10 @@ def run_etl_pipeline():
 
         # Step 5: Process entities
         process_entities(data_records, config)
-
+        
+        # Step 6: Clean entities
+        clean_entities(config)
+        
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
 

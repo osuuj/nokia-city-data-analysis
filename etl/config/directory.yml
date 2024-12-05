@@ -6,7 +6,14 @@ directory_structure:
   logs_dir: etl/data/logs
   base_schema_path: etl/config/schemas
   db_schema_path: server/db/schema.sql
-  
-mappings_path: etl/config/mappings/mappings.yml
 
+mappings_file: "./config/mappings.yml"
+languages:
+  english: "en"
+  finnish: "fi"
+  swedish: "sv"
+
+mappings_path: etl/config/mappings/mappings.yml
+toimi_files_path: "etl/data/1_raw/mappings"
 file_name: companies.zip
+

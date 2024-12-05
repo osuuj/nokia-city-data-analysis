@@ -22,27 +22,37 @@ def extract_company_forms(data, lang):
     """
     rows = []
 
-    source_mapping = mappings.get_mapping("source_mapping", lang)
-    
+    try:
+        # Retrieve necessary mappings
+        source_mapping = mappings.get_mapping("source_mapping")
+        language_code_mapping = mappings.get_mapping("language_code_mapping")
 
-    if not validate_language(lang, source_mapping):
-        return rows
+        # Validate the language using string keys
+        if not validate_language(lang, source_mapping, language_code_mapping):
+            logger.error(f"Invalid language: {lang} for company forms.")
+            return rows
 
-    source_lang = source_mapping[lang]
+        for company in data:
+            business_id = get_business_id(company)
+            if not business_id:
+                logger.warning("Skipping company with missing business ID.")
+                continue
 
-    for company in data:
-        business_id = get_business_id(company)
-        if not business_id:
-            continue
+            for form in company.get('companyForms', []):
+                rows.append({
+                    "businessId": business_id,
+                    "type": form.get('type', ''),
+                    "registrationDate": form.get('registrationDate', ''),
+                    "endDate": form.get('endDate', None),
+                    "version": form.get('version', 0),
+                    "source": map_value(form.get('source', None), source_mapping)
+                })
 
-        for form in company.get('companyForms', []):
-            rows.append({
-                "businessId": business_id,
-                "type": form.get('type', ''),
-                "registrationDate": form.get('registrationDate', ''),
-                "endDate": form.get('endDate', None),
-                "version": form.get('version', 0),
-                "source": map_value(form.get('source', None), source_lang)
-            })
+        logger.info(f"Extracted {len(rows)} company forms for language: {lang}")
+
+    except KeyError as e:
+        logger.error(f"KeyError in extract_company_forms: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error in extract_company_forms: {e}")
+
     return rows
-

@@ -1,5 +1,4 @@
 import logging
-from etl.utils.extract_utils import get_business_id, validate_language, filter_by_language_code
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
@@ -9,35 +8,45 @@ logger = logging.getLogger(__name__)
 mappings_file = CONFIG['mappings_path']
 mappings = Mappings(mappings_file)
 
+
 def extract_company_form_descriptions(data, lang):
     """
-    Extracts descriptions for company forms filtered by language.
+    Extracts company form descriptions from JSON data for a specific language.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for filtering (e.g., "fi", "en", "sv").
+        lang (str): Language abbreviation to filter descriptions ("fi", "sv", "en").
 
     Returns:
-        list: Extracted rows with company form descriptions.
+        list: Extracted company form descriptions for the specified language.
     """
+    language_code_mapping = mappings.get_mapping("language_code_mapping")
     rows = []
 
-    language_code_mapping = mappings.get_mapping("language_code_mapping", lang)
-
-    if not validate_language(lang, language_code_mapping):
+    # Ensure `lang` is valid and map language codes
+    if lang not in language_code_mapping:
+        logger.error(f"Invalid language code: {lang}")
         return rows
 
     for company in data:
-        business_id = get_business_id(company)
+        business_id = company.get('businessId', {}).get('value', None)
         if not business_id:
-            continue
+            continue  # Skip if no businessId
 
         for form in company.get('companyForms', []):
-            descriptions = filter_by_language_code(form.get('descriptions', []), lang, language_code_mapping)
+            descriptions = form.get('descriptions', [])
             for desc in descriptions:
-                rows.append({
-                    "businessId": business_id,
-                    "type": form.get('type', ''),
-                    "description": desc.get('description', '')
-                })
+                # Map the raw language code back to the language abbreviation
+                raw_language_code = desc.get('languageCode', None)
+                mapped_lang = next(
+                    (key for key, value in language_code_mapping.items() if value == str(raw_language_code)),
+                    None
+                )
+
+                if mapped_lang == lang:
+                    rows.append({
+                        "businessId": business_id,
+                        "type": form.get('type', ''),  # Keep raw type value
+                        "description": desc.get('description', '')
+                    })
     return rows

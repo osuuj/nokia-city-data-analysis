@@ -34,10 +34,21 @@ def extract_companies(data, lang):
             except ValueError:
                 return None
 
+        # Get website
+        website = company.get('website', "unknown")
+        if isinstance(website, dict):
+            website = website.get('url', "unknown")
+        elif not website:
+            website = "unknown"
+
         rows.append({
             "businessId": business_id,
+            "website": website,
+            "registrationDate": company.get('registrationDate', ''),
             "tradeRegisterStatus": trade_status,
             "status": status,
+            "registrationDateCompany": company.get('registrationDateCompany', ''),
+            "endDate": company.get('endDate', ''),
             "lastModified": parse_date(company.get('lastModified', '')),
         })
 

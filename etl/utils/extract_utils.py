@@ -9,12 +9,30 @@ def get_business_id(company):
     """Safely extract the business ID from a company record."""
     return company.get('businessId', {}).get('value', None)
 
-def validate_language(lang, mapping):
-    """Validate if a language code exists in the mapping."""
-    if lang not in mapping:
-        logger.error(f"Invalid language code: {lang}. Available languages: {list(mapping.keys())}")
+def validate_language(lang, mapping, language_code_mapping):
+    """
+    Validate if a language code exists in the mapping.
+
+    Args:
+        lang (str): Language abbreviation (e.g., "fi", "en", "sv").
+        mapping (dict): The mapping to validate against.
+        language_code_mapping (dict): Mapping of language abbreviations to numerical codes.
+
+    Returns:
+        bool: True if the language code exists, False otherwise.
+    """
+    lang_code = language_code_mapping.get(lang)
+
+    if not lang_code:
+        logger.error(f"Language code {lang} not found in language_code_mapping: {language_code_mapping}")
         return False
-    return True
+
+    # Check if lang_code is in mapping, or if `lang` as a string matches keys
+    if str(lang) in mapping or lang_code in mapping:
+        return True
+
+    logger.error(f"Language code {lang} ({lang_code}) not found in mapping keys: {list(mapping.keys())}")
+    return False
 
 def map_value(raw_value, mapping):
     """Map a raw value using a language-specific mapping."""

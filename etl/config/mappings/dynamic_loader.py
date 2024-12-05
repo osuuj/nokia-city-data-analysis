@@ -1,35 +1,32 @@
-"""
-Dynamic mappings loader.
-
-This module provides functionality for dynamically loading language-specific
-mappings from external files.
-"""
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 def load_toimi_mappings(base_path="etl/data/1_raw/mappings"):
     """
-    Dynamically load TOIMI mappings for all supported languages.
+    Loads TOIMI mappings for various languages and categories.
 
-    :param base_path: Base path where TOIMI mapping files are located.
-    :return: A dictionary containing TOIMI mappings for all languages.
+    Args:
+        base_path (str): Base directory containing the mapping files.
+
+    Returns:
+        dict: Nested dictionary containing TOIMI mappings.
     """
-    toimi_files = {
-        "TOIMI": {"fi": f"{base_path}/TOIMI_fi.txt", "en": f"{base_path}/TOIMI_en.txt", "sv": f"{base_path}/TOIMI_sv.txt"},
-    }
+    categories = ["TOIMI", "TOIMI2", "TOIMI3"]
+    languages = ["fi", "en", "sv"]
 
-    all_mappings = {key: {lang: {} for lang in file_paths.keys()} for key, file_paths in toimi_files.items()}
+    all_mappings = {category: {lang: {} for lang in languages} for category in categories}
 
-    for category, file_paths in toimi_files.items():
-        for lang, file_path in file_paths.items():
+    for category in categories:
+        for lang in languages:
+            file_path = os.path.join(base_path, f"{category}_{lang}.txt")
             try:
                 with open(file_path, 'r', encoding='utf-8') as file:
                     for line in file:
-                        parts = line.strip().split('\t', 1)
-                        if len(parts) == 2:
-                            code, description = parts
-                            all_mappings[category][lang][str(code)] = description
+                        # Split lines into code and description
+                        code, description = line.strip().split('\t', 1)
+                        all_mappings[category][lang][code] = description
                 logger.info(f"Loaded {category} mappings for {lang} from {file_path}")
             except FileNotFoundError:
                 logger.warning(f"File not found: {file_path}")

@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS companies (
         business_id VARCHAR(20) NOT NULL PRIMARY KEY,
+        website VARCHAR(255),
         registration_date DATE,
         trade_register_status VARCHAR(50),
         status VARCHAR(50),
@@ -24,18 +25,17 @@ CREATE TABLE IF NOT EXISTS addresses (
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
     type VARCHAR(50),                            -- Type of address (e.g., physical, mailing)
     street VARCHAR(255),                         -- Street name
-    post_code VARCHAR(10),                       -- Postal code
-    post_office_box VARCHAR(50),                 -- P.O. Box
     building_number VARCHAR(50),                 -- Building number
     entrance VARCHAR(50),                        -- Entrance details
     apartment_number VARCHAR(50),                -- Apartment number
     apartment_id_suffix VARCHAR(50),             -- Additional suffix for apartment ID
+    post_code VARCHAR(10),                       -- Postal code
+    post_office_box VARCHAR(50),                 -- P.O. Box
     co VARCHAR(255),                             -- Care of (c/o) field
     country VARCHAR(50) DEFAULT 'Unknown',       -- Country, defaulting to 'Unknown' if not provided
     free_address_line VARCHAR(255),              -- Free-form address line
     registration_date DATE,                      -- Date when the address was registered
     source VARCHAR(255),                         -- Source of the address information
-    PRIMARY KEY (id),                            -- Unique row ID
     FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Reference to companies table
 );
 
@@ -66,6 +66,11 @@ CREATE TABLE IF NOT EXISTS registered_entry_descriptions (
     description VARCHAR(255) NOT NULL           -- Detailed description of the entry type
 );
 
+CREATE TABLE IF NOT EXISTS company_form_descriptions (
+    type INT PRIMARY KEY,                        -- Type of company form (matches 'type' in company_forms)
+    description VARCHAR(255) NOT NULL           -- Detailed description of the company form
+);
+
 CREATE TABLE IF NOT EXISTS company_forms (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
@@ -79,10 +84,7 @@ CREATE TABLE IF NOT EXISTS company_forms (
     FOREIGN KEY (type) REFERENCES company_form_descriptions(type) -- Link to descriptions table
 );
 
-CREATE TABLE IF NOT EXISTS company_form_descriptions (
-    type INT PRIMARY KEY,                        -- Type of company form (matches 'type' in company_forms)
-    description VARCHAR(255) NOT NULL           -- Detailed description of the company form
-);
+
 
 CREATE TABLE IF NOT EXISTS business_line_descriptions (
     id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for unique rows

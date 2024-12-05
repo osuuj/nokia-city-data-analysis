@@ -1,11 +1,13 @@
 import os
 import pandas as pd
 from sqlalchemy import create_engine, text
-from etl.config.config_loader import ENTITIES, DIRECTORY_STRUCTURE, DB_SCHEMA, DATABASE_URL
+from etl.config.config_loader import CONFIG, database_url
 
 # Path to the processed data
-processed_dir = DIRECTORY_STRUCTURE['processed_dir']
+processed_dir = CONFIG['directory_structure']['processed_dir']
 processed_data_path = os.path.join(processed_dir, "cleaned")
+db_schema = CONFIG['directory_structure']['db_schema_path']
+entities = CONFIG['entities']
 
 def create_tables(engine, schema_file):
     """Create database tables from the schema SQL file."""
@@ -36,10 +38,10 @@ def load_data(engine, processed_data_path, entities):
 
 if __name__ == "__main__":
     # Create the database engine
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(database_url)
     
     # Create tables
-    create_tables(engine, DB_SCHEMA)
+    create_tables(engine, db_schema)
     
     # Load data
-    load_data(engine, processed_data_path, ENTITIES)
+    load_data(engine, processed_data_path, entities)

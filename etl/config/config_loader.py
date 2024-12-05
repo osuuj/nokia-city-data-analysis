@@ -41,4 +41,16 @@ def load_all_configs():
 
     return resolve_env_vars(combined_config)
 
+def construct_database_url(config):
+    db_config = config.get('db', {})
+    dbname = os.getenv('POSTGRES_DB', db_config.get('dbname', 'default_db'))
+    user = os.getenv('POSTGRES_USER', db_config.get('user', 'default_user'))
+    password = os.getenv('POSTGRES_PASSWORD', db_config.get('password', 'default_password'))
+    host = os.getenv('DB_HOST', db_config.get('host', 'localhost'))
+    port = os.getenv('DB_PORT', db_config.get('port', '5432'))
+    return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+
 CONFIG = load_all_configs()
+
+# Example usage
+database_url = construct_database_url(CONFIG)

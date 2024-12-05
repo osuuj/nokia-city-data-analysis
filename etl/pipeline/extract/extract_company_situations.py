@@ -1,5 +1,5 @@
 import logging
-from etl.utils.extract_utils import get_business_id, validate_language, map_value
+from etl.utils.extract_utils import get_business_id
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
@@ -11,37 +11,54 @@ mappings = Mappings(mappings_file)
 
 def extract_company_situations(data, lang):
     """
-    Extracts company situations with type and source mappings.
+    Extracts company situations from JSON data for a specific language.
 
     Args:
         data (list): List of company data.
-        lang (str): Language abbreviation for mappings (e.g., "fi", "en", "sv").
+        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
 
     Returns:
-        list: Extracted rows with company situations.
+        list: Extracted company situation rows.
     """
     rows = []
 
-    type_mapping = mappings.get_mapping("company_situation_type_mapping", lang)
-    source_mapping = mappings.get_mapping("company_situation_source_mapping", lang)
-    
-    if not (validate_language(lang, type_mapping) and validate_language(lang, source_mapping)):
-        return rows
+    try:
+        # Retrieve type and source mappings for the specified language
+        type_mapping = mappings.get_mapping("type_mapping", lang)
+        source_mapping = mappings.get_mapping("source_mapping", lang)
 
-    type_lang = type_mapping[lang]
-    source_lang = source_mapping[lang]
+        if not type_mapping or not source_mapping:
+            logger.error(f"Invalid language code: {lang}")
+            return rows
 
-    for company in data:
-        business_id = get_business_id(company)
-        if not business_id:
-            continue
+        for company in data:
+            business_id = get_business_id(company)
+            if not business_id:
+                logger.warning("Skipping company without businessId.")
+                continue
 
-        for situation in company.get('companySituations', []):
-            rows.append({
-                "businessId": business_id,
-                "type": map_value(situation.get('type', ''), type_lang),
-                "registrationDate": situation.get('registrationDate', ''),
-                "endDate": situation.get('endDate', None),
-                "source": map_value(situation.get('source', None), source_lang)
-            })
+            for situation in company.get('companySituations', []):
+                # Map type
+                raw_type = situation.get('type', '')
+                mapped_type = type_mapping.get(raw_type, raw_type)
+
+                # Map source
+                raw_source = situation.get('source', None)
+                mapped_source = source_mapping.get(raw_source, raw_source)
+
+                rows.append({
+                    "businessId": business_id,
+                    "type": mapped_type,
+                    "registrationDate": situation.get('registrationDate', ''),
+                    "endDate": situation.get('endDate', None),
+                    "source": mapped_source
+                })
+
+        logger.info(f"Extracted {len(rows)} company situations for language: {lang}")
+
+    except KeyError as e:
+        logger.error(f"KeyError in extract_company_situations: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error in extract_company_situations: {e}")
+
     return rows

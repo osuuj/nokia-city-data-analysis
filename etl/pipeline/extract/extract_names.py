@@ -1,5 +1,5 @@
 import logging
-from etl.utils.extract_utils import get_business_id, validate_language, map_value
+from etl.utils.extract_utils import get_business_id, map_value
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
@@ -22,13 +22,9 @@ def extract_names(data, lang):
     """
 
     name_type_mapping = mappings.get_mapping("name_type_mapping", lang)
+    source_mapping = mappings.get_mapping("source_mapping", lang)
     
     rows = []
-
-    if not validate_language(lang, name_type_mapping):
-        return rows
-
-    name_type_lang = name_type_mapping[lang]
 
     for company in data:
         business_id = get_business_id(company)
@@ -36,11 +32,17 @@ def extract_names(data, lang):
             continue
 
         for name in company.get('names', []):
+            mapped_type = map_value(name.get('type', ''), name_type_mapping)
+            mapped_source = map_value(name.get('source', ''), source_mapping)
+
             rows.append({
                 "businessId": business_id,
-                "type": map_value(name.get('type', ''), name_type_lang),
                 "name": name.get('name', ''),
+                "type": mapped_type,
                 "registrationDate": name.get('registrationDate', ''),
                 "endDate": name.get('endDate', None),
+                "version": name.get('version', 0),  # Fixed `name_entry` reference
+                "source": mapped_source,  # Correctly maps the `source` field
             })
     return rows
+
