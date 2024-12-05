@@ -27,8 +27,6 @@ def extract_post_offices(data, lang):
     if not validate_language(lang, post_office_language_code):
         return rows
 
-    lang_code = post_office_language_code[lang]
-
     for company in data:
         business_id = get_business_id(company)
         if not business_id:
@@ -36,7 +34,7 @@ def extract_post_offices(data, lang):
 
         for address in company.get('addresses', []):
             for post_office in address.get('postOffices', []):
-                if str(post_office.get('languageCode')) == lang_code:
+                if str(post_office.get('languageCode')) == post_office_language_code:
                     rows.append({
                         "businessId": business_id,
                         "postCode": post_office.get('postCode', ''),

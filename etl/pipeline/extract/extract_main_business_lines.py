@@ -36,6 +36,9 @@ def extract_main_business_lines(data, lang):
             if business_line.get('languageCode') == language_code_mapping[lang]:
                 rows.append({
                     "businessId": business_id,
-                    "description": business_line.get('description', '')
-                })
+                    "type": mapped_type,
+                    "typeCodeSet": main_business_line.get('typeCodeSet', ''),
+                    "registrationDate": main_business_line.get('registrationDate', ''),
+                    "source": mapped_source
+                    })
     return rows

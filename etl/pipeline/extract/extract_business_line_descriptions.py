@@ -27,6 +27,7 @@ def extract_business_line_descriptions(data, lang):
             if str(desc.get('languageCode')) == language_code_mapping.get(lang):
                 rows.append({
                     "businessId": business_id,
+                    "languageCode": lang,
                     "description": desc.get('description', '')
                 })
 
