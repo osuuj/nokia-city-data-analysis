@@ -6,6 +6,9 @@ from a centralized YAML file.
 """
 import os
 import yaml
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Mappings:
     """Class to manage mappings."""
@@ -14,13 +17,12 @@ class Mappings:
         self.mappings = self._load_mappings()
 
     def _load_mappings(self):
-        """
-        Load static mappings from a YAML file.
-        """
         if not os.path.exists(self.mappings_file):
             raise FileNotFoundError(f"Mappings file not found: {self.mappings_file}")
         with open(self.mappings_file, 'r', encoding='utf-8') as file:
-            return yaml.safe_load(file).get('mappings', {})
+            mappings = yaml.safe_load(file).get('mappings', {})
+            logger.info(f"Loaded mappings: {list(mappings.keys())}")
+            return mappings
 
     def get_mapping(self, mapping_name, language=None):
         """
@@ -31,8 +33,19 @@ class Mappings:
         :return: The requested mapping, filtered by language if provided.
         """
         mapping = self.mappings.get(mapping_name)
-        if mapping and language:
-            return mapping.get(language)
+        if not mapping:
+            raise KeyError(f"Mapping {mapping_name} not found in {self.mappings_file}.")
+
+        # If the mapping is not language-specific, return it directly
+        if not isinstance(mapping, dict):
+            return mapping
+
+        # Otherwise, handle language-specific mappings
+        if language and language in mapping:
+            return mapping[language]
+        elif language:
+            raise KeyError(f"Language {language} not supported for mapping {mapping_name}.")
+
         return mapping
 
     def validate_mapping(self, mapping_name, language=None):
@@ -49,3 +62,4 @@ class Mappings:
         if language and mapping is None:
             raise KeyError(f"Mapping {mapping_name} does not support language {language}.")
         return True
+    

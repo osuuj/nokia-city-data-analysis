@@ -5,32 +5,48 @@ This module provides functionality to process JSON files in a directory
 and convert them into pandas DataFrames. Extracted data can be saved to
 CSV files in manageable chunks for downstream processing.
 """
-import os
-import json
 import logging
-import pandas as pd
-from etl.utils.chunking_utils import save_to_csv_in_chunks
-
+from datetime import datetime
+from etl.config.config_loader import CONFIG
+from etl.config.mappings.mappings import Mappings
+from etl.utils.extract_utils import get_business_id, map_value
 logger = logging.getLogger(__name__)
 
-def process_json_directory(directory_path: str) -> pd.DataFrame:
-    """
-    Process JSON files in a directory into a DataFrame.
+# Load the mappings file path dynamically
+mappings_file = CONFIG['MAPPINGS_PATH']
 
-    :param directory_path: Path to the directory containing JSON files.
-    :return: A DataFrame containing combined data from JSON files.
-    """
-    all_rows = []
-    for file_name in os.listdir(directory_path):
-        if file_name.endswith('.json'):
-            file_path = os.path.join(directory_path, file_name)
+# Initialize the Mappings class
+mappings = Mappings(mappings_file)
+
+def extract_companies(data, lang):
+    rows = []
+
+    rek_kdi_mapping = mappings.get_mapping("rek_kdi_mapping", lang)
+    status_mapping = mappings.get_mapping("status_mapping", lang)
+
+    if not rek_kdi_mapping or not status_mapping:
+        logger.error(f"Mappings for language {lang} not found.")
+        return rows
+
+    for company in data:
+        business_id = get_business_id(company)
+        if not business_id:
+            continue
+
+        trade_status = map_value(company.get('tradeRegisterStatus', ''), rek_kdi_mapping)
+        status = map_value(company.get('status', ''), status_mapping)
+
+        def parse_date(date_str):
             try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    data = json.load(file)
-                    if isinstance(data, list):
-                        all_rows.extend(data)
-                    else:
-                        logger.error(f"Expected a list in {file_path}, got {type(data)}")
-            except json.JSONDecodeError as e:
-                logger.error(f"Error decoding JSON in {file_path}: {e}")
-    return pd.DataFrame(all_rows)
+                return datetime.fromisoformat(date_str).date() if date_str else None
+            except ValueError:
+                return None
+
+        rows.append({
+            "businessId": business_id,
+            "tradeRegisterStatus": trade_status,
+            "status": status,
+            "lastModified": parse_date(company.get('lastModified', '')),
+        })
+
+    return rows

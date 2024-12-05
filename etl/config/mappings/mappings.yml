@@ -1,147 +1,148 @@
-default_country: "Finland"
+mappings:
+  default_country: "Finland"
 
-language_code_mapping:
-  fi: "1"  # Finnish
-  sv: "2"  # Swedish
-  en: "3"  # English
+  language_code_mapping:
+    fi: "1"  # Finnish
+    sv: "2"  # Swedish
+    en: "3"  # English
 
-post_office_language_code:
-  fi: "1"  # Finnish
-  en: "1"  # English
-  sv: "2"  # Swedish
+  post_office_language_code:
+    fi: "1"  # Finnish
+    en: "1"  # English
+    sv: "2"  # Swedish
 
-type_mapping:
-  fi:
-    KONK: "Konkurssissa"
-    SANE: "Saneerauksessa"
-    SELTILA: "Selvitystilassa"
-  en:
-    KONK: "Bankrupt"
-    SANE: "Company re-organisation"
-    SELTILA: "Liquidation"
-  sv:
-    KONK: "I konkurs"
-    SANE: "Sanering"
-    SELTILA: "I likvidation"
+  type_mapping:
+    fi:
+      KONK: "Konkurssissa"
+      SANE: "Saneerauksessa"
+      SELTILA: "Selvitystilassa"
+    en:
+      KONK: "Bankrupt"
+      SANE: "Company re-organisation"
+      SELTILA: "Liquidation"
+    sv:
+      KONK: "I konkurs"
+      SANE: "Sanering"
+      SELTILA: "I likvidation"
 
-address_mapping:
-  fi:
-    1: "käyntiosoite"
-    2: "postiosoite"
-  en:
-    1: "visiting address"
-    2: "postal address"
-  sv:
-    1: "besöksadress"
-    2: "postadress"
+  address_mapping:
+    fi:
+      1: "Käyntiosoite"
+      2: "Postiosoite"
+    en:
+      1: "Visiting address"
+      2: "Postal address"
+    sv:
+      1: "Besöksadress"
+      2: "Postadress"
 
-source_mapping:
-  fi:
-    "0": "Yhteinen"
-    "1": "Patentti- ja rekisterihallitus"
-    "2": "Verohallinto"
-    "3": "Yritys- ja yhteisötietojärjestelmä"
-  en:
-    "0": "Common"
-    "1": "Finnish Patent and Registration Office"
-    "2": "Tax Administration"
-    "3": "Business Information System"
-  sv:
-    "0": "Gemensam"
-    "1": "Patent- och registerstyrelsen"
-    "2": "Skatteförvaltningen"
-    "3": "Företags- och organisationsdatasystemet"
+  source_mapping:
+    fi:
+      "0": "Yhteinen"
+      "1": "Patentti- ja rekisterihallitus"
+      "2": "Verohallinto"
+      "3": "Yritys- ja yhteisötietojärjestelmä"
+    en:
+      "0": "Common"
+      "1": "Finnish Patent and Registration Office"
+      "2": "Tax Administration"
+      "3": "Business Information System"
+    sv:
+      "0": "Gemensam"
+      "1": "Patent- och registerstyrelsen"
+      "2": "Skatteförvaltningen"
+      "3": "Företags- och organisationsdatasystemet"
 
-rek_kdi_mapping:
-  fi:
-    "0": "Rekisteröimätön"
-    "1": "Rekisterissä"
-    "2": "Poistettu rekisteristä"
-    "3": "Ei rekisteröity perustaminen"
-    "4": "Lakannut"
-  sv:
-    "0": "Oregistrerad"
-    "1": "Registrerad"
-    "2": "Utplånats ur registret"
-    "3": "Oregistrerat grundande"
-    "4": "Upphört"
-  en:
-    "0": "Unregistered"
-    "1": "Registered"
-    "2": "Removed from register"
-    "3": "Start-up not registered"
-    "4": "Ceased"
+  rek_kdi_mapping:
+    fi:
+      "0": "Rekisteröimätön"
+      "1": "Rekisterissä"
+      "2": "Poistettu rekisteristä"
+      "3": "Ei rekisteröity perustaminen"
+      "4": "Lakannut"
+    sv:
+      "0": "Oregistrerad"
+      "1": "Registrerad"
+      "2": "Utplånats ur registret"
+      "3": "Oregistrerat grundande"
+      "4": "Upphört"
+    en:
+      "0": "Unregistered"
+      "1": "Registered"
+      "2": "Removed from register"
+      "3": "Start-up not registered"
+      "4": "Ceased"
 
-status_mapping:
-  fi:
-    "1": "Vireillä"
-    "2": "Voimassa"
-    "5": "Yritystunnus poistettu käytöstä"
-  sv:
-    "1": "Mottagits"
-    "2": "Giltigt"
-    "5": "Upphävt företagsnummer"
-  en:
-    "1": "Pending"
-    "2": "Valid"
-    "5": "Business ID invalidated"
+  status_mapping:
+    fi:
+      "1": "Vireillä"
+      "2": "Voimassa"
+      "5": "Yritystunnus poistettu käytöstä"
+    sv:
+      "1": "Mottagits"
+      "2": "Giltigt"
+      "5": "Upphävt företagsnummer"
+    en:
+      "1": "Pending"
+      "2": "Valid"
+      "5": "Business ID invalidated"
 
-name_type_mapping:
-  fi:
-    "1": "Toiminimi"
-    "2": "Rinnakkaistoiminimi"
-    "3": "Aputoiminimi"
-    "4": "Aputoiminimen käännös"
-  en:
-    "1": "Company name"
-    "2": "Parallel company name"
-    "3": "Auxiliary company name"
-    "4": "Translation of the auxiliary company name"
-  sv:
-    "1": "Firma"
-    "2": "Parallellfirma"
-    "3": "Bifirma"
-    "4": "Översättning av bifirma"
+  name_type_mapping:
+    fi:
+      "1": "Toiminimi"
+      "2": "Rinnakkaistoiminimi"
+      "3": "Aputoiminimi"
+      "4": "Aputoiminimen käännös"
+    en:
+      "1": "Company name"
+      "2": "Parallel company name"
+      "3": "Auxiliary company name"
+      "4": "Translation of the auxiliary company name"
+    sv:
+      "1": "Firma"
+      "2": "Parallellfirma"
+      "3": "Bifirma"
+      "4": "Översättning av bifirma"
 
-register_mapping:
-  fi:
-    "1": "Kaupparekisteri"
-    "2": "Säätiörekisteri"
-    "3": "Yhdistysrekisteri"
-    "4": "Verohallinnon perustiedot"
-    "5": "Ennakkoperintärekisteri"
-    "6": "Arvonlisäverovelvollisuus"
-    "7": "Työnantajarekisteri"
-    "8": "Vakuutusmaksuverovelvollisten rekisteri"
-  en:
-    "1": "Trade register"
-    "2": "Foundation register"
-    "3": "Register of Associations"
-    "4": "Tax Administration"
-    "5": "Prepayment register"
-    "6": "Value added tax-liability"
-    "7": "Employer register"
-    "8": "Register for insurance premium taxpayers"
-  sv:
-    "1": "Handelsregistret"
-    "2": "Stiftelseregistret"
-    "3": "Föreningsregistret"
-    "4": "Skatteförvaltningens basuppgifter"
-    "5": "Förskottsuppbördsregistret"
-    "6": "Momsskyldighet"
-    "7": "Arbetsgivarregistret"
-    "8": "Registret över försäkringspremieskattskyldiga"
+  register_mapping:
+    fi:
+      "1": "Kaupparekisteri"
+      "2": "Säätiörekisteri"
+      "3": "Yhdistysrekisteri"
+      "4": "Verohallinnon perustiedot"
+      "5": "Ennakkoperintärekisteri"
+      "6": "Arvonlisäverovelvollisuus"
+      "7": "Työnantajarekisteri"
+      "8": "Vakuutusmaksuverovelvollisten rekisteri"
+    en:
+      "1": "Trade register"
+      "2": "Foundation register"
+      "3": "Register of Associations"
+      "4": "Tax Administration"
+      "5": "Prepayment register"
+      "6": "Value added tax-liability"
+      "7": "Employer register"
+      "8": "Register for insurance premium taxpayers"
+    sv:
+      "1": "Handelsregistret"
+      "2": "Stiftelseregistret"
+      "3": "Föreningsregistret"
+      "4": "Skatteförvaltningens basuppgifter"
+      "5": "Förskottsuppbördsregistret"
+      "6": "Momsskyldighet"
+      "7": "Arbetsgivarregistret"
+      "8": "Registret över försäkringspremieskattskyldiga"
 
-authority_mapping:
-  fi:
-    "1": "Verohallinto"
-    "2": "Patentti- ja rekisterihallitus"
-    "3": "Väestörekisterikeskus"
-  en:
-    "1": "Tax Administration"
-    "2": "Finnish Patent and Registration Office"
-    "3": "Finnish Population Register Centre"
-  sv:
-    "1": "Skatteförvaltningen"
-    "2": "Patent- och registerstyrelsen"
-    "3": "Befolkningsregistercentralen"
+  authority_mapping:
+    fi:
+      "1": "Verohallinto"
+      "2": "Patentti- ja rekisterihallitus"
+      "3": "Väestörekisterikeskus"
+    en:
+      "1": "Tax Administration"
+      "2": "Finnish Patent and Registration Office"
+      "3": "Finnish Population Register Centre"
+    sv:
+      "1": "Skatteförvaltningen"
+      "2": "Patent- och registerstyrelsen"
+      "3": "Befolkningsregistercentralen"

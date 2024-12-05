@@ -1,8 +1,13 @@
 import logging
 from etl.utils.extract_utils import get_business_id, validate_language, map_value
-from etl.config.mappings.mappings import type_mapping, source_mapping
+from etl.config.config_loader import CONFIG
+from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
+
+# Initialize mappings
+mappings_file = CONFIG['mappings_path']
+mappings = Mappings(mappings_file)
 
 def extract_company_situations(data, lang):
     """
@@ -16,6 +21,10 @@ def extract_company_situations(data, lang):
         list: Extracted rows with company situations.
     """
     rows = []
+
+    type_mapping = mappings.get_mapping("company_situation_type_mapping", lang)
+    source_mapping = mappings.get_mapping("company_situation_source_mapping", lang)
+    
     if not (validate_language(lang, type_mapping) and validate_language(lang, source_mapping)):
         return rows
 

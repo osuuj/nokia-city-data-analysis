@@ -1,5 +1,7 @@
 version: 1
 disable_existing_loggers: False
+
+# Formatters for different logging levels
 formatters:
   standard:
     format: '%(asctime)s - %(levelname)s - %(message)s'
@@ -8,41 +10,52 @@ formatters:
   error:
     format: '%(asctime)s - %(levelname)s - [%(module)s: %(lineno)d] %(message)s'
 
+# Handlers for different destinations
 handlers:
   console_debug:
-    level: DEBUG
     class: logging.StreamHandler
+    level: DEBUG
     formatter: debug
   console_error:
-    level: ERROR
     class: logging.StreamHandler
+    level: ERROR
     formatter: error
-  file:
-    level: INFO
+  file_debug:
     class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    filename: etl_debug.log
+    maxBytes: 10485760
+    backupCount: 5
+    formatter: debug
+  file_standard:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
     filename: etl.log
-    maxBytes: 10485760  # 10 MB
-    backupCount: 5      # Keep 5 backup files
+    maxBytes: 10485760
+    backupCount: 5
     formatter: standard
 
+# Logger definitions
 loggers:
+  # Development logger
   development:
-    handlers: ['console_debug', 'file']
+    handlers: ['console_debug', 'file_debug']
     level: DEBUG
-    propagate: True
+    propagate: False
+
+  # Production logger
   production:
-    handlers: ['console_error', 'file']
+    handlers: ['console_error', 'file_standard']
     level: ERROR
-    propagate: True
-  etl.extract:
-    handlers: ['console_debug', 'file']
+    propagate: False
+
+  # ETL logger (shared for all operations)
+  etl:
+    handlers: ['console_debug', 'file_standard']
     level: INFO
     propagate: False
-  etl.transform:
-    handlers: ['console_debug', 'file']
-    level: INFO
-    propagate: False
-  etl.load:
-    handlers: ['console_debug', 'file']
-    level: INFO
-    propagate: False
+
+# Root logger
+root:
+  level: WARNING
+  handlers: ['console_error']

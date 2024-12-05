@@ -4,7 +4,6 @@ Dynamic mappings loader.
 This module provides functionality for dynamically loading language-specific
 mappings from external files.
 """
-import os
 import logging
 
 logger = logging.getLogger(__name__)

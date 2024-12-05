@@ -33,5 +33,12 @@ def load_all_configs():
         config_data = load_yaml(file_path)
         combined_config.update(config_data)
 
+    # Add environment variable to configuration
+    combined_config['env'] = os.getenv("ENV", "development")  # Default to 'development'
+
+    # Add mappings path
+    combined_config['mappings_path'] = os.path.join(base_path, 'mappings/mappings.yml')
+
     return resolve_env_vars(combined_config)
 
+CONFIG = load_all_configs()

@@ -13,7 +13,7 @@ from etl.utils.extraction_helpers import get_extractor_function
 
 logger = logging.getLogger(__name__)
 
-def process_and_save_entity(data_records, lang, entity_name, extract_data_path, chunk_size):
+def process_and_save_entity(data_records, lang, entity_name, extract_data_path, chunk_size, entities):
     """
     Process and save data for a specific entity.
 
@@ -22,6 +22,7 @@ def process_and_save_entity(data_records, lang, entity_name, extract_data_path, 
     :param entity_name: Name of the entity being processed.
     :param extract_data_path: Path to save the extracted data.
     :param chunk_size: Size of chunks to save the data.
+    :param entities: List of entity configurations.
     """
     subfolder_path = os.path.join(extract_data_path, entity_name)
     os.makedirs(subfolder_path, exist_ok=True)
@@ -29,7 +30,7 @@ def process_and_save_entity(data_records, lang, entity_name, extract_data_path, 
     logger.info(f"Starting processing for entity: {entity_name}")
     try:
         # Fetch the extractor function dynamically
-        extractor_func = get_extractor_function(entity_name)
+        extractor_func = get_extractor_function(entity_name, entities)
         extracted_data = extractor_func(data_records, lang)
 
         # Validate extracted data

@@ -1,8 +1,13 @@
 import logging
 from etl.utils.extract_utils import get_business_id, validate_language, map_value
-from etl.config.mappings.mappings import name_type_mapping
+from etl.config.config_loader import CONFIG
+from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
+
+# Initialize mappings
+mappings_file = CONFIG['mappings_path']
+mappings = Mappings(mappings_file)
 
 def extract_names(data, lang):
     """
@@ -15,6 +20,9 @@ def extract_names(data, lang):
     Returns:
         list: Extracted rows with company names and types.
     """
+
+    name_type_mapping = mappings.get_mapping("name_type_mapping", lang)
+    
     rows = []
 
     if not validate_language(lang, name_type_mapping):

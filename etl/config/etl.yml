@@ -5,20 +5,17 @@ url_templates:
     all_companies: "all_companies"
     description: "description?code={code}&lang={lang}"
 
-lang:
+chunk_size: 1000
+
+languages:
   finnish: "fi"
   english: "en"
   swedish: "sv"
 
 codes:
-  - "001"
-  - "002"
-  - "003"
-
-langs:
-  - "fi"
-  - "en"
-  - "sv"
+  - "TOIMI"
+  - "TOIMI2"
+  - "TOIMI3"
 
 entities:
   - name: "companies"

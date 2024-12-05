@@ -5,4 +5,8 @@ directory_structure:
   processed_dir: etl/data/3_processed
   logs_dir: etl/data/logs
   base_schema_path: etl/config/schemas
-  db_schema_path: db/schema.sql
+  db_schema_path: server/db/schema.sql
+  
+mappings_path: etl/config/mappings/mappings.yml
+
+file_name: companies.zip
