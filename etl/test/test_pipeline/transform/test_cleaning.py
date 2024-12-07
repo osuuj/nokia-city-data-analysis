@@ -1,6 +1,7 @@
-from etl.pipeline.transform.cleaning import clean_dataset
 import pandas as pd
-from pathlib import Path
+
+from etl.pipeline.transform.cleaning import clean_dataset
+
 
 def test_clean_dataset(tmp_path, sample_dataframe):
     input_file = tmp_path / "input.csv"

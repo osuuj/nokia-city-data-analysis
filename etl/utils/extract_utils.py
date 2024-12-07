@@ -1,13 +1,16 @@
 """
 Utility functions for shared extraction and transformation tasks.
 """
+
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 def get_business_id(company):
     """Safely extract the business ID from a company record."""
-    return company.get('businessId', {}).get('value', None)
+    return company.get("businessId", {}).get("value", None)
+
 
 def validate_language(lang, mapping, language_code_mapping):
     """
@@ -24,19 +27,25 @@ def validate_language(lang, mapping, language_code_mapping):
     lang_code = language_code_mapping.get(lang)
 
     if not lang_code:
-        logger.error(f"Language code {lang} not found in language_code_mapping: {language_code_mapping}")
+        logger.error(
+            f"Language code {lang} not found in language_code_mapping: {language_code_mapping}"
+        )
         return False
 
     # Check if lang_code is in mapping, or if `lang` as a string matches keys
     if str(lang) in mapping or lang_code in mapping:
         return True
 
-    logger.error(f"Language code {lang} ({lang_code}) not found in mapping keys: {list(mapping.keys())}")
+    logger.error(
+        f"Language code {lang} ({lang_code}) not found in mapping keys: {list(mapping.keys())}"
+    )
     return False
+
 
 def map_value(raw_value, mapping):
     """Map a raw value using a language-specific mapping."""
     return mapping.get(raw_value, raw_value)
+
 
 def clean_address_data(row):
     """
@@ -45,7 +54,9 @@ def clean_address_data(row):
     # Clean apartmentNumber (e.g., replace commas with periods)
     if "apartmentNumber" in row:
         row["apartmentNumber"] = (
-            str(row["apartmentNumber"]).replace(",", ".") if row["apartmentNumber"] else None
+            str(row["apartmentNumber"]).replace(",", ".")
+            if row["apartmentNumber"]
+            else None
         )
 
     # Convert postCode to string and remove decimals
@@ -54,6 +65,7 @@ def clean_address_data(row):
             str(row["postCode"]).split(".")[0] if row["postCode"] else None
         )
     return row
+
 
 def filter_by_language_code(items, lang, language_code_mapping):
     """
@@ -72,4 +84,4 @@ def filter_by_language_code(items, lang, language_code_mapping):
         logger.warning(f"Language code for '{lang}' not found in mapping.")
         return []
 
-    return [item for item in items if item.get('language') == lang_code]
+    return [item for item in items if item.get("language") == lang_code]

@@ -1,12 +1,14 @@
 import logging
+
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG['mappings_path']
+mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
+
 
 def extract_post_offices(data, lang):
     """
@@ -30,25 +32,25 @@ def extract_post_offices(data, lang):
 
     # Process each company in the provided data
     for company in data:
-        business_id = company.get('businessId', {}).get('value')
+        business_id = company.get("businessId", {}).get("value")
         if not business_id:
             logger.warning("Skipping company without businessId.")
             continue  # Skip if no businessId
 
-        addresses = company.get('addresses', [])
+        addresses = company.get("addresses", [])
         for address in addresses:
-            for post_office in address.get('postOffices', []):
+            for post_office in address.get("postOffices", []):
                 # Check if the languageCode matches the target lang_code
-                if str(post_office.get('languageCode')) == lang_code:
-                    rows.append({
-                        "businessId": business_id,
-                        "postCode": post_office.get('postCode', ''),
-                        "city": post_office.get('city', ''),
-                        "active": post_office.get('active', ''),
-                        "languageCode": lang,  # Store as the original language string
-                        "municipalityCode": post_office.get('municipalityCode', '')
-                    })
+                if str(post_office.get("languageCode")) == lang_code:
+                    rows.append(
+                        {
+                            "businessId": business_id,
+                            "postCode": post_office.get("postCode", ""),
+                            "city": post_office.get("city", ""),
+                            "active": post_office.get("active", ""),
+                            "languageCode": lang,  # Store as the original language string
+                            "municipalityCode": post_office.get("municipalityCode", ""),
+                        }
+                    )
 
     return rows
-
-

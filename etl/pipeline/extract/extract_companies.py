@@ -1,14 +1,16 @@
 import logging
 from datetime import datetime
-from etl.utils.extract_utils import get_business_id, map_value
+
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
+from etl.utils.extract_utils import get_business_id, map_value
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG['mappings_path']
+mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
+
 
 def extract_companies(data, lang):
     rows = []
@@ -25,8 +27,10 @@ def extract_companies(data, lang):
         if not business_id:
             continue
 
-        trade_status = map_value(company.get('tradeRegisterStatus', ''), rek_kdi_mapping)
-        status = map_value(company.get('status', ''), status_mapping)
+        trade_status = map_value(
+            company.get("tradeRegisterStatus", ""), rek_kdi_mapping
+        )
+        status = map_value(company.get("status", ""), status_mapping)
 
         def parse_date(date_str):
             try:
@@ -35,21 +39,23 @@ def extract_companies(data, lang):
                 return None
 
         # Get website
-        website = company.get('website', "unknown")
+        website = company.get("website", "unknown")
         if isinstance(website, dict):
-            website = website.get('url', "unknown")
+            website = website.get("url", "unknown")
         elif not website:
             website = "unknown"
 
-        rows.append({
-            "businessId": business_id,
-            "website": website,
-            "registrationDate": company.get('registrationDate', ''),
-            "tradeRegisterStatus": trade_status,
-            "status": status,
-            "registrationDateCompany": company.get('registrationDateCompany', ''),
-            "endDate": company.get('endDate', ''),
-            "lastModified": parse_date(company.get('lastModified', '')),
-        })
+        rows.append(
+            {
+                "businessId": business_id,
+                "website": website,
+                "registrationDate": company.get("registrationDate", ""),
+                "tradeRegisterStatus": trade_status,
+                "status": status,
+                "registrationDateCompany": company.get("registrationDateCompany", ""),
+                "endDate": company.get("endDate", ""),
+                "lastModified": parse_date(company.get("lastModified", "")),
+            }
+        )
 
     return rows

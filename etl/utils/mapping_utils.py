@@ -1,10 +1,13 @@
 """
 Utilities for applying mappings to dataframes or values.
 """
+
 import logging
+
 from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
+
 
 def apply_column_mapping(df, column, mappings: Mappings, mapping_name, lang):
     """

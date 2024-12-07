@@ -1,13 +1,15 @@
 import logging
-from etl.utils.extract_utils import get_business_id, validate_language, map_value
+
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
+from etl.utils.extract_utils import get_business_id, map_value, validate_language
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG['mappings_path']
+mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
+
 
 def extract_registered_entries(data, lang):
     """
@@ -42,15 +44,21 @@ def extract_registered_entries(data, lang):
                 logger.warning("Skipping company with missing business ID.")
                 continue
 
-            for entry in company.get('registeredEntries', []):
-                rows.append({
-                    "businessId": business_id,
-                    "type": entry.get('type', ''),
-                    "registrationDate": entry.get('registrationDate', ''),
-                    "endDate": entry.get('endDate', None),
-                    "register": map_value(entry.get('register', None), register_mapping),
-                    "authority": map_value(entry.get('authority', None), authority_mapping)
-                })
+            for entry in company.get("registeredEntries", []):
+                rows.append(
+                    {
+                        "businessId": business_id,
+                        "type": entry.get("type", ""),
+                        "registrationDate": entry.get("registrationDate", ""),
+                        "endDate": entry.get("endDate", None),
+                        "register": map_value(
+                            entry.get("register", None), register_mapping
+                        ),
+                        "authority": map_value(
+                            entry.get("authority", None), authority_mapping
+                        ),
+                    }
+                )
 
         logger.info(f"Extracted {len(rows)} registered entries for language: {lang}")
 

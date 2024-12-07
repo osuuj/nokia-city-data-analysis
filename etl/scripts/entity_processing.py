@@ -5,15 +5,21 @@ This module provides functions to process data for individual entities
 using dynamically resolved extractor functions. Processed data is saved
 in chunks for efficient storage and handling.
 """
-import os
-import pandas as pd
+
 import logging
+import os
+
+import pandas as pd
+
 from etl.utils.chunking_utils import save_to_csv_in_chunks
 from etl.utils.extraction_helpers import get_extractor_function
 
 logger = logging.getLogger(__name__)
 
-def process_and_save_entity(data_records, lang, entity_name, extract_data_path, chunk_size, entities):
+
+def process_and_save_entity(
+    data_records, lang, entity_name, extract_data_path, chunk_size, entities
+):
     """
     Process and save data for a specific entity.
 

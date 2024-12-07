@@ -2,6 +2,7 @@
 venvs/
 etl_env/
 etl/test/my_test/connect_db.ipynb
+
 # Ignore
 etl/data/*
 

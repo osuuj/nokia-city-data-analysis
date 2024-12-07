@@ -6,11 +6,13 @@ set up multiple directories, clear directory contents, and check
 if directories are empty. These utilities are designed to handle
 common file system operations in a robust and reusable manner.
 """
-import os
+
 import logging
+import os
 from typing import List
 
 logger = logging.getLogger(__name__)
+
 
 def ensure_directory_exists(path: str) -> None:
     """Ensure that a directory exists."""
@@ -21,11 +23,13 @@ def ensure_directory_exists(path: str) -> None:
         logger.error(f"Failed to ensure directory {path}: {e}")
         raise
 
+
 def setup_directories(directories: List[str]) -> None:
     """Ensure that a list of directories exist."""
     for directory in directories:
         ensure_directory_exists(directory)
         logger.info(f"Setup directory: {directory}")
+
 
 def clear_directory(directory: str) -> bool:
     """Clear all files and directories in the specified directory."""
@@ -43,6 +47,7 @@ def clear_directory(directory: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to clear directory {directory}: {e}")
         return False
+
 
 def is_empty_directory(directory: str) -> bool:
     """Check if a directory is empty."""

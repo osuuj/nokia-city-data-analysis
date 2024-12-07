@@ -1,13 +1,15 @@
 import logging
-from etl.utils.extract_utils import get_business_id, validate_language, map_value
+
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
+from etl.utils.extract_utils import get_business_id, map_value, validate_language
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG['mappings_path']
+mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
+
 
 def extract_company_forms(data, lang):
     """
@@ -38,15 +40,17 @@ def extract_company_forms(data, lang):
                 logger.warning("Skipping company with missing business ID.")
                 continue
 
-            for form in company.get('companyForms', []):
-                rows.append({
-                    "businessId": business_id,
-                    "type": form.get('type', ''),
-                    "registrationDate": form.get('registrationDate', ''),
-                    "endDate": form.get('endDate', None),
-                    "version": form.get('version', 0),
-                    "source": map_value(form.get('source', None), source_mapping)
-                })
+            for form in company.get("companyForms", []):
+                rows.append(
+                    {
+                        "businessId": business_id,
+                        "type": form.get("type", ""),
+                        "registrationDate": form.get("registrationDate", ""),
+                        "endDate": form.get("endDate", None),
+                        "version": form.get("version", 0),
+                        "source": map_value(form.get("source", None), source_mapping),
+                    }
+                )
 
         logger.info(f"Extracted {len(rows)} company forms for language: {lang}")
 

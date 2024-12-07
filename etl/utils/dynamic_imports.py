@@ -5,10 +5,12 @@ This module provides a function to import a specific function or object
 dynamically at runtime using its fully qualified name. It helps decouple
 dependencies and enables flexible function resolution.
 """
+
 import importlib
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def import_function(func_path: str):
     """
@@ -17,7 +19,7 @@ def import_function(func_path: str):
     :return: The imported function.
     """
     try:
-        module_name, func_name = func_path.rsplit('.', 1)
+        module_name, func_name = func_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
         return getattr(module, func_name)
     except ImportError as e:

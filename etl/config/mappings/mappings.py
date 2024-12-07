@@ -4,14 +4,18 @@ Mappings loader.
 This module provides utilities to load and retrieve static mappings
 from a centralized YAML file.
 """
-import os
-import yaml
+
 import logging
+import os
+
+import yaml
+
 logger = logging.getLogger(__name__)
 
 
 class Mappings:
     """Class to manage mappings."""
+
     def __init__(self, mappings_file):
         self.mappings_file = mappings_file
         self.mappings = self._load_mappings()
@@ -19,8 +23,8 @@ class Mappings:
     def _load_mappings(self):
         if not os.path.exists(self.mappings_file):
             raise FileNotFoundError(f"Mappings file not found: {self.mappings_file}")
-        with open(self.mappings_file, 'r', encoding='utf-8') as file:
-            mappings = yaml.safe_load(file).get('mappings', {})
+        with open(self.mappings_file, "r", encoding="utf-8") as file:
+            mappings = yaml.safe_load(file).get("mappings", {})
             logger.info(f"Loaded mappings: {list(mappings.keys())}")
             return mappings
 
@@ -44,7 +48,9 @@ class Mappings:
         if language and language in mapping:
             return mapping[language]
         elif language:
-            raise KeyError(f"Language {language} not supported for mapping {mapping_name}.")
+            raise KeyError(
+                f"Language {language} not supported for mapping {mapping_name}."
+            )
 
         return mapping
 
@@ -60,6 +66,7 @@ class Mappings:
         if mapping is None:
             raise KeyError(f"Mapping {mapping_name} not found in the file.")
         if language and mapping is None:
-            raise KeyError(f"Mapping {mapping_name} does not support language {language}.")
+            raise KeyError(
+                f"Mapping {mapping_name} does not support language {language}."
+            )
         return True
-    

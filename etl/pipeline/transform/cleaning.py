@@ -1,11 +1,14 @@
 import os
+
 import pandas as pd
+
 from etl.utils.cleaning_utils import (
     clean_numeric_column,
-    transform_column_names,
     handle_missing_values,
     remove_duplicates,
+    transform_column_names,
 )
+
 
 def clean_dataset(df, entity_name, specific_columns=None):
     """
@@ -34,7 +37,10 @@ def clean_dataset(df, entity_name, specific_columns=None):
 
     return df
 
-def clean_entity_files(extracted_path, cleaned_path, entity_name, specific_columns=None):
+
+def clean_entity_files(
+    extracted_path, cleaned_path, entity_name, specific_columns=None
+):
     """
     Cleans all CSV files for a specific entity.
 

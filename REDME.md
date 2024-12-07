@@ -27,7 +27,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 ## System Architecture
 
-1. **Data Sources**: 
+1. **Data Sources**:
    - [PRH Open Data](https://avoindata.prh.fi/fi) – Open data on Finnish companies.
 
 2. **ETL Pipeline**:
@@ -46,6 +46,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 ## Project Goals
 
 ### Milestones
+
 | Milestone                  | Target Date | Status       |
 |----------------------------|-------------|--------------|
 | Data Preparation           | 2024-11-24  | Completed    |
@@ -59,13 +60,16 @@ This project aims to develop a data analysis and visualization system for Finnis
 ## Installation and Setup
 
 ### Prerequisites
+
 - **Python 3.9+**
 - **Node.js 14+**
 - **PostgreSQL 13+**
 - **Docker** (optional, for containerization)
 
 ### Backend Setup
+
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/osuuj/nokia-city-data-analysis.git
    cd nokia-city-data-analysis

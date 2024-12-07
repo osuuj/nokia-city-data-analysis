@@ -1,6 +1,6 @@
-import pytest
 import pandas as pd
-import yaml
+import pytest
+
 
 @pytest.fixture
 def sample_mappings():
@@ -9,10 +9,11 @@ def sample_mappings():
         "mappings": {
             "authority": {
                 "fi": {"1": "Verohallinto", "2": "Patentti- ja rekisterihallitus"},
-                "en": {"1": "Tax Administration", "2": "Finnish Patent Office"}
+                "en": {"1": "Tax Administration", "2": "Finnish Patent Office"},
             }
         }
     }
+
 
 @pytest.fixture
 def sample_dataframe():

@@ -1,10 +1,22 @@
-#python==3.12.5
+#python==3.12.6
+
+
+# more libraries not needed for this project to work
+black==24.10.0
+ijson==3.3.0
+isort==5.13.2
+jupyter==1.1.1
+mypy== 1.13.0
+numpy==2.1.3
+pandas==2.2.3
+pre-commit==4.0.1
+psycopg2-binary==2.9.10
+pydantic
+pytest==7.0.1
 python-dotenv== 1.0.1
 PyYAML==6.0.2
 requests==2.32.3
-ijson==3.3.0
-sqlalchemy==2.0.36
-pandas==2.2.3
-psycopg2-binary==2.9.10
-jupyter==1.1.1
-numpy==2.1.3
+requests
+ruff==0.8.2
+SQLAlchemy==2.0.36
+types-requests
