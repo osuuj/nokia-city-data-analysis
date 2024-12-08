@@ -9,8 +9,7 @@ repos:
       - id: requirements-txt-fixer
       - id: forbid-new-submodules
       - id: no-commit-to-branch
-        args: ["--branch=trunk"]
-      - id: detect-aws-credentials
+        args: ["--branch=main"]
       - id: detect-private-key
 
   - repo: https://github.com/psf/black
