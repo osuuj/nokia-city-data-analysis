@@ -1,8 +1,7 @@
 #python==3.12.6
-
-
 # more libraries not needed for this project to work
 black==24.10.0
+darglint
 ijson==3.3.0
 isort==5.13.2
 jupyter==1.1.1

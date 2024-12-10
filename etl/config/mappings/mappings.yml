@@ -1,16 +1,20 @@
 mappings:
+  # Default country setting
   default_country: "Finland"
 
+  # Language code mappings
   language_code_mapping:
     fi: "1"  # Finnish
     sv: "2"  # Swedish
     en: "3"  # English
 
+  # Mapping for post office language codes
   post_office_language_code:
     fi: "1"  # Finnish
     en: "1"  # English
     sv: "2"  # Swedish
 
+  # Type mappings for statuses in different languages
   type_mapping:
     fi:
       KONK: "Konkurssissa"

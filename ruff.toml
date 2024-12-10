@@ -1,5 +1,20 @@
 line-length = 88
-target-version = "py311"
-select = ["E", "F", "W", "C90"]
-ignore = ["E501"]
+target-version = "py312"
 fix = true
+
+# Enable linting rules
+[lint]
+select = ["E", "F", "W", "C90", "D"] # Include docstring checks (D)
+ignore = [
+    "E501", # Line-length issues handled by black
+    "D203", # Conflicts with Google style (no blank line before class)
+    "D213", # Suppress multi-line docstring conflict
+    "D100", # Missing docstring for public module
+    "D101", # Missing docstring for public class
+    "D103", # Missing docstring for public function
+]
+# Exclude directories from linting
+exclude = ["tests/", "migrations/", "__pycache__/", "build/", "dist/"]
+# Enforce Google-style docstrings
+[lint.pydocstyle]
+convention = "google"
