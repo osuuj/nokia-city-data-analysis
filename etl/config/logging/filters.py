@@ -6,6 +6,7 @@ specific log messages and sanitizing sensitive information.
 
 import logging
 import re
+from typing import List, Tuple, Pattern
 
 
 class ChunkProcessingFilter(logging.Filter):
@@ -29,7 +30,7 @@ class SensitiveDataFilter(logging.Filter):
     """Filter to sanitize sensitive data from log messages."""
 
     # Patterns to identify sensitive information in logs
-    SENSITIVE_PATTERNS = [
+    SENSITIVE_PATTERNS: List[Tuple[Pattern[str], str]] = [
         (re.compile(r"(password\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
         (re.compile(r"(api_key\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
         (re.compile(r"(token\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
@@ -44,19 +45,22 @@ class SensitiveDataFilter(logging.Filter):
         Returns:
             bool: True to allow the log record, False to suppress it.
         """
-        for pattern, replacement in self.SENSITIVE_PATTERNS:
-            record.msg = pattern.sub(replacement, record.msg)
+        if isinstance(record.msg, str):
+            record.msg = self.sanitize(record.msg)
         return True
 
-    def sanitize(self, msg: str) -> str:
+    def sanitize(self, msg: str, replacement: str = "[REDACTED]") -> str:
         """Sanitize sensitive information from a message.
 
         Args:
             msg (str): The log message to sanitize.
+            replacement (str): The replacement string for sensitive data.
 
         Returns:
             str: The sanitized log message.
         """
-        for pattern in self.SENSITIVE_PATTERNS:
-            msg = re.sub(pattern, "password=****", msg)
+        for pattern, default_replacement in self.SENSITIVE_PATTERNS:
+            msg = pattern.sub(
+                default_replacement if replacement == "[REDACTED]" else replacement, msg
+            )
         return msg
