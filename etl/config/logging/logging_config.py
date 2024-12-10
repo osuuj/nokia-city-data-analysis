@@ -7,15 +7,20 @@ import yaml
 from etl.config.config_loader import CONFIG
 from etl.config.logging.filters import SensitiveDataFilter
 
+# Constants
+LOG_FILE = "etl.log"
+DEBUG_LOG_FILE = "etl_debug.log"
+LOG_CONFIG_FILE = "logging_config.yml"
+
 
 def configure_logging() -> None:
     """Configure logging for the project."""
     logs_dir = CONFIG["directory_structure"]["logs_dir"]
     os.makedirs(logs_dir, exist_ok=True)
-    log_file_path = os.path.join(logs_dir, "etl.log")
-    debug_log_file_path = os.path.join(logs_dir, "etl_debug.log")
+    log_file_path = os.path.join(logs_dir, LOG_FILE)
+    debug_log_file_path = os.path.join(logs_dir, DEBUG_LOG_FILE)
 
-    config_file_path = os.path.join(os.path.dirname(__file__), "logging_config.yml")
+    config_file_path = os.path.join(os.path.dirname(__file__), LOG_CONFIG_FILE)
 
     try:
         with open(config_file_path, "r") as file:
@@ -37,12 +42,12 @@ def configure_logging() -> None:
         logging.info("Logging configured successfully.")
     except Exception as e:
         logging.basicConfig(level=logging.ERROR)
-        logging.error(f"Failed to configure logging: {e}")
+        logging.exception("Failed to configure logging")
+        logging.error(f"Error: {e}")
 
 
 def get_logger() -> logging.Logger:
-    """
-    Retrieve the logger dynamically based on the environment.
+    """Retrieve the logger dynamically based on the environment.
 
     Returns:
         logging.Logger: Configured logger instance.
