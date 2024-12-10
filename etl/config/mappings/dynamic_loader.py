@@ -9,7 +9,7 @@ and configurations for the ETL pipeline. It integrates with the centralized
 import os
 import logging
 from typing import Dict
-from etl.config.config import CONFIG
+from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
 
