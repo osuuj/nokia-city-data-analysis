@@ -1,20 +1,36 @@
+"""
+File Download, Extraction, and JSON Streaming
+
+This module provides utilities for:
+- Downloading files with retry logic.
+- Safely extracting ZIP and TAR files.
+- Streaming JSON files in a memory-efficient manner.
+
+Key Features:
+- Prevents unsafe extractions outside the destination directory.
+- Handles retries and chunked downloading for large files.
+- Integrates with a configuration system for paths and settings.
+"""
+
 import logging
 import os
 import tarfile
 import time
 import zipfile
-from typing import Generator
 
-import ijson
 import requests
 
 from etl.utils.file_system_utils import clear_directory, ensure_directory_exists
+from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
 
+# Configurable constants
+DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size")
+
 
 def ensure_safe_extraction(destination_dir: str, member_name: str) -> bool:
-    """Ensure the extracted file doesn't lead outside the destination directory.
+    """Ensure extracted files remain within the destination directory.
 
     Args:
         destination_dir (str): The directory where files are being extracted.
@@ -30,33 +46,30 @@ def ensure_safe_extraction(destination_dir: str, member_name: str) -> bool:
 def download_file(
     url: str,
     destination_path: str,
-    chunk_size: int,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
     retries: int = 3,
     delay: int = 5,
 ) -> None:
-    """Download a file with retry logic.
+    """Download a file with retries.
 
     Args:
         url (str): URL of the file to download.
         destination_path (str): Path to save the downloaded file.
-        chunk_size (int): Size of chunks for streaming the download.
-        retries (int): Number of retry attempts in case of failure.
-        delay (int): Delay in seconds between retry attempts.
+        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
+        retries (int, optional): Number of retry attempts. Defaults to 3.
+        delay (int, optional): Delay between retries in seconds. Defaults to 5.
 
     Raises:
-        requests.RequestException: If all retry attempts fail.
+        requests.RequestException: If download fails after all retries.
     """
+    ensure_directory_exists(os.path.dirname(destination_path))
+
     for attempt in range(retries):
         try:
-            ensure_directory_exists(os.path.dirname(destination_path))
-
-            if os.path.exists(destination_path):
-                os.remove(destination_path)
-                logger.info(f"Deleted old file at {destination_path}")
-
             logger.info(
-                f"Attempting to download file from {url} (Attempt {attempt + 1}/{retries})"
+                f"Downloading file from {url} (Attempt {attempt + 1}/{retries})"
             )
+
             response = requests.get(url, stream=True, timeout=30)
             response.raise_for_status()
 
@@ -64,103 +77,100 @@ def download_file(
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     file.write(chunk)
 
-            logger.info(f"Downloaded file to {destination_path}")
+            logger.info(f"File downloaded successfully to {destination_path}")
             return
         except requests.RequestException as e:
-            logger.warning(f"Download attempt {attempt + 1} failed: {e}")
+            logger.warning(f"Download failed (Attempt {attempt + 1}/{retries}): {e}")
             if attempt < retries - 1:
                 time.sleep(delay)
             else:
-                logger.error(f"Failed to download file after {retries} attempts.")
                 raise
-        except OSError as e:
-            logger.error(f"Error saving file {destination_path}: {e}")
-            raise
+
+
+def extract_zip(file_path: str, extracted_dir: str) -> None:
+    """Extract a ZIP file to the specified directory."""
+    with zipfile.ZipFile(file_path, "r") as zip_ref:
+        for member in zip_ref.namelist():
+            if ensure_safe_extraction(extracted_dir, member):
+                zip_ref.extract(member, extracted_dir)
+            else:
+                logger.warning(f"Skipping unsafe file: {member}")
+    logger.info(f"ZIP file extracted to {extracted_dir}")
+
+
+def extract_tar(file_path: str, extracted_dir: str) -> None:
+    """Extract a TAR file to the specified directory."""
+    with tarfile.open(file_path, "r:gz") as tar_ref:
+        for member in tar_ref.getmembers():
+            if ensure_safe_extraction(extracted_dir, member.name):
+                tar_ref.extract(member, extracted_dir)
+            else:
+                logger.warning(f"Skipping unsafe file: {member.name}")
+    logger.info(f"TAR file extracted to {extracted_dir}")
 
 
 def extract_file(file_path: str, extracted_dir: str) -> None:
-    """Extract a file (ZIP or TAR) to the specified directory.
+    """Extract a ZIP or TAR file to a directory.
 
     Args:
         file_path (str): Path to the file to extract.
-        extracted_dir (str): Directory where files will be extracted.
+        extracted_dir (str): Directory to extract files.
 
     Raises:
-        RuntimeError: If the file cannot be extracted or is unsupported.
+        RuntimeError: If extraction fails or format is unsupported.
     """
     ensure_directory_exists(extracted_dir)
     clear_directory(extracted_dir)
 
     try:
         if file_path.endswith(".zip"):
-            with zipfile.ZipFile(file_path, "r") as zip_ref:
-                for member in zip_ref.namelist():
-                    if ensure_safe_extraction(extracted_dir, member):
-                        zip_ref.extract(member, extracted_dir)
-                    else:
-                        logger.error(
-                            f"Unsafe file detected: {member}. Skipping extraction."
-                        )
-                logger.info(f"Extracted ZIP file to {extracted_dir}")
-        elif file_path.endswith(".tar.gz") or file_path.endswith(".tgz"):
-            with tarfile.open(file_path, "r:gz") as tar_ref:
-                for member in tar_ref.getmembers():
-                    if ensure_safe_extraction(extracted_dir, member.name):
-                        tar_ref.extract(member, extracted_dir)
-                    else:
-                        logger.error(
-                            f"Unsafe file detected: {member.name}. Skipping extraction."
-                        )
-                logger.info(f"Extracted TAR file to {extracted_dir}")
+            extract_zip(file_path, extracted_dir)
+        elif file_path.endswith((".tar.gz", ".tgz")):
+            extract_tar(file_path, extracted_dir)
         else:
-            logger.warning(f"Unsupported file format: {file_path}")
-            raise RuntimeError(f"Unsupported file format: {file_path}")
-    except RuntimeError as e:
+            raise ValueError(f"Unsupported file format: {file_path}")
+    except (zipfile.BadZipFile, tarfile.TarError) as e:
         logger.error(f"Error extracting file {file_path}: {e}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error extracting file {file_path}: {e}")
-        raise RuntimeError(f"Unexpected error extracting file {file_path}: {e}")
+        raise RuntimeError(f"Extraction failed for {file_path}") from e
 
 
 def download_and_extract_files(
-    url: str, raw_file_path: str, extracted_dir: str, chunk_size: int
+    url: str,
+    raw_file_path: str,
+    extracted_dir: str,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
 ) -> None:
-    """Download a file and extract it if it is a supported format.
+    """Download a file and extract it.
 
     Args:
         url (str): URL of the file to download.
         raw_file_path (str): Path to save the downloaded file.
-        extracted_dir (str): Directory where files will be extracted.
-        chunk_size (int): Size of chunks for streaming the download.
+        extracted_dir (str): Directory to extract files.
+        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
 
     Raises:
-        RuntimeError: If downloading or extraction fails.
+        RuntimeError: If download or extraction fails.
     """
-    try:
-        download_file(url, raw_file_path, chunk_size)
-        extract_file(raw_file_path, extracted_dir)
-    except RuntimeError as e:
-        logger.error(f"Error during download and extraction: {e}")
-        raise
+    download_file(url, raw_file_path, chunk_size)
+    extract_file(raw_file_path, extracted_dir)
 
 
-def stream_json(file_path: str) -> Generator[dict, None, None]:
-    """Stream JSON file in a memory-efficient manner.
-
-    Args:
-        file_path (str): Path to the JSON file.
-
-    Yields:
-        dict: Parsed JSON records.
-
-    Raises:
-        Exception: If there is an error reading or parsing the JSON file.
-    """
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            for record in ijson.items(file, "item"):
-                yield record
-    except Exception as e:
-        logger.error(f"Error streaming JSON file {file_path}: {e}")
-        raise
+# This function is unused in the current implementation
+# def stream_json(file_path: str) -> Generator[Dict[str, Any], None, None]:
+#    """Stream JSON file content efficiently.
+#
+#    Args:
+#        file_path (str): Path to the JSON file.
+#
+#    Yields:
+#        dict: Parsed JSON objects.
+#
+#    Raises:
+#        RuntimeError: If there is an error reading or parsing the file.
+#    """
+#    try:
+#        with open(file_path, "r", encoding="utf-8") as file:
+#            yield from ijson.items(file, "item")
+#    except Exception as e:
+#        logger.error(f"Error streaming JSON file {file_path}: {e}")
+#        raise RuntimeError(f"Failed to stream JSON file {file_path}")

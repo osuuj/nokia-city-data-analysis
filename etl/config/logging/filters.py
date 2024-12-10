@@ -29,19 +29,23 @@ class SensitiveDataFilter(logging.Filter):
     """Filter to sanitize sensitive data from log messages."""
 
     # Patterns to identify sensitive information in logs
-    SENSITIVE_PATTERNS = [r"(?i)password\s*=\s*\S+"]
+    SENSITIVE_PATTERNS = [
+        (re.compile(r"(password\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
+        (re.compile(r"(api_key\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
+        (re.compile(r"(token\s*=\s*)[^\s]+", re.IGNORECASE), r"\1[REDACTED]"),
+    ]
 
     def filter(self, record: logging.LogRecord) -> bool:
-        """Remove sensitive information from log messages.
+        """Sanitize sensitive data in the log record message.
 
         Args:
             record (logging.LogRecord): The log record to filter.
 
         Returns:
-            bool: Always True to allow the log record to pass.
+            bool: True to allow the log record, False to suppress it.
         """
-        if hasattr(record, "msg"):
-            record.msg = self.sanitize(record.msg)
+        for pattern, replacement in self.SENSITIVE_PATTERNS:
+            record.msg = pattern.sub(replacement, record.msg)
         return True
 
     def sanitize(self, msg: str) -> str:

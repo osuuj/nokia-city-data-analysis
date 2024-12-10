@@ -31,14 +31,14 @@ handlers:
   file_debug:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
-    filename: "{logs_dir}/etl_debug.log"
+    filename: "{logs_dir}/{standard_file}"
     maxBytes: 10485760
     backupCount: 5
     formatter: debug
   file_standard:
     class: logging.handlers.RotatingFileHandler
     level: INFO
-    filename: "{logs_dir}/etl.log"
+    filename: "{logs_dir}/{debug_file}"
     maxBytes: 10485760
     backupCount: 5
     formatter: standard
