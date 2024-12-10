@@ -12,8 +12,8 @@ Key Features:
 - Integrates with a configuration system for paths and settings.
 """
 
+from pathlib import Path
 import logging
-import os
 import tarfile
 import time
 import zipfile
@@ -26,26 +26,26 @@ from etl.config.config_loader import CONFIG
 logger = logging.getLogger(__name__)
 
 # Configurable constants
-DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size")
+DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size", 1024 * 1024)
 
 
-def ensure_safe_extraction(destination_dir: str, member_name: str) -> bool:
+def ensure_safe_extraction(destination_dir: Path, member_name: str) -> bool:
     """Ensure extracted files remain within the destination directory.
 
     Args:
-        destination_dir (str): The directory where files are being extracted.
+        destination_dir (Path): The directory where files are being extracted.
         member_name (str): The name of the file to be extracted.
 
     Returns:
         bool: True if the file is safe to extract; False otherwise.
     """
-    extracted_path = os.path.abspath(os.path.join(destination_dir, member_name))
-    return extracted_path.startswith(os.path.abspath(destination_dir))
+    extracted_path = (destination_dir / member_name).resolve()
+    return extracted_path.is_relative_to(destination_dir.resolve())
 
 
 def download_file(
     url: str,
-    destination_path: str,
+    destination_path: Path,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     retries: int = 3,
     delay: int = 5,
@@ -54,7 +54,7 @@ def download_file(
 
     Args:
         url (str): URL of the file to download.
-        destination_path (str): Path to save the downloaded file.
+        destination_path (Path): Path to save the downloaded file.
         chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
         retries (int, optional): Number of retry attempts. Defaults to 3.
         delay (int, optional): Delay between retries in seconds. Defaults to 5.
@@ -62,7 +62,7 @@ def download_file(
     Raises:
         requests.RequestException: If download fails after all retries.
     """
-    ensure_directory_exists(os.path.dirname(destination_path))
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
 
     for attempt in range(retries):
         try:
@@ -73,7 +73,7 @@ def download_file(
             response = requests.get(url, stream=True, timeout=30)
             response.raise_for_status()
 
-            with open(destination_path, "wb") as file:
+            with destination_path.open("wb") as file:
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     file.write(chunk)
 
@@ -87,7 +87,7 @@ def download_file(
                 raise
 
 
-def extract_zip(file_path: str, extracted_dir: str) -> None:
+def extract_zip(file_path: Path, extracted_dir: Path) -> None:
     """Extract a ZIP file to the specified directory."""
     with zipfile.ZipFile(file_path, "r") as zip_ref:
         for member in zip_ref.namelist():
@@ -98,7 +98,7 @@ def extract_zip(file_path: str, extracted_dir: str) -> None:
     logger.info(f"ZIP file extracted to {extracted_dir}")
 
 
-def extract_tar(file_path: str, extracted_dir: str) -> None:
+def extract_tar(file_path: Path, extracted_dir: Path) -> None:
     """Extract a TAR file to the specified directory."""
     with tarfile.open(file_path, "r:gz") as tar_ref:
         for member in tar_ref.getmembers():
@@ -109,12 +109,12 @@ def extract_tar(file_path: str, extracted_dir: str) -> None:
     logger.info(f"TAR file extracted to {extracted_dir}")
 
 
-def extract_file(file_path: str, extracted_dir: str) -> None:
+def extract_file(file_path: Path, extracted_dir: Path) -> None:
     """Extract a ZIP or TAR file to a directory.
 
     Args:
-        file_path (str): Path to the file to extract.
-        extracted_dir (str): Directory to extract files.
+        file_path (Path): Path to the file to extract.
+        extracted_dir (Path): Directory to extract files.
 
     Raises:
         RuntimeError: If extraction fails or format is unsupported.
@@ -123,9 +123,9 @@ def extract_file(file_path: str, extracted_dir: str) -> None:
     clear_directory(extracted_dir)
 
     try:
-        if file_path.endswith(".zip"):
+        if file_path.suffix == ".zip":
             extract_zip(file_path, extracted_dir)
-        elif file_path.endswith((".tar.gz", ".tgz")):
+        elif file_path.suffixes == [".tar", ".gz"] or file_path.suffix == ".tgz":
             extract_tar(file_path, extracted_dir)
         else:
             raise ValueError(f"Unsupported file format: {file_path}")
@@ -136,16 +136,16 @@ def extract_file(file_path: str, extracted_dir: str) -> None:
 
 def download_and_extract_files(
     url: str,
-    raw_file_path: str,
-    extracted_dir: str,
+    raw_file_path: Path,
+    extracted_dir: Path,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
 ) -> None:
     """Download a file and extract it.
 
     Args:
         url (str): URL of the file to download.
-        raw_file_path (str): Path to save the downloaded file.
-        extracted_dir (str): Directory to extract files.
+        raw_file_path (Path): Path to save the downloaded file.
+        extracted_dir (Path): Directory to extract files.
         chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
 
     Raises:

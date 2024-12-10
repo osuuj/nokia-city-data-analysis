@@ -6,7 +6,7 @@ in `directory.yml` and `logging_config.yml`. It includes a custom `SensitiveData
 to sanitize sensitive information from log messages.
 """
 
-import os
+from pathlib import Path
 import yaml
 import logging.config
 from etl.config.config_loader import CONFIG
@@ -36,22 +36,22 @@ def configure_logging() -> None:
     """
     try:
         # Resolve paths for logs directory and configuration file
-        logs_dir = os.path.abspath(CONFIG["directory_structure"]["logs_dir"])
-        log_config_path = os.path.abspath(CONFIG["config_files"]["logging_config_file"])
+        logs_dir = Path(CONFIG["directory_structure"]["logs_dir"]).resolve()
+        log_config_path = Path(CONFIG["config_files"]["logging_config_file"]).resolve()
         file_names = CONFIG["file_names"]
 
         # Ensure the logs directory exists
-        os.makedirs(logs_dir, exist_ok=True)
+        logs_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if the logging configuration file exists
-        if not os.path.exists(log_config_path):
+        if not log_config_path.exists():
             logger.error(f"Logging configuration file not found: {log_config_path}")
             raise FileNotFoundError(
                 f"Missing logging configuration file: {log_config_path}"
             )
 
         # Load the logging configuration
-        with open(log_config_path, "r") as file:
+        with log_config_path.open("r", encoding="utf-8") as file:
             log_config = yaml.safe_load(file)
 
         # Replace placeholders in handlers with actual paths

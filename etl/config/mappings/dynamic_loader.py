@@ -6,7 +6,7 @@ and configurations for the ETL pipeline. It integrates with the centralized
 `config.py` to retrieve file paths and settings.
 """
 
-import os
+from pathlib import Path
 import logging
 from typing import Dict
 from etl.config.config_loader import CONFIG
@@ -14,7 +14,7 @@ from etl.config.config_loader import CONFIG
 logger = logging.getLogger(__name__)
 
 # Constants derived from CONFIG
-TOIMI_FILES_PATH = CONFIG["config_files"]["toimi_files_path"]
+TOIMI_FILES_PATH = Path(CONFIG["config_files"]["toimi_files_path"])
 LANGUAGES = CONFIG[
     "languages"
 ].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
@@ -22,12 +22,12 @@ CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 
 
 def load_toimi_mappings(
-    base_path: str = TOIMI_FILES_PATH,
+    base_path: Path = TOIMI_FILES_PATH,
 ) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Loads TOIMI mappings for various languages and categories.
 
     Args:
-        base_path (str): Base directory containing the mapping files.
+        base_path (Path): Base directory containing the mapping files.
 
     Returns:
         Dict[str, Dict[str, Dict[str, str]]]: Nested dictionary containing TOIMI mappings.
@@ -39,13 +39,13 @@ def load_toimi_mappings(
 
     for category in CATEGORIES:
         for lang in LANGUAGES:
-            file_path = os.path.join(base_path, f"{category}_{lang}.txt")
-            if not os.path.isfile(file_path):
+            file_path = base_path / f"{category}_{lang}.txt"
+            if not file_path.is_file():
                 logger.warning(f"Mapping file not found: {file_path}")
                 continue
 
             try:
-                with open(file_path, "r", encoding="utf-8") as file:
+                with file_path.open("r", encoding="utf-8") as file:
                     for line in file:
                         parts = line.strip().split("\t", 1)
                         if len(parts) == 2:

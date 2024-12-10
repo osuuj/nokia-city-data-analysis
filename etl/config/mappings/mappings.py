@@ -1,4 +1,5 @@
-"""Mappings Loader
+"""
+Mappings Loader
 
 This module provides utilities to load, manage, and validate static mappings 
 from a centralized YAML file. The mappings file is expected to define various 
@@ -6,9 +7,9 @@ configuration data, such as language codes, status mappings, and type mappings,
 which are used across the ETL pipeline.
 """
 
+from pathlib import Path
 from typing import Any, Dict, Optional, TypedDict, Union
 import logging
-import os
 import yaml
 
 
@@ -49,7 +50,7 @@ class Mappings:
         Args:
             mappings_file (str): Path to the YAML mappings file.
         """
-        self.mappings_file: str = mappings_file
+        self.mappings_file: Path = Path(mappings_file).resolve()
         self.mappings: MappingsDict = self._load_mappings()
 
     def _load_mappings(self) -> MappingsDict:
@@ -62,17 +63,21 @@ class Mappings:
             FileNotFoundError: If the mappings file does not exist.
             KeyError: If the required mappings key is missing in the YAML file.
         """
-        if not os.path.exists(self.mappings_file):
+        if not self.mappings_file.exists():
             raise FileNotFoundError(f"Mappings file not found: {self.mappings_file}")
-        with open(self.mappings_file, "r", encoding="utf-8") as file:
-            data = yaml.safe_load(file) or {}
-            mappings = data.get(DEFAULT_MAPPINGS_KEY)
-            if not mappings:
-                raise KeyError(
-                    f"'{DEFAULT_MAPPINGS_KEY}' not found in {self.mappings_file}"
-                )
-            logger.info(f"Loaded mappings: {list(mappings.keys())}")
-            return mappings
+        try:
+            with self.mappings_file.open("r", encoding="utf-8") as file:
+                data = yaml.safe_load(file) or {}
+                mappings = data.get(DEFAULT_MAPPINGS_KEY)
+                if not mappings:
+                    raise KeyError(
+                        f"'{DEFAULT_MAPPINGS_KEY}' not found in {self.mappings_file}"
+                    )
+                logger.info(f"Loaded mappings: {list(mappings.keys())}")
+                return mappings
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML file {self.mappings_file}: {e}")
+            raise
 
     def get_mapping(
         self, mapping_name: str, language: Optional[str] = None

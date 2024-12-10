@@ -1,79 +1,111 @@
-"""
-Utility for splitting large JSON files into smaller chunks.
+"""Utilities for splitting large files into smaller chunks.
 
-This module provides a function to divide large JSON files into
-smaller JSON files of a specified size. It is designed to handle
-memory-efficient processing of large datasets.
+This module provides functions for splitting large JSON files into smaller chunks
+and saving DataFrames to CSV files in chunks.
 """
 
 import json
 import logging
-import os
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-def split_json_to_files(file_path, output_dir, chunk_size):
-    """
-    Splits a large JSON file into smaller JSON files.
+def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> None:
+    """Split a large JSON file into smaller files.
 
-    :param file_path: Path to the input JSON file
-    :param output_dir: Directory where chunks will be saved
-    :param chunk_size: Number of records per chunk
+    Args:
+        file_path (str): Path to the large JSON file.
+        output_dir (str): Directory where the smaller files will be saved.
+        chunk_size (int): Number of records per chunk.
+
+    Raises:
+        FileNotFoundError: If the input file does not exist.
+        ValueError: If the chunk_size is invalid or if the JSON file format is unsupported.
+        RuntimeError: If an error occurs during splitting.
     """
+    input_path = Path(file_path)
+    output_path = Path(output_dir)
+
+    if not input_path.exists():
+        raise FileNotFoundError(f"Input file does not exist: {file_path}")
+
+    if chunk_size <= 0:
+        raise ValueError("Chunk size must be a positive integer.")
+
     logger.info(f"Splitting JSON file: {file_path} into chunks of size {chunk_size}")
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
 
     try:
-        chunk = []
-        chunk_index = 1
+        with input_path.open("r", encoding="utf-8") as file:
+            data = json.load(file)  # Load the entire JSON data
+            if not isinstance(data, list):
+                raise ValueError("JSON file must contain a list of records.")
 
-        with open(file_path, "r", encoding="utf-8") as file:
-            for record in json.load(file):
+            chunk = []
+            for index, record in enumerate(data, start=1):
                 chunk.append(record)
                 if len(chunk) >= chunk_size:
-                    output_file = os.path.join(output_dir, f"chunk_{chunk_index}.json")
-                    with open(output_file, "w", encoding="utf-8") as out_file:
-                        json.dump(chunk, out_file, indent=4)
-                    logger.info(
-                        f"Saved chunk {chunk_index} with {len(chunk)} records to {output_file}"
-                    )
-                    chunk = []  # Clear the buffer
-                    chunk_index += 1
+                    save_chunk(chunk, output_path, index // chunk_size)
+                    chunk = []
 
-            # Write remaining records
+            # Save any remaining records
             if chunk:
-                output_file = os.path.join(output_dir, f"chunk_{chunk_index}.json")
-                with open(output_file, "w", encoding="utf-8") as out_file:
-                    json.dump(chunk, out_file, indent=4)
-                logger.info(
-                    f"Saved final chunk {chunk_index} with {len(chunk)} records to {output_file}"
-                )
-    except IOError as e:
-        logger.error(f"File I/O error during splitting JSON file {file_path}: {e}")
-        raise
+                save_chunk(chunk, output_path, (index // chunk_size) + 1)
+
     except Exception as e:
         logger.error(f"Error during splitting JSON file {file_path}: {e}")
-        raise
+        raise RuntimeError(f"Failed to split JSON file {file_path}") from e
+
+
+def save_chunk(chunk: list[Any], output_path: Path, chunk_index: int) -> None:
+    """Save a chunk of data to a JSON file.
+
+    Args:
+        chunk (list[Any]): Chunk of data to save.
+        output_path (Path): Directory where the file will be saved.
+        chunk_index (int): Index of the chunk for naming.
+    """
+    output_file = output_path / f"chunk_{chunk_index}.json"
+    with output_file.open("w", encoding="utf-8") as out_file:
+        json.dump(chunk, out_file, indent=4)
+    logger.info(f"Saved chunk {chunk_index} with {len(chunk)} records to {output_file}")
 
 
 def save_to_csv_in_chunks(
     df: pd.DataFrame, output_base_name: str, chunk_size: int
 ) -> None:
-    """
-    Save a DataFrame to multiple CSV files in chunks.
+    """Save a DataFrame to multiple CSV files in chunks.
 
-    :param df: DataFrame to save.
-    :param output_base_name: Base name for output files.
-    :param chunk_size: Number of records per chunk.
+    Args:
+        df (pd.DataFrame): The DataFrame to save.
+        output_base_name (str): Base name for the output CSV files.
+        chunk_size (int): Number of records per chunk.
+
+    Raises:
+        ValueError: If the chunk size is not positive.
     """
-    num_chunks = (len(df) + chunk_size - 1) // chunk_size
+    if chunk_size <= 0:
+        raise ValueError("Chunk size must be a positive integer.")
+
+    num_chunks = (len(df) + chunk_size - 1) // chunk_size  # Calculate number of chunks
+    logger.info(
+        f"Saving DataFrame to {num_chunks} CSV files with chunk size {chunk_size}"
+    )
+
+    output_base_path = Path(output_base_name)
+
     for i in range(num_chunks):
         chunk = df.iloc[i * chunk_size : (i + 1) * chunk_size]
-        chunk_file_name = f"{output_base_name}_part{i + 1}.csv"
-        chunk.to_csv(chunk_file_name, index=False, encoding="utf-8")
-        logger.info(f"Saved chunk {i + 1} to {chunk_file_name}")
+        chunk_file_name = output_base_path.with_name(
+            f"{output_base_path.stem}_part{i + 1}.csv"
+        )
+        try:
+            chunk.to_csv(chunk_file_name, index=False, encoding="utf-8")
+            logger.info(f"Saved chunk {i + 1} to {chunk_file_name}")
+        except Exception as e:
+            logger.error(f"Error writing chunk {i + 1} to {chunk_file_name}: {e}")

@@ -10,7 +10,7 @@ This module orchestrates the ETL pipeline by:
 Each stage of the pipeline is modularized for clarity and maintainability.
 """
 
-import os
+from pathlib import Path
 import time
 from typing import Dict, Any, List
 
@@ -37,26 +37,29 @@ def setup_environment(config: Dict[str, Any]) -> None:
         config (Dict[str, Any]): Configuration dictionary with directory structure.
     """
     directories_to_create = [
-        v for k, v in config["directory_structure"].items() if k != "db_schema_path"
+        Path(v)
+        for k, v in config["directory_structure"].items()
+        if k != "db_schema_path"
     ]
     setup_directories(directories_to_create)
     logger.info("Environment setup completed.")
 
 
-def download_raw_data(config: Dict[str, Any]) -> str:
+def download_raw_data(config: Dict[str, Any]) -> Path:
     """Download and extract raw data files.
 
     Args:
         config (Dict[str, Any]): Configuration dictionary with URL templates and paths.
 
     Returns:
-        str: Path to the directory containing extracted files.
+        Path: Path to the directory containing extracted files.
     """
     url = get_url("all_companies", config["url_templates"])
-    raw_file_path = os.path.join(
-        config["directory_structure"]["raw_dir"], config["file_names"]["zip_file_name"]
+    raw_file_path = (
+        Path(config["directory_structure"]["raw_dir"])
+        / config["file_names"]["zip_file_name"]
     )
-    extracted_dir = config["directory_structure"]["extracted_dir"]
+    extracted_dir = Path(config["directory_structure"]["extracted_dir"])
     download_and_extract_files(url, raw_file_path, extracted_dir, config["chunk_size"])
     logger.info("Raw data downloaded and extracted.")
     return extracted_dir
@@ -70,43 +73,43 @@ def download_mappings(config: Dict[str, Any]) -> None:
     """
     base_url = config["url_templates"]["base"]
     endpoint_template = config["url_templates"]["endpoints"]["description"]
-    mappings_path = os.path.join(config["directory_structure"]["raw_dir"], "mappings")
-    os.makedirs(mappings_path, exist_ok=True)
+    mappings_path = Path(config["directory_structure"]["raw_dir"]) / "mappings"
+    mappings_path.mkdir(parents=True, exist_ok=True)
     download_mapping_files(
         base_url, endpoint_template, config["codes"], config["languages"], mappings_path
     )
     logger.info("JSON mappings downloaded.")
 
 
-def process_json_chunks(extracted_dir: str, config: Dict[str, Any]) -> List[Dict]:
+def process_json_chunks(extracted_dir: Path, config: Dict[str, Any]) -> List[Dict]:
     """Process JSON chunks and return loaded records.
 
     Args:
-        extracted_dir (str): Directory containing extracted JSON files.
+        extracted_dir (Path): Directory containing extracted JSON files.
         config (Dict[str, Any]): Configuration dictionary.
 
     Returns:
         List[Dict]: List of dictionaries representing the processed JSON records.
     """
-    processed_dir = config["directory_structure"]["processed_dir"]
+    processed_dir = Path(config["directory_structure"]["processed_dir"])
     split_and_process_json(extracted_dir, processed_dir, config["chunk_size"])
-    split_dir = os.path.join(processed_dir, "chunks")
+    split_dir = processed_dir / "chunks"
     json_records = process_json_directory(split_dir)
     logger.info(f"Total records loaded for processing: {len(json_records)}")
     return json_records.to_dict(orient="records")
 
 
-def process_entities(data_records: List[Dict], config: Dict[str, str]) -> None:
+def process_entities(data_records: List[Dict], config: Dict[str, Any]) -> None:
     """Process and save data for each entity based on the schema and configuration.
 
     Args:
         data_records (List[Dict]): List of data records to process.
-        config (Dict[str, str]): Configuration dictionary with entity details.
+        config (Dict[str, Any]): Configuration dictionary with entity details.
     """
-    extract_data_path = os.path.join(
-        config["directory_structure"]["processed_dir"], "extracted"
+    extract_data_path = (
+        Path(config["directory_structure"]["processed_dir"]) / "extracted"
     )
-    os.makedirs(extract_data_path, exist_ok=True)
+    extract_data_path.mkdir(parents=True, exist_ok=True)
 
     for entity in config["entities"]:
         entity_name = entity["name"]
@@ -123,19 +126,17 @@ def process_entities(data_records: List[Dict], config: Dict[str, str]) -> None:
     logger.info("Entity processing and cleaning completed.")
 
 
-def clean_entities(config: Dict[str, str]) -> None:
+def clean_entities(config: Dict[str, Any]) -> None:
     """Clean processed entity files.
 
     Args:
-        config (Dict[str, str]): Configuration dictionary with paths and entity information.
+        config (Dict[str, Any]): Configuration dictionary with paths and entity information.
     """
-    extract_data_path = os.path.join(
-        config["directory_structure"]["processed_dir"], "extracted"
+    extract_data_path = (
+        Path(config["directory_structure"]["processed_dir"]) / "extracted"
     )
-    cleaned_data_path = os.path.join(
-        config["directory_structure"]["processed_dir"], "cleaned"
-    )
-    os.makedirs(cleaned_data_path, exist_ok=True)
+    cleaned_data_path = Path(config["directory_structure"]["processed_dir"]) / "cleaned"
+    cleaned_data_path.mkdir(parents=True, exist_ok=True)
 
     for entity in config["entities"]:
         entity_name = entity["name"]
@@ -170,12 +171,12 @@ def run_etl_pipeline() -> None:
 
         # Step 4: Process JSON chunks
         data_records = process_json_chunks(extracted_dir, config)
-        #
-        ## Step 5: Process entities
-        # process_entities(data_records, config)
-        #
-        ## Step 6: Clean entities
-        # clean_entities(config)
+
+        # Step 5: Process entities
+        process_entities(data_records, config)
+
+        # Step 6: Clean entities
+        clean_entities(config)
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")

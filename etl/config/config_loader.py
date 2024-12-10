@@ -8,11 +8,11 @@ connection URL.
 """
 
 import os
+from pathlib import Path
 import logging
 from typing import Any, Dict, List
 import yaml
 from dotenv import load_dotenv
-
 
 # Load environment variables
 load_dotenv()
@@ -25,11 +25,11 @@ DEFAULT_ENV = "development"
 DEFAULT_CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml"]
 
 
-def load_yaml(file_path: str) -> Dict[str, Any]:
+def load_yaml(file_path: Path) -> Dict[str, Any]:
     """Load a YAML file.
 
     Args:
-        file_path (str): Path to the YAML file.
+        file_path (Path): Path to the YAML file.
 
     Returns:
         Dict[str, Any]: Parsed YAML content.
@@ -38,11 +38,11 @@ def load_yaml(file_path: str) -> Dict[str, Any]:
         FileNotFoundError: If the file does not exist.
         yaml.YAMLError: If the YAML file is invalid.
     """
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
 
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
+        with file_path.open("r", encoding="utf-8") as file:
             return yaml.safe_load(file) or {}
     except yaml.YAMLError as e:
         logger.error(f"Invalid YAML in {file_path}: {e}")
@@ -77,13 +77,13 @@ def load_all_configs(config_files: List[str] = None) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Combined configuration data with environment variables resolved.
     """
-    base_path = os.path.dirname(__file__)
+    base_path = Path(__file__).parent
     config_files = config_files or DEFAULT_CONFIG_FILES
     combined_config = {}
 
     for file_name in config_files:
-        file_path = os.path.join(base_path, file_name)
-        if os.path.exists(file_path):
+        file_path = base_path / file_name
+        if file_path.exists():
             logger.debug(f"Loading configuration file: {file_path}")
             config_data = load_yaml(file_path)
             combined_config.update(config_data)
