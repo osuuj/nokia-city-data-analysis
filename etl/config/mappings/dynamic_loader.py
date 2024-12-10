@@ -1,16 +1,28 @@
-import logging
+"""
+Dynamic Loader
+
+This module provides functionality to dynamically load static mappings 
+and configurations for the ETL pipeline. It integrates with the centralized 
+`config.py` to retrieve file paths and settings.
+"""
+
 import os
+import logging
 from typing import Dict
+from etl.config.config import CONFIG
 
 logger = logging.getLogger(__name__)
 
-# Constants
-CATEGORIES = ["TOIMI", "TOIMI2", "TOIMI3"]
-LANGUAGES = ["fi", "en", "sv"]
+# Constants derived from CONFIG
+TOIMI_FILES_PATH = CONFIG["config_files"]["toimi_files_path"]
+LANGUAGES = CONFIG[
+    "languages"
+].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
+CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 
 
 def load_toimi_mappings(
-    base_path: str = "etl/data/1_raw/mappings",
+    base_path: str = TOIMI_FILES_PATH,
 ) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Loads TOIMI mappings for various languages and categories.
 
@@ -19,11 +31,7 @@ def load_toimi_mappings(
 
     Returns:
         Dict[str, Dict[str, Dict[str, str]]]: Nested dictionary containing TOIMI mappings.
-
-    Raises:
-        FileNotFoundError: If any required mapping file is not found.
-        ValueError: If a mapping file has invalid content.
-        Exception: If an unexpected error occurs during processing.
+        Structure: {category: {language: {code: description}}}.
     """
     all_mappings: Dict[str, Dict[str, Dict[str, str]]] = {
         category: {lang: {} for lang in LANGUAGES} for category in CATEGORIES
@@ -32,29 +40,22 @@ def load_toimi_mappings(
     for category in CATEGORIES:
         for lang in LANGUAGES:
             file_path = os.path.join(base_path, f"{category}_{lang}.txt")
+            if not os.path.isfile(file_path):
+                logger.warning(f"Mapping file not found: {file_path}")
+                continue
+
             try:
                 with open(file_path, "r", encoding="utf-8") as file:
                     for line in file:
-                        # Split lines into code and description
-                        try:
-                            code, description = line.strip().split("\t", 1)
+                        parts = line.strip().split("\t", 1)
+                        if len(parts) == 2:
+                            code, description = parts
                             all_mappings[category][lang][code] = description
-                        except ValueError:
-                            logger.error(f"Invalid line in file {file_path}: {line}")
-                            raise ValueError(f"Invalid content in file {file_path}")
-                logger.info(f"Loaded {category} mappings for {lang} from {file_path}")
-            except FileNotFoundError as fnf_error:
-                logger.warning(f"Error loading mapping: {fnf_error}")
-                raise FileNotFoundError(
-                    f"File not found: {file_path}"
-                )  # Raising the exception
-            except ValueError as val_error:
-                logger.error(f"Error with mapping content: {val_error}")
-                raise ValueError(
-                    f"Invalid content in file: {file_path}"
-                )  # Raising the exception
+                        else:
+                            logger.warning(
+                                f"Invalid line format in {file_path}: {line.strip()}"
+                            )
             except Exception as e:
-                logger.error(f"Error with mapping content: {e}")
-                raise Exception(f"Unknown error with file {file_path}: {e}")
+                logger.error(f"Error reading file {file_path}: {e}")
 
     return all_mappings

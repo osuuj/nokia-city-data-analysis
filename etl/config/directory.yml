@@ -1,35 +1,26 @@
 # Directory Configuration
+#
+# This file defines the directory structure and paths used across the ETL pipeline.
+# It centralizes the locations of raw, extracted, processed data, log files,
+# schemas, and configuration files. This ensures consistency and simplifies path management.
 
 # Directory structure for various stages of the ETL process
 directory_structure:
-  # Directory for raw data files before processing
-  raw_dir: etl/data/1_raw/
-  # Directory for data extracted and pre-processed from raw files
-  extracted_dir: etl/data/2_extracted/
-  # Directory for fully processed data ready for analysis or export
-  processed_dir: etl/data/3_processed/
-  # Directory for storing log files generated during ETL processes
-  logs_dir: etl/data/logs/
-  # Path to base schema files used for validation or structure definition
-  base_schema_path: etl/config/schemas/
-  # Path to the database schema file for migrations or reference
-  db_schema_path: server/db/schema.sql
+  raw_dir: etl/data/1_raw/               # Directory for raw data files before processing
+  extracted_dir: etl/data/2_extracted/  # Directory for data extracted and pre-processed
+  processed_dir: etl/data/3_processed/  # Directory for fully processed data
+  logs_dir: etl/data/logs/              # Directory for storing log files
+  base_schema_path: etl/config/schemas/ # Path to base schema files
+  db_schema_path: server/db/schema.sql  # Path to the database schema file
 
-# Path to the mappings file that defines relationships or configurations
-mappings_file: "./config/mappings.yml"
+# File paths for additional configurations
+config_files:
+  mappings_file: "./config/mappings.yml"      # Path to the main mappings file
+  toimi_files_path: etl/data/1_raw/mappings/  # Directory for TOIMI mappings
+  entities_file: "./config/entities.yml"      # Path to the entities configuration file
+  logging_config_file: "./logging/logging_config.yml"  # Path to the logging configuration file
 
-# Supported languages for processing and translation
-languages:
-  # English language configuration
-  english: "en"
-  # Finnish language configuration
-  finnish: "fi"
-  # Swedish language configuration
-  swedish: "sv"
-
-# Additional paths for configuration and mappings
-mappings_path: etl/config/mappings/mappings.yml
-toimi_files_path: etl/data/1_raw/mappings
-
-# The name of the primary input file
-file_name: companies.zip
+file_names:
+  standard_log_file: "etl.log"         # Log file for general information
+  debug_log_file: "etl_debug.log"      # Log file for debugging details
+  zip_file_name: companies.zip         # Name of the primary input zip file

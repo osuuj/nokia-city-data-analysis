@@ -1,4 +1,12 @@
+# Logging Configuration
+#
+# This file defines the logging setup for the ETL pipeline. It specifies:
+# - Log levels, formats, and handlers for different logging scenarios (e.g., development, production).
+# - Rotating file handlers for standard and debug logs.
+# - Console output for real-time debugging and error logging.
+
 version: 1
+
 disable_existing_loggers: False
 
 # Formatters for different logging levels

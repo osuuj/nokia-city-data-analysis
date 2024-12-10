@@ -1,15 +1,28 @@
-import os
-from typing import Any, Dict
+"""
+Configuration Loader
 
+This module centralizes the loading, merging, and management of configurations 
+for the ETL pipeline. It handles multiple YAML configuration files, resolves 
+environment variables, and constructs runtime settings, including the database 
+connection URL.
+"""
+
+import os
+import logging
+from typing import Any, Dict, List
 import yaml
 from dotenv import load_dotenv
+
 
 # Load environment variables
 load_dotenv()
 
+# Logger setup
+logger = logging.getLogger(__name__)
+
 # Constants
-CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml"]
 DEFAULT_ENV = "development"
+DEFAULT_CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml"]
 
 
 def load_yaml(file_path: str) -> Dict[str, Any]:
@@ -23,11 +36,17 @@ def load_yaml(file_path: str) -> Dict[str, Any]:
 
     Raises:
         FileNotFoundError: If the file does not exist.
+        yaml.YAMLError: If the YAML file is invalid.
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
-    with open(file_path, "r") as file:
-        return yaml.safe_load(file) or {}
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return yaml.safe_load(file) or {}
+    except yaml.YAMLError as e:
+        logger.error(f"Invalid YAML in {file_path}: {e}")
+        raise
 
 
 def resolve_env_vars(config: Dict[str, Any]) -> Dict[str, Any]:
@@ -40,32 +59,38 @@ def resolve_env_vars(config: Dict[str, Any]) -> Dict[str, Any]:
         Dict[str, Any]: Configuration dictionary with resolved environment variables.
     """
     for key, value in config.items():
-        if isinstance(value, str) and value.startswith("${"):
-            env_var = value.strip("${}")
-            config[key] = os.getenv(env_var, value)
+        if isinstance(value, str):
+            if value.startswith("${") and value.endswith("}"):
+                env_var = value[2:-1]  # Strip ${ and }
+                config[key] = os.getenv(env_var, value)
         elif isinstance(value, dict):
             config[key] = resolve_env_vars(value)
     return config
 
 
-def load_all_configs() -> Dict[str, Any]:
+def load_all_configs(config_files: List[str] = None) -> Dict[str, Any]:
     """Load and merge all modular configurations.
+
+    Args:
+        config_files (List[str]): List of configuration file names. Defaults to DEFAULT_CONFIG_FILES.
 
     Returns:
         Dict[str, Any]: Combined configuration data with environment variables resolved.
     """
     base_path = os.path.dirname(__file__)
+    config_files = config_files or DEFAULT_CONFIG_FILES
     combined_config = {}
 
-    for file_name in CONFIG_FILES:
+    for file_name in config_files:
         file_path = os.path.join(base_path, file_name)
         if os.path.exists(file_path):
+            logger.debug(f"Loading configuration file: {file_path}")
             config_data = load_yaml(file_path)
             combined_config.update(config_data)
+        else:
+            logger.warning(f"Configuration file not found: {file_path}")
 
     combined_config["env"] = os.getenv("ENV", DEFAULT_ENV)
-    combined_config["mappings_path"] = os.path.join(base_path, "mappings/mappings.yml")
-
     return resolve_env_vars(combined_config)
 
 
@@ -89,5 +114,6 @@ def construct_database_url(config: Dict[str, Any]) -> str:
     return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
 
 
+# Main configuration loader
 CONFIG = load_all_configs()
 DATABASE_URL = construct_database_url(CONFIG)
