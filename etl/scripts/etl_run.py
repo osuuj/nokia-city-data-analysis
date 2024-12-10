@@ -1,14 +1,18 @@
 """
-ETL pipeline orchestration script.
+ETL Pipeline Orchestration Script
 
-This module orchestrates the ETL pipeline by setting up the environment,
-downloading and extracting raw data, processing JSON files, and handling
-entity-specific data processing. Each stage of the pipeline is modularized
-for clarity and maintainability.
+This module orchestrates the ETL pipeline by:
+- Setting up the environment.
+- Downloading and extracting raw data.
+- Processing JSON files.
+- Handling entity-specific data processing and cleaning.
+
+Each stage of the pipeline is modularized for clarity and maintainability.
 """
 
 import os
 import time
+from typing import Dict, Any, List
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
@@ -26,9 +30,11 @@ logger = get_logger()
 logger.info("Starting ETL pipeline")
 
 
-def setup_environment(config):
-    """
-    Set up directories and ensure the environment is ready for the ETL pipeline.
+def setup_environment(config: Dict[str, Any]) -> None:
+    """Set up directories and ensure the environment is ready for the ETL pipeline.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary with directory structure.
     """
     directories_to_create = [
         v for k, v in config["directory_structure"].items() if k != "db_schema_path"
@@ -37,13 +43,18 @@ def setup_environment(config):
     logger.info("Environment setup completed.")
 
 
-def download_raw_data(config):
-    """
-    Download and extract raw data files.
+def download_raw_data(config: Dict[str, Any]) -> str:
+    """Download and extract raw data files.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary with URL templates and paths.
+
+    Returns:
+        str: Path to the directory containing extracted files.
     """
     url = get_url("all_companies", config["url_templates"])
     raw_file_path = os.path.join(
-        config["directory_structure"]["raw_dir"], config["file_name"]
+        config["directory_structure"]["raw_dir"], config["file_names"]["zip_file_name"]
     )
     extracted_dir = config["directory_structure"]["extracted_dir"]
     download_and_extract_files(url, raw_file_path, extracted_dir, config["chunk_size"])
@@ -51,9 +62,11 @@ def download_raw_data(config):
     return extracted_dir
 
 
-def download_mappings(config):
-    """
-    Download JSON mappings based on codes and languages.
+def download_mappings(config: Dict[str, Any]) -> None:
+    """Download JSON mappings based on codes and languages.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary with mappings information.
     """
     base_url = config["url_templates"]["base"]
     endpoint_template = config["url_templates"]["endpoints"]["description"]
@@ -65,9 +78,15 @@ def download_mappings(config):
     logger.info("JSON mappings downloaded.")
 
 
-def process_json_chunks(extracted_dir, config):
-    """
-    Process JSON chunks and return loaded records.
+def process_json_chunks(extracted_dir: str, config: Dict[str, Any]) -> List[Dict]:
+    """Process JSON chunks and return loaded records.
+
+    Args:
+        extracted_dir (str): Directory containing extracted JSON files.
+        config (Dict[str, Any]): Configuration dictionary.
+
+    Returns:
+        List[Dict]: List of dictionaries representing the processed JSON records.
     """
     processed_dir = config["directory_structure"]["processed_dir"]
     split_and_process_json(extracted_dir, processed_dir, config["chunk_size"])
@@ -77,9 +96,12 @@ def process_json_chunks(extracted_dir, config):
     return json_records.to_dict(orient="records")
 
 
-def process_entities(data_records, config):
-    """
-    Process and save data for each entity based on the schema and configuration.
+def process_entities(data_records: List[Dict], config: Dict[str, str]) -> None:
+    """Process and save data for each entity based on the schema and configuration.
+
+    Args:
+        data_records (List[Dict]): List of data records to process.
+        config (Dict[str, str]): Configuration dictionary with entity details.
     """
     extract_data_path = os.path.join(
         config["directory_structure"]["processed_dir"], "extracted"
@@ -88,7 +110,7 @@ def process_entities(data_records, config):
 
     for entity in config["entities"]:
         entity_name = entity["name"]
-        lang = config["languages"]["english"]
+        lang = config["chosen_language"]
         process_and_save_entity(
             data_records,
             lang,
@@ -101,12 +123,11 @@ def process_entities(data_records, config):
     logger.info("Entity processing and cleaning completed.")
 
 
-def clean_entities(config):
-    """
-    Cleans processed entity files.
+def clean_entities(config: Dict[str, str]) -> None:
+    """Clean processed entity files.
 
     Args:
-        config (dict): Configuration dictionary with paths and entity information.
+        config (Dict[str, str]): Configuration dictionary with paths and entity information.
     """
     extract_data_path = os.path.join(
         config["directory_structure"]["processed_dir"], "extracted"
@@ -118,31 +139,25 @@ def clean_entities(config):
 
     for entity in config["entities"]:
         entity_name = entity["name"]
-        specific_columns = None
+        specific_columns = (
+            ["post_code", "apartment_number", "building_number", "post_office_box"]
+            if entity_name == "addresses"
+            else None
+        )
 
-        # Apply specific cleaning rules for the "addresses" entity
-        if entity_name == "addresses":
-            specific_columns = [
-                "post_code",
-                "apartment_number",
-                "building_number",
-                "post_office_box",
-            ]
-
-        print(f"Cleaning data for entity: {entity_name}")
+        logger.info(f"Cleaning data for entity: {entity_name}")
         clean_entity_files(
             extract_data_path, cleaned_data_path, entity_name, specific_columns
         )
 
-    print("Cleaning of all entities completed.")
+    logger.info("Cleaning of all entities completed.")
 
 
-def run_etl_pipeline():
-    """
-    Run the entire ETL pipeline.
-    """
+def run_etl_pipeline() -> None:
+    """Run the entire ETL pipeline."""
     start_time = time.time()
     config = load_all_configs()
+
     try:
         # Step 1: Environment setup
         setup_environment(config)
@@ -155,16 +170,15 @@ def run_etl_pipeline():
 
         # Step 4: Process JSON chunks
         data_records = process_json_chunks(extracted_dir, config)
-
-        # Step 5: Process entities
-        process_entities(data_records, config)
-
-        # Step 6: Clean entities
-        clean_entities(config)
+        #
+        ## Step 5: Process entities
+        # process_entities(data_records, config)
+        #
+        ## Step 6: Clean entities
+        # clean_entities(config)
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
-
     except Exception as e:
         logger.error(f"ETL pipeline failed: {e}")
         raise

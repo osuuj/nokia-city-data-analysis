@@ -88,21 +88,24 @@ class Mappings:
 
         Raises:
             KeyError: If the mapping or language is not found.
+            TypeError: If the mapping type is unexpected.
         """
         mapping = self.mappings.get(mapping_name)
-        if not mapping:
+        if mapping is None:
             raise KeyError(
                 f"Mapping '{mapping_name}' not found in {self.mappings_file}."
             )
 
-        # If the mapping is not language-specific, return it directly
-        if not isinstance(mapping, dict):
-            return mapping
+        # If the mapping is not a dictionary, assume it's a direct value
+        if not isinstance(mapping, (dict, str)):
+            raise TypeError(
+                f"Unexpected type for mapping '{mapping_name}': {type(mapping).__name__}"
+            )
 
         # Handle language-specific mappings
-        if language and language in mapping:
-            return mapping[language]
-        elif language:
+        if isinstance(mapping, dict) and language:
+            if language in mapping:
+                return mapping[language]
             raise KeyError(
                 f"Language '{language}' not supported for mapping '{mapping_name}'."
             )
