@@ -1,3 +1,11 @@
+# Static mappings configuration
+#
+# This file contains static mappings used for data processing in the ETL pipeline.
+# Mappings include translations, identifiers, and standardized codes for
+# multi-language and multi-context support. Each section is tailored to a 
+# specific type of mapping, such as language codes, type mappings, and authorities.
+#
+
 mappings:
   # Default country setting
   default_country: "Finland"
