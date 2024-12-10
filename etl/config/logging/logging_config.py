@@ -14,7 +14,17 @@ LOG_CONFIG_FILE = "logging_config.yml"
 
 
 def configure_logging() -> None:
-    """Configure logging for the project."""
+    """Configure logging for the ETL project.
+
+    This function sets up logging by:
+    - Creating necessary log directories.
+    - Loading logging configurations from a YAML file.
+    - Dynamically setting the log file paths for standard and debug logs.
+    - Adding a custom sensitive data filter to all loggers.
+
+    Raises:
+        Exception: If the logging configuration fails to load or apply.
+    """
     logs_dir = CONFIG["directory_structure"]["logs_dir"]
     os.makedirs(logs_dir, exist_ok=True)
     log_file_path = os.path.join(logs_dir, LOG_FILE)
@@ -47,10 +57,14 @@ def configure_logging() -> None:
 
 
 def get_logger() -> logging.Logger:
-    """Retrieve the logger dynamically based on the environment.
+    """Retrieve a logger configured for the current environment.
+
+    This function returns a logger whose configuration depends on the
+    `env` key in the global configuration. If the environment is not
+    explicitly set, it defaults to 'development'.
 
     Returns:
-        logging.Logger: Configured logger instance.
+        logging.Logger: A logger instance configured for the current environment.
     """
     env = CONFIG.get("env", "development")  # Default to 'development'
     return logging.getLogger(env)
