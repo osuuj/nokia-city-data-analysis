@@ -13,16 +13,17 @@ Each stage of the pipeline is modularized for clarity and maintainability.
 from pathlib import Path
 import time
 from typing import Dict, Any, List
+import pandas as pd
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
 from etl.pipeline.transform.cleaning import clean_entity_files
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.scripts.entity_processing import process_and_save_entity
-from etl.scripts.extract_companies_data import process_json_directory
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.json_utils import split_and_process_json
 from etl.utils.network_utils import download_mapping_files, get_url
+from etl.scripts.extract_companies_data import process_json_directory
 
 # Configure logging
 configure_logging()
@@ -34,7 +35,10 @@ def setup_environment(config: Dict[str, Any]) -> None:
     """Set up directories and ensure the environment is ready for the ETL pipeline.
 
     Args:
-        config (Dict[str, Any]): Configuration dictionary with directory structure.
+        config (Dict[str, Any]): Configuration dictionary containing directory paths.
+
+    Returns:
+        None
     """
     directories_to_create = [
         Path(v)
@@ -52,7 +56,7 @@ def download_raw_data(config: Dict[str, Any]) -> Path:
         config (Dict[str, Any]): Configuration dictionary with URL templates and paths.
 
     Returns:
-        Path: Path to the directory containing extracted files.
+        Path: Path to the directory containing the extracted files.
     """
     url = get_url("all_companies", config["url_templates"])
     raw_file_path = (
@@ -69,7 +73,10 @@ def download_mappings(config: Dict[str, Any]) -> None:
     """Download JSON mappings based on codes and languages.
 
     Args:
-        config (Dict[str, Any]): Configuration dictionary with mappings information.
+        config (Dict[str, Any]): Configuration dictionary containing mappings information.
+
+    Returns:
+        None
     """
     base_url = config["url_templates"]["base"]
     endpoint_template = config["url_templates"]["endpoints"]["description"]
@@ -81,30 +88,38 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def process_json_chunks(extracted_dir: Path, config: Dict[str, Any]) -> List[Dict]:
-    """Process JSON chunks and return loaded records.
+def process_json_chunks(extracted_dir: Path, config: Dict[str, Any]) -> pd.DataFrame:
+    """Process JSON chunks by splitting large JSON files into smaller chunks.
 
     Args:
-        extracted_dir (Path): Directory containing extracted JSON files.
-        config (Dict[str, Any]): Configuration dictionary.
+        extracted_dir (Path): Directory containing the extracted JSON files.
+        config (Dict[str, Any]): Configuration dictionary containing processing details.
 
     Returns:
-        List[Dict]: List of dictionaries representing the processed JSON records.
+        pd.DataFrame: Processed records as a DataFrame.
     """
-    processed_dir = Path(config["directory_structure"]["processed_dir"])
-    split_and_process_json(extracted_dir, processed_dir, config["chunk_size"])
-    split_dir = processed_dir / "chunks"
+    splitted_dir = config["directory_structure"]["processed_dir"]
+    chunk_size = config["chunk_size"]
+
+    logger.info(
+        f"Processing JSON chunks from {extracted_dir} with chunk size {chunk_size}"
+    )
+    split_dir = split_and_process_json(extracted_dir, splitted_dir, chunk_size)
     json_records = process_json_directory(split_dir)
-    logger.info(f"Total records loaded for processing: {len(json_records)}")
-    return json_records.to_dict(orient="records")
+    logger.info(f"JSON chunks processed and saved to {split_dir}")
+
+    return json_records
 
 
-def process_entities(data_records: List[Dict], config: Dict[str, Any]) -> None:
+def process_entities(data_records: pd.DataFrame, config: Dict[str, Any]) -> None:
     """Process and save data for each entity based on the schema and configuration.
 
     Args:
-        data_records (List[Dict]): List of data records to process.
+        data_records (pd.DataFrame): DataFrame containing data records to process.
         config (Dict[str, Any]): Configuration dictionary with entity details.
+
+    Returns:
+        None
     """
     extract_data_path = (
         Path(config["directory_structure"]["processed_dir"]) / "extracted"
@@ -130,7 +145,10 @@ def clean_entities(config: Dict[str, Any]) -> None:
     """Clean processed entity files.
 
     Args:
-        config (Dict[str, Any]): Configuration dictionary with paths and entity information.
+        config (Dict[str, Any]): Configuration dictionary containing paths and entity information.
+
+    Returns:
+        None
     """
     extract_data_path = (
         Path(config["directory_structure"]["processed_dir"]) / "extracted"
@@ -154,8 +172,19 @@ def clean_entities(config: Dict[str, Any]) -> None:
     logger.info("Cleaning of all entities completed.")
 
 
+import tracemalloc
+
+
 def run_etl_pipeline() -> None:
-    """Run the entire ETL pipeline."""
+    """Run the entire ETL pipeline.
+
+    Orchestrates all steps of the ETL process:
+    - Sets up the environment.
+    - Downloads and extracts raw data.
+    - Processes JSON chunks.
+    - Processes and cleans entity-specific data.
+    """
+    tracemalloc.start()
     start_time = time.time()
     config = load_all_configs()
 
@@ -175,14 +204,22 @@ def run_etl_pipeline() -> None:
         # Step 5: Process entities
         process_entities(data_records, config)
 
-        # Step 6: Clean entities
-        clean_entities(config)
-
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
+
+        # Memory profiling
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics("lineno")
+
+        logger.info("Top 10 memory usage lines:")
+        for stat in top_stats[:10]:
+            logger.info(stat)
+
     except Exception as e:
         logger.error(f"ETL pipeline failed: {e}")
         raise
+    finally:
+        tracemalloc.stop()
 
 
 if __name__ == "__main__":
