@@ -172,7 +172,7 @@ def clean_entities(config: Dict[str, Any]) -> None:
     logger.info("Cleaning of all entities completed.")
 
 
-import tracemalloc
+# import tracemalloc
 
 
 def run_etl_pipeline() -> None:
@@ -184,7 +184,7 @@ def run_etl_pipeline() -> None:
     - Processes JSON chunks.
     - Processes and cleans entity-specific data.
     """
-    tracemalloc.start()
+    #    tracemalloc.start()
     start_time = time.time()
     config = load_all_configs()
 
@@ -208,18 +208,20 @@ def run_etl_pipeline() -> None:
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
 
         # Memory profiling
-        snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics("lineno")
+    #       snapshot = tracemalloc.take_snapshot()
+    #       top_stats = snapshot.statistics("lineno")
 
-        logger.info("Top 10 memory usage lines:")
-        for stat in top_stats[:10]:
-            logger.info(stat)
+    #       logger.info("Top 10 memory usage lines:")
+    #       for stat in top_stats[:10]:
+    #           logger.info(stat)
 
     except Exception as e:
         logger.error(f"ETL pipeline failed: {e}")
         raise
-    finally:
-        tracemalloc.stop()
+
+
+#   finally:
+#       tracemalloc.stop()
 
 
 if __name__ == "__main__":

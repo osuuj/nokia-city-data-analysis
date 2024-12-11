@@ -1,61 +1,69 @@
+import datetime
 import logging
-from datetime import datetime
+from typing import Any, Dict, List
 
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
-from etl.utils.extract_utils import get_business_id, map_value
+from etl.utils.extract_utils import get_business_id
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG["mappings_path"]
+mappings_file = CONFIG.get("config_files", {}).get("mappings_file")
 mappings = Mappings(mappings_file)
 
 
-def extract_companies(data, lang):
-    rows = []
+def extract_companies(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
+    """Extracts company details from JSON data for a specific language.
 
-    rek_kdi_mapping = mappings.get_mapping("rek_kdi_mapping", lang)
-    status_mapping = mappings.get_mapping("status_mapping", lang)
+    Args:
+        data (List[Dict[str, Any]]): List of company data.
+        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
 
-    if not rek_kdi_mapping or not status_mapping:
-        logger.error(f"Mappings for language {lang} not found.")
-        return rows
+    Returns:
+        List[Dict[str, Any]]: Extracted company rows.
+    """
+    rows: List[Dict[str, Any]] = []
 
-    for company in data:
-        business_id = get_business_id(company)
-        if not business_id:
-            continue
+    try:
+        # Retrieve necessary mappings
+        type_mapping = mappings.get_mapping("type_mapping", lang)
+        source_mapping = mappings.get_mapping("source_mapping", lang)
 
-        trade_status = map_value(
-            company.get("tradeRegisterStatus", ""), rek_kdi_mapping
-        )
-        status = map_value(company.get("status", ""), status_mapping)
+        if not type_mapping or not source_mapping:
+            logger.error(f"Invalid or missing mappings for language: {lang}")
+            return rows
 
-        def parse_date(date_str):
-            try:
-                return datetime.fromisoformat(date_str).date() if date_str else None
-            except ValueError:
-                return None
+        for company in data:
+            business_id = get_business_id(company)
+            if not business_id:
+                logger.debug("Skipping company without businessId.")
+                continue
 
-        # Get website
-        website = company.get("website", "unknown")
-        if isinstance(website, dict):
-            website = website.get("url", "unknown")
-        elif not website:
-            website = "unknown"
+            # Extract and map company details
+            raw_type = company.get("type", "")
+            mapped_type = type_mapping.get(raw_type, raw_type)
 
-        rows.append(
-            {
-                "businessId": business_id,
-                "website": website,
-                "registrationDate": company.get("registrationDate", ""),
-                "tradeRegisterStatus": trade_status,
-                "status": status,
-                "registrationDateCompany": company.get("registrationDateCompany", ""),
-                "endDate": company.get("endDate", ""),
-                "lastModified": parse_date(company.get("lastModified", "")),
-            }
-        )
+            raw_source = company.get("source", None)
+            mapped_source = source_mapping.get(raw_source, raw_source)
+
+            rows.append(
+                {
+                    "businessId": business_id,
+                    "type": mapped_type,
+                    "registrationDate": company.get(
+                        "registrationDate", datetime.datetime.now().date()
+                    ),
+                    "endDate": company.get("endDate", None),
+                    "source": mapped_source,
+                }
+            )
+
+        logger.info(f"Extracted {len(rows)} companies for language: {lang}")
+
+    except KeyError as e:
+        logger.error(f"KeyError in extract_companies: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error in extract_companies: {e}")
 
     return rows

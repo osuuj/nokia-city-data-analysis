@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Dict, List
 
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
@@ -11,18 +12,19 @@ mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
 
 
-def extract_company_situations(data, lang):
-    """
-    Extracts company situations from JSON data for a specific language.
+def extract_company_situations(
+    data: List[Dict[str, Any]], lang: str
+) -> List[Dict[str, Any]]:
+    """Extracts company situations from JSON data for a specific language.
 
     Args:
-        data (list): List of company data.
+        data (List[Dict[str, Any]]): List of company data.
         lang (str): Language abbreviation for mappings ("fi", "sv", "en").
 
     Returns:
-        list: Extracted company situation rows.
+        List[Dict[str, Any]]: Extracted company situation rows.
     """
-    rows = []
+    rows: List[Dict[str, Any]] = []
 
     try:
         # Retrieve type and source mappings for the specified language
@@ -30,13 +32,13 @@ def extract_company_situations(data, lang):
         source_mapping = mappings.get_mapping("source_mapping", lang)
 
         if not type_mapping or not source_mapping:
-            logger.error(f"Invalid language code: {lang}")
+            logger.error(f"Invalid or missing mappings for language: {lang}")
             return rows
 
         for company in data:
             business_id = get_business_id(company)
             if not business_id:
-                logger.warning("Skipping company without businessId.")
+                logger.debug("Skipping company without businessId.")
                 continue
 
             for situation in company.get("companySituations", []):

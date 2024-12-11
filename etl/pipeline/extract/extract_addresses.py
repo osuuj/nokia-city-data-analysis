@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Dict, List
 
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
@@ -11,21 +12,20 @@ mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
 
 
-def extract_addresses(data, lang):
-    """
-    Extracts and cleans address details from company data.
+def extract_addresses(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
+    """Extract and clean address details from company data.
 
     Args:
-        data (list): The company data to process.
+        data (List[Dict[str, Any]]): The company data to process.
         lang (str): Language abbreviation for mappings.
 
     Returns:
-        list: Extracted and cleaned address rows.
+        List[Dict[str, Any]]: Extracted and cleaned address rows.
     """
-    rows = []
+    rows: List[Dict[str, Any]] = []
 
     try:
-        # Dynamically load mappings
+        # Load mappings dynamically
         address_mapping = mappings.get_mapping("address_mapping", lang)
         source_mapping = mappings.get_mapping("source_mapping", lang)
         default_country = mappings.get_mapping("default_country")
@@ -35,8 +35,9 @@ def extract_addresses(data, lang):
             return rows
 
         for company in data:
-            business_id = company.get("businessId", {}).get("value", None)
+            business_id = company.get("businessId", {}).get("value")
             if not business_id:
+                logger.debug(f"Skipping company with missing businessId: {company}")
                 continue
 
             for address in company.get("addresses", []):
@@ -44,19 +45,20 @@ def extract_addresses(data, lang):
                 raw_type = address.get("type")
                 mapped_type = (
                     address_mapping.get(str(raw_type))
-                    or address_mapping.get(int(raw_type))
+                    or address_mapping.get(str(raw_type))
                     if raw_type is not None
                     else raw_type
                 )
-                country = address.get("country", "") or default_country
+                country = address.get("country", default_country)
                 raw_source = address.get("source")
                 mapped_source = (
                     source_mapping.get(str(raw_source))
-                    or source_mapping.get(int(raw_source))
+                    or source_mapping.get(str(raw_source))
                     if raw_source is not None
                     else raw_source
                 )
 
+                # Append cleaned and mapped address data
                 rows.append(
                     {
                         "businessId": business_id,
@@ -65,11 +67,11 @@ def extract_addresses(data, lang):
                         "buildingNumber": address.get("buildingNumber", ""),
                         "entrance": address.get("entrance", ""),
                         "apartmentNumber": clean_numeric_column(
-                            address.get("apartmentNumber", "")
+                            address.get("apartmentNumber")
                         ),
                         "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
                         "postOfficeBox": address.get("postOfficeBox", ""),
-                        "postCode": clean_numeric_column(address.get("postCode", "")),
+                        "postCode": clean_numeric_column(address.get("postCode")),
                         "co": address.get("co", ""),
                         "country": country,
                         "freeAddressLine": address.get("freeAddressLine", ""),
@@ -77,7 +79,8 @@ def extract_addresses(data, lang):
                         "source": mapped_source,
                     }
                 )
-
+    except KeyError as e:
+        logger.error(f"Missing key during address extraction: {e}")
     except Exception as e:
         logger.error(f"Unexpected error during address extraction: {e}")
 

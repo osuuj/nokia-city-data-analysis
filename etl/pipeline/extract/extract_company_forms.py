@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Dict, List
 
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
@@ -11,25 +12,26 @@ mappings_file = CONFIG["mappings_path"]
 mappings = Mappings(mappings_file)
 
 
-def extract_company_forms(data, lang):
-    """
-    Extracts company forms with source mapping.
+def extract_company_forms(
+    data: List[Dict[str, Any]], lang: str
+) -> List[Dict[str, Any]]:
+    """Extracts company forms with source mapping.
 
     Args:
-        data (list): List of company data.
+        data (List[Dict[str, Any]]): List of company data.
         lang (str): Language abbreviation for mappings (e.g., "fi", "en", "sv").
 
     Returns:
-        list: Extracted rows with company forms.
+        List[Dict[str, Any]]: Extracted rows with company forms.
     """
-    rows = []
+    rows: List[Dict[str, Any]] = []
 
     try:
         # Retrieve necessary mappings
         source_mapping = mappings.get_mapping("source_mapping")
         language_code_mapping = mappings.get_mapping("language_code_mapping")
 
-        # Validate the language using string keys
+        # Validate the language
         if not validate_language(lang, source_mapping, language_code_mapping):
             logger.error(f"Invalid language: {lang} for company forms.")
             return rows
@@ -37,7 +39,7 @@ def extract_company_forms(data, lang):
         for company in data:
             business_id = get_business_id(company)
             if not business_id:
-                logger.warning("Skipping company with missing business ID.")
+                logger.debug("Skipping company with missing business ID.")
                 continue
 
             for form in company.get("companyForms", []):
