@@ -1,3 +1,9 @@
+"""Utilities for splitting large files into smaller chunks.
+
+This module provides functions for splitting large JSON files into smaller chunks
+and saving DataFrames to CSV files in chunks.
+"""
+
 import ijson
 import json
 import logging
