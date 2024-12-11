@@ -1,9 +1,4 @@
-"""Utilities for splitting large files into smaller chunks.
-
-This module provides functions for splitting large JSON files into smaller chunks
-and saving DataFrames to CSV files in chunks.
-"""
-
+import ijson
 import json
 import logging
 from pathlib import Path
@@ -14,8 +9,12 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+from memory_profiler import profile
+
+
+@profile
 def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> None:
-    """Split a large JSON file into smaller files.
+    """Split a large JSON file into smaller files using streaming.
 
     Args:
         file_path (str): Path to the large JSON file.
@@ -42,20 +41,20 @@ def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> Non
 
     try:
         with input_path.open("r", encoding="utf-8") as file:
-            data = json.load(file)  # Load the entire JSON data
-            if not isinstance(data, list):
-                raise ValueError("JSON file must contain a list of records.")
-
+            parser = ijson.items(file, "item")
             chunk = []
-            for index, record in enumerate(data, start=1):
+            chunk_index = 0
+
+            for index, record in enumerate(parser, start=1):
                 chunk.append(record)
                 if len(chunk) >= chunk_size:
-                    save_chunk(chunk, output_path, index // chunk_size)
+                    save_chunk(chunk, output_path, chunk_index)
                     chunk = []
+                    chunk_index += 1
 
             # Save any remaining records
             if chunk:
-                save_chunk(chunk, output_path, (index // chunk_size) + 1)
+                save_chunk(chunk, output_path, chunk_index)
 
     except Exception as e:
         logger.error(f"Error during splitting JSON file {file_path}: {e}")

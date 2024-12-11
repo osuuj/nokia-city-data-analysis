@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 from typing import List
 from etl.utils.chunking_utils import split_json_to_files
+from etl.utils.file_system_utils import ensure_directory_exists
 
 # Initialize logger for JSON utilities
 logger = logging.getLogger("etl.json_utils")
@@ -77,7 +78,7 @@ def split_and_process_json(
 
         # Prepare the directory for split files
         split_dir = Path(splitter_dir) / "chunks"
-        split_dir.mkdir(parents=True, exist_ok=True)
+        ensure_directory_exists(split_dir)
 
         logger.info(
             f"Splitting unzipped file: {unzipped_file_path} into chunks at {split_dir}"
