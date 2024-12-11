@@ -26,7 +26,7 @@ from etl.config.config_loader import CONFIG
 logger = logging.getLogger(__name__)
 
 # Configurable constants
-DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size", 1024 * 1024)
+DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size")
 
 
 def ensure_safe_extraction(destination_dir: Path, member_name: str) -> bool:

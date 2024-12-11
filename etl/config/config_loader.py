@@ -10,7 +10,7 @@ connection URL.
 import os
 from pathlib import Path
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import yaml
 from dotenv import load_dotenv
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 DEFAULT_ENV = "development"
-DEFAULT_CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml"]
+DEFAULT_CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml", "entities.yml"]
 
 
 def load_yaml(file_path: Path) -> Dict[str, Any]:
@@ -68,7 +68,7 @@ def resolve_env_vars(config: Dict[str, Any]) -> Dict[str, Any]:
     return config
 
 
-def load_all_configs(config_files: List[str] = None) -> Dict[str, Any]:
+def load_all_configs(config_files: Optional[List[str]] = None) -> Dict[str, Any]:
     """Load and merge all modular configurations.
 
     Args:
