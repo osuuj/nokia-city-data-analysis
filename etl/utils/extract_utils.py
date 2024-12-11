@@ -1,4 +1,9 @@
-"""Utility functions for shared extraction and transformation tasks."""
+"""Utility functions for shared extraction and transformation tasks.
+
+This module provides functions for extracting, validating, mapping, and 
+filtering data used across the ETL pipeline. These utilities support 
+language-specific transformations and address data cleaning.
+"""
 
 import logging
 from typing import Any, Dict, List, Optional
@@ -7,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_business_id(company: Dict[str, Any]) -> Optional[str]:
-    """Safely extract the business ID from a company record.
+    """Extract the business ID from a company record.
 
     Args:
         company (Dict[str, Any]): The company record.
@@ -32,9 +37,8 @@ def validate_language(
         bool: True if the language code exists, False otherwise.
     """
     lang_code = language_code_mapping.get(lang)
-
     if not lang_code:
-        logger.error(
+        logger.warning(
             f"Language code '{lang}' not found in language_code_mapping: {language_code_mapping}"
         )
         return False
@@ -42,7 +46,7 @@ def validate_language(
     if str(lang) in mapping or lang_code in mapping:
         return True
 
-    logger.error(
+    logger.warning(
         f"Language code '{lang}' ({lang_code}) not found in mapping keys: {list(mapping.keys())}"
     )
     return False
@@ -87,7 +91,7 @@ def clean_address_data(row: Dict[str, Any]) -> Dict[str, Any]:
 def filter_by_language_code(
     items: List[Dict[str, Any]], lang: str, language_code_mapping: Dict[str, str]
 ) -> List[Dict[str, Any]]:
-    """Filters items based on the language code.
+    """Filter items based on the language code.
 
     Args:
         items (List[Dict[str, Any]]): List of dictionaries containing language-specific data.
