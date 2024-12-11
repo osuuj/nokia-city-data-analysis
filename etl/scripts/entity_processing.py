@@ -1,3 +1,17 @@
+"""
+
+Entity Processing Module
+
+This module handles the processing and saving of entity-specific data. It integrates 
+extraction functions dynamically, processes records based on language-specific logic, 
+and stores the output in chunked CSV files for downstream usage.
+
+Key Features:
+- Dynamically resolves entity-specific extractor functions.
+- Processes data records and validates extracted results.
+- Saves processed data efficiently in manageable chunks.
+"""
+
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
