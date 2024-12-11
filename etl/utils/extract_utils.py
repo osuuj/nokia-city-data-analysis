@@ -1,25 +1,32 @@
-"""
-Utility functions for shared extraction and transformation tasks.
-"""
+"""Utility functions for shared extraction and transformation tasks."""
 
 import logging
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
-def get_business_id(company):
-    """Safely extract the business ID from a company record."""
-    return company.get("businessId", {}).get("value", None)
+def get_business_id(company: Dict[str, Any]) -> Optional[str]:
+    """Safely extract the business ID from a company record.
 
+    Args:
+        company (Dict[str, Any]): The company record.
 
-def validate_language(lang, mapping, language_code_mapping):
+    Returns:
+        Optional[str]: The extracted business ID, or None if not found.
     """
-    Validate if a language code exists in the mapping.
+    return company.get("businessId", {}).get("value")
+
+
+def validate_language(
+    lang: str, mapping: Dict[str, Any], language_code_mapping: Dict[str, str]
+) -> bool:
+    """Validate if a language code exists in the mapping.
 
     Args:
         lang (str): Language abbreviation (e.g., "fi", "en", "sv").
-        mapping (dict): The mapping to validate against.
-        language_code_mapping (dict): Mapping of language abbreviations to numerical codes.
+        mapping (Dict[str, Any]): The mapping to validate against.
+        language_code_mapping (Dict[str, str]): Mapping of language abbreviations to numerical codes.
 
     Returns:
         bool: True if the language code exists, False otherwise.
@@ -28,30 +35,41 @@ def validate_language(lang, mapping, language_code_mapping):
 
     if not lang_code:
         logger.error(
-            f"Language code {lang} not found in language_code_mapping: {language_code_mapping}"
+            f"Language code '{lang}' not found in language_code_mapping: {language_code_mapping}"
         )
         return False
 
-    # Check if lang_code is in mapping, or if `lang` as a string matches keys
     if str(lang) in mapping or lang_code in mapping:
         return True
 
     logger.error(
-        f"Language code {lang} ({lang_code}) not found in mapping keys: {list(mapping.keys())}"
+        f"Language code '{lang}' ({lang_code}) not found in mapping keys: {list(mapping.keys())}"
     )
     return False
 
 
-def map_value(raw_value, mapping):
-    """Map a raw value using a language-specific mapping."""
+def map_value(raw_value: Any, mapping: Dict[Any, Any]) -> Any:
+    """Map a raw value using a mapping dictionary.
+
+    Args:
+        raw_value (Any): The value to map.
+        mapping (Dict[Any, Any]): The mapping dictionary.
+
+    Returns:
+        Any: The mapped value, or the raw value if no mapping exists.
+    """
     return mapping.get(raw_value, raw_value)
 
 
-def clean_address_data(row):
+def clean_address_data(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Clean and standardize an address data row.
+
+    Args:
+        row (Dict[str, Any]): The address data row.
+
+    Returns:
+        Dict[str, Any]: The cleaned address data row.
     """
-    Clean and standardize an address data row.
-    """
-    # Clean apartmentNumber (e.g., replace commas with periods)
     if "apartmentNumber" in row:
         row["apartmentNumber"] = (
             str(row["apartmentNumber"]).replace(",", ".")
@@ -59,7 +77,6 @@ def clean_address_data(row):
             else None
         )
 
-    # Convert postCode to string and remove decimals
     if "postCode" in row:
         row["postCode"] = (
             str(row["postCode"]).split(".")[0] if row["postCode"] else None
@@ -67,17 +84,18 @@ def clean_address_data(row):
     return row
 
 
-def filter_by_language_code(items, lang, language_code_mapping):
-    """
-    Filters items based on the language code.
+def filter_by_language_code(
+    items: List[Dict[str, Any]], lang: str, language_code_mapping: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    """Filters items based on the language code.
 
     Args:
-        items (list): List of dictionaries containing language-specific data.
+        items (List[Dict[str, Any]]): List of dictionaries containing language-specific data.
         lang (str): Target language abbreviation (e.g., "fi", "en", "sv").
-        language_code_mapping (dict): Mapping of language abbreviations to codes.
+        language_code_mapping (Dict[str, str]): Mapping of language abbreviations to codes.
 
     Returns:
-        list: Filtered items matching the target language.
+        List[Dict[str, Any]]: Filtered items matching the target language.
     """
     lang_code = language_code_mapping.get(lang)
     if not lang_code:
