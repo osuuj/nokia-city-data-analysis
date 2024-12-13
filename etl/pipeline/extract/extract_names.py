@@ -1,6 +1,5 @@
 import logging
-from typing import Any, Dict, List
-
+import pandas as pd
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 from etl.utils.extract_utils import get_business_id, map_value
@@ -8,58 +7,58 @@ from etl.utils.extract_utils import get_business_id, map_value
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG["mappings_path"]
+mappings_file = CONFIG["config_files"]["mappings_file"]
 mappings = Mappings(mappings_file)
 
 
-def extract_names(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
+def extract_names(data: pd.DataFrame, lang: str) -> pd.DataFrame:
     """Extracts names of companies and maps their types.
 
     Args:
-        data (List[Dict[str, Any]]): List of company data.
+        data (pd.DataFrame): DataFrame containing company data.
         lang (str): Language abbreviation for mappings (e.g., "fi", "en", "sv").
 
     Returns:
-        List[Dict[str, Any]]: Extracted rows with company names and types.
+        pd.DataFrame: Extracted rows with company names and types.
     """
-    rows = []
+    names = []
+    skipped_records = 0
 
-    try:
-        # Load required mappings
-        name_type_mapping = mappings.get_mapping("name_type_mapping", lang)
-        source_mapping = mappings.get_mapping("source_mapping", lang)
+    # Load required mappings
+    name_type_mapping = mappings.get_mapping("name_type_mapping", lang)
+    source_mapping = mappings.get_mapping("source_mapping", lang)
 
-        for company in data:
-            business_id = get_business_id(company)
-            if not business_id:
-                logger.debug("Skipping company with missing businessId.")
-                continue
+    for _, company in data.iterrows():
+        business_id = get_business_id(company)
+        if not business_id:
+            logger.debug("Skipping company with missing businessId.")
+            skipped_records += 1
+            continue
 
-            for name in company.get("names", []):
+        for name in company.get("names", []):
+            try:
                 # Map type and source
                 mapped_type = map_value(name.get("type", ""), name_type_mapping)
                 mapped_source = map_value(name.get("source", ""), source_mapping)
 
                 # Append the processed name data
-                rows.append(
+                names.append(
                     {
                         "businessId": business_id,
                         "name": name.get("name", ""),
                         "type": mapped_type,
                         "registrationDate": name.get("registrationDate", ""),
-                        "endDate": name.get("endDate", None),
-                        "version": name.get(
-                            "version", 0
-                        ),  # Ensure default version is 0
+                        "endDate": name.get("endDate", ""),
+                        "version": name.get("version", 0),
                         "source": mapped_source,
                     }
                 )
+            except KeyError as e:
+                logger.error(f"Skipping record due to missing key: {e}")
+                skipped_records += 1
+            except Exception as e:
+                logger.error(f"Unexpected error while processing record: {e}")
+                skipped_records += 1
 
-        logger.info(f"Extracted {len(rows)} names for language: {lang}")
-
-    except KeyError as e:
-        logger.error(f"KeyError in extract_names: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error in extract_names: {e}")
-
-    return rows
+    logger.info(f"Processed {len(names)} records. Skipped {skipped_records} records.")
+    return pd.DataFrame(names)

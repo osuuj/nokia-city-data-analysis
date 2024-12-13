@@ -1,65 +1,64 @@
 import logging
+import pandas as pd
 from typing import Any, Dict, List
-
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 from etl.utils.cleaning_utils import clean_numeric_column
+from etl.utils.extract_utils import get_business_id, map_value
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG["mappings_path"]
+mappings_file = CONFIG["config_files"]["mappings_file"]
 mappings = Mappings(mappings_file)
 
 
-def extract_addresses(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
+def extract_addresses(data: pd.DataFrame, lang: str) -> pd.DataFrame:
     """Extract and clean address details from company data.
 
     Args:
-        data (List[Dict[str, Any]]): The company data to process.
+        data (pd.DataFrame): The company data to process.
         lang (str): Language abbreviation for mappings.
 
     Returns:
-        List[Dict[str, Any]]: Extracted and cleaned address rows.
+        pd.DataFrame: Extracted and cleaned address rows.
     """
-    rows: List[Dict[str, Any]] = []
+    addresses: List[Dict[str, Any]] = []
+    skipped_records = 0
 
-    try:
-        # Load mappings dynamically
-        address_mapping = mappings.get_mapping("address_mapping", lang)
-        source_mapping = mappings.get_mapping("source_mapping", lang)
-        default_country = mappings.get_mapping("default_country")
+    # Load mappings dynamically
+    address_mapping = mappings.get_mapping("address_mapping", lang)
+    source_mapping = mappings.get_mapping("source_mapping", lang)
+    default_country = mappings.get_mapping("default_country")
 
-        if not address_mapping or not source_mapping:
-            logger.error(f"Invalid language or missing mappings for: {lang}")
-            return rows
+    if not address_mapping or not source_mapping:
+        logger.error(f"Invalid language or missing mappings for: {lang}")
+        return pd.DataFrame(addresses)
 
-        for company in data:
-            business_id = company.get("businessId", {}).get("value")
-            if not business_id:
-                logger.debug(f"Skipping company with missing businessId: {company}")
-                continue
+    for _, row in data.iterrows():
+        company = row.to_dict()
+        if not isinstance(company, dict):
+            logger.error(f"Unexpected data type: {type(company)}. Expected dict.")
+            skipped_records += 1
+            continue
 
-            for address in company.get("addresses", []):
+        business_id = get_business_id(company)
+        if not business_id:
+            logger.debug(f"Skipping company with missing businessId: {company}")
+            skipped_records += 1
+            continue
+
+        for address in company.get("addresses", []):
+            try:
                 # Map type, country, and source
                 raw_type = address.get("type")
-                mapped_type = (
-                    address_mapping.get(str(raw_type))
-                    or address_mapping.get(str(raw_type))
-                    if raw_type is not None
-                    else raw_type
-                )
+                mapped_type = map_value(raw_type, address_mapping)
                 country = address.get("country", default_country)
                 raw_source = address.get("source")
-                mapped_source = (
-                    source_mapping.get(str(raw_source))
-                    or source_mapping.get(str(raw_source))
-                    if raw_source is not None
-                    else raw_source
-                )
+                mapped_source = map_value(raw_source, source_mapping)
 
                 # Append cleaned and mapped address data
-                rows.append(
+                addresses.append(
                     {
                         "businessId": business_id,
                         "type": mapped_type,
@@ -79,9 +78,14 @@ def extract_addresses(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, A
                         "source": mapped_source,
                     }
                 )
-    except KeyError as e:
-        logger.error(f"Missing key during address extraction: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error during address extraction: {e}")
+            except KeyError as e:
+                logger.error(f"Skipping record due to missing key: {e}")
+                skipped_records += 1
+            except Exception as e:
+                logger.error(f"Unexpected error while processing record: {e}")
+                skipped_records += 1
 
-    return rows
+    logger.info(
+        f"Processed {len(addresses)} records. Skipped {skipped_records} records."
+    )
+    return pd.DataFrame(addresses)

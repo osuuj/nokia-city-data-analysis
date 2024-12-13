@@ -1,17 +1,3 @@
-"""
-
-Entity Processing Module
-
-This module handles the processing and saving of entity-specific data. It integrates 
-extraction functions dynamically, processes records based on language-specific logic, 
-and stores the output in chunked CSV files for downstream usage.
-
-Key Features:
-- Dynamically resolves entity-specific extractor functions.
-- Processes data records and validates extracted results.
-- Saves processed data efficiently in manageable chunks.
-"""
-
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
@@ -26,25 +12,30 @@ logger = logging.getLogger(__name__)
 
 
 def process_and_save_entity(
-    data_records: List[Dict[str, Any]],
+    data_records: pd.DataFrame,
     lang: str,
     entity_name: str,
     extract_data_path: str,
     chunk_size: int,
     entities: List[Dict[str, Any]],
-) -> None:
+    start_index: int = 1,
+) -> int:
     """Process and save data for a specific entity.
 
     Args:
-        data_records (List[Dict[str, Any]]): List of data records to process.
+        data_records (pd.DataFrame): DataFrame of data records to process.
         lang (str): Language for processing the data.
         entity_name (str): Name of the entity being processed.
         extract_data_path (str): Path to save the extracted data.
         chunk_size (int): Size of chunks to save the data.
         entities (List[Dict[str, Any]]): List of entity configurations.
+        start_index (int): Starting index for the chunk files.
 
     Raises:
         RuntimeError: If processing fails for the specified entity.
+
+    Returns:
+        int: The next starting index for subsequent chunks.
     """
     subfolder_path = Path(extract_data_path) / entity_name
     ensure_directory_exists(subfolder_path)
@@ -60,19 +51,21 @@ def process_and_save_entity(
         extracted_data = extractor_func(data_records, lang)
 
         # Validate the extracted data
-        if not extracted_data or not isinstance(extracted_data, list):
+        if extracted_data.empty or not isinstance(extracted_data, pd.DataFrame):
             logger.warning(f"No valid data extracted for entity '{entity_name}'.")
-            return
+            return start_index
 
         logger.info(
             f"Extracted {len(extracted_data)} records for entity '{entity_name}'."
         )
-        extracted_df = pd.DataFrame(extracted_data)
 
         # Save the extracted data in chunks
         output_base_name = subfolder_path / entity_name
-        save_to_csv_in_chunks(extracted_df, str(output_base_name), chunk_size)
+        next_index = save_to_csv_in_chunks(
+            extracted_data, str(output_base_name), chunk_size, start_index
+        )
         logger.info(f"Processing and saving completed for entity: {entity_name}")
+        return next_index
     except Exception as e:
         logger.error(f"Error processing entity '{entity_name}': {e}")
         raise RuntimeError(f"Error processing entity '{entity_name}': {e}")

@@ -1,5 +1,4 @@
-"""
-ETL Pipeline Orchestration Script
+"""ETL Pipeline Orchestration Script.
 
 This module orchestrates the ETL pipeline by:
 - Setting up the environment.
@@ -12,7 +11,7 @@ Each stage of the pipeline is modularized for clarity and maintainability.
 
 from pathlib import Path
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any
 import pandas as pd
 
 from etl.config.config_loader import load_all_configs
@@ -126,16 +125,18 @@ def process_entities(data_records: pd.DataFrame, config: Dict[str, Any]) -> None
     )
     extract_data_path.mkdir(parents=True, exist_ok=True)
 
+    start_index = 1
     for entity in config["entities"]:
         entity_name = entity["name"]
         lang = config["chosen_language"]
-        process_and_save_entity(
+        start_index = process_and_save_entity(
             data_records,
             lang,
             entity_name,
             extract_data_path,
             config["chunk_size"],
             config["entities"],
+            start_index,
         )
 
     logger.info("Entity processing and cleaning completed.")
@@ -193,16 +194,21 @@ def run_etl_pipeline() -> None:
         setup_environment(config)
 
         # Step 2: Download and extract raw data
-        extracted_dir = download_raw_data(config)
+        # extracted_dir = download_raw_data(config)
 
         # Step 3: Download mappings
-        download_mappings(config)
-
+        # download_mappings(config)
         # Step 4: Process JSON chunks
-        data_records = process_json_chunks(extracted_dir, config)
+        # data_records = process_json_chunks(extracted_dir, config)
 
         # Step 5: Process entities
-        process_entities(data_records, config)
+        splitted_dir = config["directory_structure"]["processed_dir"]
+        split_dir = Path(splitted_dir) / "chunks"
+        # data_records = process_json_directory(split_dir)
+        for json_file in split_dir.glob("chunk_*.json"):
+            logger.info(f"Processing file: {json_file}")
+            data_records = process_json_directory(json_file)
+            process_entities(data_records, config)
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")

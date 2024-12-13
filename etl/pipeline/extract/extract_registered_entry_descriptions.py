@@ -1,47 +1,55 @@
 import logging
+import pandas as pd
 from typing import Any, Dict, List
-
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG["mappings_path"]
+mappings_file = CONFIG["config_files"]["mappings_file"]
 mappings = Mappings(mappings_file)
 
 
 def extract_registered_entry_descriptions(
-    data: List[Dict[str, Any]], lang: str
-) -> List[Dict[str, Any]]:
+    data: pd.DataFrame, lang: str
+) -> pd.DataFrame:
     """Extracts registered entry descriptions filtered by language.
 
     Args:
-        data (List[Dict[str, Any]]): List of company data.
+        data (pd.DataFrame): DataFrame containing company data.
         lang (str): Language abbreviation for filtering ("fi", "sv", "en").
 
     Returns:
-        List[Dict[str, Any]]: Extracted registered entry description rows.
+        pd.DataFrame: Extracted registered entry description rows.
     """
-    rows: List[Dict[str, Any]] = []
+    registered_entry_descriptions: List[Dict[str, Any]] = []
+    skipped_records = 0
 
-    try:
-        # Retrieve language code mapping
-        language_code_mapping = mappings.get_mapping("language_code_mapping")
+    # Retrieve language code mapping
+    language_code_mapping = mappings.get_mapping("language_code_mapping")
 
-        if lang not in language_code_mapping:
-            logger.error(f"Invalid language code: {lang}")
-            return rows
+    if lang not in language_code_mapping:
+        logger.error(f"Invalid language code: {lang}")
+        return pd.DataFrame(registered_entry_descriptions)
 
-        for company in data:
-            business_id = company.get("businessId", {}).get("value")
-            if not business_id:
-                logger.debug("Skipping company without businessId.")
-                continue
+    for _, row in data.iterrows():
+        company = row.to_dict()
+        if not isinstance(company, dict):
+            logger.error(f"Unexpected data type: {type(company)}. Expected dict.")
+            skipped_records += 1
+            continue
 
-            for entry in company.get("registeredEntries", []):
-                descriptions = entry.get("descriptions", [])
-                for desc in descriptions:
+        business_id = company.get("businessId", {}).get("value")
+        if not business_id:
+            logger.debug("Skipping company without businessId.")
+            skipped_records += 1
+            continue
+
+        for entry in company.get("registeredEntries", []):
+            descriptions = entry.get("descriptions", [])
+            for desc in descriptions:
+                try:
                     # Map raw language code back to language abbreviation
                     raw_language_code = desc.get("languageCode")
                     mapped_lang = next(
@@ -54,7 +62,7 @@ def extract_registered_entry_descriptions(
                     )
 
                     if mapped_lang == lang:
-                        rows.append(
+                        registered_entry_descriptions.append(
                             {
                                 "businessId": business_id,
                                 "entryType": entry.get(
@@ -63,14 +71,14 @@ def extract_registered_entry_descriptions(
                                 "description": desc.get("description", ""),
                             }
                         )
+                except KeyError as e:
+                    logger.error(f"Skipping record due to missing key: {e}")
+                    skipped_records += 1
+                except Exception as e:
+                    logger.error(f"Unexpected error while processing record: {e}")
+                    skipped_records += 1
 
-        logger.info(
-            f"Extracted {len(rows)} registered entry descriptions for language: {lang}"
-        )
-
-    except KeyError as e:
-        logger.error(f"KeyError in extract_registered_entry_descriptions: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error in extract_registered_entry_descriptions: {e}")
-
-    return rows
+    logger.info(
+        f"Processed {len(registered_entry_descriptions)} records. Skipped {skipped_records} records."
+    )
+    return pd.DataFrame(registered_entry_descriptions)

@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS companies (
         registration_date DATE,                          -- Date of registration
         trade_register_status VARCHAR(50),               -- Trade register status
         status VARCHAR(50),                              -- Status of the company      
-        registration_date_company DATE,                  -- Date of registration of the company
         end_date DATE,                                   -- End date of the company
         last_modified DATE                               -- Last modified date
     );

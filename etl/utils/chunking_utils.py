@@ -7,6 +7,7 @@ and saving DataFrames to CSV files in chunks.
 import ijson
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Any
 
@@ -15,10 +16,10 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-from memory_profiler import profile
+# from memory_profiler import profile
 
 
-@profile
+# @profile
 def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> None:
     """Split a large JSON file into smaller files using streaming.
 
@@ -82,17 +83,21 @@ def save_chunk(chunk: list[Any], output_path: Path, chunk_index: int) -> None:
 
 
 def save_to_csv_in_chunks(
-    df: pd.DataFrame, output_base_name: str, chunk_size: int
-) -> None:
+    df: pd.DataFrame, output_base_name: str, chunk_size: int, start_index: int = 1
+) -> int:
     """Save a DataFrame to multiple CSV files in chunks.
 
     Args:
         df (pd.DataFrame): The DataFrame to save.
         output_base_name (str): Base name for the output CSV files.
         chunk_size (int): Number of records per chunk.
+        start_index (int): Starting index for the chunk files.
 
     Raises:
         ValueError: If the chunk size is not positive.
+
+    Returns:
+        int: The next starting index for subsequent chunks.
     """
     if chunk_size <= 0:
         raise ValueError("Chunk size must be a positive integer.")
@@ -103,14 +108,19 @@ def save_to_csv_in_chunks(
     )
 
     output_base_path = Path(output_base_name)
+    timestamp = int(time.time())
 
     for i in range(num_chunks):
         chunk = df.iloc[i * chunk_size : (i + 1) * chunk_size]
         chunk_file_name = output_base_path.with_name(
-            f"{output_base_path.stem}_part{i + 1}.csv"
+            f"{output_base_path.stem}_part{start_index + i}_{timestamp}.csv"
         )
         try:
             chunk.to_csv(chunk_file_name, index=False, encoding="utf-8")
-            logger.info(f"Saved chunk {i + 1} to {chunk_file_name}")
+            logger.info(f"Saved chunk {start_index + i} to {chunk_file_name}")
         except Exception as e:
-            logger.error(f"Error writing chunk {i + 1} to {chunk_file_name}: {e}")
+            logger.error(
+                f"Error writing chunk {start_index + i} to {chunk_file_name}: {e}"
+            )
+
+    return start_index + num_chunks

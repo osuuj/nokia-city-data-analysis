@@ -1,49 +1,57 @@
 import logging
+import pandas as pd
 from typing import Any, Dict, List
-
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
 
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG["mappings_path"]
+mappings_file = CONFIG["config_files"]["mappings_file"]
 mappings = Mappings(mappings_file)
 
 
-def extract_post_offices(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
+def extract_post_offices(data: pd.DataFrame, lang: str) -> pd.DataFrame:
     """Extracts post office details from JSON data, filtering by languageCode.
 
     Args:
-        data (List[Dict[str, Any]]): List of company data.
+        data (pd.DataFrame): DataFrame containing company data.
         lang (str): Language abbreviation ("fi", "sv", "en").
 
     Returns:
-        List[Dict[str, Any]]: Extracted post office rows filtered by the specified language.
+        pd.DataFrame: Extracted post office rows filtered by the specified language.
     """
-    rows: List[Dict[str, Any]] = []
+    post_offices: List[Dict[str, Any]] = []
+    skipped_records = 0
 
-    try:
-        # Load the post office language code mapping
-        post_office_language_code = mappings.get_mapping("post_office_language_code")
+    # Load the post office language code mapping
+    post_office_language_code = mappings.get_mapping("post_office_language_code")
 
-        # Get the numeric language code for the specified language
-        lang_code = post_office_language_code.get(lang)
-        if lang_code is None:
-            logger.error(f"Invalid language code: {lang}")
-            return rows
+    # Get the numeric language code for the specified language
+    lang_code = post_office_language_code.get(lang)
+    if lang_code is None:
+        logger.error(f"Invalid language code: {lang}")
+        return pd.DataFrame(post_offices)
 
-        for company in data:
-            business_id = company.get("businessId", {}).get("value")
-            if not business_id:
-                logger.debug("Skipping company without businessId.")
-                continue
+    for _, row in data.iterrows():
+        company = row.to_dict()
+        if not isinstance(company, dict):
+            logger.error(f"Unexpected data type: {type(company)}. Expected dict.")
+            skipped_records += 1
+            continue
 
-            for address in company.get("addresses", []):
-                for post_office in address.get("postOffices", []):
+        business_id = company.get("businessId", {}).get("value")
+        if not business_id:
+            logger.debug("Skipping company without businessId.")
+            skipped_records += 1
+            continue
+
+        for address in company.get("addresses", []):
+            for post_office in address.get("postOffices", []):
+                try:
                     # Check if the languageCode matches the target lang_code
                     if str(post_office.get("languageCode")) == lang_code:
-                        rows.append(
+                        post_offices.append(
                             {
                                 "businessId": business_id,
                                 "postCode": post_office.get("postCode", ""),
@@ -55,12 +63,14 @@ def extract_post_offices(data: List[Dict[str, Any]], lang: str) -> List[Dict[str
                                 ),
                             }
                         )
+                except KeyError as e:
+                    logger.error(f"Skipping record due to missing key: {e}")
+                    skipped_records += 1
+                except Exception as e:
+                    logger.error(f"Unexpected error while processing record: {e}")
+                    skipped_records += 1
 
-        logger.info(f"Extracted {len(rows)} post office records for language: {lang}")
-
-    except KeyError as e:
-        logger.error(f"KeyError in extract_post_offices: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error in extract_post_offices: {e}")
-
-    return rows
+    logger.info(
+        f"Processed {len(post_offices)} records. Skipped {skipped_records} records."
+    )
+    return pd.DataFrame(post_offices)

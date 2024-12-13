@@ -8,34 +8,34 @@ CSV files in manageable chunks for downstream processing.
 import json
 import logging
 from pathlib import Path
-
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-def process_json_directory(directory_path: str) -> pd.DataFrame:
-    """Process JSON files in a directory into a single DataFrame.
+def process_json_directory(json_file: Path) -> pd.DataFrame:
+    """Process a JSON file into a DataFrame.
 
     Args:
-        directory_path (str): Path to the directory containing JSON files.
+        json_file (Path): The JSON file to process.
 
     Returns:
-        pd.DataFrame: A DataFrame containing combined data from JSON files.
-
-    Raises:
-        FileNotFoundError: If the directory does not exist.
+        pd.DataFrame: A DataFrame containing combined data from the JSON file.
     """
-    directory = Path(directory_path)
-    if not directory.exists():
-        raise FileNotFoundError(f"Directory does not exist: {directory_path}")
-
     all_rows = []
-    for file_path in directory.glob("*.json"):
-        with file_path.open("r", encoding="utf-8") as file:
+    try:
+        with json_file.open("r", encoding="utf-8") as file:
             data = json.load(file)
             if isinstance(data, list):
-                all_rows.extend(data)
+                for item in data:
+                    if isinstance(item, dict):
+                        all_rows.append(item)
+                    else:
+                        logger.error(
+                            f"Unexpected data type in {json_file}: {type(item)}. Expected dict."
+                        )
             else:
-                logger.warning(f"Skipping file {file_path}: not a list")
+                logger.error(f"Expected a list in {json_file}, got {type(data)}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding JSON in {json_file}: {e}")
     return pd.DataFrame(all_rows)

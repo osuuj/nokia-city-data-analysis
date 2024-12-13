@@ -5,6 +5,7 @@ filtering data used across the ETL pipeline. These utilities support
 language-specific transformations and address data cleaning.
 """
 
+from dateutil.parser import parse
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -20,7 +21,10 @@ def get_business_id(company: Dict[str, Any]) -> Optional[str]:
     Returns:
         Optional[str]: The extracted business ID, or None if not found.
     """
-    return company.get("businessId", {}).get("value")
+    business_id = company.get("businessId")
+    if isinstance(business_id, dict):
+        return business_id.get("value", None)
+    return None
 
 
 def validate_language(
@@ -107,3 +111,22 @@ def filter_by_language_code(
         return []
 
     return [item for item in items if item.get("language") == lang_code]
+
+
+def parse_date(date_str: Optional[str]) -> Optional[str]:
+    """Parse a date string and return it in a standard format.
+
+    Args:
+        date_str (Optional[str]): The date string to parse.
+
+    Returns:
+        Optional[str]: The parsed date string in ISO format, or None if invalid.
+    """
+    if not date_str:
+        return None
+    try:
+        parsed_date = parse(date_str)
+        return parsed_date.isoformat()
+    except (ValueError, TypeError) as e:
+        logger.error(f"Error parsing date: {date_str} - {e}")
+        return None

@@ -1,69 +1,75 @@
-import datetime
 import logging
-from typing import Any, Dict, List
-
+import pandas as pd
 from etl.config.config_loader import CONFIG
 from etl.config.mappings.mappings import Mappings
-from etl.utils.extract_utils import get_business_id
+from etl.utils.extract_utils import map_value, get_business_id
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
 # Initialize mappings
-mappings_file = CONFIG.get("config_files", {}).get("mappings_file")
+mappings_file = CONFIG["config_files"]["mappings_file"]
 mappings = Mappings(mappings_file)
 
 
-def extract_companies(data: List[Dict[str, Any]], lang: str) -> List[Dict[str, Any]]:
-    """Extracts company details from JSON data for a specific language.
+def extract_companies(data: pd.DataFrame, lang: str) -> pd.DataFrame:
+    """Extract and flatten company data for the 'companies' table using mappings.
 
     Args:
-        data (List[Dict[str, Any]]): List of company data.
-        lang (str): Language abbreviation for mappings ("fi", "sv", "en").
+        data (pd.DataFrame): DataFrame containing raw company data.
+        lang (str): Language code for mapping (e.g., 'en', 'fi', 'sv').
 
     Returns:
-        List[Dict[str, Any]]: Extracted company rows.
+        pd.DataFrame: Extracted and flattened company data formatted for the companies table.
     """
-    rows: List[Dict[str, Any]] = []
+    companies = []
+    skipped_records = 0
 
-    try:
-        # Retrieve necessary mappings
-        type_mapping = mappings.get_mapping("type_mapping", lang)
-        source_mapping = mappings.get_mapping("source_mapping", lang)
+    # Retrieve necessary mappings
+    rek_kdi_mapping = mappings.get_mapping("rek_kdi_mapping", lang)
+    status_mapping = mappings.get_mapping("status_mapping", lang)
 
-        if not type_mapping or not source_mapping:
-            logger.error(f"Invalid or missing mappings for language: {lang}")
-            return rows
+    for _, row in data.iterrows():
+        company = row.to_dict()
+        if not isinstance(company, dict):
+            logger.error(f"Unexpected data type: {type(company)}. Expected dict.")
+            skipped_records += 1
+            continue
 
-        for company in data:
+        try:
             business_id = get_business_id(company)
             if not business_id:
+                skipped_records += 1
                 logger.debug("Skipping company without businessId.")
                 continue
 
-            # Extract and map company details
-            raw_type = company.get("type", "")
-            mapped_type = type_mapping.get(raw_type, raw_type)
+            trade_status = map_value(
+                company.get("tradeRegisterStatus", ""), rek_kdi_mapping
+            )
+            status = map_value(company.get("status", ""), status_mapping)
+            website = company.get("website", "unknown")
+            if isinstance(website, dict):
+                website = website.get("url", "unknown")
+            elif not website:
+                website = "unknown"
 
-            raw_source = company.get("source", None)
-            mapped_source = source_mapping.get(raw_source, raw_source)
-
-            rows.append(
+            companies.append(
                 {
                     "businessId": business_id,
-                    "type": mapped_type,
-                    "registrationDate": company.get(
-                        "registrationDate", datetime.datetime.now().date()
-                    ),
-                    "endDate": company.get("endDate", None),
-                    "source": mapped_source,
+                    "website": website,
+                    "registrationDate": company.get("registrationDate", ""),
+                    "tradeRegisterStatus": trade_status,
+                    "status": status,
+                    "endDate": company.get("endDate", ""),
+                    "lastModified": company.get("lastModified", ""),
                 }
             )
+        except KeyError as e:
+            logger.error(f"Skipping record due to missing key: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error while processing record: {e}")
 
-        logger.info(f"Extracted {len(rows)} companies for language: {lang}")
-
-    except KeyError as e:
-        logger.error(f"KeyError in extract_companies: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error in extract_companies: {e}")
-
-    return rows
+    logger.info(
+        f"Processed {len(companies)} records. Skipped {skipped_records} records."
+    )
+    return pd.DataFrame(companies)
