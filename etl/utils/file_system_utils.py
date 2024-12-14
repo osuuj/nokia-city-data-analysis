@@ -1,5 +1,4 @@
-"""
-Utility functions for managing files and directories.
+"""Utility functions for managing files and directories.
 
 This module provides functions to ensure directory existence,
 set up multiple directories, clear directory contents, and check
@@ -9,20 +8,21 @@ common file system operations in a robust and reusable manner.
 
 from pathlib import Path
 import logging
-from typing import List
+from typing import List, Union
 
 logger = logging.getLogger(__name__)
 
 
-def ensure_directory_exists(path: Path) -> None:
+def ensure_directory_exists(path: Union[Path, str]) -> None:
     """Ensure that a directory exists.
 
     Args:
-        path (Path): The path of the directory to ensure exists.
+        path (Union[Path, str]): The path of the directory to ensure exists.
 
     Raises:
         OSError: If the directory cannot be created.
     """
+    path = Path(path)
     try:
         path.mkdir(parents=True, exist_ok=True)
         logger.debug(f"Ensured directory exists: {path}")
@@ -31,26 +31,27 @@ def ensure_directory_exists(path: Path) -> None:
         raise
 
 
-def setup_directories(directories: List[Path]) -> None:
+def setup_directories(directories: List[Union[Path, str]]) -> None:
     """Ensure that a list of directories exist.
 
     Args:
-        directories (List[Path]): A list of directory paths to ensure exist.
+        directories (List[Union[Path, str]]): A list of directory paths to ensure exist.
     """
     for directory in directories:
         ensure_directory_exists(directory)
         logger.info(f"Setup directory: {directory}")
 
 
-def clear_directory(directory: Path) -> None:
+def clear_directory(directory: Union[Path, str]) -> None:
     """Clear all files and subdirectories in the specified directory.
 
     Args:
-        directory (Path): The directory to clear.
+        directory (Union[Path, str]): The directory to clear.
 
     Raises:
         OSError: If clearing files or directories fails.
     """
+    directory = Path(directory)
     if not directory.exists():
         logger.debug(f"Directory does not exist, nothing to clear: {directory}")
         return
@@ -65,21 +66,22 @@ def clear_directory(directory: Path) -> None:
                 item.rmdir()
                 logger.debug(f"Removed directory: {item}")
         except OSError as e:
-            logger.error(f"Failed to remove {item}: {e}")
+            logger.error(f"Failed to remove {item} in directory {directory}: {e}")
             raise
 
     logger.info(f"Cleared directory: {directory}")
 
 
-def is_empty_directory(directory: Path) -> bool:
+def is_empty_directory(directory: Union[Path, str]) -> bool:
     """Check if a directory is empty.
 
     Args:
-        directory (Path): The directory to check.
+        directory (Union[Path, str]): The directory to check.
 
     Returns:
         bool: True if the directory exists and is empty, False otherwise.
     """
+    directory = Path(directory)
     if not directory.exists():
         logger.debug(f"Directory does not exist: {directory}")
         return False

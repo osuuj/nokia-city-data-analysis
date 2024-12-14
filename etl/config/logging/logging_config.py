@@ -1,5 +1,4 @@
-"""
-Logging Configuration Manager
+"""Logging Configuration Manager.
 
 This module sets up logging for the ETL pipeline by using configurations defined
 in `directory.yml` and `logging_config.yml`. It includes a custom `SensitiveDataFilter`

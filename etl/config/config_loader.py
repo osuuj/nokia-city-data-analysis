@@ -1,5 +1,4 @@
-"""
-Configuration Loader
+"""Configuration Loader.
 
 This module centralizes the loading, merging, and management of configurations 
 for the ETL pipeline. It handles multiple YAML configuration files, resolves 

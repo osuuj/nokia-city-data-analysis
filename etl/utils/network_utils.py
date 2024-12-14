@@ -1,5 +1,4 @@
-"""
-Utilities for network operations such as URL construction and file downloads.
+"""Utilities for network operations such as URL construction and file downloads.
 
 This module provides functions to dynamically construct URLs based on templates
 and download zip or raw text from APIs. It ensures downloaded files
@@ -8,13 +7,17 @@ are stored in the specified directory and handles common network-related errors.
 
 from pathlib import Path
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import requests
 
 from etl.utils.file_system_utils import ensure_directory_exists
 
 logger = logging.getLogger(__name__)
+
+# Constants
+DEFAULT_TIMEOUT = 10  # Timeout for HTTP requests in seconds
+DEFAULT_ENCODING = "utf-8"  # Encoding for saved text files
 
 
 def get_url(
@@ -51,7 +54,7 @@ def get_url(
 def download_mapping_files(
     base_url: str,
     endpoint_template: str,
-    codes: list,
+    codes: List[str],
     languages: Dict[str, str],
     output_dir: Path,
 ) -> None:
@@ -59,13 +62,15 @@ def download_mapping_files(
 
     Args:
         base_url (str): The base URL for the API.
-        endpoint_template (str): The template for constructing endpoints with placeholders.
-        codes (list): List of codes to include in the endpoint.
-        languages (Dict[str, str]): Dictionary of language codes.
+        endpoint_template (str): Template for constructing endpoints with placeholders.
+                                 Example: "/data/{code}/{lang}/info"
+        codes (List[str]): List of codes to include in the endpoint.
+        languages (Dict[str, str]): Dictionary of language codes (e.g., {"en": "1"}).
         output_dir (Path): Directory where downloaded files will be saved.
 
     Raises:
         requests.RequestException: If the HTTP request fails.
+        OSError: If writing the file fails.
     """
     ensure_directory_exists(output_dir)
 
@@ -76,14 +81,22 @@ def download_mapping_files(
             file_path = output_dir / file_name
 
             try:
+                logger.debug(f"Constructed file path: {file_path}")
                 logger.info(f"Downloading from: {url}")
-                response = requests.get(url, timeout=10)  # Added timeout for robustness
+                response = requests.get(url, timeout=DEFAULT_TIMEOUT)
                 response.raise_for_status()
 
-                file_path.write_text(response.text, encoding="utf-8")
+                file_path.write_text(response.text, encoding=DEFAULT_ENCODING)
                 logger.info(f"Downloaded successfully: {file_path}")
-            except requests.RequestException as e:
-                logger.error(f"HTTP error while downloading {url}: {e}")
+            except requests.HTTPError as http_err:
+                logger.error(
+                    f"HTTP error {response.status_code} while downloading {url}: {http_err}"
+                )
+            except requests.RequestException as req_err:
+                logger.error(f"Request failed for {url}: {req_err}")
+                raise
+            except OSError as os_err:
+                logger.error(f"Failed to save file {file_path}: {os_err}")
                 raise
             except Exception as e:
                 logger.error(f"Unexpected error during download: {e}")

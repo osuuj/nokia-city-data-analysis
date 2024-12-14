@@ -19,6 +19,47 @@ class BaseExtractor:
         self.mappings = Mappings(mappings_file)
         self.lang = lang
 
+    def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Process and extract data from a DataFrame.
+
+        Args:
+            data (pd.DataFrame): The input raw data.
+
+        Returns:
+            pd.DataFrame: Extracted and processed data.
+        """
+        results: List[Dict[str, Any]] = []
+        skipped_records = 0
+
+        for index, row in data.iterrows():
+            try:
+                row_dict = row.to_dict()
+                self.logger.debug(f"Processing row: {row_dict}")
+                extracted_records = self.process_row(row_dict)
+                if extracted_records:
+                    results.extend(extracted_records)
+                else:
+                    skipped_records += 1
+            except Exception as e:
+                self.logger.error(f"Error processing row {index}: {e}")
+                skipped_records += 1
+
+        self.logger.info(
+            f"Extraction completed. Processed {len(results)} records. Skipped {skipped_records} records."
+        )
+        return pd.DataFrame(results)
+
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Placeholder for row processing logic. Must be implemented by subclasses.
+
+        Args:
+            row (Dict[str, Any]): A single row of raw data.
+
+        Returns:
+            List[Dict[str, Any]]: Extracted records from the row.
+        """
+        raise NotImplementedError("Subclasses must implement the `process_row` method.")
+
     def get_business_id(self, company: Dict[str, Any]) -> Optional[str]:
         """Extract the business ID from a company record.
 

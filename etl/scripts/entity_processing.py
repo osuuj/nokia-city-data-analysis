@@ -1,38 +1,64 @@
+"""Entity Processing for ETL Pipeline.
+
+This script processes and saves data for various entities defined in the ETL pipeline.
+It dynamically resolves extractor classes based on the configuration file and processes
+data using entity-specific logic.
+
+Key Features:
+- Dynamically resolves and instantiates extractor classes.
+- Processes data records for each entity and saves them in chunks.
+- Ensures robust error handling and logging.
+
+"""
+
 import logging
 import pandas as pd
 import time
-import importlib
-
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict
 from etl.utils.file_system_utils import ensure_directory_exists
-from etl.pipeline.extract.base_extractor import BaseExtractor
-from etl.pipeline.extract.post_offices_extractor import PostOfficesExtractor
+from etl.utils.dynamic_imports import import_function
 from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
 
-# Registry of entity-specific extractor classes
-EXTRACTOR_CLASSES = {
-    "post_offices": PostOfficesExtractor,
-    # Add other extractors here
-}
 
+def get_extractor_instance(entity: Dict[str, Any], lang: str) -> Any:
+    """Dynamically resolve and instantiate the extractor class for a given entity.
 
-def get_extractor_instance(
-    entity_name: str, mappings_file: str, lang: str
-) -> BaseExtractor:
-    """Resolve and instantiate the extractor class for a given entity."""
-    extractor_cls = EXTRACTOR_CLASSES.get(entity_name)
-    if not extractor_cls:
-        raise ValueError(f"Extractor class not found for entity: {entity_name}")
-    return extractor_cls(mappings_file, lang)
+    Args:
+        entity (Dict[str, Any]): Entity configuration containing the extractor path.
+        lang (str): The target language for processing.
+
+    Returns:
+        Any: An instance of the resolved extractor class.
+
+    Raises:
+        ValueError: If the extractor class cannot be resolved or instantiated.
+    """
+    try:
+        extractor_cls = import_function(entity["extractor"])
+        mappings_file = CONFIG["config_files"]["mappings_file"]
+        return extractor_cls(mappings_file, lang)
+    except Exception as e:
+        logger.error(f"Failed to resolve extractor for entity '{entity['name']}': {e}")
+        raise ValueError(f"Error resolving extractor for entity '{entity['name']}'")
 
 
 def save_to_csv_in_chunks(
     df: pd.DataFrame, output_base_name: str, chunk_size: int, start_index: int = 1
 ) -> int:
-    """Save a DataFrame to multiple CSV files in chunks."""
+    """Save a DataFrame to multiple CSV files in chunks.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to save.
+        output_base_name (str): Base name for the output CSV files.
+        chunk_size (int): Number of records per chunk.
+        start_index (int): Starting index for naming chunk files.
+
+    Returns:
+        int: The next starting index for subsequent chunks.
+    """
     if chunk_size <= 0:
         raise ValueError("Chunk size must be a positive integer.")
 
@@ -63,26 +89,39 @@ def save_to_csv_in_chunks(
 def process_and_save_entity(
     data_records: pd.DataFrame,
     lang: str,
-    entity_name: str,
+    entity: Dict[str, Any],
     extract_data_path: str,
     chunk_size: int,
     start_index: int = 1,
 ) -> int:
-    """Process and save data for a specific entity."""
+    """Process and save data for a specific entity.
+
+    Args:
+        data_records (pd.DataFrame): Data records to process.
+        lang (str): Target language for processing.
+        entity (Dict[str, Any]): Entity configuration.
+        extract_data_path (str): Path to save the processed data.
+        chunk_size (int): Number of records per chunk.
+        start_index (int): Starting index for naming chunk files.
+
+    Returns:
+        int: The next starting index for subsequent chunks.
+
+    Raises:
+        RuntimeError: If processing the entity fails.
+    """
+    entity_name = entity["name"]
     subfolder_path = Path(extract_data_path) / entity_name
     ensure_directory_exists(subfolder_path)
 
     try:
-        # Get the mappings file dynamically from CONFIG
-        mappings_file = CONFIG["config_files"]["mappings_file"]
         logger.debug(
             f"Processing entity: {entity_name} with data sample: {data_records.head(5).to_dict(orient='records')}"
         )
-        extractor = get_extractor_instance(entity_name, mappings_file, lang)
+        extractor = get_extractor_instance(entity, lang)
         logger.info(f"Resolved extractor: {extractor.__class__.__name__}")
         extracted_data = extractor.extract(data_records)
 
-        # Validate and save the data
         if extracted_data.empty or not isinstance(extracted_data, pd.DataFrame):
             logger.warning(f"No valid data extracted for entity '{entity_name}'.")
             return start_index
@@ -99,7 +138,12 @@ def process_and_save_entity(
 
 
 def process_entities(data_records: pd.DataFrame, config: Dict[str, Any]) -> None:
-    """Process and save data for each entity."""
+    """Process and save data for all entities.
+
+    Args:
+        data_records (pd.DataFrame): Data records to process.
+        config (Dict[str, Any]): ETL pipeline configuration.
+    """
     extract_data_path = (
         Path(config["directory_structure"]["processed_dir"]) / "extracted"
     )
@@ -107,12 +151,10 @@ def process_entities(data_records: pd.DataFrame, config: Dict[str, Any]) -> None
 
     start_index = 1
     for entity in config["entities"]:
-        entity_name = entity["name"]
-        lang = config["chosen_language"]
         start_index = process_and_save_entity(
             data_records,
-            lang,
-            entity_name,
+            config["chosen_language"],
+            entity,
             str(extract_data_path),
             config["chunk_size"],
             start_index,

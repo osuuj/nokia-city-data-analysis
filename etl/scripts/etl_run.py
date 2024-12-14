@@ -1,11 +1,23 @@
-"""ETL Pipeline Orchestration Script."""
+"""ETL Pipeline Orchestration Script.
+
+This script orchestrates the ETL pipeline, including:
+1. Environment setup.
+2. Downloading and extracting raw data.
+3. Downloading required mappings.
+4. Splitting JSON files into chunks.
+5. Processing entities based on extracted data.
+
+Key Features:
+- Modular and reusable pipeline steps.
+- Robust error handling and logging.
+"""
 
 import time
 import json
 import ijson
 import pandas as pd
-from typing import Dict, Any, List
 from pathlib import Path
+from typing import Dict, Any, List
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
@@ -21,7 +33,11 @@ logger.info("Starting ETL pipeline")
 
 
 def setup_environment(config: Dict[str, Any]) -> None:
-    """Set up directories for the ETL pipeline."""
+    """Set up the environment by ensuring necessary directories exist.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary with directory structure.
+    """
     directories_to_create = [
         Path(v)
         for k, v in config["directory_structure"].items()
@@ -32,21 +48,31 @@ def setup_environment(config: Dict[str, Any]) -> None:
 
 
 def download_raw_data(config: Dict[str, Any]) -> Path:
-    """Download and extract raw data files."""
+    """Download and extract raw data files from a specified URL.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary containing URL and file paths.
+
+    Returns:
+        Path: Directory containing the extracted files.
+    """
     url = get_url("all_companies", config["url_templates"])
     raw_file_path = (
         Path(config["directory_structure"]["raw_dir"])
         / config["file_names"]["zip_file_name"]
     )
     extracted_dir = Path(config["directory_structure"]["extracted_dir"])
-    # Assuming download_and_extract_files handles downloading and extraction
     download_and_extract_files(url, raw_file_path, extracted_dir, config["chunk_size"])
     logger.info("Raw data downloaded and extracted.")
     return extracted_dir
 
 
 def download_mappings(config: Dict[str, Any]) -> None:
-    """Download JSON mappings based on codes and languages."""
+    """Download mapping files required for data processing.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary containing mapping file details.
+    """
     base_url = config["url_templates"]["base"]
     endpoint_template = config["url_templates"]["endpoints"]["description"]
     mappings_path = Path(config["directory_structure"]["raw_dir"]) / "mappings"
@@ -58,7 +84,14 @@ def download_mappings(config: Dict[str, Any]) -> None:
 
 
 def process_json_file(json_file: Path) -> pd.DataFrame:
-    """Process a JSON file into a DataFrame."""
+    """Convert a JSON file into a Pandas DataFrame.
+
+    Args:
+        json_file (Path): Path to the JSON file.
+
+    Returns:
+        pd.DataFrame: DataFrame containing JSON data.
+    """
     all_rows = []
     try:
         with json_file.open("r", encoding="utf-8") as file:
@@ -73,7 +106,13 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
 
 
 def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> None:
-    """Split a large JSON file into smaller files using streaming."""
+    """Split a large JSON file into smaller files using streaming.
+
+    Args:
+        file_path (str): Path to the input JSON file.
+        output_dir (str): Directory to save the smaller chunk files.
+        chunk_size (int): Number of records per chunk.
+    """
     input_path = Path(file_path)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -95,32 +134,39 @@ def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> Non
 
 
 def save_chunk(chunk: List[Any], output_path: Path, chunk_index: int) -> None:
-    """Save a chunk of data to a JSON file."""
+    """Save a chunk of data to a JSON file.
+
+    Args:
+        chunk (List[Any]): List of JSON records to save.
+        output_path (Path): Directory to save the chunk file.
+        chunk_index (int): Index for naming the chunk file.
+    """
     output_file = output_path / f"chunk_{chunk_index}.json"
     with output_file.open("w", encoding="utf-8") as out_file:
         json.dump(chunk, out_file, indent=4)
+    logger.info(f"Saved chunk {chunk_index} to {output_file}")
 
 
 def get_first_json_file(extracted_dir: Path) -> Path:
-    """Get the first JSON file from the extracted directory.
+    """Retrieve the first JSON file from a directory.
 
     Args:
-        extracted_dir (Path): Directory containing the extracted files.
+        extracted_dir (Path): Directory containing JSON files.
 
     Returns:
-        Path: Path to the first JSON file found.
+        Path: Path to the first JSON file.
 
     Raises:
-        FileNotFoundError: If no JSON files are found in the directory.
+        FileNotFoundError: If no JSON files are found.
     """
     json_files = list(extracted_dir.glob("*.json"))
     if not json_files:
         raise FileNotFoundError(f"No JSON files found in directory: {extracted_dir}")
-    return json_files[0]  # Return the first JSON file found
+    return json_files[0]
 
 
 def run_etl_pipeline() -> None:
-    """Run the ETL pipeline."""
+    """Execute the ETL pipeline."""
     start_time = time.time()
     config = load_all_configs()
 
