@@ -64,7 +64,9 @@ class CompanyFormDescriptionsExtractor(BaseExtractor):
                         mapped_lang = next(
                             (
                                 key
-                                for key, value in self.language_code_mapping.items()
+                                for key, value in self.ensure_dict(
+                                    self.language_code_mapping
+                                ).items()
                                 if value == str(raw_language_code)
                             ),
                             None,

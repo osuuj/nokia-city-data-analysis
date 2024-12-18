@@ -69,7 +69,7 @@ def download_mapping_files(
         output_dir (Path): Directory where downloaded files will be saved.
 
     Raises:
-        requests.RequestException: If the HTTP request fails.
+        requests.RequestException: For network-related errors.
         OSError: If writing the file fails.
     """
     ensure_directory_exists(output_dir)

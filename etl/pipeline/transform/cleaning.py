@@ -33,6 +33,9 @@ def clean_dataset(
 
     Returns:
         pd.DataFrame: The cleaned DataFrame.
+
+    Raises:
+        ValueError: If there is an error during the cleaning process.
     """
     specific_columns = specific_columns or []  # Default to empty list if None
 
@@ -100,6 +103,7 @@ def clean_entity_files(
         List[str]: List of paths to cleaned files.
 
     Raises:
+        FileNotFoundError: If the input directory does not exist.
         ValueError: If there is an error cleaning a specific file.
         RuntimeError: If there is an error during the overall cleaning process.
     """

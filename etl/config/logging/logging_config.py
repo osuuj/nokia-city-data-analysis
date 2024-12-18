@@ -30,10 +30,11 @@ def configure_logging() -> None:
 
     The function relies on `directory.yml` for the logging directory structure
     and `logging_config.yml` for the configuration of log handlers, formatters, and loggers.
-
+    
+              
     Raises:
         FileNotFoundError: If the logging configuration file is missing.
-        Exception: If any other error occurs during logging configuration.
+        Exception: For other general errors during logging configuration.
     """
     try:
         # Resolve paths for logs directory and configuration file

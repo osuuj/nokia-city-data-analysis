@@ -1,3 +1,10 @@
+"""Base Extractor Module.
+
+This module defines the BaseExtractor class, which serves as a base class for all entity-specific extractors.
+It provides common functionality for processing and extracting data from DataFrames, validating language codes,
+mapping values, and parsing dates. Subclasses must implement the `process_row` and `extract` methods.
+"""
+
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -60,7 +67,7 @@ class BaseExtractor:
         Returns:
             List[Dict[str, Any]]: Extracted records from the row.
         """
-        raise NotImplementedError("Subclasses must implement the `process_row` method.")
+        return []
 
     def get_business_id(self, company: Dict[str, Any]) -> Optional[str]:
         """Extract the business ID from a company record.
@@ -94,16 +101,19 @@ class BaseExtractor:
             return False
         return True
 
-    def map_value(self, raw_value: Any, mapping: Dict[Any, Any]) -> Any:
+    def map_value(self, raw_value: Any, mapping: Any) -> Any:
         """Map a raw value using a mapping dictionary.
 
         Args:
             raw_value (Any): The value to map.
-            mapping (Dict[Any, Any]): The mapping dictionary.
+            mapping (Any): The mapping dictionary.
 
         Returns:
             Any: The mapped value, or the raw value if no mapping exists.
         """
+        if not isinstance(mapping, dict):
+            self.logger.error(f"Expected dict for mapping, got {type(mapping)}")
+            return raw_value
         return mapping.get(raw_value, raw_value)
 
     def parse_date(self, date_str: Optional[str]) -> Optional[str]:
@@ -147,6 +157,20 @@ class BaseExtractor:
 
         return [item for item in items if item.get("language") == lang_code]
 
+    def ensure_dict(self, value: Any) -> Dict[str, Any]:
+        """Ensure the value is a dictionary.
+
+        Args:
+            value (Any): The value to check.
+
+        Returns:
+            Dict[str, Any]: The value if it is a dictionary, otherwise an empty dictionary.
+        """
+        if isinstance(value, dict):
+            return value
+        self.logger.error(f"Expected dict, got {type(value)}")
+        return {}
+
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
         """Extract data. Must be implemented by subclasses.
 
@@ -155,8 +179,5 @@ class BaseExtractor:
 
         Returns:
             pd.DataFrame: Extracted and transformed data.
-
-        Raises:
-            NotImplementedError: If not implemented by subclasses.
         """
-        raise NotImplementedError("Subclasses must implement the `extract` method.")
+        return pd.DataFrame()

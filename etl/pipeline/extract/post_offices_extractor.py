@@ -1,13 +1,13 @@
-"""Extractor for Post Office Data.
+"""Extractor for Post Offices.
 
 This module defines the `PostOfficesExtractor` class, responsible for extracting and
-processing data related to post offices from raw company records. It validates data
-against mappings and supports language-specific filtering.
+processing post office data from raw company records. It validates and cleans data
+against mappings and handles missing values effectively.
 
 Key Features:
-- Language-specific filtering for post office records.
-- Error handling and logging for invalid or incomplete data.
-- Modular class-based design for reusability in ETL pipelines.
+- Extracts and maps post office-related information.
+- Validates data integrity and consistency.
+- Includes robust error handling and logging.
 """
 
 from typing import Any, Dict, List
@@ -15,6 +15,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from etl.pipeline.extract.base_extractor import BaseExtractor
+from etl.utils.cleaning_utils import clean_numeric_column
 
 
 class PostOfficesExtractor(BaseExtractor):
@@ -28,19 +29,13 @@ class PostOfficesExtractor(BaseExtractor):
             lang (str): Target language code for filtering (e.g., 'en', 'fi', 'sv').
 
         Raises:
-            ValueError: If the language code is invalid.
+            ValueError: If the language code is invalid or required mappings are missing.
         """
         super().__init__(mappings_file, lang)
 
-        # Retrieve the language code from the mappings
-        post_office_language_code = self.mappings.get_mapping(
-            "post_office_language_code"
-        )
-        self.lang_code = post_office_language_code.get(lang)
-
-        if not self.lang_code:
-            self.logger.error(f"Invalid language code: {lang}")
-            raise ValueError(f"Invalid language code: {lang}")
+        # Validate that required mappings exist for the language
+        if not self.validate_language("post_office_mapping"):
+            raise ValueError(f"Invalid language code for the required mappings: {lang}")
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract post office information.
@@ -52,35 +47,44 @@ class PostOfficesExtractor(BaseExtractor):
             List[Dict[str, Any]]: A list of extracted post office records.
         """
         results: List[Dict[str, Any]] = []
-        try:
-            business_id = self.get_business_id(company)
-            if not business_id:
-                return results  # Skip if no business ID
+        business_id = self.get_business_id(company)
+        if not business_id:
+            return results  # Skip if no business ID
 
-            # Extract addresses containing post office data
-            addresses = company.get("addresses", [])
-            for address in addresses:
-                post_offices = address.get("postOffices", [])
-                for post_office in post_offices:
-                    # Check for matching language code
-                    language_code = str(post_office.get("languageCode"))
-                    if language_code == self.lang_code:
-                        results.append(
-                            {
-                                "businessId": business_id,
-                                "postCode": post_office.get("postCode", ""),
-                                "city": post_office.get("city", ""),
-                                "active": post_office.get("active", False),
-                                "languageCode": self.lang,  # Use the language string
-                                "municipalityCode": post_office.get(
-                                    "municipalityCode", ""
-                                ),
-                            }
-                        )
-        except Exception as e:
-            self.logger.error(
-                f"Error processing row with businessId '{company.get('businessId', 'unknown')}': {e}"
+        if not isinstance(company, dict):
+            self.logger.error(f"Invalid company record: {company}")
+            return results
+
+        addresses = company.get("addresses", [])
+        if not isinstance(addresses, list):
+            self.logger.warning(
+                f"Expected 'addresses' to be a list, got {type(addresses)}"
             )
+            return results
+
+        for address in addresses:
+            try:
+                mapped_type = self.map_value(
+                    address.get("type"),
+                    self.mappings.get_mapping("post_office_mapping", self.lang),
+                )
+
+                results.append(
+                    {
+                        "business_id": business_id,
+                        "post_code": clean_numeric_column(address.get("postCode")),
+                        "city": address.get("city", ""),
+                        "municipality_code": clean_numeric_column(
+                            address.get("municipalityCode")
+                        ),
+                        "type": mapped_type,
+                        "active": address.get("active", True),
+                    }
+                )
+            except Exception as e:
+                self.logger.error(
+                    f"Error processing address for businessId '{business_id}': {e}"
+                )
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:

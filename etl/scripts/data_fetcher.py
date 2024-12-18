@@ -25,7 +25,9 @@ from etl.utils.file_system_utils import clear_directory, ensure_directory_exists
 logger = logging.getLogger(__name__)
 
 # Configurable constants
-DEFAULT_DOWNLOAD_CHUNK_SIZE = CONFIG.get("download_chunk_size", 1024 * 1024)  # Default to 1 MB if not set
+DEFAULT_DOWNLOAD_CHUNK_SIZE = CONFIG.get(
+    "download_chunk_size", 1024 * 1024
+)  # Default to 1 MB if not set
 DEFAULT_TIMEOUT = 30  # Timeout for HTTP requests in seconds
 SUPPORTED_ARCHIVES = {".zip", ".tar.gz", ".tgz"}  # Supported file formats
 
@@ -57,10 +59,10 @@ def download_file(
     Args:
         url (str): URL of the file to download.
         destination_path (Path): Path to save the downloaded file.
-        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
-        retries (int, optional): Number of retry attempts. Defaults to 3.
-        delay (int, optional): Delay between retries in seconds. Defaults to 5.
-        timeout (int, optional): Timeout for HTTP requests in seconds. Defaults to DEFAULT_TIMEOUT.
+        chunk_size (int): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
+        retries (int): Number of retry attempts. Defaults to 3.
+        delay (int): Delay between retries in seconds. Defaults to 5.
+        timeout (int): Timeout for HTTP requests in seconds. Defaults to DEFAULT_TIMEOUT.
 
     Raises:
         RuntimeError: If the download fails after all retries.
@@ -100,13 +102,17 @@ def extract_zip(file_path: Path, extracted_dir: Path) -> None:
     Raises:
         RuntimeError: If extraction fails.
     """
-    with zipfile.ZipFile(file_path, "r") as zip_ref:
-        for member in zip_ref.namelist():
-            if ensure_safe_extraction(extracted_dir, member):
-                zip_ref.extract(member, extracted_dir)
-            else:
-                logger.warning(f"Skipping unsafe file: {member}")
-    logger.info(f"ZIP file extracted to {extracted_dir}")
+    try:
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
+            for member in zip_ref.namelist():
+                if ensure_safe_extraction(extracted_dir, member):
+                    zip_ref.extract(member, extracted_dir)
+                else:
+                    logger.warning(f"Skipping unsafe file: {member}")
+        logger.info(f"ZIP file extracted to {extracted_dir}")
+    except zipfile.BadZipFile as e:
+        logger.error(f"Error extracting ZIP file {file_path}: {e}")
+        raise RuntimeError(f"Extraction failed for {file_path}") from e
 
 
 def extract_tar(file_path: Path, extracted_dir: Path) -> None:
@@ -119,13 +125,17 @@ def extract_tar(file_path: Path, extracted_dir: Path) -> None:
     Raises:
         RuntimeError: If extraction fails.
     """
-    with tarfile.open(file_path, "r:gz") as tar_ref:
-        for member in tar_ref.getmembers():
-            if ensure_safe_extraction(extracted_dir, member.name):
-                tar_ref.extract(member, extracted_dir)
-            else:
-                logger.warning(f"Skipping unsafe file: {member.name}")
-    logger.info(f"TAR file extracted to {extracted_dir}")
+    try:
+        with tarfile.open(file_path, "r:gz") as tar_ref:
+            for member in tar_ref.getmembers():
+                if ensure_safe_extraction(extracted_dir, member.name):
+                    tar_ref.extract(member, extracted_dir)
+                else:
+                    logger.warning(f"Skipping unsafe file: {member.name}")
+        logger.info(f"TAR file extracted to {extracted_dir}")
+    except tarfile.TarError as e:
+        logger.error(f"Error extracting TAR file {file_path}: {e}")
+        raise RuntimeError(f"Extraction failed for {file_path}") from e
 
 
 def extract_file(file_path: Path, extracted_dir: Path) -> None:
@@ -166,10 +176,14 @@ def download_and_extract_files(
         url (str): URL of the file to download.
         raw_file_path (Path): Path to save the downloaded file.
         extracted_dir (Path): Directory to extract files.
-        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
+        chunk_size (int): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
 
     Raises:
         RuntimeError: If download or extraction fails.
     """
-    download_file(url, raw_file_path, chunk_size=chunk_size)
-    extract_file(raw_file_path, extracted_dir)
+    try:
+        download_file(url, raw_file_path, chunk_size=chunk_size)
+        extract_file(raw_file_path, extracted_dir)
+    except Exception as e:
+        logger.error(f"Failed to download and extract files: {e}")
+        raise RuntimeError(f"Failed to download and extract files from {url}") from e

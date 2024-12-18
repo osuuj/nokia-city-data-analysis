@@ -8,7 +8,7 @@ common file system operations in a robust and reusable manner.
 
 import logging
 from pathlib import Path
-from typing import List, Union, Sequence
+from typing import Sequence, Union
 
 logger = logging.getLogger(__name__)
 

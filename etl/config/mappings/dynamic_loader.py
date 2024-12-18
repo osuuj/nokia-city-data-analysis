@@ -100,6 +100,7 @@ class Mappings:
         Raises:
             FileNotFoundError: If the mappings file does not exist.
             KeyError: If the required mappings key is missing in the YAML file.
+            yaml.YAMLError: If there is an error parsing the YAML file.
         """
         if not self.mappings_file.exists():
             raise FileNotFoundError(f"Mappings file not found: {self.mappings_file}")
@@ -130,7 +131,7 @@ class Mappings:
             Union[Dict[str, Any], str]: The requested mapping.
 
         Raises:
-            KeyError: If the mapping or language is not found.
+            KeyError: If the mapping or language does not exist.
             TypeError: If the mapping type is unexpected.
         """
         mapping = self.mappings.get(mapping_name)

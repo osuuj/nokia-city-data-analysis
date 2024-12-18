@@ -15,7 +15,7 @@ import gc
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, DefaultDict
+from typing import Any, DefaultDict, Dict
 
 import pandas as pd
 
@@ -69,6 +69,9 @@ def save_to_csv_in_chunks(
 
     Returns:
         int: The next starting index for subsequent chunks.
+
+    Raises:
+        ValueError: If the chunk size is not a positive integer.
     """
     if chunk_size <= 0:
         raise ValueError("Chunk size must be a positive integer.")

@@ -17,17 +17,16 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-
 import ijson
 import pandas as pd
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
-from etl.pipeline.transform.cleaning import clean_entity_files
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.scripts.entity_processing import process_entities
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
+from etl.pipeline.transform.cleaning import clean_entity_files
 
 # Configure logging
 configure_logging()
@@ -65,7 +64,7 @@ def download_raw_data(config: Dict[str, Any]) -> Path:
         / config["file_names"]["zip_file_name"]
     )
     extracted_dir = Path(config["directory_structure"]["extracted_dir"])
-    download_chunk_size = config.get("download_chunk_size", 1024 * 1024) 
+    download_chunk_size = config.get("download_chunk_size", 1024 * 1024)
     download_and_extract_files(url, raw_file_path, extracted_dir, download_chunk_size)
     logger.info("Raw data downloaded and extracted.")
     return extracted_dir
@@ -87,7 +86,9 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def save_json_chunk(chunk: List[Dict[str, Any]], output_dir: Path, chunk_index: int) -> None:
+def save_json_chunk(
+    chunk: List[Dict[str, Any]], output_dir: Path, chunk_index: int
+) -> None:
     """Save a chunk of JSON records to a file incrementally.
 
     Args:
@@ -102,7 +103,6 @@ def save_json_chunk(chunk: List[Dict[str, Any]], output_dir: Path, chunk_index: 
             outfile.write("\n")
     if chunk_index % 10 == 0:  # Log progress every 10 chunks
         logger.info(f"Saved chunk {chunk_index} to {output_file}.")
-
 
 def split_json_to_files(
     file_path: str, output_dir: str, chunk_size: int = 5000
@@ -130,18 +130,6 @@ def split_json_to_files(
         if chunk:
             save_json_chunk(chunk, output_path, chunk_index)
 
-def write_output(output_path: Path, data: Any) -> None:
-    """Write data to the specified output file.
-
-    Args:
-        output_path (Path): Path to the output file.
-        data (Any): Data to write.
-    """
-    with open(output_path, 'w', encoding='utf-8') as file:
-        if file is not None:
-            file.write(json.dumps(data, indent=4))
-        else:
-            logger.error(f"Failed to open file for writing: {output_path}")
 
 def get_first_json_file(extracted_dir: Path) -> Path:
     """Retrieve the first JSON file from a directory.
@@ -223,21 +211,20 @@ def run_etl_pipeline() -> None:
             data_records = process_json_file(json_file)
             start_index = process_entities(data_records, config, start_index)
 
-        # Step 6: Clean processed data
-        #processed_dir = Path(config["directory_structure"]["processed_dir"])
-        #cleaned_dir = processed_dir / "cleaned"
-        #cleaned_dir.mkdir(parents=True, exist_ok=True)
-
-        #for entity in config["entities"]:
-        #    entity_name = entity["name"]
-        #    specific_columns = entity.get("specific_columns", [])
-        #    logger.info(f"Starting cleaning for entity: {entity_name}")
-        #    clean_entity_files(
-        #        str(processed_dir / "extracted"),
-        #        str(cleaned_dir),
-        #        entity_name,
-        #        specific_columns,
-        #    )
+        ## Step 6: Clean processed data
+        processed_dir = Path(config["directory_structure"]["processed_dir"])
+        cleaned_dir = processed_dir / "cleaned"
+        cleaned_dir.mkdir(parents=True, exist_ok=True)
+        for entity in config["entities"]:
+            entity_name = entity["name"]
+            specific_columns = entity.get("specific_columns", [])
+            logger.info(f"Starting cleaning for entity: {entity_name}")
+            clean_entity_files(
+                str(processed_dir / "extracted"),
+                str(cleaned_dir),
+                entity_name,
+                specific_columns,
+            )
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")

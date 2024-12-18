@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
-from sqlalchemy import Engine, create_engine, exc, text
+from sqlalchemy import Engine, create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from etl.config.config_loader import CONFIG, DATABASE_URL
 
@@ -43,7 +44,7 @@ def create_tables(engine: Engine, schema_file: Path) -> None:
     except IOError as e:
         print(f"Error reading schema file: {e}")
         raise
-    except exc.SQLAlchemyError as e:
+    except SQLAlchemyError as e:
         print(f"Error creating tables: {e}")
         raise
 
