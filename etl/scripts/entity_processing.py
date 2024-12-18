@@ -11,9 +11,10 @@ Key Features:
 
 """
 
+import gc
 import logging
 import pandas as pd
-import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict
 from etl.utils.file_system_utils import ensure_directory_exists
@@ -21,6 +22,9 @@ from etl.utils.dynamic_imports import import_function
 from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
+
+# Global index tracker
+entity_index_tracker = defaultdict(int)
 
 
 def get_extractor_instance(entity: Dict[str, Any], lang: str) -> Any:
@@ -46,7 +50,11 @@ def get_extractor_instance(entity: Dict[str, Any], lang: str) -> Any:
 
 
 def save_to_csv_in_chunks(
-    df: pd.DataFrame, output_base_name: str, chunk_size: int, start_index: int = 1
+    df: pd.DataFrame,
+    output_base_name: str,
+    chunk_size: int,
+    entity_name: str,
+    start_index: int = 1,
 ) -> int:
     """Save a DataFrame to multiple CSV files in chunks.
 
@@ -54,6 +62,7 @@ def save_to_csv_in_chunks(
         df (pd.DataFrame): The DataFrame to save.
         output_base_name (str): Base name for the output CSV files.
         chunk_size (int): Number of records per chunk.
+        entity_name (str): Name of the entity being processed.
         start_index (int): Starting index for naming chunk files.
 
     Returns:
@@ -68,16 +77,24 @@ def save_to_csv_in_chunks(
     )
 
     output_base_path = Path(output_base_name)
-    timestamp = int(time.time())
 
     for i in range(num_chunks):
         chunk = df.iloc[i * chunk_size : (i + 1) * chunk_size]
         chunk_file_name = output_base_path.with_name(
-            f"{output_base_path.stem}_part{start_index + i}_{timestamp}.csv"
+            f"{output_base_path.stem}_part{start_index + i}.csv"
         )
+        
+        # Check if file exists and increment index if necessary
+        while chunk_file_name.exists():
+            start_index += 1
+            chunk_file_name = output_base_path.with_name(
+                f"{output_base_path.stem}_part{start_index + i}.csv"
+            )
+        
         try:
             chunk.to_csv(chunk_file_name, index=False, encoding="utf-8")
-            logger.info(f"Saved chunk {start_index + i} to {chunk_file_name}")
+            if i % 10 == 0:  # Log progress every 10 chunks
+                logger.info(f"Saved chunk {start_index + i} to {chunk_file_name}")
         except Exception as e:
             logger.error(
                 f"Error writing chunk {start_index + i} to {chunk_file_name}: {e}"
@@ -94,69 +111,76 @@ def process_and_save_entity(
     chunk_size: int,
     start_index: int = 1,
 ) -> int:
-    """Process and save data for a specific entity.
-
-    Args:
-        data_records (pd.DataFrame): Data records to process.
-        lang (str): Target language for processing.
-        entity (Dict[str, Any]): Entity configuration.
-        extract_data_path (str): Path to save the processed data.
-        chunk_size (int): Number of records per chunk.
-        start_index (int): Starting index for naming chunk files.
-
-    Returns:
-        int: The next starting index for subsequent chunks.
-
-    Raises:
-        RuntimeError: If processing the entity fails.
-    """
+    """Process and save data for a specific entity with optimized performance."""
     entity_name = entity["name"]
     subfolder_path = Path(extract_data_path) / entity_name
     ensure_directory_exists(subfolder_path)
 
     try:
-        logger.debug(
-            f"Processing entity: {entity_name} with data sample: {data_records.head(5).to_dict(orient='records')}"
-        )
+        logger.info(f"Processing entity: {entity_name}")
         extractor = get_extractor_instance(entity, lang)
-        logger.info(f"Resolved extractor: {extractor.__class__.__name__}")
-        extracted_data = extractor.extract(data_records)
 
-        if extracted_data.empty or not isinstance(extracted_data, pd.DataFrame):
-            logger.warning(f"No valid data extracted for entity '{entity_name}'.")
-            return start_index
+        # Process data in chunks to manage memory usage
+        num_chunks = (len(data_records) + chunk_size - 1) // chunk_size
+        for i in range(num_chunks):
+            chunk_start = i * chunk_size
+            chunk_end = min(chunk_start + chunk_size, len(data_records))
+            data_chunk = data_records.iloc[chunk_start:chunk_end]
 
-        output_base_name = subfolder_path / entity_name
-        next_index = save_to_csv_in_chunks(
-            extracted_data, str(output_base_name), chunk_size, start_index
-        )
+            # Extract data
+            extracted_data = extractor.extract(data_chunk)
+
+            if extracted_data.empty or not isinstance(extracted_data, pd.DataFrame):
+                logger.warning(f"No valid data extracted for entity '{entity_name}'.")
+                continue
+
+            # Save data to CSV
+            output_base_name = subfolder_path / entity_name
+            save_to_csv_in_chunks(
+                extracted_data, str(output_base_name), chunk_size, entity_name, start_index
+            )
+            start_index += 1  # Increment index per chunk
+
         logger.info(f"Processing and saving completed for entity: {entity_name}")
-        return next_index
+        gc.collect()  # Perform garbage collection once per entity
+        return start_index
     except Exception as e:
         logger.error(f"Error processing entity '{entity_name}': {e}")
         raise RuntimeError(f"Error processing entity '{entity_name}': {e}")
 
 
-def process_entities(data_records: pd.DataFrame, config: Dict[str, Any]) -> None:
-    """Process and save data for all entities.
-
-    Args:
-        data_records (pd.DataFrame): Data records to process.
-        config (Dict[str, Any]): ETL pipeline configuration.
-    """
+def process_entities(
+    data_records: pd.DataFrame, config: Dict[str, Any], start_index: int = 1
+) -> int:
+    """Process and save data for all entities with consistent naming."""
     extract_data_path = (
         Path(config["directory_structure"]["processed_dir"]) / "extracted"
     )
     extract_data_path.mkdir(parents=True, exist_ok=True)
 
-    start_index = 1
+    # Local counter for each entity
+    entity_counters = {}
+
     for entity in config["entities"]:
-        start_index = process_and_save_entity(
+        entity_name = entity["name"]
+
+        # Initialize the counter for the entity
+        if entity_name not in entity_counters:
+            entity_counters[entity_name] = start_index
+
+        # Process the entity and increment the counter
+        entity_start_index = entity_counters[entity_name]
+        next_index = process_and_save_entity(
             data_records,
             config["chosen_language"],
             entity,
             str(extract_data_path),
             config["chunk_size"],
-            start_index,
+            entity_start_index,
         )
+
+        # Update the counter for the next call
+        entity_counters[entity_name] = next_index
+
     logger.info("Entity processing completed.")
+    return start_index

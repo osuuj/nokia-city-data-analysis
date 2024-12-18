@@ -11,11 +11,11 @@ Key Features:
 - Modular and reusable pipeline steps.
 - Robust error handling and logging.
 """
-
 import time
 import json
 import ijson
 import pandas as pd
+import gc
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -25,6 +25,7 @@ from etl.scripts.entity_processing import process_entities
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
+from etl.pipeline.transform.cleaning import clean_entity_files
 
 # Configure logging
 configure_logging()
@@ -83,33 +84,30 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def process_json_file(json_file: Path) -> pd.DataFrame:
-    """Convert a JSON file into a Pandas DataFrame.
-
-    Args:
-        json_file (Path): Path to the JSON file.
-
-    Returns:
-        pd.DataFrame: DataFrame containing JSON data.
+def save_json_chunk(chunk: list, output_dir: Path, chunk_index: int) -> None:
     """
-    all_rows = []
-    try:
-        with json_file.open("r", encoding="utf-8") as file:
-            data = json.load(file)
-            if isinstance(data, list):
-                all_rows.extend([item for item in data if isinstance(item, dict)])
-            else:
-                logger.error(f"Expected a list in {json_file}, got {type(data)}")
-    except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON in {json_file}: {e}")
-    return pd.DataFrame(all_rows)
-
-
-def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> None:
-    """Split a large JSON file into smaller files using streaming.
+    Save a chunk of JSON records to a file incrementally.
 
     Args:
-        file_path (str): Path to the input JSON file.
+        chunk (list): List of JSON records.
+        output_dir (Path): Directory to save the chunk file.
+        chunk_index (int): Index for naming the file.
+    """
+    output_file = output_dir / f"chunk_{chunk_index:04d}.json"
+    with output_file.open("w", encoding="utf-8") as outfile:
+        for record in chunk:
+            json.dump(record, outfile)
+            outfile.write("\n")
+    if chunk_index % 10 == 0:  # Log progress every 10 chunks
+        logger.info(f"Saved chunk {chunk_index} to {output_file}.")
+
+
+def split_json_to_files(file_path: str, output_dir: str, chunk_size: int = 5000) -> None:
+    """
+    Split a large JSON file into smaller chunk files efficiently without memory spikes.
+
+    Args:
+        file_path (str): Path to the input large JSON file.
         output_dir (str): Directory to save the smaller chunk files.
         chunk_size (int): Number of records per chunk.
     """
@@ -117,34 +115,33 @@ def split_json_to_files(file_path: str, output_dir: str, chunk_size: int) -> Non
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    with input_path.open("r", encoding="utf-8") as file:
-        parser = ijson.items(file, "item")
-        chunk = []
-        chunk_index = 0
+    logger.info(f"Starting to split {file_path} into chunks of {chunk_size} records.")
 
+    with input_path.open("r", encoding="utf-8") as infile:
+        parser = ijson.items(infile, "item")
+        chunk_index = 0
+        record_count = 0
+
+        output_file = None
         for record in parser:
-            chunk.append(record)
-            if len(chunk) >= chunk_size:
-                save_chunk(chunk, output_path, chunk_index)
-                chunk = []
+            if record_count % chunk_size == 0:
+                # Close the current file and open a new chunk file
+                if output_file:
+                    output_file.close()
+                    logger.info(f"Saved chunk {chunk_index} with {chunk_size} records.")
+                output_file = (output_path / f"chunk_{chunk_index:04d}.json").open(
+                    "w", encoding="utf-8"
+                )
                 chunk_index += 1
 
-        if chunk:
-            save_chunk(chunk, output_path, chunk_index)
+            # Write the current record directly to the file
+            output_file.write(json.dumps(record) + "\n")
+            record_count += 1
 
-
-def save_chunk(chunk: List[Any], output_path: Path, chunk_index: int) -> None:
-    """Save a chunk of data to a JSON file.
-
-    Args:
-        chunk (List[Any]): List of JSON records to save.
-        output_path (Path): Directory to save the chunk file.
-        chunk_index (int): Index for naming the chunk file.
-    """
-    output_file = output_path / f"chunk_{chunk_index}.json"
-    with output_file.open("w", encoding="utf-8") as out_file:
-        json.dump(chunk, out_file, indent=4)
-    logger.info(f"Saved chunk {chunk_index} to {output_file}")
+        # Close the last output file
+        if output_file:
+            output_file.close()
+            logger.info(f"Saved final chunk {chunk_index - 1} with remaining records.")
 
 
 def get_first_json_file(extracted_dir: Path) -> Path:
@@ -165,6 +162,43 @@ def get_first_json_file(extracted_dir: Path) -> Path:
     return json_files[0]
 
 
+def process_json_file(json_file: Path) -> pd.DataFrame:
+    """Convert a JSON file (list or line-delimited) into a Pandas DataFrame.
+
+    Args:
+        json_file (Path): Path to the JSON file.
+
+    Returns:
+        pd.DataFrame: DataFrame containing JSON data.
+    """
+    all_rows = []
+    try:
+        with json_file.open("r", encoding="utf-8") as file:
+            # Attempt to load as a JSON list
+            data = json.load(file)
+            if isinstance(data, list):
+                all_rows.extend(data)
+            else:
+                logger.warning(f"Unexpected JSON format in {json_file}. Expected a list.")
+    except json.JSONDecodeError:
+        logger.info(f"Falling back to line-by-line parsing for {json_file}.")
+        # Line-by-line parsing for line-delimited JSON
+        with json_file.open("r", encoding="utf-8") as file:
+            for line in file:
+                try:
+                    record = json.loads(line)
+                    if isinstance(record, dict):
+                        all_rows.append(record)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Skipping invalid JSON line: {e}")
+
+    if not all_rows:
+        logger.warning(f"No valid data found in {json_file}")
+        return pd.DataFrame()
+
+    return pd.DataFrame(all_rows)
+
+
 def run_etl_pipeline() -> None:
     """Execute the ETL pipeline."""
     start_time = time.time()
@@ -172,23 +206,39 @@ def run_etl_pipeline() -> None:
 
     try:
         # Step 1: Environment setup
-        # setup_environment(config)
+        setup_environment(config)
 
         # Step 2: Download and extract raw data
-        # extracted_dir = download_raw_data(config)
+        #extracted_dir = download_raw_data(config)
 
         # Step 3: Download mappings
-        # download_mappings(config)
+        #download_mappings(config)
 
         # Step 4: Process JSON chunks
-        # input_json_file = get_first_json_file(Path(extracted_dir))
-        split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
-        # split_json_to_files(str(input_json_file), str(split_dir), config["chunk_size"])
+        #input_json_file = get_first_json_file(Path(extracted_dir))
+        #split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
+
+        #split_json_to_files(str(input_json_file), str(split_dir), config["chunk_size"])
 
         # Step 5: Process entities
-        for json_file in split_dir.glob("chunk_*.json"):
-            data_records = process_json_file(json_file)
-            process_entities(data_records, config)
+        #start_index = 1
+        #for json_file in sorted(split_dir.glob("chunk_*.json")):
+        #    data_records = process_json_file(json_file)
+        #    start_index = process_entities(data_records, config, start_index)
+
+        # Step 6: Clean processed data
+        processed_dir = Path(config["directory_structure"]["processed_dir"])
+        cleaned_dir = processed_dir / "cleaned"
+        cleaned_dir.mkdir(parents=True, exist_ok=True)
+        for entity in config["entities"]:
+            entity_name = entity["name"]
+            specific_columns = entity.get("specific_columns", None)
+            clean_entity_files(
+                str(processed_dir / "extracted"),
+                str(cleaned_dir),
+                entity_name,
+                specific_columns
+            )
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
