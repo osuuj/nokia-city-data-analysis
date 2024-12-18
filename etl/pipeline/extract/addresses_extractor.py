@@ -1,19 +1,19 @@
 """Extractor for Address Data.
 
 This module defines the `AddressesExtractor` class, responsible for extracting and
-processing address data from raw company records. It validates and cleans data
-against mappings and handles missing values effectively.
+processing address data from raw company records. It validates and maps data
+against configurations and logs incomplete data.
 
 Key Features:
 - Maps address types and sources using configurable mappings.
-- Cleans and standardizes numeric and string fields.
 - Includes robust error handling and logging for incomplete data.
 """
 
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import Dict, List, Any
+
 from etl.pipeline.extract.base_extractor import BaseExtractor
-from etl.utils.cleaning_utils import clean_numeric_column
 
 
 class AddressesExtractor(BaseExtractor):
@@ -52,6 +52,7 @@ class AddressesExtractor(BaseExtractor):
         results: List[Dict[str, Any]] = []
         business_id = self.get_business_id(company)
         if not business_id:
+            self.logger.warning("Skipping record with missing businessId.")
             return results  # Skip if no business ID
 
         for address in company.get("addresses", []):
@@ -67,7 +68,7 @@ class AddressesExtractor(BaseExtractor):
                 )
                 country = address.get("country", self.default_country)
 
-                # Clean and map address data
+                # Map and extract address data
                 results.append(
                     {
                         "businessId": business_id,
@@ -75,12 +76,10 @@ class AddressesExtractor(BaseExtractor):
                         "street": address.get("street", ""),
                         "buildingNumber": address.get("buildingNumber", ""),
                         "entrance": address.get("entrance", ""),
-                        "apartmentNumber": clean_numeric_column(
-                            address.get("apartmentNumber")
-                        ),
+                        "apartmentNumber": address.get("apartmentNumber", ""),
                         "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
                         "postOfficeBox": address.get("postOfficeBox", ""),
-                        "postCode": clean_numeric_column(address.get("postCode")),
+                        "postCode": address.get("postCode", ""),
                         "co": address.get("co", ""),
                         "country": country,
                         "freeAddressLine": address.get("freeAddressLine", ""),

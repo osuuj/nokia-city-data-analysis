@@ -1,5 +1,4 @@
-"""
-ETL Database Loader
+"""ETL Database Loader.
 
 This script is responsible for:
 1. Creating database tables based on a provided SQL schema file.

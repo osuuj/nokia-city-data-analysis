@@ -11,21 +11,23 @@ Key Features:
 - Modular and reusable pipeline steps.
 - Robust error handling and logging.
 """
-import time
+
 import json
+import time
+from pathlib import Path
+from typing import Any, Dict, List, Union
+
+
 import ijson
 import pandas as pd
-import gc
-from pathlib import Path
-from typing import Dict, Any, List
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
-from etl.scripts.entity_processing import process_entities
+from etl.pipeline.transform.cleaning import clean_entity_files
 from etl.scripts.data_fetcher import download_and_extract_files
+from etl.scripts.entity_processing import process_entities
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
-from etl.pipeline.transform.cleaning import clean_entity_files
 
 # Configure logging
 configure_logging()
@@ -37,14 +39,14 @@ def setup_environment(config: Dict[str, Any]) -> None:
     """Set up the environment by ensuring necessary directories exist.
 
     Args:
-        config (Dict[str, Any]): Configuration dictionary with directory structure.
+        config (Dict[str, Any]): Configuration dictionary containing directory paths.
     """
-    directories_to_create = [
-        Path(v)
-        for k, v in config["directory_structure"].items()
-        if k != "db_schema_path"
+    directories: List[Union[Path, str]] = [
+        config["directory_structure"]["raw_dir"],
+        config["directory_structure"]["extracted_dir"],
+        config["directory_structure"]["processed_dir"],
     ]
-    setup_directories(directories_to_create)
+    setup_directories(directories)
     logger.info("Environment setup completed.")
 
 
@@ -63,7 +65,8 @@ def download_raw_data(config: Dict[str, Any]) -> Path:
         / config["file_names"]["zip_file_name"]
     )
     extracted_dir = Path(config["directory_structure"]["extracted_dir"])
-    download_and_extract_files(url, raw_file_path, extracted_dir, config["chunk_size"])
+    download_chunk_size = config.get("download_chunk_size", 1024 * 1024) 
+    download_and_extract_files(url, raw_file_path, extracted_dir, download_chunk_size)
     logger.info("Raw data downloaded and extracted.")
     return extracted_dir
 
@@ -84,12 +87,11 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def save_json_chunk(chunk: list, output_dir: Path, chunk_index: int) -> None:
-    """
-    Save a chunk of JSON records to a file incrementally.
+def save_json_chunk(chunk: List[Dict[str, Any]], output_dir: Path, chunk_index: int) -> None:
+    """Save a chunk of JSON records to a file incrementally.
 
     Args:
-        chunk (list): List of JSON records.
+        chunk (List[Dict[str, Any]]): List of JSON records.
         output_dir (Path): Directory to save the chunk file.
         chunk_index (int): Index for naming the file.
     """
@@ -102,9 +104,10 @@ def save_json_chunk(chunk: list, output_dir: Path, chunk_index: int) -> None:
         logger.info(f"Saved chunk {chunk_index} to {output_file}.")
 
 
-def split_json_to_files(file_path: str, output_dir: str, chunk_size: int = 5000) -> None:
-    """
-    Split a large JSON file into smaller chunk files efficiently without memory spikes.
+def split_json_to_files(
+    file_path: str, output_dir: str, chunk_size: int = 5000
+) -> None:
+    """Split a large JSON file into smaller chunk files efficiently without memory spikes.
 
     Args:
         file_path (str): Path to the input large JSON file.
@@ -115,34 +118,30 @@ def split_json_to_files(file_path: str, output_dir: str, chunk_size: int = 5000)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Starting to split {file_path} into chunks of {chunk_size} records.")
-
     with input_path.open("r", encoding="utf-8") as infile:
-        parser = ijson.items(infile, "item")
+        chunk = []
         chunk_index = 0
-        record_count = 0
-
-        output_file = None
-        for record in parser:
-            if record_count % chunk_size == 0:
-                # Close the current file and open a new chunk file
-                if output_file:
-                    output_file.close()
-                    logger.info(f"Saved chunk {chunk_index} with {chunk_size} records.")
-                output_file = (output_path / f"chunk_{chunk_index:04d}.json").open(
-                    "w", encoding="utf-8"
-                )
+        for record in ijson.items(infile, "item"):
+            chunk.append(record)
+            if len(chunk) >= chunk_size:
+                save_json_chunk(chunk, output_path, chunk_index)
                 chunk_index += 1
+                chunk = []
+        if chunk:
+            save_json_chunk(chunk, output_path, chunk_index)
 
-            # Write the current record directly to the file
-            output_file.write(json.dumps(record) + "\n")
-            record_count += 1
+def write_output(output_path: Path, data: Any) -> None:
+    """Write data to the specified output file.
 
-        # Close the last output file
-        if output_file:
-            output_file.close()
-            logger.info(f"Saved final chunk {chunk_index - 1} with remaining records.")
-
+    Args:
+        output_path (Path): Path to the output file.
+        data (Any): Data to write.
+    """
+    with open(output_path, 'w', encoding='utf-8') as file:
+        if file is not None:
+            file.write(json.dumps(data, indent=4))
+        else:
+            logger.error(f"Failed to open file for writing: {output_path}")
 
 def get_first_json_file(extracted_dir: Path) -> Path:
     """Retrieve the first JSON file from a directory.
@@ -179,7 +178,9 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
             if isinstance(data, list):
                 all_rows.extend(data)
             else:
-                logger.warning(f"Unexpected JSON format in {json_file}. Expected a list.")
+                logger.warning(
+                    f"Unexpected JSON format in {json_file}. Expected a list."
+                )
     except json.JSONDecodeError:
         logger.info(f"Falling back to line-by-line parsing for {json_file}.")
         # Line-by-line parsing for line-delimited JSON
@@ -209,36 +210,34 @@ def run_etl_pipeline() -> None:
         setup_environment(config)
 
         # Step 2: Download and extract raw data
-        #extracted_dir = download_raw_data(config)
-
+        extracted_dir = download_raw_data(config)
         # Step 3: Download mappings
-        #download_mappings(config)
-
+        download_mappings(config)
         # Step 4: Process JSON chunks
-        #input_json_file = get_first_json_file(Path(extracted_dir))
-        #split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
-
-        #split_json_to_files(str(input_json_file), str(split_dir), config["chunk_size"])
-
+        input_json_file = get_first_json_file(Path(extracted_dir))
+        split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
+        split_json_to_files(str(input_json_file), str(split_dir), config["chunk_size"])
         # Step 5: Process entities
-        #start_index = 1
-        #for json_file in sorted(split_dir.glob("chunk_*.json")):
-        #    data_records = process_json_file(json_file)
-        #    start_index = process_entities(data_records, config, start_index)
+        start_index = 1
+        for json_file in sorted(split_dir.glob("chunk_*.json")):
+            data_records = process_json_file(json_file)
+            start_index = process_entities(data_records, config, start_index)
 
         # Step 6: Clean processed data
-        processed_dir = Path(config["directory_structure"]["processed_dir"])
-        cleaned_dir = processed_dir / "cleaned"
-        cleaned_dir.mkdir(parents=True, exist_ok=True)
-        for entity in config["entities"]:
-            entity_name = entity["name"]
-            specific_columns = entity.get("specific_columns", None)
-            clean_entity_files(
-                str(processed_dir / "extracted"),
-                str(cleaned_dir),
-                entity_name,
-                specific_columns
-            )
+        #processed_dir = Path(config["directory_structure"]["processed_dir"])
+        #cleaned_dir = processed_dir / "cleaned"
+        #cleaned_dir.mkdir(parents=True, exist_ok=True)
+
+        #for entity in config["entities"]:
+        #    entity_name = entity["name"]
+        #    specific_columns = entity.get("specific_columns", [])
+        #    logger.info(f"Starting cleaning for entity: {entity_name}")
+        #    clean_entity_files(
+        #        str(processed_dir / "extracted"),
+        #        str(cleaned_dir),
+        #        entity_name,
+        #        specific_columns,
+        #    )
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")

@@ -14,7 +14,7 @@ ignore = [
     "D103", # Missing docstring for public function
 ]
 # Exclude directories from linting
-exclude = ["tests/", "migrations/", "__pycache__/", "build/", "dist/"]
+exclude = ["tests/", "migrations/", "__pycache__/", "build/", "dist/", "data/", "docs/", "venvs/", "db/", "server/"]
 # Enforce Google-style docstrings
 [lint.pydocstyle]
 convention = "google"

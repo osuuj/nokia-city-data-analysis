@@ -13,18 +13,20 @@ Key Features:
 
 import gc
 import logging
-import pandas as pd
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict
-from etl.utils.file_system_utils import ensure_directory_exists
-from etl.utils.dynamic_imports import import_function
+from typing import Any, Dict, DefaultDict
+
+import pandas as pd
+
 from etl.config.config_loader import CONFIG
+from etl.utils.dynamic_imports import import_function
+from etl.utils.file_system_utils import ensure_directory_exists
 
 logger = logging.getLogger(__name__)
 
-# Global index tracker
-entity_index_tracker = defaultdict(int)
+# Type annotation for entity_index_tracker
+entity_index_tracker: DefaultDict[str, int] = defaultdict(int)
 
 
 def get_extractor_instance(entity: Dict[str, Any], lang: str) -> Any:
@@ -83,14 +85,14 @@ def save_to_csv_in_chunks(
         chunk_file_name = output_base_path.with_name(
             f"{output_base_path.stem}_part{start_index + i}.csv"
         )
-        
+
         # Check if file exists and increment index if necessary
         while chunk_file_name.exists():
             start_index += 1
             chunk_file_name = output_base_path.with_name(
                 f"{output_base_path.stem}_part{start_index + i}.csv"
             )
-        
+
         try:
             chunk.to_csv(chunk_file_name, index=False, encoding="utf-8")
             if i % 10 == 0:  # Log progress every 10 chunks
@@ -137,7 +139,11 @@ def process_and_save_entity(
             # Save data to CSV
             output_base_name = subfolder_path / entity_name
             save_to_csv_in_chunks(
-                extracted_data, str(output_base_name), chunk_size, entity_name, start_index
+                extracted_data,
+                str(output_base_name),
+                chunk_size,
+                entity_name,
+                start_index,
             )
             start_index += 1  # Increment index per chunk
 

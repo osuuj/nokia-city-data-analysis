@@ -49,4 +49,4 @@ repos:
     rev: 1.8.0
     hooks:
       - id: bandit
-        exclude: ^etl/test/|^etl/data/ 
+        exclude: ^etl/test/|^etl/data/

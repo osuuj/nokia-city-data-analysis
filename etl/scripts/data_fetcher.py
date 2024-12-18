@@ -15,17 +15,17 @@ import logging
 import tarfile
 import time
 import zipfile
+from pathlib import Path
 
 import requests
 
-from pathlib import Path
-from etl.utils.file_system_utils import clear_directory, ensure_directory_exists
 from etl.config.config_loader import CONFIG
+from etl.utils.file_system_utils import clear_directory, ensure_directory_exists
 
 logger = logging.getLogger(__name__)
 
 # Configurable constants
-DEFAULT_CHUNK_SIZE = CONFIG.get("chunk_size")  # Default to 1 MB
+DEFAULT_DOWNLOAD_CHUNK_SIZE = CONFIG.get("download_chunk_size", 1024 * 1024)  # Default to 1 MB if not set
 DEFAULT_TIMEOUT = 30  # Timeout for HTTP requests in seconds
 SUPPORTED_ARCHIVES = {".zip", ".tar.gz", ".tgz"}  # Supported file formats
 
@@ -47,7 +47,7 @@ def ensure_safe_extraction(destination_dir: Path, member_name: str) -> bool:
 def download_file(
     url: str,
     destination_path: Path,
-    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    chunk_size: int = DEFAULT_DOWNLOAD_CHUNK_SIZE,
     retries: int = 3,
     delay: int = 5,
     timeout: int = DEFAULT_TIMEOUT,
@@ -57,7 +57,7 @@ def download_file(
     Args:
         url (str): URL of the file to download.
         destination_path (Path): Path to save the downloaded file.
-        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
+        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
         retries (int, optional): Number of retry attempts. Defaults to 3.
         delay (int, optional): Delay between retries in seconds. Defaults to 5.
         timeout (int, optional): Timeout for HTTP requests in seconds. Defaults to DEFAULT_TIMEOUT.
@@ -158,7 +158,7 @@ def download_and_extract_files(
     url: str,
     raw_file_path: Path,
     extracted_dir: Path,
-    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    chunk_size: int = DEFAULT_DOWNLOAD_CHUNK_SIZE,
 ) -> None:
     """Download a file from a URL and extract it to a specified directory.
 
@@ -166,7 +166,7 @@ def download_and_extract_files(
         url (str): URL of the file to download.
         raw_file_path (Path): Path to save the downloaded file.
         extracted_dir (Path): Directory to extract files.
-        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_CHUNK_SIZE.
+        chunk_size (int, optional): Size of chunks for streaming. Defaults to DEFAULT_DOWNLOAD_CHUNK_SIZE.
 
     Raises:
         RuntimeError: If download or extraction fails.

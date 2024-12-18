@@ -5,13 +5,15 @@ in `directory.yml` and `logging_config.yml`. It includes a custom `SensitiveData
 to sanitize sensitive information from log messages.
 """
 
-from pathlib import Path
-import yaml
 import logging.config
+from pathlib import Path
+
+import yaml
+
 from etl.config.config_loader import CONFIG
-from etl.config.logging.filters import (
+from etl.config.logging.filters import (  # Assuming you have this module
     SensitiveDataFilter,
-)  # Assuming you have this module
+)
 
 logger = logging.getLogger(__name__)
 

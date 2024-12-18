@@ -27,3 +27,4 @@ url_templates:
 
 # Chunk Processing Configuration
 chunk_size: 1000  # Number of items to process per chunk
+download_chunk_size: 1024  # Size of chunks for downloading files in bytes

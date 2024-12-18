@@ -10,10 +10,12 @@ Key Features:
 - Modular and reusable design for ETL pipelines.
 """
 
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import Dict, List, Any
-from etl.pipeline.extract.base_extractor import BaseExtractor
+
 from etl.config.mappings.dynamic_loader import DynamicLoader
+from etl.pipeline.extract.base_extractor import BaseExtractor
 
 
 class MainBusinessLinesExtractor(BaseExtractor):

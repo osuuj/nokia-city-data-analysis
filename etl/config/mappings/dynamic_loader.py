@@ -1,7 +1,7 @@
 """Dynamic Loader and Mappings Manager.
 
-This module provides functionality for dynamically loading and managing static 
-mappings and configurations required in the ETL pipeline. 
+This module provides functionality for dynamically loading and managing static
+mappings and configurations required in the ETL pipeline.
 
 Key features include:
 - Loading TOIMI mapping files for various languages and categories.
@@ -11,11 +11,12 @@ Key features include:
 Integrates with the centralized `config.py` for file paths and language settings.
 """
 
-import yaml
 import logging
-
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
+
+import yaml
+
 from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)

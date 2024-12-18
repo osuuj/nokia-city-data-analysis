@@ -6,9 +6,9 @@ if directories are empty. These utilities are designed to handle
 common file system operations in a robust and reusable manner.
 """
 
-from pathlib import Path
 import logging
-from typing import List, Union
+from pathlib import Path
+from typing import List, Union, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -31,15 +31,14 @@ def ensure_directory_exists(path: Union[Path, str]) -> None:
         raise
 
 
-def setup_directories(directories: List[Union[Path, str]]) -> None:
-    """Ensure that a list of directories exist.
+def setup_directories(directories: Sequence[Union[Path, str]]) -> None:
+    """Ensure that the specified directories exist.
 
     Args:
-        directories (List[Union[Path, str]]): A list of directory paths to ensure exist.
+        directories (Sequence[Union[Path, str]]): List of directories to create.
     """
     for directory in directories:
-        ensure_directory_exists(directory)
-        logger.info(f"Setup directory: {directory}")
+        Path(directory).mkdir(parents=True, exist_ok=True)
 
 
 def clear_directory(directory: Union[Path, str]) -> None:

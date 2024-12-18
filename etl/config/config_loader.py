@@ -1,15 +1,16 @@
 """Configuration Loader.
 
-This module centralizes the loading, merging, and management of configurations 
-for the ETL pipeline. It handles multiple YAML configuration files, resolves 
-environment variables, and constructs runtime settings, including the database 
+This module centralizes the loading, merging, and management of configurations
+for the ETL pipeline. It handles multiple YAML configuration files, resolves
+environment variables, and constructs runtime settings, including the database
 connection URL.
 """
 
+import logging
 import os
 from pathlib import Path
-import logging
 from typing import Any, Dict, List, Optional
+
 import yaml
 from dotenv import load_dotenv
 

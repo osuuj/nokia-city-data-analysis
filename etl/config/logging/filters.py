@@ -6,7 +6,7 @@ specific log messages and sanitizing sensitive information.
 
 import logging
 import re
-from typing import List, Tuple, Pattern
+from typing import List, Pattern, Tuple
 
 
 class ChunkProcessingFilter(logging.Filter):

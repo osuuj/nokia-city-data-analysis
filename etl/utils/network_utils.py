@@ -5,9 +5,9 @@ and download zip or raw text from APIs. It ensures downloaded files
 are stored in the specified directory and handles common network-related errors.
 """
 
-from pathlib import Path
 import logging
-from typing import Dict, Optional, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import requests
 

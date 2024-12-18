@@ -1,7 +1,9 @@
 import logging
 from typing import Any, Dict, List, Optional
-from dateutil.parser import parse
+
 import pandas as pd
+from dateutil.parser import parse
+
 from etl.config.mappings.dynamic_loader import Mappings
 
 
@@ -144,28 +146,6 @@ class BaseExtractor:
             return []
 
         return [item for item in items if item.get("language") == lang_code]
-
-    def clean_address_data(self, row: Dict[str, Any]) -> Dict[str, Any]:
-        """Clean and standardize an address data row.
-
-        Args:
-            row (Dict[str, Any]): The address data row.
-
-        Returns:
-            Dict[str, Any]: The cleaned address data row.
-        """
-        if "apartmentNumber" in row:
-            row["apartmentNumber"] = (
-                str(row["apartmentNumber"]).replace(",", ".")
-                if row["apartmentNumber"]
-                else None
-            )
-
-        if "postCode" in row:
-            row["postCode"] = (
-                str(row["postCode"]).split(".")[0] if row["postCode"] else None
-            )
-        return row
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
         """Extract data. Must be implemented by subclasses.

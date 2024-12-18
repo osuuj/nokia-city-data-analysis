@@ -11,8 +11,10 @@ Key Features:
 - Comprehensive logging and error handling for invalid or incomplete data.
 """
 
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import Dict, List, Any
+
 from etl.pipeline.extract.base_extractor import BaseExtractor
 
 
