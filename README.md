@@ -50,7 +50,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 |----------------------------|-------------|--------------|
 | Data Preparation           | 2024-11-24  | Completed    |
 | ETL Pipeline Completion    | 2024-12-27  | Completed  |
-| Project Setup              | 2025-01-30  | Starting  |
+| Backend              | 2025-01-30  | Starting  |
 | Frontend Prototype         | 2025-??-??  | Not Started  |
 | Full System Deployment     | 2025-??-??  | Not Started  |
 
@@ -95,4 +95,45 @@ This project aims to develop a data analysis and visualization system for Finnis
    # ENV=production
    CHUNK_SIZE=1000
    ```
+
+---
+
+## File Structure Overview
+
+```
+.
+├── etl                          # Extract, Transform, Load pipeline for processing data
+│   ├── config                   # Configuration files and scripts
+│   │   ├── db.yml               # Database configuration
+│   │   ├── directory.yml        # Directory mappings
+│   │   ├── etl.yml              # ETL-specific settings
+│   │   ├── logging              # Logging configurations
+│   │   │   ├── logging_config.py
+│   │   │   ├── logging_config.yml
+│   │   └── mappings             # Data mappings for transformations
+│   │       ├── dynamic_loader.py
+│   │       ├── mappings.yml
+│   ├── pipeline                 # Main ETL pipeline modules
+│   │   ├── extract              # Data extraction scripts
+│   │   │   ├── companies_extractor.py
+│   │   │   └── names_extractor.py
+│   │   ├── load                 # Data loading scripts
+│   │   │   └── load_data.py
+│   │   ├── transform            # Data transformation scripts
+│   │       └── cleaning.py
+│   └── data                     # Data storage folders
+│       ├── 1_raw                # Raw input data
+│       ├── 2_extracted          # Extracted JSON data
+│       ├── 3_processed          # Processed data chunks
+│       └── logs                 # Log files
+├── requirements.txt             # Python dependencies
+├── scripts                      # Scripts for running ETL and related tasks
+│   ├── data_fetcher.py          # Fetches data from external sources
+│   ├── entity_processing.py     # Processes extracted entities
+│   └── etl_run.py               # Main ETL execution script
+└── utils                        # Utility modules for common functionality
+    ├── cleaning_utils.py        # Utility functions for data cleaning
+    ├── file_system_utils.py     # File system operations
+    └── network_utils.py         # Network operations
+```
 
