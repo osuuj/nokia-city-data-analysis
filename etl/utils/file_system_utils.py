@@ -38,7 +38,7 @@ def setup_directories(directories: Sequence[Union[Path, str]]) -> None:
         directories (Sequence[Union[Path, str]]): List of directories to create.
     """
     for directory in directories:
-        ensure_directory_exists(directory)
+        Path(directory).mkdir(parents=True, exist_ok=True)
 
 
 def clear_directory(directory: Union[Path, str]) -> None:
