@@ -17,11 +17,10 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 ## Technical Stack
 
-- **Backend**: Python, FastAPI, PostgreSQL
-- **Frontend**: React, Leaflet.js
+- **Backend**: Python (3.12), FastAPI, PostgreSQL
+- **Frontend**: React (Leaflet.js is under consideration)
 - **Database**: PostgreSQL (cloud-hosted)
-- **Hosting**: AWS, Heroku (backend), Netlify/Vercel (frontend)
-- **Other Tools**: Git, pytest, Docker (for containerization)
+- **Other Tools**: Git, pytest, Docker (for containerization), Bandit
 
 ---
 
@@ -32,7 +31,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 2. **ETL Pipeline**:
    - Extract raw data from open sources.
-   - Transform and clean data to meet database requirements.
+   - Transform and clean data to meet database requirements (some memory optimizations needed in the cleaning process).
    - Load data into a PostgreSQL database.
 
 3. **Backend API**:
@@ -50,10 +49,10 @@ This project aims to develop a data analysis and visualization system for Finnis
 | Milestone                  | Target Date | Status       |
 |----------------------------|-------------|--------------|
 | Data Preparation           | 2024-11-24  | Completed    |
-| ETL Pipeline Completion    | 2024-11-27  | In Progress  |
-| Backend Setup              | 2024-12-03  | Not Started  |
-| Frontend Prototype         | 2024-12-15  | Not Started  |
-| Full System Deployment     | 2024-12-27  | Not Started  |
+| ETL Pipeline Completion    | 2024-12-27  | Completed  |
+| Project Setup              | 2025-01-30  | Starting  |
+| Frontend Prototype         | 2025-??-??  | Not Started  |
+| Full System Deployment     | 2025-??-??  | Not Started  |
 
 ---
 
@@ -61,15 +60,39 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 ### Prerequisites
 
-- **Python 3.9+**
-- **Node.js 14+**
+- **Python 3.12**
 - **PostgreSQL 13+**
-- **Docker** (optional, for containerization)
+- **Docker**
 
-### Backend Setup
+### Project Setup
 
 1. Clone the repository:
 
    ```bash
    git clone https://github.com/osuuj/nokia-city-data-analysis.git
    cd nokia-city-data-analysis
+   ```
+
+2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder):
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Use `venv\Scripts\activate` on Windows
+   pip install -r etl/requirements.txt
+   ```
+
+3. Create a `.env` file in the root directory with the following variables (update placeholders as needed):
+
+   ```env
+   PYTHONPATH=<your-path>/nokia-city-data-analysis
+   POSTGRES_DB=<your-db>
+   POSTGRES_USER=<your-db-user>
+   POSTGRES_PASSWORD=<your-db-password>
+   DB_HOST=localhost
+   DB_PORT=5432
+
+   ENV=development
+   # ENV=production
+   CHUNK_SIZE=1000
+   ```
+

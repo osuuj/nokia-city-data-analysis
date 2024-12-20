@@ -1,19 +1,25 @@
-# directory.yml
+# Directory Configuration
+#
+# This file defines the directory structure and paths used across the ETL pipeline.
+# It centralizes the locations of raw, extracted, processed data, log files,
+# schemas, and configuration files. This ensures consistency and simplifies path management.
+
+# Directory structure for various stages of the ETL process
 directory_structure:
-  raw_dir: etl/data/1_raw/
-  extracted_dir: etl/data/2_extracted
-  processed_dir: etl/data/3_processed
-  logs_dir: etl/data/logs
-  base_schema_path: etl/config/schemas
-  db_schema_path: server/db/schema.sql
+  raw_dir: etl/data/1_raw/               # Directory for raw data files before processing
+  extracted_dir: etl/data/2_extracted/  # Directory for data extracted and pre-processed
+  processed_dir: etl/data/3_processed/ # Directory for fully processed data
+  logs_dir: etl/data/logs/              # Directory for storing log files
+  db_schema_path: server/db/schema.sql  # Path to the database schema file
 
-mappings_file: "./config/mappings.yml"
-languages:
-  english: "en"
-  finnish: "fi"
-  swedish: "sv"
+# File paths for additional configurations
+config_files:
+  mappings_file: "etl/config/mappings/mappings.yml"      # Path to the main mappings file
+  toimi_files_path: etl/data/1_raw/mappings/  # Directory for TOIMI mappings
+  entities_file: "etl/config/entities.yml"      # Path to the entities configuration file
+  logging_config_file: "etl/config/logging/logging_config.yml"  # Path to the logging configuration file
 
-mappings_path: etl/config/mappings/mappings.yml
-toimi_files_path: "etl/data/1_raw/mappings"
-file_name: companies.zip
-
+file_names:
+  standard_log_file: "etl.log"         # Log file for general information
+  debug_log_file: "etl_debug.log"      # Log file for debugging details
+  zip_file_name: companies.zip         # Name of the primary input zip file

@@ -1,5 +1,4 @@
-"""
-Utility functions for managing files and directories.
+"""Utility functions for managing files and directories.
 
 This module provides functions to ensure directory existence,
 set up multiple directories, clear directory contents, and check
@@ -8,47 +7,84 @@ common file system operations in a robust and reusable manner.
 """
 
 import logging
-import os
-from typing import List
+from pathlib import Path
+from typing import Sequence, Union
 
 logger = logging.getLogger(__name__)
 
 
-def ensure_directory_exists(path: str) -> None:
-    """Ensure that a directory exists."""
+def ensure_directory_exists(path: Union[Path, str]) -> None:
+    """Ensure that a directory exists.
+
+    Args:
+        path (Union[Path, str]): The path of the directory to ensure exists.
+
+    Raises:
+        OSError: If the directory cannot be created.
+    """
+    path = Path(path)
     try:
-        os.makedirs(path, exist_ok=True)
-        logger.debug(f"Directory ensured: {path}")
-    except Exception as e:
-        logger.error(f"Failed to ensure directory {path}: {e}")
+        path.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Ensured directory exists: {path}")
+    except OSError as e:
+        logger.error(f"Failed to create directory {path}: {e}")
         raise
 
 
-def setup_directories(directories: List[str]) -> None:
-    """Ensure that a list of directories exist."""
+def setup_directories(directories: Sequence[Union[Path, str]]) -> None:
+    """Ensure that the specified directories exist.
+
+    Args:
+        directories (Sequence[Union[Path, str]]): List of directories to create.
+    """
     for directory in directories:
         ensure_directory_exists(directory)
-        logger.info(f"Setup directory: {directory}")
 
 
-def clear_directory(directory: str) -> bool:
-    """Clear all files and directories in the specified directory."""
-    try:
-        if os.path.exists(directory):
-            for root, dirs, files in os.walk(directory, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-            logger.info(f"Cleared directory: {directory}")
-            return True
-        logger.warning(f"Directory does not exist: {directory}")
+def clear_directory(directory: Union[Path, str]) -> None:
+    """Clear all files and subdirectories in the specified directory.
+
+    Args:
+        directory (Union[Path, str]): The directory to clear.
+
+    Raises:
+        OSError: If clearing files or directories fails.
+    """
+    directory = Path(directory)
+    if not directory.exists():
+        logger.debug(f"Directory does not exist, nothing to clear: {directory}")
+        return
+
+    for item in directory.iterdir():
+        try:
+            if item.is_file():
+                item.unlink()
+                logger.debug(f"Removed file: {item}")
+            elif item.is_dir():
+                clear_directory(item)
+                item.rmdir()
+                logger.debug(f"Removed directory: {item}")
+        except OSError as e:
+            logger.error(f"Failed to remove {item} in directory {directory}: {e}")
+            raise
+
+    logger.info(f"Cleared directory: {directory}")
+
+
+def is_empty_directory(directory: Union[Path, str]) -> bool:
+    """Check if a directory is empty.
+
+    Args:
+        directory (Union[Path, str]): The directory to check.
+
+    Returns:
+        bool: True if the directory exists and is empty, False otherwise.
+    """
+    directory = Path(directory)
+    if not directory.exists():
+        logger.debug(f"Directory does not exist: {directory}")
         return False
-    except Exception as e:
-        logger.error(f"Failed to clear directory {directory}: {e}")
-        return False
 
-
-def is_empty_directory(directory: str) -> bool:
-    """Check if a directory is empty."""
-    return os.path.exists(directory) and not os.listdir(directory)
+    is_empty = not any(directory.iterdir())
+    logger.debug(f"Directory '{directory}' is {'empty' if is_empty else 'not empty'}.")
+    return is_empty

@@ -1,13 +1,19 @@
+# Logging Configuration
+#
+# This file defines the logging setup for the ETL pipeline. It specifies:
+# - Log levels, formats, and handlers for different logging scenarios (e.g., development, production).
+# - Rotating file handlers for standard and debug logs.
+# - Console output for real-time debugging and error logging.
+
 version: 1
+
 disable_existing_loggers: False
 
 # Formatters for different logging levels
 formatters:
   standard:
     format: '%(asctime)s - %(levelname)s - %(message)s'
-  debug:
-    format: '%(asctime)s - %(levelname)s - [%(module)s] %(message)s'
-  error:
+  detailed:
     format: '%(asctime)s - %(levelname)s - [%(module)s: %(lineno)d] %(message)s'
 
 # Handlers for different destinations
@@ -15,22 +21,22 @@ handlers:
   console_debug:
     class: logging.StreamHandler
     level: DEBUG
-    formatter: debug
+    formatter: detailed
   console_error:
     class: logging.StreamHandler
     level: ERROR
-    formatter: error
+    formatter: detailed
   file_debug:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
-    filename: etl_debug.log
+    filename: "{logs_dir}/{debug_file}"
     maxBytes: 10485760
     backupCount: 5
-    formatter: debug
+    formatter: detailed
   file_standard:
     class: logging.handlers.RotatingFileHandler
     level: INFO
-    filename: etl.log
+    filename: "{logs_dir}/{standard_file}"
     maxBytes: 10485760
     backupCount: 5
     formatter: standard

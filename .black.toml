@@ -2,3 +2,18 @@
 line-length = 88
 target-version = ['py312']
 skip-string-normalization = false
+exclude = '''
+/(
+    \.git
+  | __pycache__
+  | \.mypy_cache
+  | \.pytest_cache
+  | data
+  | docs
+  | venvs
+  | db
+  | server
+  | build
+  | dist
+)/
+'''

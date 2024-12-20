@@ -3,6 +3,9 @@ venvs/
 etl_env/
 etl/test/my_test/connect_db.ipynb
 
+# Ignore lock-requirements.txt
+lock-requirements.txt
+
 # Ignore
 etl/data/*
 

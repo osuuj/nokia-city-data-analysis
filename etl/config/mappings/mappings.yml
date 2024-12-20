@@ -1,16 +1,40 @@
+# Static mappings configuration
+#
+# This file contains static mappings used for data processing in the ETL pipeline.
+# Mappings include translations, identifiers, and standardized codes for
+# multi-language and multi-context support. Each section is tailored to a 
+# specific type of mapping, such as language codes, type mappings, and authorities.
+#
+
 mappings:
+  # Default country setting
   default_country: "Finland"
 
+  # Language code mappings
   language_code_mapping:
     fi: "1"  # Finnish
     sv: "2"  # Swedish
     en: "3"  # English
 
+  # Mapping for post office language codes
   post_office_language_code:
     fi: "1"  # Finnish
     en: "1"  # English
     sv: "2"  # Swedish
 
+  # Mapping for post office types
+  post_office_mapping:
+    fi:
+      "1": "Posti"
+      "2": "Postitoimisto"
+    en:
+      "1": "Post Office"
+      "2": "Postal Office"
+    sv:
+      "1": "Postkontor"
+      "2": "Postbyrå"
+
+  # Type mappings for statuses in different languages
   type_mapping:
     fi:
       KONK: "Konkurssissa"

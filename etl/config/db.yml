@@ -1,3 +1,4 @@
+# Database Configuration
 db:
   name: ${POSTGRES_DB}
   user: ${POSTGRES_USER}

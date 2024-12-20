@@ -1,23 +1,23 @@
 CREATE TABLE IF NOT EXISTS companies (
-        business_id VARCHAR(20) NOT NULL PRIMARY KEY,
-        website VARCHAR(255),
-        registration_date DATE,
-        trade_register_status VARCHAR(50),
-        status VARCHAR(50),
-        registration_date_company DATE,
-        end_date DATE,
-        last_modified DATE
+        business_id VARCHAR(20) NOT NULL PRIMARY KEY,    -- Business ID
+        website VARCHAR(255),                            -- Website URL    
+        registration_date DATE,                          -- Date of registration
+        trade_register_status VARCHAR(50),               -- Trade register status
+        status VARCHAR(50),                              -- Status of the company      
+        end_date DATE,                                   -- End date of the company
+        last_modified DATE                               -- Last modified date
     );
 
 CREATE TABLE IF NOT EXISTS names (
-    id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID
+    id SERIAL PRIMARY KEY,                       
     business_id VARCHAR(20) NOT NULL,            -- Business ID
     name VARCHAR(255) NOT NULL,                  -- Name of the business
     type VARCHAR(50),                            -- Type of the name (e.g., legal, trade)
     registration_date DATE,                      -- Date when the name was registered
     end_date DATE,                               -- Date when the name was no longer valid
     version INT NOT NULL DEFAULT 1,              -- Version number for name changes
-    source VARCHAR(255)                          -- Source of the name information
+    source VARCHAR(255),                          -- Source of the name information
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS addresses (
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS addresses (
     free_address_line VARCHAR(255),              -- Free-form address line
     registration_date DATE,                      -- Date when the address was registered
     source VARCHAR(255),                         -- Source of the address information
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Reference to companies table
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Reference to companies table
 );
 
 CREATE TABLE IF NOT EXISTS main_business_lines (
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS main_business_lines (
     registration_date DATE,                      -- Date when the business line was registered
     source VARCHAR(255),                         -- Source of the business line information
     UNIQUE (business_id, type, type_code_set),   -- Ensure no duplicate entries for the same business line
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Maintain referential integrity
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Maintain referential integrity
 );
 
 CREATE TABLE IF NOT EXISTS registered_entries (
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS registered_entries (
     end_date DATE,                               -- End date for the entry, if applicable
     register VARCHAR(255),                       -- The register in which the entry is recorded
     authority VARCHAR(255),                      -- Authority responsible for the entry
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Maintain referential integrity
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Maintain referential integrity
 );
 
 CREATE TABLE IF NOT EXISTS registered_entry_descriptions (
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS company_forms (
     version INT,                                 -- Version of the company form
     source VARCHAR(255),                         -- Source of the company form information
     UNIQUE (business_id, type, version),         -- Prevent duplicate entries for the same company form version
-    FOREIGN KEY (business_id) REFERENCES companies(business_id), -- Link to companies table
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE, -- Link to companies table
     FOREIGN KEY (type) REFERENCES company_form_descriptions(type) -- Link to descriptions table
 );
 
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS business_line_descriptions (
     language_code VARCHAR(5),                   -- Language code for the description (e.g., 'en', 'fi', 'sv')
     description VARCHAR(255) NOT NULL,          -- Description of the business line
     UNIQUE (business_id, language_code),        -- Ensure no duplicate descriptions for the same business in a language
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Link to companies table
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
 
 CREATE TABLE IF NOT EXISTS post_offices (
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS post_offices (
     active BOOLEAN DEFAULT TRUE,                -- Whether the post office is currently active
     language_code VARCHAR(5),                   -- Language code for the post office (e.g., 'en', 'fi', 'sv')
     municipality_code INT,                      -- Municipality code for the location
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Link to companies table
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
 
 CREATE TABLE IF NOT EXISTS company_situations (
@@ -114,5 +114,5 @@ CREATE TABLE IF NOT EXISTS company_situations (
     end_date DATE,                              -- Date when the situation ended (if applicable)
     source VARCHAR(255),                        -- Source of the situation information
     UNIQUE (business_id, type, registration_date), -- Ensure unique situations per business
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) -- Link to companies table
+    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
