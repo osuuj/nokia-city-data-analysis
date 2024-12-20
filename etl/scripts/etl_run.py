@@ -16,7 +16,6 @@ import json
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Union
-
 import ijson
 import pandas as pd
 
@@ -86,35 +85,27 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def save_json_chunk(
-    chunk: List[Dict[str, Any]], output_dir: Path, chunk_index: int
-) -> None:
-    """Save a chunk of JSON records to a file incrementally.
+def save_json_chunk(chunk: List[Dict[str, Any]], output_path: Path, chunk_index: int) -> None:
+    """Save a chunk of JSON data to a file.
 
     Args:
-        chunk (List[Dict[str, Any]]): List of JSON records.
-        output_dir (Path): Directory to save the chunk file.
-        chunk_index (int): Index for naming the file.
+        chunk (List[Dict[str, Any]]): The chunk of JSON data.
+        output_path (Path): The directory where the chunk will be saved.
+        chunk_index (int): The index of the chunk.
     """
-    output_file = output_dir / f"chunk_{chunk_index:04d}.json"
-    with output_file.open("w", encoding="utf-8") as outfile:
-        for record in chunk:
-            json.dump(record, outfile)
-            outfile.write("\n")
-    if chunk_index % 10 == 0:  # Log progress every 10 chunks
-        logger.info(f"Saved chunk {chunk_index} to {output_file}.")
+    chunk_file = output_path / f"chunk_{chunk_index}.json"
+    with chunk_file.open("w", encoding="utf-8") as file:
+        json.dump(chunk, file, indent=4)
+    logger.info(f"Saved chunk {chunk_index} to {chunk_file}")
 
-def split_json_to_files(
-    file_path: str, output_dir: str, chunk_size: int = 5000
-) -> None:
-    """Split a large JSON file into smaller chunk files efficiently without memory spikes.
+def split_json_to_files(input_path: Path, output_dir: Path, chunk_size: int) -> None:
+    """Split a large JSON file into smaller chunks.
 
     Args:
-        file_path (str): Path to the input large JSON file.
-        output_dir (str): Directory to save the smaller chunk files.
+        input_path (Path): Path to the input JSON file.
+        output_dir (Path): Directory where the chunks will be saved.
         chunk_size (int): Number of records per chunk.
     """
-    input_path = Path(file_path)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -192,26 +183,34 @@ def run_etl_pipeline() -> None:
     """Execute the ETL pipeline."""
     start_time = time.time()
     config = load_all_configs()
-
+    
     try:
-        # Step 1: Environment setup
-        setup_environment(config)
+        # Load configurations
+        config = load_all_configs()
 
-        # Step 2: Download and extract raw data
-        extracted_dir = download_raw_data(config)
-        # Step 3: Download mappings
-        download_mappings(config)
-        # Step 4: Process JSON chunks
-        input_json_file = get_first_json_file(Path(extracted_dir))
+        # Setup directories
+        setup_directories(config)
+
+        # Download and extract files
+        download_and_extract_files(
+            config["data_source"]["url"],
+            Path(config["directory_structure"]["raw_dir"]) / config["file_names"]["raw_file"],
+            Path(config["directory_structure"]["extracted_dir"]),
+            config["download_chunk_size"]
+        )
+
+        # Split JSON file into smaller chunks
+        input_json_file = get_first_json_file(Path(config["directory_structure"]["extracted_dir"]))
         split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
-        split_json_to_files(str(input_json_file), str(split_dir), config["chunk_size"])
-        # Step 5: Process entities
+        split_json_to_files(input_json_file, split_dir, config["chunk_size"])
+
+        # Process entities
         start_index = 1
         for json_file in sorted(split_dir.glob("chunk_*.json")):
             data_records = process_json_file(json_file)
             start_index = process_entities(data_records, config, start_index)
 
-        ## Step 6: Clean processed data
+        # Clean processed data
         processed_dir = Path(config["directory_structure"]["processed_dir"])
         cleaned_dir = processed_dir / "cleaned"
         cleaned_dir.mkdir(parents=True, exist_ok=True)
@@ -228,6 +227,7 @@ def run_etl_pipeline() -> None:
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
+    
 
     except Exception as e:
         logger.error(f"ETL pipeline failed: {e}")
