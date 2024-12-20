@@ -2,10 +2,14 @@ annotated-types==0.7.0
 bandit==1.8.0
 black==24.10.0
 certifi==2024.12.14
+cfgv==3.4.0
 charset-normalizer==3.4.0
 click==8.1.7
 darglint==1.8.1
+distlib==0.3.9
+filelock==3.16.1
 greenlet==3.1.1
+identify==2.6.3
 idna==3.10
 ijson==3.3.0
 isort==5.13.2
@@ -14,6 +18,7 @@ markdown-it-py==3.0.0
 mdurl==0.1.2
 mypy==1.13.0
 mypy-extensions==1.0.0
+nodeenv==1.9.1
 numpy==2.2.0
 packaging==24.2
 pandas==2.2.3
@@ -21,6 +26,7 @@ pandas-stubs==2.2.3.241126
 pathspec==0.12.1
 pbr==6.1.0
 platformdirs==4.3.6
+pre_commit==4.0.1
 pydantic==2.10.3
 pydantic_core==2.27.1
 Pygments==2.18.0
@@ -38,6 +44,8 @@ types-python-dateutil==2.9.0.20241206
 types-pytz==2024.2.0.20241003
 types-PyYAML==6.0.12.20240917
 types-requests==2.32.0.20241016
+types-SQLAlchemy==1.4.53.38
 typing_extensions==4.12.2
 tzdata==2024.2
 urllib3==2.2.3
+virtualenv==20.28.0
