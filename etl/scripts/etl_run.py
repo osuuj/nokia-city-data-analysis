@@ -12,20 +12,22 @@ Key Features:
 - Robust error handling and logging.
 """
 
+import gc
 import json
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Union
+
 import ijson
 import pandas as pd
 
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
+from etl.pipeline.transform.cleaning import clean_entity_files
 from etl.scripts.data_fetcher import download_and_extract_files
 from etl.scripts.entity_processing import process_entities
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
-from etl.pipeline.transform.cleaning import clean_entity_files
 
 # Configure logging
 configure_logging()
@@ -85,7 +87,9 @@ def download_mappings(config: Dict[str, Any]) -> None:
     logger.info("JSON mappings downloaded.")
 
 
-def save_json_chunk(chunk: List[Dict[str, Any]], output_path: Path, chunk_index: int) -> None:
+def save_json_chunk(
+    chunk: List[Dict[str, Any]], output_path: Path, chunk_index: int
+) -> None:
     """Save a chunk of JSON data to a file.
 
     Args:
@@ -97,6 +101,7 @@ def save_json_chunk(chunk: List[Dict[str, Any]], output_path: Path, chunk_index:
     with chunk_file.open("w", encoding="utf-8") as file:
         json.dump(chunk, file, indent=4)
     logger.info(f"Saved chunk {chunk_index} to {chunk_file}")
+
 
 def split_json_to_files(input_path: Path, output_dir: Path, chunk_size: int) -> None:
     """Split a large JSON file into smaller chunks.
@@ -179,55 +184,65 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
     return pd.DataFrame(all_rows)
 
 
+def process_and_clean_entities(config: Dict[str, Any], start_index: int) -> None:
+    """Process and clean entities based on the configuration.
+
+    Args:
+        config (Dict[str, Any]): Configuration dictionary.
+        start_index (int): Starting index for processing entities.
+    """
+    split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
+    processed_dir = Path(config["directory_structure"]["processed_dir"])
+    cleaned_dir = processed_dir / "cleaned"
+    cleaned_dir.mkdir(parents=True, exist_ok=True)
+
+    for json_file in sorted(split_dir.glob("chunk_*.json")):
+        data_records = process_json_file(json_file)
+        start_index = process_entities(data_records, config, start_index)
+
+    for entity in config["entities"]:
+        entity_name = entity["name"]
+        specific_columns = entity.get("specific_columns", [])
+        logger.info(f"Starting cleaning for entity: {entity_name}")
+        clean_entity_files(
+            str(processed_dir / "extracted"),
+            str(cleaned_dir),
+            entity_name,
+            specific_columns,
+        )
+
+
 def run_etl_pipeline() -> None:
     """Execute the ETL pipeline."""
     start_time = time.time()
     config = load_all_configs()
-    
+
     try:
-        # Load configurations
-        config = load_all_configs()
+        # Setup environment
+        setup_environment(config)
 
-        # Setup directories
-        setup_directories(config)
+        # Download raw data
+        extracted_dir = download_raw_data(config)
 
-        # Download and extract files
-        download_and_extract_files(
-            config["data_source"]["url"],
-            Path(config["directory_structure"]["raw_dir"]) / config["file_names"]["raw_file"],
-            Path(config["directory_structure"]["extracted_dir"]),
-            config["download_chunk_size"]
-        )
+        # Download mappings
+        download_mappings(config)
 
         # Split JSON file into smaller chunks
-        input_json_file = get_first_json_file(Path(config["directory_structure"]["extracted_dir"]))
-        split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
-        split_json_to_files(input_json_file, split_dir, config["chunk_size"])
+        input_json_file = get_first_json_file(extracted_dir)
+        split_json_to_files(
+            input_json_file,
+            Path(config["directory_structure"]["processed_dir"]) / "chunks",
+            config["chunk_size"],
+        )
 
-        # Process entities
-        start_index = 1
-        for json_file in sorted(split_dir.glob("chunk_*.json")):
-            data_records = process_json_file(json_file)
-            start_index = process_entities(data_records, config, start_index)
+        # Process and clean entities
+        process_and_clean_entities(config, start_index=1)
 
-        # Clean processed data
-        processed_dir = Path(config["directory_structure"]["processed_dir"])
-        cleaned_dir = processed_dir / "cleaned"
-        cleaned_dir.mkdir(parents=True, exist_ok=True)
-        for entity in config["entities"]:
-            entity_name = entity["name"]
-            specific_columns = entity.get("specific_columns", [])
-            logger.info(f"Starting cleaning for entity: {entity_name}")
-            clean_entity_files(
-                str(processed_dir / "extracted"),
-                str(cleaned_dir),
-                entity_name,
-                specific_columns,
-            )
+        # Explicitly invoke garbage collection
+        gc.collect()
 
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
-    
 
     except Exception as e:
         logger.error(f"ETL pipeline failed: {e}")

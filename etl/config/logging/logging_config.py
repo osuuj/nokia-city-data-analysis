@@ -11,9 +11,7 @@ from pathlib import Path
 import yaml
 
 from etl.config.config_loader import CONFIG
-from etl.config.logging.filters import (  # Assuming you have this module
-    SensitiveDataFilter,
-)
+from etl.config.logging.filters import SensitiveDataFilter
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +28,7 @@ def configure_logging() -> None:
 
     The function relies on `directory.yml` for the logging directory structure
     and `logging_config.yml` for the configuration of log handlers, formatters, and loggers.
-    
-              
+
     Raises:
         FileNotFoundError: If the logging configuration file is missing.
         Exception: For other general errors during logging configuration.

@@ -88,16 +88,9 @@ def download_mapping_files(
 
                 file_path.write_text(response.text, encoding=DEFAULT_ENCODING)
                 logger.info(f"Downloaded successfully: {file_path}")
-            except requests.HTTPError as http_err:
-                logger.error(
-                    f"HTTP error {response.status_code} while downloading {url}: {http_err}"
-                )
             except requests.RequestException as req_err:
                 logger.error(f"Request failed for {url}: {req_err}")
                 raise
             except OSError as os_err:
                 logger.error(f"Failed to save file {file_path}: {os_err}")
-                raise
-            except Exception as e:
-                logger.error(f"Unexpected error during download: {e}")
                 raise

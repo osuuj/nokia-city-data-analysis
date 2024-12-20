@@ -11,6 +11,7 @@ Key Features:
 - Integrates with a configuration system for paths and settings.
 """
 
+import gc
 import logging
 import tarfile
 import time
@@ -187,3 +188,5 @@ def download_and_extract_files(
     except Exception as e:
         logger.error(f"Failed to download and extract files: {e}")
         raise RuntimeError(f"Failed to download and extract files from {url}") from e
+    finally:
+        gc.collect()  # Perform garbage collection after download and extraction
