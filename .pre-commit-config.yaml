@@ -34,7 +34,7 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        args: ["--config-file", "mypy.ini", "--exclude", "test/", "etl/data", "--install-types", "--non-interactive"]
+        args: ["--config-file", "mypy.ini", "--exclude", "etl/data", "--install-types", "--non-interactive"]
         additional_dependencies:
         - pydantic[mypy]
 
@@ -43,11 +43,11 @@ repos:
     hooks:
       - id: darglint
         args: ["--docstring-style", "google"]
-        exclude: ^etl/test/|^etl/data/ 
+        exclude: ^etl/data/ 
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.0
     hooks:
       - id: bandit
         args: ["--configfile", "bandit.yaml"]
-        exclude: ^etl/test/|^etl/data/
+        exclude: ^etl/data/
