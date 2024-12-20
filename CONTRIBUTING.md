@@ -1,4 +1,3 @@
-
 # CONTRIBUTING
 
 Thank you for contributing to this project! We appreciate your time and effort to improve the codebase. Below are the guidelines to help you contribute effectively.
@@ -8,11 +7,10 @@ Thank you for contributing to this project! We appreciate your time and effort t
 1. [Getting Started](#getting-started)
 2. [Development Workflow](#development-workflow)
 3. [Code Style Guidelines](#code-style-guidelines)
-4. [Testing](#testing)
-5. [Running the ETL Pipeline](#running-the-etl-pipeline)
-6. [Loading Data to the Database](#loading-data-to-the-database)
-7. [Submitting Changes](#submitting-changes)
-8. [Code of Conduct](#code-of-conduct)
+4. [Running the ETL Pipeline](#running-the-etl-pipeline)
+5. [Using Clean Coding Tools](#using-clean-coding-tools)
+6. [Submitting Changes](#submitting-changes)
+7. [Code of Conduct](#code-of-conduct)
 
 ---
 
@@ -59,7 +57,7 @@ Thank you for contributing to this project! We appreciate your time and effort t
 ---
 
 ## Code Style Guidelines
-
+Use these commands before pushing your branch to the remote repository.
 We follow these code style guidelines to ensure consistency:
 
 1. **Linters**:
@@ -73,24 +71,14 @@ We follow these code style guidelines to ensure consistency:
 3. **Type Checking**:
    - Use `mypy` to enforce type annotations.
 
-Run the following commands to check your code before committing:
+Run the following commands to check your code:
 ```bash
-ruff check .
-black .
-isort .
-mypy .
+ruff check --config ruff.toml etl/config etl/pipeline etl/scripts etl/utils
+black --config .black.toml etl/config etl/pipeline etl/scripts etl/utils
+isort --settings-path .isort.cfg --verbose etl/config etl/pipeline etl/scripts etl/utils
+mypy --config-file mypy.ini etl/config etl/pipeline etl/scripts etl/utils
+darglint etl/config etl/pipeline etl/scripts etl/utils
 ```
-
----
-
-## Testing
-
-1. Write unit tests for any new functionality added.
-2. Use `pytest` to run the test suite:
-   ```bash
-   pytest
-   ```
-3. Ensure all tests pass before creating a PR.
 
 ---
 
@@ -104,14 +92,78 @@ mypy .
    python etl/scripts/etl_run.py
    ```
 
-3. After running the pipeline, start the database services with Docker:
+3. Start the database services with Docker:
    ```bash
    docker-compose up -d
    ```
 
-4. Load the processed data into the database:
+4. Load the processed data into the database (ensure Docker services are running):
    ```bash
    python etl/pipeline/load/load_data.py
+   ```
+
+---
+
+## Using Clean Coding Tools
+
+To ensure high code quality, we use the following clean coding tools with `pre-commit` hooks:
+
+1. Add the following configuration to your `.pre-commit-config.yaml` file:
+   ```yaml
+   - repo: https://github.com/psf/black
+     rev: 24.10.0
+     hooks:
+       - id: black
+         args: ["--config", ".black.toml"]
+
+   - repo: https://github.com/charliermarsh/ruff-pre-commit
+     rev: v0.8.2
+     hooks:
+       - id: ruff
+         args: ["--config", "ruff.toml"]
+
+   - repo: https://github.com/pre-commit/mirrors-isort
+     rev: v5.10.1
+     hooks:
+       - id: isort
+         args: ["--settings-path", ".isort.cfg"]
+
+   - repo: https://github.com/pre-commit/mirrors-mypy
+     rev: v1.13.0
+     hooks:
+       - id: mypy
+         args: ["--config-file", "mypy.ini", "--exclude", "test/", "etl/data", "--install-types", "--non-interactive"]
+         additional_dependencies:
+         - pydantic[mypy]
+
+   - repo: https://github.com/terrencepreilly/darglint
+     rev: v1.8.1
+     hooks:
+       - id: darglint
+         args: ["--docstring-style", "google"]
+         exclude: ^etl/test/|^etl/data/
+
+   - repo: https://github.com/PyCQA/bandit
+     rev: 1.8.0
+     hooks:
+       - id: bandit
+         args: ["--configfile", "bandit.yaml"]
+         exclude: ^etl/test/|^etl/data/
+   ```
+
+2. Install `pre-commit`:
+   ```bash
+   pip install pre-commit
+   ```
+
+3. Install the hooks:
+   ```bash
+   pre-commit install
+   ```
+
+4. Run the hooks manually (if needed):
+   ```bash
+   pre-commit run --all-files
    ```
 
 ---
