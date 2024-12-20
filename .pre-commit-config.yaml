@@ -19,7 +19,7 @@ repos:
         args: ["--config", ".black.toml"]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.8.2
+    rev: v0.8.4
     hooks:
       - id: ruff
         args: ["--config", "ruff.toml"]
@@ -37,6 +37,7 @@ repos:
         args: ["--config-file", "mypy.ini", "--exclude", "etl/data", "--install-types", "--non-interactive"]
         additional_dependencies:
         - pydantic[mypy]
+        - sqlalchemy2-stubs
 
   - repo: https://github.com/terrencepreilly/darglint
     rev: v1.8.1

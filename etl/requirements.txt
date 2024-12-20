@@ -39,6 +39,7 @@ rich==13.9.4
 ruff==0.8.2
 six==1.17.0
 SQLAlchemy==2.0.36
+sqlalchemy2-stubs==0.0.2a38
 stevedore==5.4.0
 types-python-dateutil==2.9.0.20241206
 types-pytz==2024.2.0.20241003

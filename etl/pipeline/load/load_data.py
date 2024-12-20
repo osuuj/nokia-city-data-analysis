@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Dict, List
 
 import pandas as pd
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from etl.config.config_loader import CONFIG, DATABASE_URL
