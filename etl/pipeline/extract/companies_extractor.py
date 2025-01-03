@@ -33,15 +33,13 @@ class CompaniesExtractor(BaseExtractor):
         """
         super().__init__(mappings_file, lang)
 
-        # Validate required mappings
-        if not self.validate_language("rek_kdi_mapping"):
-            raise ValueError("Invalid language for rek_kdi_mapping.")
-        if not self.validate_language("status_mapping"):
-            raise ValueError("Invalid language for status_mapping.")
+        required_mappings = ["rek_kdi_mapping", "status_mapping"]
+        for mapping in required_mappings:
+            if not self.get_mapping(mapping):
+                raise ValueError(f"Required mapping '{mapping}' is missing in the mappings file.")
 
-        # Load mappings
-        self.rek_kdi_mapping = self.mappings.get_mapping("rek_kdi_mapping", lang)
-        self.status_mapping = self.mappings.get_mapping("status_mapping", lang)
+        self.rek_kdi_mapping = self.get_mapping("rek_kdi_mapping", lang)
+        self.status_mapping = self.get_mapping("status_mapping", lang)
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract relevant data.
@@ -59,10 +57,8 @@ class CompaniesExtractor(BaseExtractor):
                 self.logger.debug("Skipping company without businessId.")
                 return results
 
-            # Extract and map values
-            trade_status = self.map_value(
-                company.get("tradeRegisterStatus"), self.rek_kdi_mapping
-            )
+        try:
+            trade_status = self.map_value(company.get("tradeRegisterStatus"), self.rek_kdi_mapping)
             status = self.map_value(company.get("status"), self.status_mapping)
             website = company.get("website")
             if isinstance(website, dict):
@@ -70,22 +66,17 @@ class CompaniesExtractor(BaseExtractor):
             elif not website:
                 website = "unknown"
 
-            results.append(
-                {
-                    "businessId": business_id,
-                    "website": website,
-                    "registrationDate": self.parse_date(
-                        company.get("registrationDate")
-                    ),
-                    "tradeRegisterStatus": trade_status,
-                    "status": status,
-                    "endDate": self.parse_date(company.get("endDate")),
-                    "lastModified": self.parse_date(company.get("lastModified")),
-                }
-            )
+            results.append({
+                "businessId": business_id,
+                "website": website,
+                "CompanyIdStatus": status,
+                "tradeRegisterStatus": trade_status,
+                "registrationDate": self.parse_date(company.get("registrationDate")),
+                "endDate": self.parse_date(company.get("endDate")),
+                "lastModified": self.parse_date(company.get("lastModified")),
+            })
         except Exception as e:
-            self.logger.error(
-                f"Error processing company {company.get('businessId', 'unknown')}: {e}"
+            self.logger.error(f"Error processing company {company.get('businessId', 'unknown')}: {e}"
             )
         return results
 

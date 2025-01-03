@@ -7,11 +7,9 @@ mapping values, and parsing dates. Subclasses must implement the `process_row` a
 
 import logging
 from typing import Any, Dict, List, Optional
-
 import pandas as pd
-from dateutil.parser import parse
-
-from etl.config.mappings.dynamic_loader import Mappings
+from dateutil.parser import parse, ParserError
+from etl.config.mappings.dynamic_loader import DynamicLoader, Mappings
 
 
 class BaseExtractor:
@@ -24,9 +22,10 @@ class BaseExtractor:
             mappings_file (str): Path to the mappings YAML file.
             lang (str): Target language abbreviation (e.g., "fi", "en", "sv").
         """
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = logging.getLogger("etl")
         self.mappings = Mappings(mappings_file)
         self.lang = lang
+        self.dynamic_loader = DynamicLoader()
 
     def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Process and extract data from a DataFrame.
@@ -59,7 +58,7 @@ class BaseExtractor:
         return pd.DataFrame(results)
 
     def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Placeholder for row processing logic. Must be implemented by subclasses.
+        """Placeholder for row processing logic.
 
         Args:
             row (Dict[str, Any]): A single row of raw data.
@@ -67,7 +66,7 @@ class BaseExtractor:
         Returns:
             List[Dict[str, Any]]: Extracted records from the row.
         """
-        return []
+        raise NotImplementedError("Subclasses should implement this method")
 
     def get_business_id(self, company: Dict[str, Any]) -> Optional[str]:
         """Extract the business ID from a company record.
@@ -101,19 +100,17 @@ class BaseExtractor:
             return False
         return True
 
-    def map_value(self, raw_value: Any, mapping: Any) -> Any:
+    def map_value(self, raw_value: Any, mapping: Dict[str, Any]) -> Any:
         """Map a raw value using a mapping dictionary.
 
         Args:
             raw_value (Any): The value to map.
-            mapping (Any): The mapping dictionary.
+            mapping (Dict[str, Any]): The mapping dictionary.
 
         Returns:
             Any: The mapped value, or the raw value if no mapping exists.
         """
-        if not isinstance(mapping, dict):
-            self.logger.error(f"Expected dict for mapping, got {type(mapping)}")
-            return raw_value
+        self.logger.debug(f"Mapping value '{raw_value}' using mapping: {mapping}")
         return mapping.get(raw_value, raw_value)
 
     def parse_date(self, date_str: Optional[str]) -> Optional[str]:
@@ -123,15 +120,19 @@ class BaseExtractor:
             date_str (Optional[str]): The date string to parse.
 
         Returns:
-            Optional[str]: The parsed date string in ISO format, or None if invalid.
+            Optional[str]: The parsed date in ISO format (YYYY-MM-DD), or None if parsing fails.
         """
         if not date_str:
             return None
+        
         try:
-            parsed_date = parse(date_str)
-            return parsed_date.isoformat()
-        except (ValueError, TypeError) as e:
-            self.logger.error(f"Error parsing date: {date_str} - {e}")
+ 
+            parsed_date = parse(date_str, fuzzy=True)
+    
+            return parsed_date.date().isoformat()
+        except (ValueError, TypeError, ParserError) as e:
+        
+            self.logger.warning(f"Invalid date string '{date_str}': {e}")
             return None
 
     def filter_by_language_code(

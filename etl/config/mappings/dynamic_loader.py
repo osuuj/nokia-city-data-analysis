@@ -14,8 +14,8 @@ Integrates with the centralized `config.py` for file paths and language settings
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-import yaml
 
+import yaml
 from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
