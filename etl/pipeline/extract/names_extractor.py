@@ -32,11 +32,8 @@ class NamesExtractor(BaseExtractor):
         """
         super().__init__(mappings_file, lang)
 
-        # Validate that required mappings exist for the language
-        if not self.validate_language(
-            "name_type_mapping"
-        ) or not self.validate_language("source_mapping"):
-            raise ValueError(f"Invalid language code for the required mappings: {lang}")
+        self.name_type_mapping = self.get_mapping("name_type_mapping")
+        self.source_mapping = self.get_mapping("source_mapping")
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract name information.
@@ -50,37 +47,25 @@ class NamesExtractor(BaseExtractor):
         results: List[Dict[str, Any]] = []
         business_id = self.get_business_id(company)
         if not business_id:
-            self.logger.debug("Skipping company without businessId.")
-            return results  # Skip if no business ID
+            self.logger.warning("Skipping company without businessId.")
+            return results
 
-        # Extract names from the company record
         for name in company.get("names", []):
             try:
-                # Map type and source
-                mapped_type = self.map_value(
-                    name.get("type", ""),
-                    self.mappings.get_mapping("name_type_mapping", self.lang),
-                )
-                mapped_source = self.map_value(
-                    name.get("source", ""),
-                    self.mappings.get_mapping("source_mapping", self.lang),
-                )
+                mapped_type = self.map_value(name.get("type", ""), self.name_type_mapping)
+                mapped_source = self.map_value(name.get("source", ""), self.source_mapping)
 
-                results.append(
-                    {
-                        "businessId": business_id,
-                        "name": name.get("name", ""),
-                        "type": mapped_type,
-                        "registrationDate": name.get("registrationDate", ""),
-                        "endDate": name.get("endDate", ""),
-                        "version": name.get("version", 0),
-                        "source": mapped_source,
-                    }
-                )
+                results.append({
+                    "businessId": business_id,
+                    "companyName": name.get("name", ""),
+                    "version": name.get("version", 0),
+                    "companyType": mapped_type,
+                    "registrationDate": self.parse_date(name.get("registrationDate")),
+                    "endDate": self.parse_date(name.get("endDate")),
+                    "source": mapped_source
+                })
             except Exception as e:
-                self.logger.error(
-                    f"Error processing name for businessId '{business_id}': {e}"
-                )
+                self.logger.error(f"Error processing name for businessId '{business_id}': {e}")
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -92,11 +77,5 @@ class NamesExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed company names data.
         """
-        self.logger.info(
-            f"Starting extraction for Company Names. Input rows: {len(data)}"
-        )
-        if not data.empty:
-            self.logger.debug(f"Sample input data: {data.head(5).to_dict()}")
-
-        # Use the modularized process_data method from BaseExtractor
+        self.logger.info(f"Starting extraction for Company Names. Input rows: {len(data)}")
         return self.process_data(data)
