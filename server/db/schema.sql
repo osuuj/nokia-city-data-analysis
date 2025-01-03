@@ -84,8 +84,6 @@ CREATE TABLE IF NOT EXISTS company_forms (
     FOREIGN KEY (type) REFERENCES company_form_descriptions(type) -- Link to descriptions table
 );
 
-
-
 CREATE TABLE IF NOT EXISTS business_line_descriptions (
     id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,           -- Business ID (foreign key to companies table)
@@ -100,9 +98,8 @@ CREATE TABLE IF NOT EXISTS post_offices (
     business_id VARCHAR(20) NOT NULL,           -- Business ID (foreign key to companies table)
     post_code VARCHAR(10) NOT NULL,             -- Postcode for the post office
     city VARCHAR(100),                          -- City where the post office is located
-    active BOOLEAN DEFAULT TRUE,                -- Whether the post office is currently active
-    language_code VARCHAR(5),                   -- Language code for the post office (e.g., 'en', 'fi', 'sv')
     municipality_code INT,                      -- Municipality code for the location
+    active BOOLEAN DEFAULT TRUE,                -- Whether the post office is currently active
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
 
