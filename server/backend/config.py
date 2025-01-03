@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import yaml
+from dotenv import load_dotenv
 
 # Load .env file
 load_dotenv()
@@ -10,12 +11,14 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = BASE_DIR / "../config/db.yml"
 
+
 def load_yaml(file_path: Path) -> dict:
     """Load a YAML file."""
     if not file_path.exists():
         raise FileNotFoundError(f"Configuration file not found: {file_path}")
     with file_path.open("r", encoding="utf-8") as file:
         return yaml.safe_load(file) or {}
+
 
 def resolve_env_vars(config: dict) -> dict:
     """Resolve environment variables in configuration."""
@@ -27,10 +30,12 @@ def resolve_env_vars(config: dict) -> dict:
             config[key] = resolve_env_vars(value)
     return config
 
+
 def load_config() -> dict:
     """Load and resolve configuration from YAML and environment variables."""
     config = load_yaml(CONFIG_PATH)
     return resolve_env_vars(config)
+
 
 # Load the configuration
 CONFIG = load_config()

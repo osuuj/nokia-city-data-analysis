@@ -1,6 +1,8 @@
-from sqlalchemy import Column, String, ForeignKey, Date, Integer, Text
+from sqlalchemy import Column, Date, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from server.backend.database import Base
+
 
 class Company(Base):
     __tablename__ = "companies"
@@ -11,15 +13,20 @@ class Company(Base):
     status = Column(String, nullable=True)
     end_date = Column(Date, nullable=True)
     last_modified = Column(Date, nullable=True)
-    
+
     # Relationships
-    addresses = relationship("Address", back_populates="company", cascade="all, delete-orphan")
+    addresses = relationship(
+        "Address", back_populates="company", cascade="all, delete-orphan"
+    )
     names = relationship("Name", back_populates="company", cascade="all, delete-orphan")
+
 
 class Address(Base):
     __tablename__ = "addresses"
 
-    business_id = Column(String, ForeignKey("companies.business_id"), primary_key=True, index=True)
+    business_id = Column(
+        String, ForeignKey("companies.business_id"), primary_key=True, index=True
+    )
     type = Column(String, nullable=True)  # E.g., "Postal address"
     street = Column(String, nullable=True)
     building_number = Column(String, nullable=True)
@@ -37,10 +44,13 @@ class Address(Base):
     # Relationship back to Company
     company = relationship("Company", back_populates="addresses")
 
+
 class Name(Base):
     __tablename__ = "names"
 
-    business_id = Column(String, ForeignKey("companies.business_id"), primary_key=True, index=True)  # Use business_id as the primary key
+    business_id = Column(
+        String, ForeignKey("companies.business_id"), primary_key=True, index=True
+    )  # Use business_id as the primary key
     name = Column(String, nullable=False)  # Required for company name
     type = Column(String, nullable=True)  # E.g., "Company name"
     registration_date = Column(Date, nullable=True)
