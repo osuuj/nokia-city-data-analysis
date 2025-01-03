@@ -4,12 +4,12 @@ This module sets up logging for the ETL pipeline by using configurations defined
 in `directory.yml` and `logging_config.yml`. It includes a custom `SensitiveDataFilter`
 to sanitize sensitive information from log messages.
 """
-
+import logging
 import logging.config
-from pathlib import Path
 
 import yaml
 
+from pathlib import Path
 from etl.config.config_loader import CONFIG
 from etl.config.logging.filters import SensitiveDataFilter
 
