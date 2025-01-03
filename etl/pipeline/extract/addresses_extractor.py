@@ -31,14 +31,9 @@ class AddressesExtractor(BaseExtractor):
         """
         super().__init__(mappings_file, lang)
 
-        # Validate that required mappings exist for the language
-        if not self.validate_language("address_mapping") or not self.validate_language(
-            "source_mapping"
-        ):
-            raise ValueError(f"Invalid language code for the required mappings: {lang}")
-
-        # Retrieve default country mapping
-        self.default_country = self.mappings.get_mapping("default_country")
+        self.address_mapping = self.get_mapping("address_mapping")
+        self.source_mapping = self.get_mapping("source_mapping")
+        self.default_country = self.get_mapping("default_country")
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract address information.
@@ -53,44 +48,32 @@ class AddressesExtractor(BaseExtractor):
         business_id = self.get_business_id(company)
         if not business_id:
             self.logger.warning("Skipping record with missing businessId.")
-            return results  # Skip if no business ID
+            return results
 
         for address in company.get("addresses", []):
             try:
-                # Map type, country, and source
-                mapped_type = self.map_value(
-                    address.get("type"),
-                    self.mappings.get_mapping("address_mapping", self.lang),
-                )
-                mapped_source = self.map_value(
-                    address.get("source"),
-                    self.mappings.get_mapping("source_mapping", self.lang),
-                )
+                mapped_type = self.map_value(address.get("type"), self.address_mapping)
+                mapped_source = self.map_value(address.get("source"), self.source_mapping)
                 country = address.get("country", self.default_country)
 
-                # Map and extract address data
-                results.append(
-                    {
-                        "businessId": business_id,
-                        "type": mapped_type,
-                        "street": address.get("street", ""),
-                        "buildingNumber": address.get("buildingNumber", ""),
-                        "entrance": address.get("entrance", ""),
-                        "apartmentNumber": address.get("apartmentNumber", ""),
-                        "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
-                        "postOfficeBox": address.get("postOfficeBox", ""),
-                        "postCode": address.get("postCode", ""),
-                        "co": address.get("co", ""),
-                        "country": country,
-                        "freeAddressLine": address.get("freeAddressLine", ""),
-                        "registrationDate": address.get("registrationDate", ""),
-                        "source": mapped_source,
-                    }
-                )
+                results.append({
+                    "businessId": business_id,
+                    "type": mapped_type,
+                    "street": address.get("street", ""),
+                    "buildingNumber": address.get("buildingNumber", ""),
+                    "entrance": address.get("entrance", ""),
+                    "apartmentNumber": address.get("apartmentNumber", ""),
+                    "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
+                    "postOfficeBox": address.get("postOfficeBox", ""),
+                    "postCode": address.get("postCode", ""),
+                    "co": address.get("co", ""),
+                    "country": country,
+                    "freeAddressLine": address.get("freeAddressLine", ""),
+                    "registrationDate": self.parse_date(address.get("registrationDate", "")),
+                    "source": mapped_source,
+                })
             except Exception as e:
-                self.logger.error(
-                    f"Error processing address for businessId '{business_id}': {e}"
-                )
+                self.logger.error(f"Error processing address for businessId '{business_id}': {e}")
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -103,8 +86,4 @@ class AddressesExtractor(BaseExtractor):
             pd.DataFrame: Extracted and processed address data.
         """
         self.logger.info(f"Starting extraction for Addresses. Input rows: {len(data)}")
-        if not data.empty:
-            self.logger.debug(f"Sample input data: {data.head(5).to_dict()}")
-
-        # Use the modularized process_data method from BaseExtractor
         return self.process_data(data)
