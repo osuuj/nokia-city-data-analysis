@@ -11,14 +11,52 @@ Key Features:
 - Cleaning and formatting numeric data, including specific columns like `post_code`.
 - Deduplication of rows for data integrity.
 """
-
 import logging
 import re
-from typing import Any, Optional
-
 import pandas as pd
+from typing import Any, Optional, List, Dict
 
 logger = logging.getLogger(__name__)
+
+def validate_against_schema(df: pd.DataFrame, entity_name: str, entities_config: Dict[str, Any]) -> pd.DataFrame:
+    """Validate DataFrame against the schema defined in entities_config.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to validate.
+        entity_name (str): The name of the entity being validated.
+        entities_config (Dict[str, Any]): Configuration for entities including validation schema.
+
+    Returns:
+        pd.DataFrame: The validated DataFrame.
+
+    Raises:
+        ValueError: If the validation schema is not defined for the entity.
+    """
+    entity_config = next((entity for entity in entities_config if entity["name"] == entity_name), None)
+    if not entity_config or "validation" not in entity_config:
+        raise ValueError(f"No validation schema defined for entity '{entity_name}'")
+
+    validation_schema = entity_config["validation"]
+    required_columns = validation_schema.get("required", [])
+    column_types = validation_schema.get("columns", {})
+
+    for column in required_columns:
+        if column not in df.columns:
+            raise ValueError(f"Missing required column '{column}' in entity '{entity_name}'")
+
+    # Validate column data types
+    for column, col_type in column_types.items():
+        if column in df.columns:
+            if "DATE" in col_type:
+                df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
+            elif "VARCHAR" in col_type or "CHAR" in col_type:
+                df[column] = df[column].astype(str).replace("", None)
+            elif "INT" in col_type:
+                df[column] = pd.to_numeric(df[column], errors="coerce", downcast="integer")
+            elif "BOOLEAN" in col_type:
+                df[column] = df[column].astype(bool)
+
+    return df
 
 
 def clean_numeric_column(value: Any) -> Optional[str]:
@@ -39,106 +77,6 @@ def clean_numeric_column(value: Any) -> Optional[str]:
         return str(value)
     except (ValueError, TypeError):
         return None
-
-
-def enforce_numeric_column(df: pd.DataFrame, column: str) -> pd.DataFrame:
-    """Ensure a numeric column is properly formatted as nullable integer.
-
-    Args:
-        df (pd.DataFrame): The DataFrame containing the column.
-        column (str): The name of the column to enforce numeric type.
-
-    Returns:
-        pd.DataFrame: The DataFrame with the column formatted as nullable integer.
-    """
-    if column in df.columns:
-        df[column] = (
-            pd.to_numeric(df[column], errors="coerce").fillna(pd.NA).astype("Int64")
-        )
-    return df
-
-
-def clean_date_column(value: Any) -> Optional[str]:
-    """Ensure date values are in ISO format.
-
-    Args:
-        value (Any): The date value to clean.
-
-    Returns:
-        Optional[str]: The cleaned date in ISO format, or None if invalid.
-    """
-    try:
-        if pd.isnull(value) or value == "":
-            return None
-        return pd.to_datetime(value, errors="coerce").isoformat()
-    except Exception:
-        return None
-
-
-def clean_post_code(value: Any) -> Optional[str]:
-    """Clean and standardize postal code values.
-
-    Args:
-        value (Any): The value to clean, typically numeric or string.
-
-    Returns:
-        Optional[str]: The cleaned postal code as a string, or None if invalid.
-    """
-    try:
-        if pd.isnull(value) or value == "":
-            return None
-        return str(int(float(value)))
-    except (ValueError, TypeError):
-        return None
-
-
-def clean_apartment_number(value: Any) -> Optional[int]:
-    """Clean apartment number by converting to integers.
-
-    Args:
-        value (Any): The value to clean, typically numeric or string.
-
-    Returns:
-        Optional[int]: The cleaned apartment number as an integer, or None if invalid.
-    """
-    try:
-        if pd.isnull(value):
-            return None
-        return int(value)
-    except (ValueError, TypeError):
-        return None
-
-
-def clean_building_number(value: str) -> Optional[str]:
-    """Clean building number by standardizing format.
-
-    Args:
-        value (str): The value to clean.
-
-    Returns:
-        Optional[str]: The cleaned building number as a string, or None if invalid.
-    """
-    if pd.isnull(value) or value == "":
-        return None
-    return str(value).strip()
-
-
-def clean_post_office_box(value: Any) -> Optional[str]:
-    """Clean and standardize post office box values.
-
-    Args:
-        value (Any): The value to clean, typically numeric or string.
-
-    Returns:
-        Optional[str]: The cleaned post office box value as a string, or None if invalid.
-    """
-    try:
-        if pd.isnull(value) or value == "":
-            return None
-        return str(int(float(value)))
-    except (ValueError, TypeError):
-        return None
-
 
 def transform_column_names(df: pd.DataFrame) -> pd.DataFrame:
     """Transform column names to snake_case without excessive underscores.
@@ -168,13 +106,17 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame with missing values handled.
     """
+    df = df.copy()  # Work with a copy to avoid SettingWithCopyWarning
+
     for column in df.columns:
         if "date" in column.lower():
             df[column] = pd.to_datetime(df[column], errors="coerce")
-        else:
+        elif df[column].dtype == "object":
             df[column] = df[column].replace("", None)
-    return df
+        elif df[column].dtype in ["int64", "float64"]:
+            df[column] = df[column].replace("", None).astype(float)
 
+    return df
 
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """Remove duplicate rows from a DataFrame.
@@ -186,3 +128,88 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: A deduplicated DataFrame.
     """
     return df.drop_duplicates()
+
+
+def clean_registered_entries(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for registered entries.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the registered entries entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    # Validate 'type' column to ensure it contains only numeric values
+    df["type"] = pd.to_numeric(df["type"], errors="coerce")
+    df = df.dropna(subset=["type"])
+    df["type"] = df["type"].astype(int)
+
+    # Apply specific column cleaning
+    for column in specific_columns:
+        if column in df.columns:
+            df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
+
+    return df
+
+def clean_registered_entry_descriptions(df: pd.DataFrame) -> pd.DataFrame:
+    """Custom cleaning logic for registered entry descriptions.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the registered entry descriptions entity.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    df["entry_type"] = pd.to_numeric(df["entry_type"], errors="coerce")
+    df = df.dropna(subset=["entry_type"])
+    df["entry_type"] = df["entry_type"].astype(int)
+    return df
+
+
+def clean_addresses(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for addresses.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the addresses entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    for column in specific_columns:
+        if column in df.columns:
+            df[column] = df[column].apply(clean_numeric_column)
+    return df
+
+
+def clean_companies(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for companies.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the companies entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    
+    for column in specific_columns:
+        if column in specific_columns and column in df.columns:
+            df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
+    return df
+
+def clean_post_offices(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for post offices.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the post offices entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    for column in specific_columns:
+        if column in df.columns:
+            df[column] = df[column].apply(clean_numeric_column)
+    return df

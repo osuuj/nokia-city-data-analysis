@@ -7,7 +7,7 @@ and entity-specific transformations.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional,Dict, Any
 
 import pandas as pd
 
@@ -16,13 +16,20 @@ from etl.utils.cleaning_utils import (
     handle_missing_values,
     remove_duplicates,
     transform_column_names,
+    validate_against_schema,
+    clean_registered_entries,
+    clean_registered_entry_descriptions,
+    clean_addresses,
+    clean_companies,
+    clean_post_offices,
 )
+
 
 logger = logging.getLogger(__name__)
 
 
 def clean_dataset(
-    df: pd.DataFrame, entity_name: str, specific_columns: Optional[List[str]] = None
+    df: pd.DataFrame, entity_name: str, specific_columns: Optional[List[str]] = None, entities_config: Optional[Dict[str, Any]] = None
 ) -> pd.DataFrame:
     """Cleans a dataset by applying general and entity-specific transformations.
 
@@ -30,6 +37,7 @@ def clean_dataset(
         df (pd.DataFrame): The DataFrame to clean.
         entity_name (str): The name of the entity being cleaned.
         specific_columns (Optional[List[str]]): Columns requiring specific cleaning (e.g., numeric columns).
+        entities_config (Optional[Dict[str, Any]]): Configuration for entities including validation schema.
 
     Returns:
         pd.DataFrame: The cleaned DataFrame.
@@ -42,23 +50,27 @@ def clean_dataset(
     try:
         # Transform column names to snake_case
         df = transform_column_names(df)
-
-        # Apply entity-specific transformations
-        if entity_name == "addresses":
-            df = clean_addresses(df)
-        elif entity_name == "companies":
-            df = clean_companies(df)
-        elif entity_name == "registered_entries":
-            df = clean_registered_entries(df)
-
-        # Clean dates vectorized
-        date_columns = [col for col in df.columns if "date" in col.lower()]
-        for col in date_columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce")
-
+        
         # General cleaning
         df = handle_missing_values(df)
         df = remove_duplicates(df)
+
+        # Apply entity-specific transformations
+        if entity_name == "addresses":
+            df = clean_addresses(df, specific_columns)
+        elif entity_name == "companies":
+            df = clean_companies(df, specific_columns)
+        elif entity_name == "registered_entries":
+            df = clean_registered_entries(df, specific_columns)
+        elif entity_name == "post_offices":
+            df = clean_post_offices(df, specific_columns)
+        elif entity_name == "registered_entry_descriptions":
+            df = clean_registered_entry_descriptions(df)
+
+        # Validate against schema
+        if entities_config:
+            df = validate_against_schema(df, entity_name, entities_config)
+
 
     except Exception as e:
         logger.error(f"Error during cleaning dataset for entity '{entity_name}': {e}")
@@ -69,27 +81,12 @@ def clean_dataset(
     return df
 
 
-def clean_registered_entries(df: pd.DataFrame) -> pd.DataFrame:
-    """Custom cleaning logic for registered entries.
-
-    Args:
-        df (pd.DataFrame): DataFrame for the registered entries entity.
-
-    Returns:
-        pd.DataFrame: Cleaned DataFrame.
-    """
-    # Validate 'type' column to ensure it contains only numeric values
-    df["type"] = pd.to_numeric(df["type"], errors="coerce")
-    df = df.dropna(subset=["type"])
-    df["type"] = df["type"].astype(int)
-    return df
-
-
 def clean_entity_files(
     extracted_path: str,
     cleaned_path: str,
     entity_name: str,
     specific_columns: Optional[List[str]] = None,
+    entities_config: dict = None
 ) -> List[str]:
     """Cleans all CSV files for a specific entity.
 
@@ -123,7 +120,7 @@ def clean_entity_files(
 
             try:
                 df = pd.read_csv(file_path)
-                cleaned_df = clean_dataset(df, entity_name, specific_columns)
+                cleaned_df = clean_dataset(df, entity_name, specific_columns,  entities_config)
                 cleaned_df.to_csv(output_file, index=False)
                 cleaned_files.append(str(output_file))
                 logger.info(f"Cleaned file saved: {output_file}")
@@ -138,34 +135,3 @@ def clean_entity_files(
         )
 
     return cleaned_files
-
-
-def clean_addresses(df: pd.DataFrame) -> pd.DataFrame:
-    """Custom cleaning logic for addresses.
-
-    Args:
-        df (pd.DataFrame): DataFrame for the addresses entity.
-
-    Returns:
-        pd.DataFrame: Cleaned DataFrame.
-    """
-    if "post_code" in df.columns:
-        df["post_code"] = df["post_code"].apply(clean_numeric_column)
-    if "apartment_number" in df.columns:
-        df["apartment_number"] = df["apartment_number"].apply(clean_numeric_column)
-    return df
-
-
-def clean_companies(df: pd.DataFrame) -> pd.DataFrame:
-    """Custom cleaning logic for companies.
-
-    Args:
-        df (pd.DataFrame): DataFrame for the companies entity.
-
-    Returns:
-        pd.DataFrame: Cleaned DataFrame.
-    """
-    if "lastModified" in df.columns:
-        df = df.rename(columns={"lastModified": "last_modified"})
-        df["last_modified"] = pd.to_datetime(df["last_modified"]).dt.date
-    return df
