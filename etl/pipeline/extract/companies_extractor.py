@@ -51,11 +51,11 @@ class CompaniesExtractor(BaseExtractor):
             List[Dict[str, Any]]: A list containing a single extracted company record.
         """
         results: List[Dict[str, Any]] = []
-        try:
-            business_id = self.get_business_id(company)
-            if not business_id:
-                self.logger.debug("Skipping company without businessId.")
-                return results
+    
+        business_id = self.get_business_id(company)
+        if not business_id:
+            self.logger.debug("Skipping company without businessId.")
+            return results
 
         try:
             trade_status = self.map_value(company.get("tradeRegisterStatus"), self.rek_kdi_mapping)
@@ -90,8 +90,5 @@ class CompaniesExtractor(BaseExtractor):
             pd.DataFrame: Extracted and processed company data.
         """
         self.logger.info(f"Starting extraction for Companies. Input rows: {len(data)}")
-        if not data.empty:
-            self.logger.debug(f"Sample input data: {data.head(5).to_dict()}")
 
-        # Use the modularized process_data method from BaseExtractor
         return self.process_data(data)
