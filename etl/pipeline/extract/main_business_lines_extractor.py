@@ -11,17 +11,13 @@ Key Features:
 """
 
 from typing import Any, Dict, List
-
 import pandas as pd
-
-from etl.config.mappings.dynamic_loader import DynamicLoader
 from etl.pipeline.extract.base_extractor import BaseExtractor
-
 
 class MainBusinessLinesExtractor(BaseExtractor):
     """Extractor class for the 'main_business_lines' entity."""
 
-    def __init__(self, mappings_file: str, lang: str):
+    def __init__(self, mappings_file: str, lang: str) -> None:
         """Initialize the extractor with mappings and language preferences.
 
         Args:
@@ -34,11 +30,13 @@ class MainBusinessLinesExtractor(BaseExtractor):
         super().__init__(mappings_file, lang)
 
         # Load and validate TOIMI mappings
-        loader = DynamicLoader()
-        self.toimi_mappings = loader.load_toimi_mappings()
+        self.toimi_mappings = self.get_mapping("toimi_mappings")
         if lang not in self.toimi_mappings.get("TOIMI", {}):
             self.logger.error(f"Invalid language code for TOIMI mappings: {lang}")
             raise ValueError(f"Invalid language code for TOIMI mappings: {lang}")
+
+        # Load source mapping
+        self.source_mapping = self.get_mapping("source_mapping")
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract main business line information.
@@ -52,36 +50,35 @@ class MainBusinessLinesExtractor(BaseExtractor):
         results: List[Dict[str, Any]] = []
         business_id = self.get_business_id(company)
         if not business_id:
-            return results  # Skip if no business ID
+            self.logger.warning("Skipping company without businessId.")
+            return results
 
         main_business_line = company.get("mainBusinessLine", {})
         if not main_business_line:
-            self.logger.debug(
-                f"No main business line found for businessId: {business_id}"
-            )
+            self.logger.debug(f"No main business line found for businessId: {business_id}")
             return results
 
         try:
-            # Extract and map type using TOIMI mappings
             raw_type = main_business_line.get("type", "")
-            type_code_set = main_business_line.get("typeCodeSet", "TOIMI")
+            type_code_set = main_business_line.get("typeCodeSet", "TOIMI1")
             type_mapping = self.toimi_mappings.get(type_code_set, {}).get(self.lang, {})
             mapped_type = self.map_value(raw_type, type_mapping)
 
-            # Append the cleaned and mapped main business line data
+            raw_source = main_business_line.get("source", "")
+            mapped_source = self.map_value(raw_source, self.source_mapping)
+
             results.append(
                 {
                     "businessId": business_id,
-                    "type": mapped_type,
-                    "typeCodeSet": type_code_set,
-                    "registrationDate": main_business_line.get("registrationDate", ""),
-                    "source": main_business_line.get("source", ""),
+                    "industryCode": raw_type,
+                    "industryDescription": mapped_type,
+                    "industryCodeSet": type_code_set,
+                    "registrationDate": self.parse_date(main_business_line.get("registrationDate", "")),
+                    "source": mapped_source,
                 }
             )
         except Exception as e:
-            self.logger.error(
-                f"Error processing main business line for businessId '{business_id}': {e}"
-            )
+            self.logger.error(f"Error processing main business line for businessId '{business_id}': {e}")
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -93,8 +90,5 @@ class MainBusinessLinesExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed main business line data.
         """
-        self.logger.info(
-            f"Starting extraction for Main Business Lines. Input rows: {len(data)}"
-        )
-        # Use the modularized process_data method from BaseExtractor
+        self.logger.info(f"Starting extraction for Main Business Lines. Input rows: {len(data)}")
         return self.process_data(data)

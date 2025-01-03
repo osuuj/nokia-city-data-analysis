@@ -28,6 +28,7 @@ CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 # Default YAML mappings key
 DEFAULT_MAPPINGS_KEY = "mappings"
 
+
 class DynamicLoader:
     """Class to dynamically load TOIMI mappings."""
 
@@ -63,6 +64,23 @@ class DynamicLoader:
             except yaml.YAMLError as e:
                 logger.error(f"Error parsing YAML file {file_path}: {e}")
                 raise
+
+    def load_toimi_mappings(self) -> Dict[str, Dict[str, Any]]:
+        """Load all TOIMI mappings for supported languages and categories.
+
+        Returns:
+            Dict[str, Dict[str, Any]]: A dictionary of TOIMI mappings.
+        """
+        toimi_mappings = {}
+        for category in CATEGORIES:
+            toimi_mappings[category] = {}
+            for language in LANGUAGES:
+                try:
+                    toimi_mappings[category][language] = self.load_mapping(category, language)
+                except FileNotFoundError:
+                    logger.warning(f"Mapping file for category '{category}' and language '{language}' not found.")
+        return toimi_mappings
+
 
 class Mappings:
     """Class to manage and access YAML-based mappings."""
