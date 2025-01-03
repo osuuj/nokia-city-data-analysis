@@ -8,31 +8,16 @@
 
 mappings:
   # Default country setting
-  default_country: "Finland"
+  default_country:
+    fi: "Finland"
+    en: "Finland"
+    sv: "Finland"
 
   # Language code mappings
   language_code_mapping:
     fi: "1"  # Finnish
     sv: "2"  # Swedish
     en: "3"  # English
-
-  # Mapping for post office language codes
-  post_office_language_code:
-    fi: "1"  # Finnish
-    en: "1"  # English
-    sv: "2"  # Swedish
-
-  # Mapping for post office types
-  post_office_mapping:
-    fi:
-      "1": "Posti"
-      "2": "Postitoimisto"
-    en:
-      "1": "Post Office"
-      "2": "Postal Office"
-    sv:
-      "1": "Postkontor"
-      "2": "Postbyrå"
 
   # Type mappings for statuses in different languages
   type_mapping:
