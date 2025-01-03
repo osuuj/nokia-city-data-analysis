@@ -14,7 +14,6 @@ Integrates with the centralized `config.py` for file paths and language settings
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-
 import yaml
 
 from etl.config.config_loader import CONFIG
@@ -22,16 +21,12 @@ from etl.config.config_loader import CONFIG
 logger = logging.getLogger(__name__)
 
 # Constants derived from CONFIG
-
 TOIMI_FILES_PATH = Path(CONFIG["config_files"]["toimi_files_path"])
-LANGUAGES = CONFIG[
-    "languages"
-].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
+LANGUAGES = CONFIG["languages"].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
 CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 
 # Default YAML mappings key
 DEFAULT_MAPPINGS_KEY = "mappings"
-
 
 class DynamicLoader:
     """Class to dynamically load TOIMI mappings."""
@@ -40,44 +35,34 @@ class DynamicLoader:
         """Initialize the DynamicLoader.
 
         Args:
-            base_path (Path): Base directory containing TOIMI mapping files.
+            base_path (Path): Base path to the TOIMI files.
         """
         self.base_path = base_path
 
-    def load_toimi_mappings(self) -> Dict[str, Dict[str, Dict[str, str]]]:
-        """Loads TOIMI mappings for various languages and categories.
+    def load_mapping(self, category: str, language: str) -> Dict[str, Any]:
+        """Load a specific TOIMI mapping file.
+
+        Args:
+            category (str): The category of the mapping (e.g., "type").
+            language (str): The language code (e.g., "fi", "en").
 
         Returns:
-            Dict[str, Dict[str, Dict[str, str]]]: Nested dictionary containing TOIMI mappings.
-            Structure: {category: {language: {code: description}}}.
+            Dict[str, Any]: The loaded mapping data.
+
+        Raises:
+            FileNotFoundError: If the mapping file does not exist.
+            yaml.YAMLError: If there is an error parsing the YAML file.
         """
-        all_mappings: Dict[str, Dict[str, Dict[str, str]]] = {
-            category: {lang: {} for lang in LANGUAGES} for category in CATEGORIES
-        }
+        file_path = self.base_path / f"{category}_{language}.yaml"
+        if not file_path.exists():
+            raise FileNotFoundError(f"Mapping file not found: {file_path}")
 
-        for category in CATEGORIES:
-            for lang in LANGUAGES:
-                file_path = self.base_path / f"{category}_{lang}.txt"
-                if not file_path.is_file():
-                    logger.warning(f"Mapping file not found: {file_path}")
-                    continue
-
-                try:
-                    with file_path.open("r", encoding="utf-8") as file:
-                        for line in file:
-                            parts = line.strip().split("\t", 1)
-                            if len(parts) == 2:
-                                code, description = parts
-                                all_mappings[category][lang][code] = description
-                            else:
-                                logger.warning(
-                                    f"Invalid line format in {file_path}: {line.strip()}"
-                                )
-                except Exception as e:
-                    logger.error(f"Error reading file {file_path}: {e}")
-
-        return all_mappings
-
+        with file_path.open("r", encoding="utf-8") as file:
+            try:
+                return yaml.safe_load(file)
+            except yaml.YAMLError as e:
+                logger.error(f"Error parsing YAML file {file_path}: {e}")
+                raise
 
 class Mappings:
     """Class to manage and access YAML-based mappings."""
@@ -109,18 +94,14 @@ class Mappings:
                 data = yaml.safe_load(file) or {}
                 mappings = data.get(DEFAULT_MAPPINGS_KEY)
                 if not mappings:
-                    raise KeyError(
-                        f"'{DEFAULT_MAPPINGS_KEY}' not found in {self.mappings_file}"
-                    )
+                    raise KeyError(f"'{DEFAULT_MAPPINGS_KEY}' not found in {self.mappings_file}")
                 logger.info(f"Loaded mappings: {list(mappings.keys())}")
                 return mappings
         except yaml.YAMLError as e:
             logger.error(f"Error parsing YAML file {self.mappings_file}: {e}")
             raise
 
-    def get_mapping(
-        self, mapping_name: str, language: Optional[str] = None
-    ) -> Union[Dict[str, Any], str]:
+    def get_mapping(self, mapping_name: str, language: Optional[str] = None) -> Union[Dict[str, Any], str]:
         """Retrieve a specific mapping for a given language.
 
         Args:
@@ -136,26 +117,18 @@ class Mappings:
         """
         mapping = self.mappings.get(mapping_name)
         if mapping is None:
-            raise KeyError(
-                f"Mapping '{mapping_name}' not found in {self.mappings_file}."
-            )
+            raise KeyError(f"Mapping '{mapping_name}' not found in {self.mappings_file}.")
 
         if isinstance(mapping, dict) and language:
             if language in mapping:
                 return mapping[language]
-            raise KeyError(
-                f"Language '{language}' not supported for mapping '{mapping_name}'."
-            )
+            raise KeyError(f"Language '{language}' not supported for mapping '{mapping_name}'.")
 
         if isinstance(mapping, (str, dict)):
             return mapping
-        raise TypeError(
-            f"Unexpected type for mapping '{mapping_name}': {type(mapping).__name__}"
-        )
+        raise TypeError(f"Unexpected type for mapping '{mapping_name}': {type(mapping).__name__}")
 
-    def validate_mapping(
-        self, mapping_name: str, language: Optional[str] = None
-    ) -> bool:
+    def validate_mapping(self, mapping_name: str, language: Optional[str] = None) -> bool:
         """Validate a mapping for a given language and mapping name.
 
         Args:
@@ -173,3 +146,14 @@ class Mappings:
             return True
         except KeyError:
             return False
+
+    def validate_language(self, mapping_name: str) -> bool:
+        """Validate if a language code exists in the mapping.
+
+        Args:
+            mapping_name (str): Name of the mapping to validate.
+
+        Returns:
+            bool: True if the language code is valid, False otherwise.
+        """
+        return mapping_name in self.mappings
