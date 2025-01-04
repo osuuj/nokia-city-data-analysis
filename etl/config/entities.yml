@@ -103,7 +103,6 @@ entities:
       required:
         - business_id
         - type
-
   - name: "company_forms"
     table: "company_forms"
     extractor: "etl.pipeline.extract.company_forms_extractor.CompanyFormsExtractor"
@@ -119,6 +118,7 @@ entities:
       required:
         - business_id
         - type
+       
   - name: "post_offices"
     table: "post_offices"
     specific_columns: ["post_code"]

@@ -1,21 +1,18 @@
 """Extractor for Company Situations.
 
 This module defines the `CompanySituationsExtractor` class, responsible for extracting and
-processing data related to company situations from raw company records. It supports language-specific
-mappings and ensures data validation.
+processing data related to company situations from raw company records. It validates data
+against mappings and supports language-specific transformations.
 
 Key Features:
-- Dynamic mapping resolution for fields like type and source.
+- Dynamic mapping resolution for fields like source and language.
 - Modular class-based design for reusability in ETL pipelines.
 - Comprehensive logging and error handling for skipped or invalid records.
 """
 
 from typing import Any, Dict, List
-
 import pandas as pd
-
 from etl.pipeline.extract.base_extractor import BaseExtractor
-
 
 class CompanySituationsExtractor(BaseExtractor):
     """Extractor class for the 'company_situations' entity."""
@@ -25,22 +22,15 @@ class CompanySituationsExtractor(BaseExtractor):
 
         Args:
             mappings_file (str): Path to the mappings YAML file.
-            lang (str): Target language code for mapping (e.g., 'en', 'fi', 'sv').
+            lang (str): Target language code for filtering (e.g., 'en', 'fi', 'sv').
 
         Raises:
             ValueError: If the language code is invalid for required mappings.
         """
         super().__init__(mappings_file, lang)
 
-        # Validate required mappings
-        if not self.validate_language("type_mapping"):
-            raise ValueError("Invalid language for type_mapping.")
-        if not self.validate_language("source_mapping"):
-            raise ValueError("Invalid language for source_mapping.")
-
-        # Load mappings
-        self.type_mapping = self.mappings.get_mapping("type_mapping", lang)
-        self.source_mapping = self.mappings.get_mapping("source_mapping", lang)
+        self.type_mapping = self.get_mapping("type_mapping")
+        self.source_mapping = self.get_mapping("source_mapping")
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract company situations.
@@ -52,40 +42,25 @@ class CompanySituationsExtractor(BaseExtractor):
             List[Dict[str, Any]]: Extracted company situations data.
         """
         results: List[Dict[str, Any]] = []
-        try:
-            business_id = self.get_business_id(company)
-            if not business_id:
-                self.logger.debug("Skipping company without businessId.")
-                return results
+        business_id = self.get_business_id(company)
+        if not business_id:
+            self.logger.warning("Skipping record with missing businessId.")
+            return results
 
-            for situation in company.get("companySituations", []):
-                try:
-                    # Map type and source
-                    raw_type = situation.get("type", "")
-                    mapped_type = self.map_value(raw_type, self.type_mapping)
+        for situation in company.get("companySituations", []):
+            try:
+                mapped_type = self.map_value(situation.get("type"), self.type_mapping)
+                mapped_source = self.map_value(situation.get("source"), self.source_mapping)
 
-                    raw_source = situation.get("source", None)
-                    mapped_source = self.map_value(raw_source, self.source_mapping)
-
-                    results.append(
-                        {
-                            "businessId": business_id,
-                            "type": mapped_type,
-                            "registrationDate": self.parse_date(
-                                situation.get("registrationDate")
-                            ),
-                            "endDate": self.parse_date(situation.get("endDate")),
-                            "source": mapped_source,
-                        }
-                    )
-                except Exception as e:
-                    self.logger.error(
-                        f"Unexpected error while processing situation: {e}"
-                    )
-        except Exception as e:
-            self.logger.error(
-                f"Error processing company {company.get('businessId', 'unknown')}: {e}"
-            )
+                results.append({
+                    "businessId": business_id,
+                    "type": mapped_type,
+                    "registrationDate": self.parse_date(situation.get("registrationDate")),
+                    "endDate": self.parse_date(situation.get("endDate")),
+                    "source": mapped_source,
+                })
+            except Exception as e:
+                self.logger.error(f"Error processing situation for businessId '{business_id}': {e}")
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -97,8 +72,5 @@ class CompanySituationsExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed company situations data.
         """
-        self.logger.info(
-            f"Starting extraction for Company Situations. Input rows: {len(data)}"
-        )
-        # Use the modularized process_data method from BaseExtractor
+        self.logger.info(f"Starting extraction for Company Situations. Input rows: {len(data)}")
         return self.process_data(data)
