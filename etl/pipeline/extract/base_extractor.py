@@ -7,15 +7,16 @@ mapping values, and parsing dates. Subclasses must implement the `process_row` a
 
 import logging
 from typing import Any, Dict, List, Optional
+
 import pandas as pd
 from dateutil.parser import parse, ParserError
-from etl.config.mappings.dynamic_loader import DynamicLoader, Mappings
+from etl.config.mappings.dynamic_loader import Mappings
 
 
 class BaseExtractor:
     """Base class for all entity-specific extractors."""
 
-    def __init__(self, mappings_file: str, lang: str):
+    def __init__(self, mappings_file: str, lang: str) -> None:
         """Initialize the BaseExtractor.
 
         Args:
@@ -25,7 +26,6 @@ class BaseExtractor:
         self.logger = logging.getLogger("etl")
         self.mappings = Mappings(mappings_file)
         self.lang = lang
-        self.dynamic_loader = DynamicLoader()
 
     def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Process and extract data from a DataFrame.
@@ -39,17 +39,12 @@ class BaseExtractor:
         results: List[Dict[str, Any]] = []
         skipped_records = 0
 
-        for index, row in data.iterrows():
-            try:
-                row_dict = row.to_dict()
-                self.logger.debug(f"Processing row: {row_dict}")
-                extracted_records = self.process_row(row_dict)
-                if extracted_records:
-                    results.extend(extracted_records)
-                else:
-                    skipped_records += 1
-            except Exception as e:
-                self.logger.error(f"Error processing row {index}: {e}")
+        for _, row in data.iterrows():
+            row_dict = row.to_dict()
+            processed_rows = self.process_row(row_dict)
+            if processed_rows:
+                results.extend(processed_rows)
+            else:
                 skipped_records += 1
 
         self.logger.info(
@@ -58,7 +53,7 @@ class BaseExtractor:
         return pd.DataFrame(results)
 
     def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Placeholder for row processing logic.
+        """Process a single row of data.
 
         Args:
             row (Dict[str, Any]): A single row of raw data.
@@ -77,28 +72,33 @@ class BaseExtractor:
         Returns:
             Optional[str]: The extracted business ID, or None if not found.
         """
-        business_id = company.get("businessId", {}).get("value")
-        if not business_id:
-            self.logger.debug("Skipping company without businessId.")
+        self.logger.debug(f"Extracting business ID from company: {company} (type: {type(company)})")
+        if not isinstance(company, dict):
+            self.logger.warning(f"Company is not a dictionary: {company}")
             return None
+
+        business_id = company.get("businessId", {}).get("value") if company.get("businessId") else None
+        if not business_id:
+            self.logger.warning(f"Business ID not found in company: {company}")
         return business_id
 
-    def validate_language(self, mapping_name: str) -> bool:
-        """Validate that the language code is supported by the specified mapping.
+    def get_mapping(self, mapping_name: str, language: Optional[str] = None) -> Any:
+        """Retrieve a specific mapping by name and optionally filter by language.
 
         Args:
-            mapping_name (str): Name of the mapping to validate.
+            mapping_name (str): The name of the mapping to retrieve.
+            language (Optional[str]): The language to filter the mapping by.
 
         Returns:
-            bool: True if the language is valid, False otherwise.
+            Any: The requested mapping.
+
+        Raises:
+            KeyError: If the mapping does not exist.
         """
-        mapping = self.mappings.get_mapping(mapping_name)
-        if self.lang not in mapping:
-            self.logger.error(
-                f"Invalid language: {self.lang} for mapping: {mapping_name}"
-            )
-            return False
-        return True
+        self.logger.debug(f"Retrieving mapping '{mapping_name}' for language '{language or self.lang}'")
+        mapping = self.mappings.get_mapping(mapping_name, language or self.lang)
+        self.logger.debug(f"Retrieved mapping '{mapping_name}': {mapping} (type: {type(mapping)})")
+        return mapping
 
     def map_value(self, raw_value: Any, mapping: Dict[str, Any]) -> Any:
         """Map a raw value using a mapping dictionary.
@@ -114,7 +114,7 @@ class BaseExtractor:
         return mapping.get(raw_value, raw_value)
 
     def parse_date(self, date_str: Optional[str]) -> Optional[str]:
-        """Parse a date string and return it in a standard format.
+        """Parse a date string and return the date part in ISO format.
 
         Args:
             date_str (Optional[str]): The date string to parse.
@@ -122,63 +122,36 @@ class BaseExtractor:
         Returns:
             Optional[str]: The parsed date in ISO format (YYYY-MM-DD), or None if parsing fails.
         """
+        self.logger.debug(f"Parsing date string: {date_str}")
+        
         if not date_str:
             return None
         
         try:
- 
             parsed_date = parse(date_str, fuzzy=True)
-    
             return parsed_date.date().isoformat()
         except (ValueError, TypeError, ParserError) as e:
-        
             self.logger.warning(f"Invalid date string '{date_str}': {e}")
             return None
 
-    def filter_by_language_code(
-        self,
-        items: List[Dict[str, Any]],
-        lang: str,
-        language_code_mapping: Dict[str, str],
-    ) -> List[Dict[str, Any]]:
-        """Filter items based on the language code.
-
-        Args:
-            items (List[Dict[str, Any]]): List of dictionaries containing language-specific data.
-            lang (str): Target language abbreviation (e.g., "fi", "en", "sv").
-            language_code_mapping (Dict[str, str]): Mapping of language abbreviations to codes.
-
-        Returns:
-            List[Dict[str, Any]]: Filtered items matching the target language.
-        """
-        lang_code = language_code_mapping.get(lang)
-        if not lang_code:
-            self.logger.warning(f"Language code for '{lang}' not found in mapping.")
-            return []
-
-        return [item for item in items if item.get("language") == lang_code]
-
-    def ensure_dict(self, value: Any) -> Dict[str, Any]:
-        """Ensure the value is a dictionary.
-
-        Args:
-            value (Any): The value to check.
-
-        Returns:
-            Dict[str, Any]: The value if it is a dictionary, otherwise an empty dictionary.
-        """
-        if isinstance(value, dict):
-            return value
-        self.logger.error(f"Expected dict, got {type(value)}")
-        return {}
-
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Extract data. Must be implemented by subclasses.
+        """Extract and process data from raw input.
 
         Args:
-            data (pd.DataFrame): DataFrame containing raw entity data.
+            data (pd.DataFrame): DataFrame containing raw records.
 
         Returns:
-            pd.DataFrame: Extracted and transformed data.
+            pd.DataFrame: Extracted and processed data.
         """
-        return pd.DataFrame()
+        raise NotImplementedError("Subclasses should implement this method")
+
+    def validate_language(self, mapping_name: str) -> bool:
+        """Validate if a language code exists in the mapping.
+
+        Args:
+            mapping_name (str): Name of the mapping to validate.
+
+        Returns:
+            bool: True if the language code is valid, False otherwise.
+        """
+        return self.lang in self.mappings.get_mapping(mapping_name)

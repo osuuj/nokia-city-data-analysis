@@ -1,20 +1,21 @@
-"""Dynamic Loader and Mappings Manager.
+"""Dynamic Loader for Mappings.
 
-This module provides functionality for dynamically loading and managing static
-mappings and configurations required in the ETL pipeline.
+This module defines the `DynamicLoader` class, responsible for dynamically loading
+mappings from YAML and CSV files. It supports loading TOIMI mappings and industry
+2025 mappings, and provides methods for retrieving specific mappings based on
+categories and languages.
 
-Key features include:
-- Loading TOIMI mapping files for various languages and categories.
-- Managing YAML-based mappings for field-specific configurations.
-- Providing utility methods for retrieving and validating mappings.
-
-Integrates with the centralized `config.py` for file paths and language settings.
+Key Features:
+- Load mappings from YAML and CSV files.
+- Retrieve specific mappings by category and language.
+- Handle errors and log warnings for missing or invalid mappings.
 """
 
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
+import pandas as pd
 import yaml
 from etl.config.config_loader import CONFIG
 
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Constants derived from CONFIG
 TOIMI_FILES_PATH = Path(CONFIG["config_files"]["toimi_files_path"])
+INDUSTRY_2025_FILE = Path(CONFIG["config_files"]["industry_2025_file"])
 LANGUAGES = CONFIG["languages"].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
 CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 
@@ -30,7 +32,7 @@ DEFAULT_MAPPINGS_KEY = "mappings"
 
 
 class DynamicLoader:
-    """Class to dynamically load TOIMI mappings."""
+    """Class to dynamically load mappings."""
 
     def __init__(self, base_path: Path = TOIMI_FILES_PATH) -> None:
         """Initialize the DynamicLoader.
@@ -40,11 +42,27 @@ class DynamicLoader:
         """
         self.base_path = base_path
 
-    def load_mapping(self, category: str, language: str) -> Dict[str, Any]:
+    def load_yaml_mapping(self, mappings_file: str) -> Dict[str, Any]:
+        """Load mappings from a YAML file.
+
+        Args:
+            mappings_file (str): Path to the YAML mappings file.
+
+        Returns:
+            Dict[str, Any]: Parsed mappings data.
+
+        Raises:
+            FileNotFoundError: If the mappings file does not exist.
+            KeyError: If the required mappings key is missing in the YAML file.
+            yaml.YAMLError: If there is an error parsing the YAML file.
+        """
+        return self._load_yaml_file(mappings_file)
+
+    def load_toimi_mapping(self, category: str, language: str) -> Dict[str, Any]:
         """Load a specific TOIMI mapping file.
 
         Args:
-            category (str): The category of the mapping (e.g., "type").
+            category (str): The category of the mapping (e.g., "TOIMI3").
             language (str): The language code (e.g., "fi", "en").
 
         Returns:
@@ -52,34 +70,77 @@ class DynamicLoader:
 
         Raises:
             FileNotFoundError: If the mapping file does not exist.
-            yaml.YAMLError: If there is an error parsing the YAML file.
+            ValueError: If there is an error parsing the plain text file.
         """
-        file_path = self.base_path / f"{category}_{language}.yaml"
+        file_path = self.base_path / f"{category}_{language}.txt"
         if not file_path.exists():
             raise FileNotFoundError(f"Mapping file not found: {file_path}")
 
+        mapping = {}
         with file_path.open("r", encoding="utf-8") as file:
-            try:
-                return yaml.safe_load(file)
-            except yaml.YAMLError as e:
-                logger.error(f"Error parsing YAML file {file_path}: {e}")
-                raise
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue  # Skip empty lines and comments
+                try:
+                    key, value = line.split("\t", 1)
+                    mapping[key.strip()] = value.strip()
+                except ValueError as e:
+                    logger.error(f"Error parsing line in file {file_path}: {line} - {e}")
+                    raise ValueError(f"Error parsing line in file {file_path}: {line} - {e}")
 
-    def load_toimi_mappings(self) -> Dict[str, Dict[str, Any]]:
-        """Load all TOIMI mappings for supported languages and categories.
+        return mapping
+
+    def load_industry_2025_mapping(self) -> Dict[str, Dict[str, str]]:
+        """Load the industry 2025 mapping from a CSV file.
 
         Returns:
-            Dict[str, Dict[str, Any]]: A dictionary of TOIMI mappings.
+            Dict[str, Dict[str, str]]: The loaded industry 2025 mapping data.
         """
-        toimi_mappings = {}
-        for category in CATEGORIES:
-            toimi_mappings[category] = {}
-            for language in LANGUAGES:
-                try:
-                    toimi_mappings[category][language] = self.load_mapping(category, language)
-                except FileNotFoundError:
-                    logger.warning(f"Mapping file for category '{category}' and language '{language}' not found.")
-        return toimi_mappings
+        if not INDUSTRY_2025_FILE.exists():
+            raise FileNotFoundError(f"Industry 2025 file not found: {INDUSTRY_2025_FILE}")
+
+        industry_mapping = {}
+        df = pd.read_csv(INDUSTRY_2025_FILE)
+        for _, row in df.iterrows():
+            tol_code = row["TOL 2025"]
+            industry_mapping[tol_code] = {
+                "fi": row["Title_fi"],
+                "en": row["Title_en"],
+                "sv": row["Title_sv"],
+                "category": row["Category"]
+            }
+
+        return industry_mapping
+
+    def _load_yaml_file(self, file_path: str) -> Dict[str, Any]:
+        """Load data from a YAML file.
+
+        Args:
+            file_path (str): Path to the YAML file.
+
+        Returns:
+            Dict[str, Any]: Parsed data from the YAML file.
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
+            KeyError: If the required key is missing in the YAML file.
+            yaml.YAMLError: If there is an error parsing the YAML file.
+        """
+        path = Path(file_path).resolve()
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {path}")
+        try:
+            with path.open("r", encoding="utf-8") as file:
+                data = yaml.safe_load(file) or {}
+                mappings = data.get(DEFAULT_MAPPINGS_KEY)
+                if not mappings:
+                    raise KeyError(f"'{DEFAULT_MAPPINGS_KEY}' not found in {path}")
+                logger.info(f"Loaded data from {path}: {list(mappings.keys())}")
+                return mappings
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML file {path}: {e}")
+            raise
 
 
 class Mappings:
@@ -105,19 +166,7 @@ class Mappings:
             KeyError: If the required mappings key is missing in the YAML file.
             yaml.YAMLError: If there is an error parsing the YAML file.
         """
-        if not self.mappings_file.exists():
-            raise FileNotFoundError(f"Mappings file not found: {self.mappings_file}")
-        try:
-            with self.mappings_file.open("r", encoding="utf-8") as file:
-                data = yaml.safe_load(file) or {}
-                mappings = data.get(DEFAULT_MAPPINGS_KEY)
-                if not mappings:
-                    raise KeyError(f"'{DEFAULT_MAPPINGS_KEY}' not found in {self.mappings_file}")
-                logger.info(f"Loaded mappings: {list(mappings.keys())}")
-                return mappings
-        except yaml.YAMLError as e:
-            logger.error(f"Error parsing YAML file {self.mappings_file}: {e}")
-            raise
+        return DynamicLoader()._load_yaml_file(self.mappings_file)
 
     def get_mapping(self, mapping_name: str, language: Optional[str] = None) -> Union[Dict[str, Any], str]:
         """Retrieve a specific mapping for a given language.
