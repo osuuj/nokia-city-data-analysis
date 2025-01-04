@@ -1,7 +1,10 @@
 from typing import Any, Dict, List
+
 import pandas as pd
-from etl.pipeline.extract.base_extractor import BaseExtractor
+
 from etl.config.mappings.dynamic_loader import DynamicLoader
+from etl.pipeline.extract.base_extractor import BaseExtractor
+
 
 class RegisteredEntriesExtractor(BaseExtractor):
     """Extractor class for the 'registered_entries' entity."""
@@ -24,23 +27,35 @@ class RegisteredEntriesExtractor(BaseExtractor):
 
         for entry in company.get("registeredEntries", []):
             try:
-                mapped_register = self.map_value(entry.get("register"), self.register_mapping)
-                mapped_authority = self.map_value(entry.get("authority"), self.authority_mapping)
+                mapped_register = self.map_value(
+                    entry.get("register"), self.register_mapping
+                )
+                mapped_authority = self.map_value(
+                    entry.get("authority"), self.authority_mapping
+                )
                 mapped_type = self.map_value(entry.get("type"), self.rek_kdi_mapping)
 
-                results.append({
-                    "businessId": business_id,
-                    "registrationStatusCode": mapped_type,
-                    "registrationDate": self.parse_date(entry.get("registrationDate")),
-                    "endDate": self.parse_date(entry.get("endDate")),
-                    "register": mapped_register,
-                    "authority": mapped_authority,
-                })
+                results.append(
+                    {
+                        "businessId": business_id,
+                        "registrationStatusCode": mapped_type,
+                        "registrationDate": self.parse_date(
+                            entry.get("registrationDate")
+                        ),
+                        "endDate": self.parse_date(entry.get("endDate")),
+                        "register": mapped_register,
+                        "authority": mapped_authority,
+                    }
+                )
             except Exception as e:
-                self.logger.error(f"Unexpected error while processing registered entry for businessId '{business_id}': {e}")
+                self.logger.error(
+                    f"Unexpected error while processing registered entry for businessId '{business_id}': {e}"
+                )
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
         """Extract and process registered entry data from raw input."""
-        self.logger.info(f"Starting extraction for Registered Entries. Input rows: {len(data)}")
+        self.logger.info(
+            f"Starting extraction for Registered Entries. Input rows: {len(data)}"
+        )
         return self.process_data(data)

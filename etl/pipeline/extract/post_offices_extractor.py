@@ -11,8 +11,11 @@ Key Features:
 """
 
 from typing import Any, Dict, List
+
 import pandas as pd
+
 from etl.pipeline.extract.base_extractor import BaseExtractor
+
 
 class PostOfficesExtractor(BaseExtractor):
     """Extractor class for the 'post_offices' entity."""
@@ -30,7 +33,6 @@ class PostOfficesExtractor(BaseExtractor):
         super().__init__(mappings_file, lang)
 
         self.language_code_mapping = self.get_mapping("language_code_mapping")
-
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract post office information.
@@ -52,7 +54,7 @@ class PostOfficesExtractor(BaseExtractor):
                 post_offices = address.get("postOffices", [])
                 target_language_code = self.language_code_mapping
 
-                    # Adjust target language code logic
+                # Adjust target language code logic
                 if target_language_code in ["1", "3"]:
                     target_language_code = "1"
                 elif target_language_code == "2":
@@ -60,15 +62,19 @@ class PostOfficesExtractor(BaseExtractor):
 
                 for po in post_offices:
                     if po.get("languageCode") == target_language_code:
-                        results.append({
-                            "businessId": business_id,
-                            "postCode": address.get("postCode", ""),
-                            "city": po.get("city", ""),
-                            "municipalityCode": po.get("municipalityCode", ""),
-                            "active": po.get("active", True),
-                        })
+                        results.append(
+                            {
+                                "businessId": business_id,
+                                "postCode": address.get("postCode", ""),
+                                "city": po.get("city", ""),
+                                "municipalityCode": po.get("municipalityCode", ""),
+                                "active": po.get("active", True),
+                            }
+                        )
             except Exception as e:
-                self.logger.error(f"Error processing address for businessId '{business_id}': {e}")
+                self.logger.error(
+                    f"Error processing address for businessId '{business_id}': {e}"
+                )
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -80,5 +86,7 @@ class PostOfficesExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed post office data.
         """
-        self.logger.info(f"Starting extraction for Post Offices. Input rows: {len(data)}")
+        self.logger.info(
+            f"Starting extraction for Post Offices. Input rows: {len(data)}"
+        )
         return self.process_data(data)

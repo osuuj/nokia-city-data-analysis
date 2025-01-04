@@ -11,20 +11,25 @@ Key Features:
 - Cleaning and formatting numeric data, including specific columns like `post_code`.
 - Deduplication of rows for data integrity.
 """
+
 import logging
 import re
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
-from typing import Any, Optional, List, Dict
 
 logger = logging.getLogger(__name__)
 
-def validate_against_schema(df: pd.DataFrame, entity_name: str, entities_config: Dict[str, Any]) -> pd.DataFrame:
+
+def validate_against_schema(
+    df: pd.DataFrame, entity_name: str, entities_config: List[Dict[str, Any]]
+) -> pd.DataFrame:
     """Validate DataFrame against the schema defined in entities_config.
 
     Args:
         df (pd.DataFrame): The DataFrame to validate.
         entity_name (str): The name of the entity being validated.
-        entities_config (Dict[str, Any]): Configuration for entities including validation schema.
+        entities_config (List[Dict[str, Any]]): Configuration for entities including validation schema.
 
     Returns:
         pd.DataFrame: The validated DataFrame.
@@ -32,29 +37,28 @@ def validate_against_schema(df: pd.DataFrame, entity_name: str, entities_config:
     Raises:
         ValueError: If the validation schema is not defined for the entity.
     """
-    entity_config = next((entity for entity in entities_config if entity["name"] == entity_name), None)
+    entity_config = next(
+        (entity for entity in entities_config if entity["name"] == entity_name), None
+    )
     if not entity_config or "validation" not in entity_config:
-        raise ValueError(f"No validation schema defined for entity '{entity_name}'")
+        raise ValueError(f"Validation schema not defined for entity: {entity_name}")
 
     validation_schema = entity_config["validation"]
     required_columns = validation_schema.get("required", [])
     column_types = validation_schema.get("columns", {})
 
-    for column in required_columns:
-        if column not in df.columns:
-            raise ValueError(f"Missing required column '{column}' in entity '{entity_name}'")
+    # Validate required columns
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        raise ValueError(f"Missing required columns: {missing_columns}")
 
-    # Validate column data types
-    for column, col_type in column_types.items():
+    # Validate column types
+    for column, expected_type in column_types.items():
         if column in df.columns:
-            if "DATE" in col_type:
-                df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
-            elif "VARCHAR" in col_type or "CHAR" in col_type:
-                df[column] = df[column].astype(str).replace("", None)
-            elif "INT" in col_type:
-                df[column] = pd.to_numeric(df[column], errors="coerce", downcast="integer")
-            elif "BOOLEAN" in col_type:
-                df[column] = df[column].astype(bool)
+            if not pd.api.types.is_dtype_equal(df[column].dtype, expected_type):
+                raise ValueError(
+                    f"Column '{column}' expected type '{expected_type}' but got '{df[column].dtype}'"
+                )
 
     return df
 
@@ -77,6 +81,7 @@ def clean_numeric_column(value: Any) -> Optional[str]:
         return str(value)
     except (ValueError, TypeError):
         return None
+
 
 def transform_column_names(df: pd.DataFrame) -> pd.DataFrame:
     """Transform column names to snake_case without excessive underscores.
@@ -118,6 +123,7 @@ def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """Remove duplicate rows from a DataFrame.
 
@@ -128,43 +134,6 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: A deduplicated DataFrame.
     """
     return df.drop_duplicates()
-
-
-def clean_registered_entries(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
-    """Custom cleaning logic for registered entries.
-
-    Args:
-        df (pd.DataFrame): DataFrame for the registered entries entity.
-        specific_columns (List[str]): Columns requiring specific cleaning.
-
-    Returns:
-        pd.DataFrame: Cleaned DataFrame.
-    """
-    # Validate 'type' column to ensure it contains only numeric values
-    df["type"] = pd.to_numeric(df["type"], errors="coerce")
-    df = df.dropna(subset=["type"])
-    df["type"] = df["type"].astype(int)
-
-    # Apply specific column cleaning
-    for column in specific_columns:
-        if column in df.columns:
-            df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
-
-    return df
-
-def clean_registered_entry_descriptions(df: pd.DataFrame) -> pd.DataFrame:
-    """Custom cleaning logic for registered entry descriptions.
-
-    Args:
-        df (pd.DataFrame): DataFrame for the registered entry descriptions entity.
-
-    Returns:
-        pd.DataFrame: Cleaned DataFrame.
-    """
-    df["entry_type"] = pd.to_numeric(df["entry_type"], errors="coerce")
-    df = df.dropna(subset=["entry_type"])
-    df["entry_type"] = df["entry_type"].astype(int)
-    return df
 
 
 def clean_addresses(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
@@ -183,21 +152,55 @@ def clean_addresses(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFra
     return df
 
 
-def clean_companies(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
-    """Custom cleaning logic for companies.
+def clean_company_forms(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for company forms.
 
     Args:
-        df (pd.DataFrame): DataFrame for the companies entity.
+        df (pd.DataFrame): DataFrame for the company forms entity.
         specific_columns (List[str]): Columns requiring specific cleaning.
 
     Returns:
         pd.DataFrame: Cleaned DataFrame.
     """
-    
     for column in specific_columns:
-        if column in specific_columns and column in df.columns:
-            df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
+        if column in df.columns:
+            df[column] = df[column].apply(clean_numeric_column)
     return df
+
+
+def clean_main_business_lines(
+    df: pd.DataFrame, specific_columns: List[str]
+) -> pd.DataFrame:
+    """Custom cleaning logic for main business lines.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the main business lines entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    for column in specific_columns:
+        if column in df.columns:
+            df[column] = df[column].apply(clean_numeric_column)
+    return df
+
+
+def clean_names(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
+    """Custom cleaning logic for names.
+
+    Args:
+        df (pd.DataFrame): DataFrame for the names entity.
+        specific_columns (List[str]): Columns requiring specific cleaning.
+
+    Returns:
+        pd.DataFrame: Cleaned DataFrame.
+    """
+    for column in specific_columns:
+        if column in df.columns:
+            df[column] = df[column].apply(clean_numeric_column)
+    return df
+
 
 def clean_post_offices(df: pd.DataFrame, specific_columns: List[str]) -> pd.DataFrame:
     """Custom cleaning logic for post offices.

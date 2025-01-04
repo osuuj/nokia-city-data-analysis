@@ -20,9 +20,9 @@ entities:
       columns:
         business_id: "VARCHAR(20)"
         website: "VARCHAR(255)"
-        registration_date: "DATE"
+        company_id_status: "VARCHAR(50)"
         trade_register_status: "VARCHAR(50)"
-        status: "VARCHAR(50)"
+        registration_date: "DATE"
         end_date: "DATE"
         last_modified: "DATE"
       required:
@@ -32,20 +32,21 @@ entities:
 
   - name: "names"
     table: "names"
+    specific_columns: ["version"]
     extractor: "etl.pipeline.extract.names_extractor.NamesExtractor"
     validation:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        name: "VARCHAR(255)"
-        type: "VARCHAR(50)"
+        company_name: "VARCHAR(255)"
+        version: "INT"
+        company_type: "VARCHAR(50)"
         registration_date: "DATE"
         end_date: "DATE"
-        version: "INT"
         source: "VARCHAR(255)"
       required:
         - business_id
-        - name
+        - company_name
 
   - name: "addresses"
     table: "addresses"
@@ -74,18 +75,20 @@ entities:
 
   - name: "main_business_lines"
     table: "main_business_lines"
+    specific_columns: ["industry_code"]
     extractor: "etl.pipeline.extract.main_business_lines_extractor.MainBusinessLinesExtractor"
     validation:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        type: "VARCHAR(255)"
-        type_code_set: "VARCHAR(50)"
+        industry_code_: "VARCHAR(50)"
+        industry: "VARCHAR(255)"
+        industry_description: "VARCHAR(255)"
         registration_date: "DATE"
         source: "VARCHAR(255)"
       required:
         - business_id
-        - type
+        - industry
 
   - name: "registered_entries"
     table: "registered_entries"
@@ -95,33 +98,35 @@ entities:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        type: "VARCHAR(10)"
+        registration_status_code: "VARCHAR(50)"
         registration_date: "DATE"
         end_date: "DATE"
         register: "VARCHAR(255)"
         authority: "VARCHAR(255)"
       required:
         - business_id
-        - type
+        - registration_status_code
+
   - name: "company_forms"
     table: "company_forms"
+    specific_columns: ["version"]
     extractor: "etl.pipeline.extract.company_forms_extractor.CompanyFormsExtractor"
     validation:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        type: "INT"
+        business_form: "VARCHAR(50)"
+        version: "INT"
         registration_date: "DATE"
         end_date: "DATE"
-        version: "INT"
         source: "VARCHAR(255)"
       required:
         - business_id
-        - type
-       
+        - business_form
+
   - name: "post_offices"
     table: "post_offices"
-    specific_columns: ["post_code"]
+    specific_columns: ["post_code","municipality_code"]
     extractor: "etl.pipeline.extract.post_offices_extractor.PostOfficesExtractor"
     validation:
       columns:

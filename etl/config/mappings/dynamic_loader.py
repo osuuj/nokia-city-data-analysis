@@ -17,6 +17,7 @@ from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 import yaml
+
 from etl.config.config_loader import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,9 @@ logger = logging.getLogger(__name__)
 # Constants derived from CONFIG
 TOIMI_FILES_PATH = Path(CONFIG["config_files"]["toimi_files_path"])
 INDUSTRY_2025_FILE = Path(CONFIG["config_files"]["industry_2025_file"])
-LANGUAGES = CONFIG["languages"].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
+LANGUAGES = CONFIG[
+    "languages"
+].values()  # Extract language codes (e.g., ["fi", "en", "sv"])
 CATEGORIES = CONFIG["codes"]  # Supported TOIMI categories
 
 # Default YAML mappings key
@@ -86,8 +89,12 @@ class DynamicLoader:
                     key, value = line.split("\t", 1)
                     mapping[key.strip()] = value.strip()
                 except ValueError as e:
-                    logger.error(f"Error parsing line in file {file_path}: {line} - {e}")
-                    raise ValueError(f"Error parsing line in file {file_path}: {line} - {e}")
+                    logger.error(
+                        f"Error parsing line in file {file_path}: {line} - {e}"
+                    )
+                    raise ValueError(
+                        f"Error parsing line in file {file_path}: {line} - {e}"
+                    )
 
         return mapping
 
@@ -96,9 +103,14 @@ class DynamicLoader:
 
         Returns:
             Dict[str, Dict[str, str]]: The loaded industry 2025 mapping data.
+
+        Raises:
+            FileNotFoundError: If the industry 2025 file does not exist.
         """
         if not INDUSTRY_2025_FILE.exists():
-            raise FileNotFoundError(f"Industry 2025 file not found: {INDUSTRY_2025_FILE}")
+            raise FileNotFoundError(
+                f"Industry 2025 file not found: {INDUSTRY_2025_FILE}"
+            )
 
         industry_mapping = {}
         df = pd.read_csv(INDUSTRY_2025_FILE)
@@ -108,7 +120,7 @@ class DynamicLoader:
                 "fi": row["Title_fi"],
                 "en": row["Title_en"],
                 "sv": row["Title_sv"],
-                "category": row["Category"]
+                "category": row["Category"],
             }
 
         return industry_mapping
@@ -166,9 +178,11 @@ class Mappings:
             KeyError: If the required mappings key is missing in the YAML file.
             yaml.YAMLError: If there is an error parsing the YAML file.
         """
-        return DynamicLoader()._load_yaml_file(self.mappings_file)
+        return DynamicLoader()._load_yaml_file(str(self.mappings_file))
 
-    def get_mapping(self, mapping_name: str, language: Optional[str] = None) -> Union[Dict[str, Any], str]:
+    def get_mapping(
+        self, mapping_name: str, language: Optional[str] = None
+    ) -> Union[Dict[str, Any], str]:
         """Retrieve a specific mapping for a given language.
 
         Args:
@@ -184,18 +198,26 @@ class Mappings:
         """
         mapping = self.mappings.get(mapping_name)
         if mapping is None:
-            raise KeyError(f"Mapping '{mapping_name}' not found in {self.mappings_file}.")
+            raise KeyError(
+                f"Mapping '{mapping_name}' not found in {self.mappings_file}."
+            )
 
         if isinstance(mapping, dict) and language:
             if language in mapping:
                 return mapping[language]
-            raise KeyError(f"Language '{language}' not supported for mapping '{mapping_name}'.")
+            raise KeyError(
+                f"Language '{language}' not supported for mapping '{mapping_name}'."
+            )
 
         if isinstance(mapping, (str, dict)):
             return mapping
-        raise TypeError(f"Unexpected type for mapping '{mapping_name}': {type(mapping).__name__}")
+        raise TypeError(
+            f"Unexpected type for mapping '{mapping_name}': {type(mapping).__name__}"
+        )
 
-    def validate_mapping(self, mapping_name: str, language: Optional[str] = None) -> bool:
+    def validate_mapping(
+        self, mapping_name: str, language: Optional[str] = None
+    ) -> bool:
         """Validate a mapping for a given language and mapping name.
 
         Args:

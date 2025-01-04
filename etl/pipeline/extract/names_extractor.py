@@ -52,20 +52,30 @@ class NamesExtractor(BaseExtractor):
 
         for name in company.get("names", []):
             try:
-                mapped_type = self.map_value(name.get("type", ""), self.name_type_mapping)
-                mapped_source = self.map_value(name.get("source", ""), self.source_mapping)
+                mapped_type = self.map_value(
+                    name.get("type", ""), self.name_type_mapping
+                )
+                mapped_source = self.map_value(
+                    name.get("source", ""), self.source_mapping
+                )
 
-                results.append({
-                    "businessId": business_id,
-                    "companyName": name.get("name", ""),
-                    "version": name.get("version", 0),
-                    "companyType": mapped_type,
-                    "registrationDate": self.parse_date(name.get("registrationDate")),
-                    "endDate": self.parse_date(name.get("endDate")),
-                    "source": mapped_source
-                })
+                results.append(
+                    {
+                        "businessId": business_id,
+                        "companyName": name.get("name", ""),
+                        "version": name.get("version", 0),
+                        "companyType": mapped_type,
+                        "registrationDate": self.parse_date(
+                            name.get("registrationDate")
+                        ),
+                        "endDate": self.parse_date(name.get("endDate")),
+                        "source": mapped_source,
+                    }
+                )
             except Exception as e:
-                self.logger.error(f"Error processing name for businessId '{business_id}': {e}")
+                self.logger.error(
+                    f"Error processing name for businessId '{business_id}': {e}"
+                )
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -77,5 +87,7 @@ class NamesExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed company names data.
         """
-        self.logger.info(f"Starting extraction for Company Names. Input rows: {len(data)}")
+        self.logger.info(
+            f"Starting extraction for Company Names. Input rows: {len(data)}"
+        )
         return self.process_data(data)

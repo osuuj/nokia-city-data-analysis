@@ -90,7 +90,7 @@ if __name__ == "__main__":
         engine = create_engine(DATABASE_URL)
 
         # Create tables
-        create_tables(engine, db_schema)
+        create_tables(engine, str(db_schema))
 
         # Load data into the database
         load_data(engine, processed_data_path, entities)

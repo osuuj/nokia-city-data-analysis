@@ -157,7 +157,7 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
     all_rows = []
     try:
         with json_file.open("r", encoding="utf-8") as file:
-          
+
             data = json.load(file)
             if isinstance(data, list):
                 all_rows.extend(data)
@@ -200,16 +200,16 @@ def process_and_clean_entities(config: Dict[str, Any], start_index: int) -> None
         data_records = process_json_file(json_file)
         start_index = process_entities(data_records, config, start_index)
 
-    #for entity in config["entities"]:
-    #    entity_name = entity["name"]
-    #    specific_columns = entity.get("specific_columns", [])
-    #    logger.info(f"Starting cleaning for entity: {entity_name}")
-    #    clean_entity_files(
-    #        str(processed_dir / "extracted"),
-    #        str(cleaned_dir),
-    #        entity_name,
-    #        specific_columns,
-    #    )
+    for entity in config["entities"]:
+        entity_name = entity["name"]
+        specific_columns = entity.get("specific_columns", [])
+        logger.info(f"Starting cleaning for entity: {entity_name}")
+        clean_entity_files(
+            str(processed_dir / "extracted"),
+            str(cleaned_dir),
+            entity_name,
+            specific_columns,
+        )
 
 
 def run_etl_pipeline() -> None:
@@ -222,18 +222,18 @@ def run_etl_pipeline() -> None:
         setup_environment(config)
 
         # Download raw data
-        #extracted_dir = download_raw_data(config)
+        extracted_dir = download_raw_data(config)
 
         # Download mappings
-        #download_mappings(config)
+        download_mappings(config)
 
         # Split JSON file into smaller chunks
-        #input_json_file = get_first_json_file(extracted_dir)
-        #split_json_to_files(
-        #    input_json_file,
-        #    Path(config["directory_structure"]["processed_dir"]) / "chunks",
-        #    config["chunk_size"],
-        #)
+        input_json_file = get_first_json_file(extracted_dir)
+        split_json_to_files(
+            input_json_file,
+            Path(config["directory_structure"]["processed_dir"]) / "chunks",
+            config["chunk_size"],
+        )
 
         # Process and clean entities
         process_and_clean_entities(config, start_index=1)

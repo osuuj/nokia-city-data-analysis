@@ -11,10 +11,12 @@ Key Features:
 - Comprehensive logging and error handling for skipped or invalid records.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 import pandas as pd
-from etl.pipeline.extract.base_extractor import BaseExtractor
+
 from etl.config.mappings.dynamic_loader import DynamicLoader
+from etl.pipeline.extract.base_extractor import BaseExtractor
 
 
 class MainBusinessLinesExtractor(BaseExtractor):
@@ -70,7 +72,9 @@ class MainBusinessLinesExtractor(BaseExtractor):
             mapping = self.dynamic_loader.load_toimi_mapping(type_code_set, self.lang)
             mapped_name = mapping.get(type_code, "")
             source = main_business_line.get("source")
-            mapped_source = self.map_value(source, self.source_mapping) if source else None
+            mapped_source = (
+                self.map_value(source, self.source_mapping) if source else None
+            )
 
             # Extract industry 2025 title
             industry_title = self.get_industry_title(type_code)
@@ -81,12 +85,16 @@ class MainBusinessLinesExtractor(BaseExtractor):
                     "industryCode": type_code,
                     "industry": industry_title,
                     "industryDescription": mapped_name,
-                    "registrationDate": self.parse_date(main_business_line.get("registrationDate", "")),
+                    "registrationDate": self.parse_date(
+                        main_business_line.get("registrationDate", "")
+                    ),
                     "source": mapped_source,
                 }
             )
         except Exception as e:
-            self.logger.error(f"Error processing main business line for businessId '{business_id}': {e}")
+            self.logger.error(
+                f"Error processing main business line for businessId '{business_id}': {e}"
+            )
 
         return results
 
@@ -120,5 +128,7 @@ class MainBusinessLinesExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed main business line data.
         """
-        self.logger.info(f"Starting extraction for Main Business Lines. Input rows: {len(data)}")
+        self.logger.info(
+            f"Starting extraction for Main Business Lines. Input rows: {len(data)}"
+        )
         return self.process_data(data)

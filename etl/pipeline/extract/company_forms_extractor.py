@@ -11,8 +11,11 @@ Key Features:
 """
 
 from typing import Any, Dict, List
+
 import pandas as pd
+
 from etl.pipeline.extract.base_extractor import BaseExtractor
+
 
 class CompanyFormsExtractor(BaseExtractor):
     """Extractor class for the 'company_forms' entity."""
@@ -44,11 +47,11 @@ class CompanyFormsExtractor(BaseExtractor):
         lang_code = self.language_code_mapping
         if not lang_code:
             return ""
-        
+
         for description in descriptions:
             if description.get("languageCode") == lang_code:
                 return description.get("description", "")
-        
+
         return ""
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -80,14 +83,16 @@ class CompanyFormsExtractor(BaseExtractor):
                     {
                         "businessId": business_id,
                         "businessForm": business_form,
-                        "version": form.get("version", 0),
-                        "registrationDate": self.parse_date(form.get("registrationDate")),
+                        "version": self.parse_date(form.get("version", 0)),
+                        "registrationDate": self.parse_date(
+                            form.get("registrationDate")
+                        ),
                         "endDate": self.parse_date(form.get("endDate")),
-                        "source": mapped_source
+                        "source": mapped_source,
                     }
                 )
             except Exception as e:
-                continue
+                self.logger.error(f"Error processing form: {form}, error: {e}")
         return results
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
