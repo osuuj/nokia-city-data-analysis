@@ -83,7 +83,7 @@ class CompanyFormsExtractor(BaseExtractor):
                     {
                         "businessId": business_id,
                         "businessForm": business_form,
-                        "version": self.parse_date(form.get("version", 0)),
+                        "version": form.get("version", 0),
                         "registrationDate": self.parse_date(
                             form.get("registrationDate")
                         ),
