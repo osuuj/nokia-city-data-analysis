@@ -133,7 +133,11 @@ class BaseExtractor:
         Returns:
             Optional[str]: The business ID, or None if not found.
         """
-        return company.get("businessId")
+        business_id = company.get("businessId", {}).get("value")
+        if not business_id:
+            self.logger.debug("Skipping company without businessId.")
+            return None
+        return business_id
 
     def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Process the entire DataFrame.
