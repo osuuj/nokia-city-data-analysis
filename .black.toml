@@ -12,7 +12,6 @@ exclude = '''
   | docs
   | venvs
   | db
-  | server
   | build
   | dist
 )/

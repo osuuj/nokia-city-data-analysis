@@ -1,3 +1,5 @@
+from typing import Any, Dict, List
+
 from sqlalchemy.orm import Session
 
 from server.backend.models.company import Address, Company, Name
@@ -5,7 +7,7 @@ from server.backend.models.company import Address, Company, Name
 
 def get_paginated_companies_with_postal_addresses(
     db: Session, page: int, page_size: int
-):
+) -> List[Dict[str, Any]]:
     # Paginated query
     results = (
         db.query(Company, Address, Name)

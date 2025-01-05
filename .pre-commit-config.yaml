@@ -10,7 +10,7 @@ repos:
       - id: check-added-large-files
         files: ^(etl|server)/
       - id: requirements-txt-fixer
-        files: ^(etl|server)/
+        files: ^(etl|server)/requirements.txt
       - id: forbid-new-submodules
         files: ^(etl|server)/
       - id: no-commit-to-branch
@@ -48,6 +48,7 @@ repos:
         additional_dependencies:
         - pydantic[mypy]
         - sqlalchemy2-stubs
+        - types-PyYAML
         files: ^(etl|server)/
 
   - repo: https://github.com/terrencepreilly/darglint
