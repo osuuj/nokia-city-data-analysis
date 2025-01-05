@@ -98,7 +98,7 @@ entities:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        registration_status_code: "VARCHAR(50)"
+        registration_status_code: "VARCHAR(100)"
         registration_date: "DATE"
         end_date: "DATE"
         register: "VARCHAR(255)"
@@ -115,7 +115,7 @@ entities:
       columns:
         id: "SERIAL"
         business_id: "VARCHAR(20)"
-        business_form: "VARCHAR(50)"
+        business_form: "VARCHAR(100)"
         version: "INT"
         registration_date: "DATE"
         end_date: "DATE"

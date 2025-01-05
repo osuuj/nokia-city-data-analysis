@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS main_business_lines (
 CREATE TABLE IF NOT EXISTS registered_entries (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
-    registration_status_code VARCHAR(50) NOT NULL,  -- Type of registered entry
+    registration_status_code VARCHAR(100) NOT NULL,  -- Type of registered entry
     registration_date DATE,                      -- Date when the entry was registered
     end_date DATE,                               -- End date for the entry, if applicable
     register VARCHAR(255),                       -- The register in which the entry is recorded
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS registered_entries (
 CREATE TABLE IF NOT EXISTS company_forms (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
-    business_form VARCHAR(50),                   -- Type of company form (e.g., "Ltd", "PLC")
+    business_form VARCHAR(100),                   -- Type of company form (e.g., "Ltd", "PLC")
     version INT,                                 -- Version of the company form
     registration_date DATE,                      -- Date when the company form was registered
     end_date DATE,                               -- End date for the company form, if applicable
