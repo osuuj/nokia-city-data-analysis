@@ -148,7 +148,6 @@ entities:
         business_id: "VARCHAR(20)"
         type: "VARCHAR(100)"
         registration_date: "DATE"
-        end_date: "DATE"
         source: "VARCHAR(255)"
       required:
         - business_id
