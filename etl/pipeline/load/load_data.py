@@ -22,41 +22,39 @@ processed_dir = Path(CONFIG["directory_structure"]["processed_dir"])
 processed_data_path = processed_dir / "cleaned"
 db_schema = Path(CONFIG["directory_structure"]["db_schema_path"])
 entities = CONFIG["entities"]
+print(db_schema)
 
 
-def create_tables(engine: Engine, schema_file: Path) -> None:
-    """Create database tables from the schema SQL file.
+def create_tables(engine: Engine, db_schema: str) -> None:
+    """Create tables in the database based on the provided schema.
 
     Args:
-        engine (Engine): SQLAlchemy database engine.
-        schema_file (Path): Path to the SQL schema file.
+        engine: SQLAlchemy engine object.
+        db_schema (str): Path to the SQL schema file.
 
     Raises:
-        IOError: If the schema file cannot be read.
-        SQLAlchemyError: If an error occurs during table creation.
+        ValueError: If table creation fails.
     """
-    try:
-        schema_sql = schema_file.read_text()
-        with engine.connect() as connection:
-            for statement in schema_sql.split(";"):
+    with engine.connect() as connection:
+        with open(db_schema, "r") as schema_file:
+            schema_sql = schema_file.read()
+            statements = schema_sql.split(";")
+            for statement in statements:
                 if statement.strip():
-                    connection.execute(text(statement))
-        print("Tables created successfully.")
-    except IOError as e:
-        print(f"Error reading schema file: {e}")
-        raise
-    except SQLAlchemyError as e:
-        print(f"Error creating tables: {e}")
-        raise
+                    try:
+                        connection.execute(text(statement))
+                    except SQLAlchemyError as e:
+                        print(f"Error creating tables: {e}")
+                        raise ValueError(f"Error creating tables: {e}")
 
 
 def load_data(
     engine: Engine, processed_data_path: Path, entities: List[Dict[str, str]]
 ) -> None:
-    """Load processed CSV files into the database.
+    """Load processed data into the database.
 
     Args:
-        engine (Engine): SQLAlchemy database engine.
+        engine: SQLAlchemy engine object.
         processed_data_path (Path): Path to the processed data directory.
         entities (List[Dict[str, str]]): List of entity configurations with 'name' and 'table' keys.
 
@@ -71,7 +69,7 @@ def load_data(
 
         for file_path in folder_path.glob("*.csv"):
             try:
-                # Load the CSV into a DataFrame
+                # Load the cleaned CSV into a DataFrame
                 df = pd.read_csv(file_path)
 
                 # Write the DataFrame to the database
@@ -91,12 +89,12 @@ if __name__ == "__main__":
         # Create the database engine
         engine = create_engine(DATABASE_URL)
 
-        # Step 1: Create tables
-        create_tables(engine, db_schema)
+        # Create tables
+        create_tables(engine, str(db_schema))
 
-        # Step 2: Load data into the database
+        # Load data into the database
         load_data(engine, processed_data_path, entities)
 
+        print("ETL process completed successfully.")
     except Exception as e:
         print(f"ETL process failed: {e}")
-        raise

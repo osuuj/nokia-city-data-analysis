@@ -1,4 +1,4 @@
 [darglint]
 docstring_style = google
 strictness = short
-ignore = DAR402
+ignore = DAR402, DAR202

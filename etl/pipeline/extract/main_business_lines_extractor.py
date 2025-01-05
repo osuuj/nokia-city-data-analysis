@@ -1,13 +1,14 @@
-"""Extractor for Main Business Line Data.
+"""Extractor for Main Business Lines Data.
 
-This module defines the `MainBusinessLinesExtractor` class, responsible for extracting
-and processing main business line data from raw company records. It utilizes TOIMI
-mappings for type mapping and supports language-specific processing.
+This module defines the `MainBusinessLinesExtractor` class, responsible for extracting and
+processing main business line data from raw company records. It validates data against
+mappings and supports language-specific transformations.
 
 Key Features:
-- Language-specific mappings using TOIMI mappings.
-- Robust error handling and logging for incomplete or invalid data.
-- Modular and reusable design for ETL pipelines.
+- Dynamic mapping resolution for fields like industry codes.
+- Handles nested fields like source mappings.
+- Modular class-based design for reusability in ETL pipelines.
+- Comprehensive logging and error handling for skipped or invalid records.
 """
 
 from typing import Any, Dict, List
@@ -21,7 +22,7 @@ from etl.pipeline.extract.base_extractor import BaseExtractor
 class MainBusinessLinesExtractor(BaseExtractor):
     """Extractor class for the 'main_business_lines' entity."""
 
-    def __init__(self, mappings_file: str, lang: str):
+    def __init__(self, mappings_file: str, lang: str) -> None:
         """Initialize the extractor with mappings and language preferences.
 
         Args:
@@ -30,15 +31,12 @@ class MainBusinessLinesExtractor(BaseExtractor):
 
         Raises:
             ValueError: If the language code is invalid for TOIMI mappings.
+            KeyError: If the TOIMI mappings are not found in the mappings file.
         """
         super().__init__(mappings_file, lang)
-
-        # Load and validate TOIMI mappings
-        loader = DynamicLoader()
-        self.toimi_mappings = loader.load_toimi_mappings()
-        if lang not in self.toimi_mappings.get("TOIMI", {}):
-            self.logger.error(f"Invalid language code for TOIMI mappings: {lang}")
-            raise ValueError(f"Invalid language code for TOIMI mappings: {lang}")
+        self.dynamic_loader = DynamicLoader()
+        self.source_mapping = self.get_mapping("source_mapping")
+        self.industry_2025_mapping = self.dynamic_loader.load_industry_2025_mapping()
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract main business line information.
@@ -52,37 +50,74 @@ class MainBusinessLinesExtractor(BaseExtractor):
         results: List[Dict[str, Any]] = []
         business_id = self.get_business_id(company)
         if not business_id:
-            return results  # Skip if no business ID
+            self.logger.warning("Skipping record with missing businessId.")
+            return results
 
-        main_business_line = company.get("mainBusinessLine", {})
-        if not main_business_line:
-            self.logger.debug(
-                f"No main business line found for businessId: {business_id}"
+        main_business_line = company.get("mainBusinessLine")
+        if not isinstance(main_business_line, dict):
+            self.logger.warning(
+                f"Expected 'mainBusinessLine' to be a dictionary, got {type(main_business_line)}"
+            )
+            return results
+
+        type_code_set = main_business_line.get("typeCodeSet")
+        type_code = main_business_line.get("type")
+        if not type_code_set or not type_code:
+            self.logger.warning(
+                f"Missing 'typeCodeSet' or 'type' in mainBusinessLine for businessId: {business_id}"
             )
             return results
 
         try:
-            # Extract and map type using TOIMI mappings
-            raw_type = main_business_line.get("type", "")
-            type_code_set = main_business_line.get("typeCodeSet", "TOIMI")
-            type_mapping = self.toimi_mappings.get(type_code_set, {}).get(self.lang, {})
-            mapped_type = self.map_value(raw_type, type_mapping)
+            mapping = self.dynamic_loader.load_toimi_mapping(type_code_set, self.lang)
+            mapped_name = mapping.get(type_code, "")
+            source = main_business_line.get("source")
+            mapped_source = (
+                self.map_value(source, self.source_mapping) if source else None
+            )
 
-            # Append the cleaned and mapped main business line data
+            # Extract industry 2025 title
+            industry_title = self.get_industry_title(type_code)
+
             results.append(
                 {
-                    "businessId": business_id,
-                    "type": mapped_type,
-                    "typeCodeSet": type_code_set,
-                    "registrationDate": main_business_line.get("registrationDate", ""),
-                    "source": main_business_line.get("source", ""),
+                    "business_id": business_id,
+                    "industryCode": type_code,
+                    "industry": industry_title,
+                    "industryDescription": mapped_name,
+                    "registrationDate": self.parse_date(
+                        main_business_line.get("registrationDate", "")
+                    ),
+                    "source": mapped_source,
                 }
             )
         except Exception as e:
             self.logger.error(
                 f"Error processing main business line for businessId '{business_id}': {e}"
             )
+
         return results
+
+    def get_industry_title(self, type_code: str) -> str:
+        """Get the industry title based on the type code and language.
+
+        Args:
+            type_code (str): The industry type code.
+
+        Returns:
+            str: The industry title in the specified language.
+        """
+        industry_title = ""
+        lang_column = self.lang
+
+        if type_code in self.industry_2025_mapping:
+            category = self.industry_2025_mapping[type_code]["category"]
+            for tol_code, data in self.industry_2025_mapping.items():
+                if tol_code == category:
+                    industry_title = data[lang_column]
+                    break
+
+        return industry_title
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
         """Extract and process main business line data from raw input.
@@ -96,5 +131,4 @@ class MainBusinessLinesExtractor(BaseExtractor):
         self.logger.info(
             f"Starting extraction for Main Business Lines. Input rows: {len(data)}"
         )
-        # Use the modularized process_data method from BaseExtractor
         return self.process_data(data)

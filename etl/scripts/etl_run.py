@@ -157,7 +157,7 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
     all_rows = []
     try:
         with json_file.open("r", encoding="utf-8") as file:
-            # Attempt to load as a JSON list
+
             data = json.load(file)
             if isinstance(data, list):
                 all_rows.extend(data)
@@ -167,7 +167,7 @@ def process_json_file(json_file: Path) -> pd.DataFrame:
                 )
     except json.JSONDecodeError:
         logger.info(f"Falling back to line-by-line parsing for {json_file}.")
-        # Line-by-line parsing for line-delimited JSON
+
         with json_file.open("r", encoding="utf-8") as file:
             for line in file:
                 try:

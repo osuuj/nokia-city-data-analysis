@@ -33,15 +33,15 @@ class CompaniesExtractor(BaseExtractor):
         """
         super().__init__(mappings_file, lang)
 
-        # Validate required mappings
-        if not self.validate_language("rek_kdi_mapping"):
-            raise ValueError("Invalid language for rek_kdi_mapping.")
-        if not self.validate_language("status_mapping"):
-            raise ValueError("Invalid language for status_mapping.")
+        required_mappings = ["rek_kdi_mapping", "status_mapping"]
+        for mapping in required_mappings:
+            if not self.get_mapping(mapping):
+                raise ValueError(
+                    f"Required mapping '{mapping}' is missing in the mappings file."
+                )
 
-        # Load mappings
-        self.rek_kdi_mapping = self.mappings.get_mapping("rek_kdi_mapping", lang)
-        self.status_mapping = self.mappings.get_mapping("status_mapping", lang)
+        self.rek_kdi_mapping = self.get_mapping("rek_kdi_mapping", lang)
+        self.status_mapping = self.get_mapping("status_mapping", lang)
 
     def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract relevant data.
@@ -53,13 +53,13 @@ class CompaniesExtractor(BaseExtractor):
             List[Dict[str, Any]]: A list containing a single extracted company record.
         """
         results: List[Dict[str, Any]] = []
-        try:
-            business_id = self.get_business_id(company)
-            if not business_id:
-                self.logger.debug("Skipping company without businessId.")
-                return results
 
-            # Extract and map values
+        business_id = self.get_business_id(company)
+        if not business_id:
+            self.logger.debug("Skipping company without businessId.")
+            return results
+
+        try:
             trade_status = self.map_value(
                 company.get("tradeRegisterStatus"), self.rek_kdi_mapping
             )
@@ -74,11 +74,11 @@ class CompaniesExtractor(BaseExtractor):
                 {
                     "businessId": business_id,
                     "website": website,
+                    "CompanyIdStatus": status,
+                    "tradeRegisterStatus": trade_status,
                     "registrationDate": self.parse_date(
                         company.get("registrationDate")
                     ),
-                    "tradeRegisterStatus": trade_status,
-                    "status": status,
                     "endDate": self.parse_date(company.get("endDate")),
                     "lastModified": self.parse_date(company.get("lastModified")),
                 }
@@ -99,8 +99,5 @@ class CompaniesExtractor(BaseExtractor):
             pd.DataFrame: Extracted and processed company data.
         """
         self.logger.info(f"Starting extraction for Companies. Input rows: {len(data)}")
-        if not data.empty:
-            self.logger.debug(f"Sample input data: {data.head(5).to_dict()}")
 
-        # Use the modularized process_data method from BaseExtractor
         return self.process_data(data)

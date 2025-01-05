@@ -18,6 +18,7 @@ config_files:
   toimi_files_path: etl/data/1_raw/mappings/  # Directory for TOIMI mappings
   entities_file: "etl/config/entities.yml"      # Path to the entities configuration file
   logging_config_file: "etl/config/logging/logging_config.yml"  # Path to the logging configuration file
+  industry_2025_file: "etl/config/mappings/industry_2025.csv"  # Path to the industry 2025 CSV file
 
 file_names:
   standard_log_file: "etl.log"         # Log file for general information

@@ -1,21 +1,21 @@
 CREATE TABLE IF NOT EXISTS companies (
         business_id VARCHAR(20) NOT NULL PRIMARY KEY,    -- Business ID
         website VARCHAR(255),                            -- Website URL    
-        registration_date DATE,                          -- Date of registration
+        company_id_status VARCHAR(50),                   -- Status of the company
         trade_register_status VARCHAR(50),               -- Trade register status
-        status VARCHAR(50),                              -- Status of the company      
+        registration_date DATE,                          -- Date of registration
         end_date DATE,                                   -- End date of the company
         last_modified DATE                               -- Last modified date
-    );
+);
 
 CREATE TABLE IF NOT EXISTS names (
     id SERIAL PRIMARY KEY,                       
     business_id VARCHAR(20) NOT NULL,            -- Business ID
-    name VARCHAR(255) NOT NULL,                  -- Name of the business
-    type VARCHAR(50),                            -- Type of the name (e.g., legal, trade)
+    company_name VARCHAR(255) NOT NULL,                  -- Name of the business
+    version INT NOT NULL DEFAULT 1,              -- Version number for name changes
+    company_type VARCHAR(50),                            -- Type of the name (e.g., legal, trade)
     registration_date DATE,                      -- Date when the name was registered
     end_date DATE,                               -- Date when the name was no longer valid
-    version INT NOT NULL DEFAULT 1,              -- Version number for name changes
     source VARCHAR(255),                          -- Source of the name information
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE
 );
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS addresses (
     entrance VARCHAR(50),                        -- Entrance details
     apartment_number VARCHAR(50),                -- Apartment number
     apartment_id_suffix VARCHAR(50),             -- Additional suffix for apartment ID
-    post_code VARCHAR(10),                       -- Postal code
     post_office_box VARCHAR(50),                 -- P.O. Box
+    post_code VARCHAR(10),                       -- Postal code
     co VARCHAR(255),                             -- Care of (c/o) field
     country VARCHAR(50) DEFAULT 'Unknown',       -- Country, defaulting to 'Unknown' if not provided
     free_address_line VARCHAR(255),              -- Free-form address line
@@ -42,18 +42,19 @@ CREATE TABLE IF NOT EXISTS addresses (
 CREATE TABLE IF NOT EXISTS main_business_lines (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
-    type VARCHAR(255),                           -- Business line type or description
-    type_code_set VARCHAR(50),                   -- Code set for categorizing the business line
+    industry_code VARCHAR(50),                   -- Code set for categorizing the business line
+    industry VARCHAR(255),                       -- Industry code or description
+    industry_description VARCHAR(255),                           -- Business line type or description
     registration_date DATE,                      -- Date when the business line was registered
     source VARCHAR(255),                         -- Source of the business line information
-    UNIQUE (business_id, type, type_code_set),   -- Ensure no duplicate entries for the same business line
+    UNIQUE (business_id, industry_code),   -- Ensure no duplicate entries for the same business line
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Maintain referential integrity
 );
 
 CREATE TABLE IF NOT EXISTS registered_entries (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
-    type VARCHAR(10) NOT NULL,                   -- Type of registered entry
+    registration_status_code VARCHAR(100) NOT NULL,  -- Type of registered entry
     registration_date DATE,                      -- Date when the entry was registered
     end_date DATE,                               -- End date for the entry, if applicable
     register VARCHAR(255),                       -- The register in which the entry is recorded
@@ -61,48 +62,26 @@ CREATE TABLE IF NOT EXISTS registered_entries (
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Maintain referential integrity
 );
 
-CREATE TABLE IF NOT EXISTS registered_entry_descriptions (
-    entry_type VARCHAR(10) PRIMARY KEY,          -- Type of registered entry, matches 'type' in registered_entries
-    description VARCHAR(255) NOT NULL           -- Detailed description of the entry type
-);
-
-CREATE TABLE IF NOT EXISTS company_form_descriptions (
-    type INT PRIMARY KEY,                        -- Type of company form (matches 'type' in company_forms)
-    description VARCHAR(255) NOT NULL           -- Detailed description of the company form
-);
-
 CREATE TABLE IF NOT EXISTS company_forms (
     id SERIAL PRIMARY KEY,                       -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,            -- Business ID (foreign key to companies table)
-    type INT NOT NULL,                           -- Type of company form (foreign key to company_form_descriptions table)
+    business_form VARCHAR(100),                   -- Type of company form (e.g., "Ltd", "PLC")
+    version INT,                                 -- Version of the company form
     registration_date DATE,                      -- Date when the company form was registered
     end_date DATE,                               -- End date for the company form, if applicable
-    version INT,                                 -- Version of the company form
     source VARCHAR(255),                         -- Source of the company form information
-    UNIQUE (business_id, type, version),         -- Prevent duplicate entries for the same company form version
-    FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE, -- Link to companies table
-    FOREIGN KEY (type) REFERENCES company_form_descriptions(type) -- Link to descriptions table
-);
-
-
-
-CREATE TABLE IF NOT EXISTS business_line_descriptions (
-    id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for unique rows
-    business_id VARCHAR(20) NOT NULL,           -- Business ID (foreign key to companies table)
-    language_code VARCHAR(5),                   -- Language code for the description (e.g., 'en', 'fi', 'sv')
-    description VARCHAR(255) NOT NULL,          -- Description of the business line
-    UNIQUE (business_id, language_code),        -- Ensure no duplicate descriptions for the same business in a language
+    UNIQUE (business_id, business_form, version),         -- Prevent duplicate entries for the same company form version
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
+
 
 CREATE TABLE IF NOT EXISTS post_offices (
     id SERIAL PRIMARY KEY,                      -- Auto-incrementing ID for unique rows
     business_id VARCHAR(20) NOT NULL,           -- Business ID (foreign key to companies table)
     post_code VARCHAR(10) NOT NULL,             -- Postcode for the post office
     city VARCHAR(100),                          -- City where the post office is located
-    active BOOLEAN DEFAULT TRUE,                -- Whether the post office is currently active
-    language_code VARCHAR(5),                   -- Language code for the post office (e.g., 'en', 'fi', 'sv')
     municipality_code INT,                      -- Municipality code for the location
+    active BOOLEAN DEFAULT TRUE,                -- Whether the post office is currently active
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
 );
 

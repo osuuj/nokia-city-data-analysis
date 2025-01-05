@@ -5,6 +5,7 @@ in `directory.yml` and `logging_config.yml`. It includes a custom `SensitiveData
 to sanitize sensitive information from log messages.
 """
 
+import logging
 import logging.config
 from pathlib import Path
 

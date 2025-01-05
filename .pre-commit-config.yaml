@@ -3,48 +3,61 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-toml
+        files: ^(etl|server)/
       - id: check-yaml
         args: ["--unsafe"]
+        files: ^(etl|server)/
       - id: check-added-large-files
+        files: ^(etl|server)/
       - id: requirements-txt-fixer
+        files: ^(etl|server)/requirements.txt
       - id: forbid-new-submodules
+        files: ^(etl|server)/
       - id: no-commit-to-branch
         args: ["--branch=main"]
+        files: ^(etl|server)/
       - id: detect-private-key
+        files: ^(etl|server)/
 
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
       - id: black
         args: ["--config", ".black.toml"]
+        files: ^(etl|server)/
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.8.4
+    rev: v0.8.6
     hooks:
       - id: ruff
         args: ["--config", "ruff.toml"]
+        files: ^(etl|server)/
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
     hooks:
       - id: isort
         args: ["--settings-path", ".isort.cfg"]
+        files: ^(etl|server)/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.14.1
     hooks:
       - id: mypy
         args: ["--config-file", "mypy.ini", "--exclude", "etl/data", "--install-types", "--non-interactive"]
         additional_dependencies:
         - pydantic[mypy]
         - sqlalchemy2-stubs
+        - types-PyYAML
+        files: ^(etl|server)/
 
   - repo: https://github.com/terrencepreilly/darglint
     rev: v1.8.1
     hooks:
       - id: darglint
         args: ["--docstring-style", "google"]
-        exclude: ^etl/data/ 
+        exclude: ^etl/data/
+        files: ^(etl|server)/
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.0
@@ -52,3 +65,4 @@ repos:
       - id: bandit
         args: ["--configfile", "bandit.yaml"]
         exclude: ^etl/data/
+        files: ^(etl|server)/
