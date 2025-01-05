@@ -101,39 +101,73 @@ This project aims to develop a data analysis and visualization system for Finnis
 ## File Structure Overview
 
 ```
-.
-├── etl                          # Extract, Transform, Load pipeline for processing data
-│   ├── config                   # Configuration files and scripts
-│   │   ├── db.yml               # Database configuration
-│   │   ├── directory.yml        # Directory mappings
-│   │   ├── etl.yml              # ETL-specific settings
-│   │   ├── logging              # Logging configurations
-│   │   │   ├── logging_config.py
-│   │   │   ├── logging_config.yml
-│   │   └── mappings             # Data mappings for transformations
-│   │       ├── dynamic_loader.py
-│   │       ├── mappings.yml
-│   ├── pipeline                 # Main ETL pipeline modules
-│   │   ├── extract              # Data extraction scripts
-│   │   │   ├── companies_extractor.py
-│   │   │   └── names_extractor.py
-│   │   ├── load                 # Data loading scripts
-│   │   │   └── load_data.py
-│   │   ├── transform            # Data transformation scripts
-│   │       └── cleaning.py
-│   └── data                     # Data storage folders
-│       ├── 1_raw                # Raw input data
-│       ├── 2_extracted          # Extracted JSON data
-│       ├── 3_processed          # Processed data chunks
-│       └── logs                 # Log files
-├── requirements.txt             # Python dependencies
-├── scripts                      # Scripts for running ETL and related tasks
-│   ├── data_fetcher.py          # Fetches data from external sources
-│   ├── entity_processing.py     # Processes extracted entities
-│   └── etl_run.py               # Main ETL execution script
-└── utils                        # Utility modules for common functionality
-    ├── cleaning_utils.py        # Utility functions for data cleaning
-    ├── file_system_utils.py     # File system operations
-    └── network_utils.py         # Network operations
+nokia-city-data-analysis/
+├── CONTRIBUTING.md               # Contribution guidelines
+├── README.md                     # Project overview and setup instructions
+├── bandit.yaml                   # Security configuration
+├── docker-compose.yml            # Docker Compose configuration
+├── mypy.ini                      # Mypy type checker configuration
+├── ruff.toml                     # Ruff linter configuration
+├── etl/                          # ETL (Extract, Transform, Load) scripts
+│   ├── __init__.py
+│   ├── config/                   # Configuration files
+│   │   ├── __init__.py
+│   │   ├── config_loader.py
+│   │   ├── db.yml
+│   │   ├── directory.yml
+│   │   └── ...                   # Additional config files
+│   ├── data/                     # Data storage
+│   │   ├── 1_raw/
+│   │   ├── 2_extracted/
+│   │   ├── 3_processed/
+│   │   └── logs/
+│   │       ├── etl.log
+│   │       └── etl_debug.log
+│   ├── pipeline/                 # ETL pipeline scripts
+│   │   ├── extract/
+│   │   ├── load/
+│   │   └── transform/
+│   ├── scripts/                  # Execution scripts
+│   │   ├── data_fetcher.py
+│   │   ├── entity_processing.py
+│   │   └── etl_run.py
+│   └── utils/                    # Utility modules
+│       ├── cleaning_utils.py
+│       ├── dynamic_imports.py
+│       └── file_system_utils.py
+├── frontend/                     # Frontend application
+│   ├── package.json
+│   ├── public/
+│   └── src/
+│       ├── App.js
+│       ├── components/
+│       │   ├── Map.js
+│       │   └── SearchForm.js
+│       └── services/
+│           └── api.js
+├── server/                       # Backend server
+│   ├── backend/
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   ├── models/
+│   │   │   └── company.py
+│   │   ├── routers/
+│   │   │   └── companies.py
+│   │   ├── schemas/
+│   │   │   └── company.py
+│   │   └── services/
+│   │       └── company_service.py
+│   ├── db/
+│   │   └── schema.sql
+│   ├── requirements.txt          # Backend dependencies
+│   └── tests/                    # Test scripts
+│       ├── test_db_connection.py
+│       └── test_queries.ipynb
+└── venvs/                        # Virtual environments
+    ├── etl_env/
+    ├── fastapi_env/
+    └── react_env/
+
 ```
 

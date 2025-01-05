@@ -64,7 +64,6 @@ class CompanySituationsExtractor(BaseExtractor):
                         "registrationDate": self.parse_date(
                             situation.get("registrationDate")
                         ),
-                        "endDate": self.parse_date(situation.get("endDate")),
                         "source": mapped_source,
                     }
                 )

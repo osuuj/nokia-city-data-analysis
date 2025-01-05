@@ -90,7 +90,6 @@ CREATE TABLE IF NOT EXISTS company_situations (
     business_id VARCHAR(20) NOT NULL,           -- Business ID (foreign key to companies table)
     type VARCHAR(100) NOT NULL,                 -- Type of situation (e.g., "Bankruptcy", "Merger")
     registration_date DATE NOT NULL,            -- Date when the situation was registered
-    end_date DATE,                              -- Date when the situation ended (if applicable)
     source VARCHAR(255),                        -- Source of the situation information
     UNIQUE (business_id, type, registration_date), -- Ensure unique situations per business
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Link to companies table
