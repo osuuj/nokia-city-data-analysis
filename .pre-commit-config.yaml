@@ -1,3 +1,4 @@
+# filepath: /home/justus/repos/etl-to-visualization/nokia-city-data-analysis/.pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -44,11 +45,11 @@ repos:
     rev: v1.14.1
     hooks:
       - id: mypy
-        args: ["--config-file", "mypy.ini", "--exclude", "etl/data", "--install-types", "--non-interactive"]
+        args: ["--config-file", "mypy.ini", "--exclude", "etl/data", "--non-interactive"]
         additional_dependencies:
         - pydantic[mypy]
-        - sqlalchemy2-stubs
         - types-PyYAML
+        - sqlalchemy2-stubs
         files: ^(etl|server)/
 
   - repo: https://github.com/terrencepreilly/darglint

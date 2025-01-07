@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from server.backend.routers import companies
 
-app = FastAPI()
+app = FastAPI(debug=True)  # Enable debug mode
 
 # Include the companies router
 app.include_router(companies.router)
