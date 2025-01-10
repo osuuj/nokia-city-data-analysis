@@ -8,6 +8,8 @@ This script is responsible for:
 It uses SQLAlchemy for database interactions and pandas for reading and handling CSV data.
 """
 
+import logging
+import time
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -18,12 +20,15 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from etl.config.config_loader import CONFIG, DATABASE_URL
 
+# Enable SQLAlchemy logging
+logging.basicConfig()
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+
 # Define paths and configurations
 processed_dir = Path(CONFIG["directory_structure"]["processed_dir"])
 processed_data_path = processed_dir / "cleaned"
 db_schema = Path(CONFIG["directory_structure"]["db_schema_path"])
 entities = CONFIG["entities"]
-print(db_schema)
 
 
 def create_tables(engine: Engine, db_schema: str) -> None:
@@ -49,36 +54,65 @@ def create_tables(engine: Engine, db_schema: str) -> None:
                         raise ValueError(f"Error creating tables: {e}")
 
 
-def remove_duplicates(engine: Engine, table: str, unique_columns: List[str]) -> None:
-    """Remove duplicate rows from the specified table based on unique columns.
+def remove_duplicates(engine: Engine, table: str) -> None:
+    """Remove duplicate rows from the specified table using a CTE.
 
     Args:
         engine: SQLAlchemy engine object.
         table (str): Name of the table to remove duplicates from.
-        unique_columns (List[str]): List of columns to identify duplicates.
+
+    Raises:
+        ValueError: If no columns are found for the table.
+        Exception: If there is an error removing duplicates from the table.
     """
     with engine.connect() as connection:
-        query = text(
-            """
-            WITH duplicates AS (
-                SELECT
-                    ctid,
-                    ROW_NUMBER() OVER (PARTITION BY :unique_columns ORDER BY ctid) AS rnum
-                FROM
-                    :table
+        try:
+            # Get the column names for the table
+            result = connection.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = :table"
+                ),
+                {"table": table},
             )
-            DELETE FROM :table
-            WHERE ctid IN (
-                SELECT ctid
-                FROM duplicates
-                WHERE rnum > 1
-            );
-            """
-        )
-        connection.execute(
-            query, {"unique_columns": ", ".join(unique_columns), "table": table}
-        )
-        print(f"Removed duplicate rows from table {table}.")
+            columns = [row[0] for row in result]
+            if not columns:
+                raise ValueError(f"No columns found for table: {table}")
+
+            # Use positional placeholders for dynamic columns
+            partition_by_columns = ", ".join(columns)
+
+            # Safely construct the CTE for duplicates
+            query = text(
+                """
+                WITH cte AS (
+                    SELECT
+                        ctid,
+                        ROW_NUMBER() OVER (PARTITION BY :partition_columns ORDER BY ctid) AS rnum
+                    FROM :table
+                )
+                DELETE FROM :table
+                WHERE ctid IN (
+                    SELECT ctid
+                    FROM cte
+                    WHERE rnum > 1
+                );
+                """
+            )
+
+            # Execute the query with parameters
+            start_time = time.time()
+            connection.execute(
+                query,
+                {"partition_columns": partition_by_columns, "table": table},
+            )
+            end_time = time.time()
+
+            print(
+                f"Removed duplicate rows from table {table}. Query took {end_time - start_time:.2f} seconds."
+            )
+        except Exception as e:
+            print(f"Error removing duplicates from table {table}: {e}")
+            raise
 
 
 def load_data(
@@ -97,6 +131,7 @@ def load_data(
         ValueError: If data loading fails for a specific file.
     """
     for entity in entities:
+        print(f"Processing entity: {entity['name']}")
         if isinstance(entity["name"], list):
             raise ValueError(
                 f"Entity name should be a string, got list: {entity['name']}"
@@ -143,13 +178,11 @@ def validate_database(
 
     # Remove duplicates from each table
     for entity in entities:
-        unique_columns = entity["unique_columns"]
-        if isinstance(unique_columns, str):
-            unique_columns = [unique_columns]
+        print(f"Validating entity: {entity['name']}")
         table = entity["table"]
         if isinstance(table, list):
             raise ValueError(f"Entity table should be a string, got list: {table}")
-        remove_duplicates(engine, table, unique_columns)
+        remove_duplicates(engine, table)
 
     print("Database validation completed.")
 
