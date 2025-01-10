@@ -78,33 +78,26 @@ def remove_duplicates(engine: Engine, table: str) -> None:
             if not columns:
                 raise ValueError(f"No columns found for table: {table}")
 
-            # Use positional placeholders for dynamic columns
-            partition_by_columns = ", ".join(columns)
-
-            # Safely construct the CTE for duplicates
-            query = text(
-                """
+            # Construct the query with the table name and columns embedded directly
+            columns_str = ", ".join(columns)
+            query = f"""
                 WITH cte AS (
                     SELECT
                         ctid,
-                        ROW_NUMBER() OVER (PARTITION BY :partition_columns ORDER BY ctid) AS rnum
-                    FROM :table
+                        ROW_NUMBER() OVER (PARTITION BY {columns_str} ORDER BY ctid) AS rnum
+                    FROM {table}
                 )
-                DELETE FROM :table
+                DELETE FROM {table}
                 WHERE ctid IN (
                     SELECT ctid
                     FROM cte
                     WHERE rnum > 1
                 );
-                """
-            )
+            """
 
-            # Execute the query with parameters
+            # Execute the query
             start_time = time.time()
-            connection.execute(
-                query,
-                {"partition_columns": partition_by_columns, "table": table},
-            )
+            connection.execute(text(query))
             end_time = time.time()
 
             print(
