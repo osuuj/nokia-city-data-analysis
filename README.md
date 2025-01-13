@@ -106,7 +106,7 @@ nokia-city-data-analysis/
 ├── README.md                     # Project overview and setup instructions
 ├── bandit.yaml                   # Security configuration
 ├── docker-compose.yml            # Docker Compose configuration
-├── mypy.ini                      # Mypy type checker configuration
+├── pyrightconfig.json            # Pyright type checker configuration
 ├── ruff.toml                     # Ruff linter configuration
 ├── etl/                          # ETL (Extract, Transform, Load) scripts
 │   ├── __init__.py

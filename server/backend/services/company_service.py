@@ -1,50 +1,32 @@
-"""This module provides services for retrieving company data with valid postal addresses."""
+"""This module provides services for retrieving company data.
 
-from typing import Any, Dict, List
+- Implements data retrieval logic using SQLAlchemy ORM.
+- Maps SQLAlchemy results to Pydantic schemas.
+- Supports pagination for efficient data handling.
+"""
+
+from typing import List
 
 from sqlalchemy.orm import Session
 
-from server.backend.models.company import Address, Company, Name
+from server.backend.models.company import Company
+from server.backend.schemas.company import CompanySchema
 
 
-def get_paginated_companies_with_postal_addresses(
+def get_paginated_companies(
     db: Session, page: int, page_size: int
-) -> List[Dict[str, Any]]:
-    """Retrieve a paginated list of companies with valid postal addresses.
+) -> List[CompanySchema]:
+    """Retrieve paginated companies from the database.
 
     Args:
-        db (Session): The database session.
-        page (int): The page number for pagination.
-        page_size (int): The number of items per page for pagination.
+        db (Session): Database session.
+        page (int): Page number.
+        page_size (int): Number of items per page.
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries containing company data with valid postal addresses.
+        List[CompanySchema]: List of company schemas.
     """
-    # Paginated query
-    results = (
-        db.query(Company, Address, Name)
-        .join(Address)
-        .join(Name)
-        .filter(
-            Company.status == "Valid",
-            Address.type == "Postal address",
-            Name.type == "Company name",
-        )
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
-    )
+    offset = (page - 1) * page_size
+    companies = db.query(Company).offset(offset).limit(page_size).all()
 
-    return [
-        {
-            "business_id": company.business_id,
-            "company_name": name.name,
-            "street": address.street,
-            "building_number": address.building_number,
-            "post_code": address.post_code,
-            "country": address.country,
-            "registration_date": name.registration_date,
-            "name_source": name.source,
-        }
-        for company, address, name in results
-    ]
+    return [CompanySchema.from_orm(company) for company in companies]

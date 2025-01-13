@@ -35,22 +35,22 @@ class NamesExtractor(BaseExtractor):
         self.name_type_mapping = self.get_mapping("name_type_mapping")
         self.source_mapping = self.get_mapping("source_mapping")
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract name information.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: A list of extracted name records.
         """
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping company without businessId.")
             return results
 
-        for name in company.get("names", []):
+        for name in row.get("names", []):
             try:
                 mapped_type = self.map_value(
                     name.get("type", ""), self.name_type_mapping

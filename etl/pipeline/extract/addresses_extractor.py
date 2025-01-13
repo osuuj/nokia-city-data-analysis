@@ -35,22 +35,22 @@ class AddressesExtractor(BaseExtractor):
         self.source_mapping = self.get_mapping("source_mapping")
         self.default_country = self.get_mapping("default_country")
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract address information.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: A list of extracted address records.
         """
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping record with missing businessId.")
             return results
 
-        for address in company.get("addresses", []):
+        for address in row.get("addresses", []):
             try:
                 mapped_type = self.map_value(address.get("type"), self.address_mapping)
                 mapped_source = self.map_value(

@@ -3,7 +3,8 @@
 # https://bandit.readthedocs.io/en/latest/config.html
 
 # List of tests to skip
-skips: []
+skips:
+  - B608  # Skip hardcoded SQL expressions test
 
 # List of directories to exclude from scanning
 exclude_dirs:

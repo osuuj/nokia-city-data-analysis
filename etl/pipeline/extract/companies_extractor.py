@@ -43,28 +43,28 @@ class CompaniesExtractor(BaseExtractor):
         self.rek_kdi_mapping = self.get_mapping("rek_kdi_mapping", lang)
         self.status_mapping = self.get_mapping("status_mapping", lang)
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract relevant data.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: A list containing a single extracted company record.
         """
         results: List[Dict[str, Any]] = []
 
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.debug("Skipping company without businessId.")
             return results
 
         try:
             trade_status = self.map_value(
-                company.get("tradeRegisterStatus"), self.rek_kdi_mapping
+                row.get("tradeRegisterStatus"), self.rek_kdi_mapping
             )
-            status = self.map_value(company.get("status"), self.status_mapping)
-            website = company.get("website")
+            status = self.map_value(row.get("status"), self.status_mapping)
+            website = row.get("website")
             if isinstance(website, dict):
                 website = website.get("url", "unknown")
             elif not website:
@@ -76,16 +76,14 @@ class CompaniesExtractor(BaseExtractor):
                     "website": website,
                     "CompanyIdStatus": status,
                     "tradeRegisterStatus": trade_status,
-                    "registrationDate": self.parse_date(
-                        company.get("registrationDate")
-                    ),
-                    "endDate": self.parse_date(company.get("endDate")),
-                    "lastModified": self.parse_date(company.get("lastModified")),
+                    "registrationDate": self.parse_date(row.get("registrationDate")),
+                    "endDate": self.parse_date(row.get("endDate")),
+                    "lastModified": self.parse_date(row.get("lastModified")),
                 }
             )
         except Exception as e:
             self.logger.error(
-                f"Error processing company {company.get('businessId', 'unknown')}: {e}"
+                f"Error processing company {row.get('businessId', 'unknown')}: {e}"
             )
         return results
 

@@ -1,3 +1,14 @@
+"""Extractor for Address Data.
+
+This module defines the `AddressesExtractor` class, responsible for extracting and
+processing address data from raw company records. It validates and maps data
+against configurations and logs incomplete data.
+
+Key Features:
+- Maps address types and sources using configurable mappings.
+- Includes robust error handling and logging for incomplete data.
+"""
+
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -17,15 +28,15 @@ class RegisteredEntriesExtractor(BaseExtractor):
         self.authority_mapping = self.get_mapping("authority_mapping")
         self.rek_kdi_mapping = self.get_mapping("rek_kdi_mapping")
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract registered entry information."""
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping company without businessId.")
             return results
 
-        for entry in company.get("registeredEntries", []):
+        for entry in row.get("registeredEntries", []):
             try:
                 mapped_register = self.map_value(
                     entry.get("register"), self.register_mapping
@@ -43,7 +54,7 @@ class RegisteredEntriesExtractor(BaseExtractor):
                             entry.get("registrationDate")
                         ),
                         "endDate": self.parse_date(entry.get("endDate")),
-                        "register": mapped_register,
+                        "registerName": mapped_register,
                         "authority": mapped_authority,
                     }
                 )

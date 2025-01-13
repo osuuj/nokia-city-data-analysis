@@ -28,11 +28,11 @@ class BaseExtractor:
         self.mappings = Mappings(mappings_file)
         self.lang = lang
 
-    def process_row(self, row: pd.Series) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single row of data.
 
         Args:
-            row (pd.Series): A row of data from the DataFrame.
+            row (Dict[str, Any]): A row of data from the DataFrame.
 
         Returns:
             List[Dict[str, Any]]: Processed data as a list of dictionaries.
@@ -46,14 +46,26 @@ class BaseExtractor:
         """Extract data from the DataFrame.
 
         Args:
-            data (pd.DataFrame): The DataFrame to extract data from.
+            data (pd.DataFrame): The input DataFrame.
 
         Returns:
-            pd.DataFrame: Extracted data as a DataFrame.
+            pd.DataFrame: The extracted data.
+        """
+        self.logger.info(f"Starting extraction. Input rows: {len(data)}")
+        return self.process_data(data)
+
+    def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Process the entire DataFrame.
+
+        Args:
+            data (pd.DataFrame): The DataFrame to process.
+
+        Returns:
+            pd.DataFrame: The processed DataFrame.
         """
         results = []
         for _, row in data.iterrows():
-            processed_rows = self.process_row(row)
+            processed_rows = self.process_row(row.to_dict())
             if isinstance(processed_rows, list):
                 results.extend(processed_rows)
         return pd.DataFrame(results)
@@ -125,7 +137,7 @@ class BaseExtractor:
         return mapping.get(raw_value, raw_value)
 
     def get_business_id(self, company: Dict[str, Any]) -> Optional[str]:
-        """Retrieve the business ID from a company record.
+        """Retrieve the business ID from the company record.
 
         Args:
             company (Dict[str, Any]): The company record.
@@ -138,19 +150,3 @@ class BaseExtractor:
             self.logger.debug("Skipping company without businessId.")
             return None
         return business_id
-
-    def process_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Process the entire DataFrame.
-
-        Args:
-            data (pd.DataFrame): The DataFrame to process.
-
-        Returns:
-            pd.DataFrame: The processed DataFrame.
-        """
-        results = []
-        for _, row in data.iterrows():
-            processed_rows = self.process_row(row)
-            if isinstance(processed_rows, list):
-                results.extend(processed_rows)
-        return pd.DataFrame(results)

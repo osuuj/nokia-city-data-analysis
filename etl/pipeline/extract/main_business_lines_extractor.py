@@ -38,22 +38,22 @@ class MainBusinessLinesExtractor(BaseExtractor):
         self.source_mapping = self.get_mapping("source_mapping")
         self.industry_2025_mapping = self.dynamic_loader.load_industry_2025_mapping()
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract main business line information.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: A list of extracted main business line records.
         """
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping record with missing businessId.")
             return results
 
-        main_business_line = company.get("mainBusinessLine")
+        main_business_line = row.get("mainBusinessLine")
         if not isinstance(main_business_line, dict):
             self.logger.warning(
                 f"Expected 'mainBusinessLine' to be a dictionary, got {type(main_business_line)}"
