@@ -39,6 +39,8 @@ def import_function(func_path: str) -> Any:
             f"Invalid function path '{func_path}'. It must be in the format 'module.submodule.function'."
         )
 
+    module_name = ""
+    func_name = ""
     try:
         module_name, func_name = func_path.rsplit(".", 1)
         logger.debug(

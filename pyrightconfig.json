@@ -1,0 +1,24 @@
+{
+    "include": [
+        "etl/config",
+        "etl/pipeline",
+        "etl/scripts",
+        "etl/utils",
+        "server"
+    ],
+    "exclude": [
+        "test",
+        "etl/test",
+        ".*test.*",
+        "data",
+        "migrations",
+        "venvs",
+        "build",
+        "dist",
+        "docs",
+        "db"
+    ],
+    "reportMissingTypeStubs": false,
+    "reportMissingImports": false,
+    "pythonVersion": "3.12"
+}

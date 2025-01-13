@@ -35,22 +35,22 @@ class CompanySituationsExtractor(BaseExtractor):
         self.type_mapping = self.get_mapping("type_mapping")
         self.source_mapping = self.get_mapping("source_mapping")
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract company situations.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: Extracted company situations data.
         """
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping record with missing businessId.")
             return results
 
-        for situation in company.get("companySituations", []):
+        for situation in row.get("companySituations", []):
             try:
                 mapped_type = self.map_value(situation.get("type"), self.type_mapping)
                 mapped_source = self.map_value(

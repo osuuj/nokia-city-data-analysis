@@ -54,22 +54,22 @@ class CompanyFormsExtractor(BaseExtractor):
 
         return ""
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract company forms data.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: Extracted company forms data.
         """
         results: List[Dict[str, Any]] = []
 
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             return results
 
-        company_forms = company.get("companyForms", [])
+        company_forms = row.get("companyForms", [])
         if not isinstance(company_forms, list):
             return results
 
@@ -104,4 +104,7 @@ class CompanyFormsExtractor(BaseExtractor):
         Returns:
             pd.DataFrame: Extracted and processed company forms data.
         """
+        self.logger.info(
+            f"Starting extraction for Company Forms. Input rows: {len(data)}"
+        )
         return self.process_data(data)

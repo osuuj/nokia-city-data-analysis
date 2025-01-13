@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS registered_entries (
     registration_status_code VARCHAR(100) NOT NULL,  -- Type of registered entry
     registration_date DATE,                      -- Date when the entry was registered
     end_date DATE,                               -- End date for the entry, if applicable
-    register VARCHAR(255),                       -- The register in which the entry is recorded
+    register_name VARCHAR(255),                       -- The register in which the entry is recorded
     authority VARCHAR(255),                      -- Authority responsible for the entry
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Maintain referential integrity
 );

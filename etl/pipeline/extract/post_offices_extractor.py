@@ -34,22 +34,22 @@ class PostOfficesExtractor(BaseExtractor):
 
         self.language_code_mapping = self.get_mapping("language_code_mapping")
 
-    def process_row(self, company: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_row(self, row: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Process a single company record to extract post office information.
 
         Args:
-            company (Dict[str, Any]): The raw company record.
+            row (Dict[str, Any]): The raw company record.
 
         Returns:
             List[Dict[str, Any]]: A list of extracted post office records.
         """
         results: List[Dict[str, Any]] = []
-        business_id = self.get_business_id(company)
+        business_id = self.get_business_id(row)
         if not business_id:
             self.logger.warning("Skipping record with missing businessId.")
             return results
 
-        for address in company.get("addresses", []):
+        for address in row.get("addresses", []):
             try:
                 post_offices = address.get("postOffices", [])
                 target_language_code = self.language_code_mapping

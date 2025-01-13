@@ -68,7 +68,7 @@ Code Style Guidelines are optional, and the tools required are already listed in
    - Use `isort` for organizing imports.
 
 3. **Type Checking**:
-   - Use `mypy` to enforce type annotations.
+   - Use `pyright` to enforce type annotations.
 
 4. **Security**:
    - Use `bandit` for security checks.
@@ -78,7 +78,7 @@ Run the following commands to check your code:
 ruff check --config ruff.toml etl/config etl/pipeline etl/scripts etl/utils
 black --config .black.toml etl/config etl/pipeline etl/scripts etl/utils
 isort --settings-path .isort.cfg --verbose etl/config etl/pipeline etl/scripts etl/utils
-mypy --config-file mypy.ini etl/config etl/pipeline etl/scripts etl/utils
+pyright
 darglint etl/config etl/pipeline etl/scripts etl/utils
 bandit -r etl
 ```
