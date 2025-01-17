@@ -1,6 +1,7 @@
 # Ignore Python virtual environment
 venvs/
 etl_env/
+fastapi_env/
 etl/test/my_test/connect_db.ipynb
 
 # Ignore lock-requirements.txt
@@ -8,6 +9,7 @@ lock-requirements.txt
 
 # Ignore
 etl/data/*
+my_folder/
 
 # Ignore Python cache files
 __pycache__/

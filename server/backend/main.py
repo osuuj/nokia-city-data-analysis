@@ -1,11 +1,3 @@
-"""This module initializes the FastAPI application and includes the routers for the API endpoints.
-
-- Sets up application configurations and middleware.
-- Includes all routers for modular API structure.
-- Defines the root endpoint with a welcome message.
-
-"""
-
 from typing import Dict
 
 from fastapi import FastAPI

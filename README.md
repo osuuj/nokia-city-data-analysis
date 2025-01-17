@@ -19,7 +19,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 - **Backend**: Python (3.12), FastAPI, PostgreSQL
 - **Frontend**: React (Leaflet.js is under consideration)
-- **Database**: PostgreSQL (cloud-hosted)
+- **Database**: PostgreSQL (cloud-hosted in the future)
 - **Other Tools**: Git, pytest, Docker (for containerization), Bandit
 
 ---
@@ -50,7 +50,7 @@ This project aims to develop a data analysis and visualization system for Finnis
 |----------------------------|-------------|--------------|
 | Data Preparation           | 2024-11-24  | Completed    |
 | ETL Pipeline Completion    | 2024-12-27  | Completed  |
-| Backend              | 2025-01-30  | Starting  |
+| Backend              | 2025-02-30  | In Progress |
 | Frontend Prototype         | 2025-??-??  | Not Started  |
 | Full System Deployment     | 2025-??-??  | Not Started  |
 
@@ -73,12 +73,19 @@ This project aims to develop a data analysis and visualization system for Finnis
    cd nokia-city-data-analysis
    ```
 
-2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder):
+2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder and FastAPIs requirements are located in the `server` folder):
 
+   Set up the ETL environment:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Use `venv\Scripts\activate` on Windows
+   python -m venv venvs/etl_env
+   source venvs/etl_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
    pip install -r etl/requirements.txt
+   ```
+   Set up the FastAPI environment:
+   ```bash
+   python -m venv venvs/fastapi_env
+   source venvs/fastapi_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
+   pip install -r server/requirements.txt
    ```
 
 3. Create a `.env` file in the root directory with the following variables (update placeholders as needed):
@@ -95,6 +102,7 @@ This project aims to develop a data analysis and visualization system for Finnis
    # ENV=production
    CHUNK_SIZE=1000
    ```
+For more information on setting up the project, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ---
 
@@ -163,7 +171,7 @@ nokia-city-data-analysis/
 │   ├── requirements.txt          # Backend dependencies
 │   └── tests/                    # Test scripts
 │       ├── test_db_connection.py
-│       └── test_queries.ipynb
+│       └── queries.py            # Test queries from db tables.
 └── venvs/                        # Virtual environments
     ├── etl_env/
     ├── fastapi_env/

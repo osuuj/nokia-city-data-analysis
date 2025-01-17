@@ -7,7 +7,6 @@ Thank you for contributing to this project! We appreciate your time and effort t
 1. [Getting Started](#getting-started)
 2. [Development Workflow](#development-workflow)
 3. [Code Style Guidelines](#code-style-guidelines)
-4. [Running the ETL Pipeline](#running-the-etl-pipeline)
 5. [Submitting Changes](#submitting-changes)
 6. [Code of Conduct](#code-of-conduct)
 
@@ -21,16 +20,55 @@ Thank you for contributing to this project! We appreciate your time and effort t
    cd nokia-city-data-analysis
    ```
 
-2. Set up a virtual environment and install dependencies (requirements for the ETL pipeline are in the `etl` folder):
+2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder and FastAPIs requirements are located in the `server` folder):
+
+   Set up the ETL environment:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Use `venv\Scripts\activate` on Windows
+   python -m venv venvs/etl_env
+   source venvs/etl_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
    pip install -r etl/requirements.txt
    ```
+   Set up the FastAPI environment:
+   ```bash
+   python -m venv venvs/fastapi_env
+   source venvs/fastapi_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
+   pip install -r server/requirements.txt
+   ```
 
-3. Ensure you have Docker installed and running on your machine.
+3. Run the ETL process:
+   - Make sure you are in the `etl_env` environment.
+   - Execute the ETL pipeline script:
+     ```bash
+     python etl/scripts/etl_run.py
+     ```
 
-4. Familiarize yourself with the project structure.
+4. Start the database services with Docker:
+   ```bash
+   docker-compose up -d
+   ```
+
+5. Load processed data into the database:
+   - Ensure the Docker services are running.
+   - While still in the `etl_env` environment, execute the loading script:
+     ```bash
+     python etl/pipeline/load/load_data.py
+     ```
+
+6. Switch to the FastAPI environment:
+   ```bash
+   source venvs/fastapi_env/bin/activate  # Use `venvs\fastapi_env\Scripts\activate` on Windows
+   ```
+
+7. Run the FastAPI server:
+   ```bash
+   uvicorn server.backend.main:app --reload
+   ```
+
+8. Access the API documentation:
+   - Open your browser and go to: `http://127.0.0.1:8000/docs`
+
+9. Test the API:
+   - Use the provided `test` folder scripts such as `queries.py` to validate the API and queries.
 
 ---
 
@@ -38,7 +76,7 @@ Thank you for contributing to this project! We appreciate your time and effort t
 
 1. Create a new branch for your changes:
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feature/your-feature-and-name
    ```
 
 2. Make changes in your branch and commit them with meaningful commit messages:
@@ -87,28 +125,6 @@ To activate `pre-commit` hooks, ensure `.git/hooks/pre-commit` is set up:
 ```bash
 pre-commit install
 ```
-
----
-
-## Running the ETL Pipeline
-
-1. Prepare the environment and configurations:
-   - Ensure the configuration files are properly set up in the `etl/config` directory.
-
-2. Execute the ETL pipeline:
-   ```bash
-   python etl/scripts/etl_run.py
-   ```
-
-3. Start the database services with Docker:
-   ```bash
-   docker-compose up -d
-   ```
-
-4. Load the processed data into the database (ensure Docker services are running):
-   ```bash
-   python etl/pipeline/load/load_data.py
-   ```
 
 ---
 
