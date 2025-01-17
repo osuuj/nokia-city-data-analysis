@@ -9,9 +9,9 @@
 mappings:
   # Default country setting
   default_country:
-    fi: "Finland"
-    en: "Finland"
-    sv: "Finland"
+    fi: "FI"
+    en: "FI"
+    sv: "FI"
 
   # Language code mappings
   language_code_mapping:

@@ -56,7 +56,9 @@ class AddressesExtractor(BaseExtractor):
                 mapped_source = self.map_value(
                     address.get("source"), self.source_mapping
                 )
-                country = address.get("country", self.default_country)
+                country = address.get("country")
+                if not country:
+                    country = self.default_country
 
                 results.append(
                     {

@@ -7,10 +7,12 @@
 
 from typing import List
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from server.backend.models.company import Company
-from server.backend.schemas.company import CompanySchema
+from server.backend.models.company import Address, Company
+from server.backend.schemas.address_schema import AddressSchema
+from server.backend.schemas.company_schema import CompanySchema
 
 
 def get_paginated_companies(
@@ -29,4 +31,24 @@ def get_paginated_companies(
     offset = (page - 1) * page_size
     companies = db.query(Company).offset(offset).limit(page_size).all()
 
-    return [CompanySchema.from_orm(company) for company in companies]
+    return [CompanySchema.model_validate(company) for company in companies]
+
+
+def get_paginated_addresses(
+    db: Session, page: int, page_size: int
+) -> List[AddressSchema]:
+    """Retrieve paginated addresses from the addresses table.
+
+    Args:
+        db (Session): Database session.
+        page (int): Page number.
+        page_size (int): Number of items per page.
+
+    Returns:
+        List[AddressSchema]: List of addresses.
+    """
+    offset = (page - 1) * page_size
+    stmt = select(Address).offset(offset).limit(page_size)
+    results = db.execute(stmt).scalars().all()
+
+    return [AddressSchema.model_validate(address) for address in results]
