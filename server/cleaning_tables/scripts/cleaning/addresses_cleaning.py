@@ -100,7 +100,9 @@ def clean_building_number(df: pd.DataFrame) -> pd.DataFrame:
     df = df[~df["business_id"].astype(str).isin(invalid_values)]
 
     # Remove decimal points from building_number
-    df["building_number"] = df["building_number"].astype(str).str.split(".").str[0]
+    df.loc[:, "building_number"] = (
+        df["building_number"].astype(str).str.split(".").str[0]
+    )
 
     return df
 

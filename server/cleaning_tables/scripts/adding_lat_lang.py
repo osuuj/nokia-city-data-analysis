@@ -1,10 +1,29 @@
-"""This module contains functions to find and add latitude and longitude coordinates to addresses by matching them with a resource DataFrame."""
+"""This module contains functions to find and add latitude and longitude coordinates to addresses by matching them with a resource DataFrame.
+
+Functions:
+    find_coordinates: Find coordinates for a given row by matching it with the resource DataFrame.
+    find_coordinates_values: Processes cleaned_addresses.csv by adding latitude and longitude columns, sorting the street column, and matching addresses with resource files.
+    apply_find_coordinates: Wrapper function to apply find_coordinates.
+"""
 
 import glob
 
 import numpy as np
 import pandas as pd
+from fuzzywuzzy import process
 from numpy import int64
+
+
+def normalize_street_name(street):
+    """Normalize street names by converting to lowercase and stripping whitespace.
+
+    Args:
+        street (str): The street name to normalize.
+
+    Returns:
+        str: The normalized street name.
+    """
+    return street.strip().lower()
 
 
 def find_coordinates(row, df_resources):
@@ -18,25 +37,26 @@ def find_coordinates(row, df_resources):
         tuple: A tuple containing the latitude and longitude if a match is found, otherwise (None, None).
     """
     postal_code = f"{row['postal_code']:05d}"  # Ensure postal_code is 5 digits
-    street = row["street"].strip()
+    street = normalize_street_name(row["street"])
 
     try:
-        filtered_df = df_resources.loc[(postal_code, street)]
-        print(f"Filtered DataFrame for postal_code={postal_code} and street={street}:")
-        print(filtered_df)
+        filtered_df = df_resources.loc[postal_code]
     except KeyError:
-        print(f"No match found for postal_code={postal_code} and street={street}")
         return None, None
 
     if not filtered_df.empty:
+        # Use fuzzy matching to find the closest street name
+        street_names = filtered_df.index.get_level_values("street").unique()
+        best_match, score = process.extractOne(street, street_names)
+        if score < 80:  # Adjust the threshold as needed
+            return None, None
+
+        filtered_df = filtered_df.loc[(postal_code, best_match)]
+
         # Extract numeric and possible letter part from house_number
         house_num = str(row["building_number"]).strip()
         num_part = "".join(filter(str.isdigit, house_num))
         letter_part = "".join(filter(str.isalpha, house_num))
-
-        print(
-            f"House number: {house_num}, Numeric part: {num_part}, Letter part: {letter_part}"
-        )
 
         match = filtered_df[
             filtered_df["house_number"]
@@ -52,7 +72,6 @@ def find_coordinates(row, df_resources):
                 ]
 
             if not match.empty:
-                print(f"Match found: {match.iloc[0]}")
                 return match.iloc[0]["latitude_wgs84"], match.iloc[0]["longitude_wgs84"]
 
     return None, None
@@ -73,15 +92,12 @@ def find_coordinates_values(cleaned_addresses_path, resource_files_pattern, outp
             "street": str,
             "building_number": str,
             "entrance": str,
-            "post_code": int64,
+            "postal_code": int64,
         },
     )
 
     # Rename 'post_code' to 'postal_code' to match resource files
     df_cleaned.rename(columns={"post_code": "postal_code"}, inplace=True)
-
-    # Debug print to check columns
-    print("Columns in df_cleaned:", df_cleaned.columns)
 
     # Add latitude and longitude columns
     df_cleaned["latitude"] = np.nan
@@ -104,17 +120,14 @@ def find_coordinates_values(cleaned_addresses_path, resource_files_pattern, outp
         ]
     )
 
-    # Debug print to check columns
-    print("Columns in df_resources before setting index:", df_resources.columns)
+    # Normalize street names in the resource DataFrame
+    df_resources["street"] = df_resources["street"].apply(normalize_street_name)
 
     # Create an index on 'postal_code' and 'street' for faster lookups
     df_resources.set_index(["postal_code", "street"], inplace=True)
 
     # Sort the DataFrame by the index levels to improve performance
     df_resources.sort_index(inplace=True)
-
-    # Debug print to check columns after setting index
-    print("Index names in df_resources after setting index:", df_resources.index.names)
 
     # Apply the function to update latitude and longitude
     df_cleaned[["latitude", "longitude"]] = df_cleaned.apply(
@@ -125,7 +138,7 @@ def find_coordinates_values(cleaned_addresses_path, resource_files_pattern, outp
 
     # Save the updated dataframe
     df_cleaned_file = output_dir / f"{cleaned_addresses_path.name}"
-    df_cleaned.to_csv(df_cleaned_file, index=True)
+    df_cleaned.to_csv(df_cleaned_file, index=False)
 
 
 def apply_find_coordinates(row, df_resources):
