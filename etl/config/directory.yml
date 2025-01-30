@@ -6,16 +6,18 @@
 
 # Directory structure for various stages of the ETL process
 directory_structure:
-  raw_dir: etl/data/1_raw/               # Directory for raw data files before processing
-  extracted_dir: etl/data/2_extracted/  # Directory for data extracted and pre-processed
-  processed_dir: etl/data/3_processed/ # Directory for fully processed data
+  raw_dir: etl/data/raw_data/               # Directory for raw data files before processing
+  extracted_dir: etl/data/extracted_data/  # Directory for data extracted and pre-processed
+  processed_dir: etl/data/processed_data/ # Directory for fully processed data
   logs_dir: etl/data/logs/              # Directory for storing log files
+  resources_dir: etl/data/resources/         # Directory for storing resources like data for coordinates, etc.
+  test_data_dir: etl/data/test_data/         # Directory for storing test data
   db_schema_path: server/db/schema.sql  # Path to the database schema file
 
 # File paths for additional configurations
 config_files:
   mappings_file: "etl/config/mappings/mappings.yml"      # Path to the main mappings file
-  toimi_files_path: etl/data/1_raw/mappings/  # Directory for TOIMI mappings
+  toimi_files_path: etl/data/raw_data/mappings/  # Directory for TOIMI mappings
   entities_file: "etl/config/entities.yml"      # Path to the entities configuration file
   logging_config_file: "etl/config/logging/logging_config.yml"  # Path to the logging configuration file
   industry_2025_file: "etl/config/mappings/industry_2025.csv"  # Path to the industry 2025 CSV file

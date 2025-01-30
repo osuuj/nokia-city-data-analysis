@@ -1,5 +1,5 @@
-"""Utility functions for ETL pipelines.
+"""ETL Package.
 
-This package includes helper functions for file handling, data cleaning,
-and dynamic imports.
+This package contains modules and functions for the ETL (Extract, Transform, Load) pipeline.
+It includes functionality for data extraction, transformation, and loading into the target system.
 """

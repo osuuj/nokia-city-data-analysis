@@ -3,8 +3,8 @@ venvs/
 etl_env/
 fastapi_env/
 etl/test/my_test/connect_db.ipynb
-server/cleaning_tables/data/resources
-server/cleaning_tables/data
+
+
 # Ignore lock-requirements.txt
 lock-requirements.txt
 
@@ -40,11 +40,6 @@ Thumbs.db
 # Ignore editor/IDE config files
 .vscode/
 
-# Ignore Foam folder
-foam/
-.foam/templates/*
-!.foam/templates/new-note.md
-!.foam/templates/project-template.md
 
 # Ignore personal or environment-specific documentation
 docs/
