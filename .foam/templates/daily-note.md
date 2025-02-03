@@ -1,4 +1,4 @@
-p---
+---
 title: "Daily Note - $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE"
 tags: [micro, daily]
 created: $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE
@@ -22,7 +22,7 @@ created: $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE
 
 ## 😊 Mood Tracker
 
-- [ ] 😃 Happy
+- [] 😃 Happy
 - [ ] 😐 Neutral
 - [ ] 😔 Struggling
 

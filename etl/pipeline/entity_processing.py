@@ -17,6 +17,7 @@ import pandas as pd
 
 from etl.config.config_loader import CONFIG
 from etl.utils.dynamic_imports import import_function
+from etl.utils.file_io import save_to_csv
 from etl.utils.file_system_utils import ensure_directory_exists
 
 logger = logging.getLogger(__name__)
@@ -47,22 +48,6 @@ def get_extractor_instance(entity: Dict[str, Any], lang: str) -> Any:
         raise ValueError(f"Error resolving extractor for entity '{entity['name']}'")
 
 
-def save_to_csv(df: pd.DataFrame, output_file: str) -> None:
-    """Save a DataFrame to a CSV file, appending if the file already exists.
-
-    Args:
-        df (pd.DataFrame): The DataFrame to save.
-        output_file (str): Path to the output CSV file.
-    """
-    if not df.empty:
-        if Path(output_file).exists():
-            df.to_csv(
-                output_file, mode="a", header=False, index=False, encoding="utf-8"
-            )
-        else:
-            df.to_csv(output_file, index=False, encoding="utf-8")
-
-
 def process_and_save_entity(
     data_records: pd.DataFrame,
     lang: str,
@@ -81,7 +66,7 @@ def process_and_save_entity(
         RuntimeError: If an error occurs during the processing of the entity.
     """
     entity_name = entity["name"]
-    subfolder_path = Path(extract_data_path) / entity_name
+    subfolder_path = Path(extract_data_path)
     ensure_directory_exists(subfolder_path)
 
     try:

@@ -25,6 +25,7 @@ from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
 from etl.pipeline.data_fetcher import download_and_extract_files
 from etl.pipeline.entity_processing import process_entities
+from etl.pipeline.transform.start_cleaning_process import start_cleaning_process
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
 
@@ -190,23 +191,35 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
         config (Dict[str, Any]): Configuration dictionary.
     """
     split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
-    processed_dir = Path(config["directory_structure"]["processed_dir"])
-    cleaned_dir = processed_dir / "cleaned"
+    processed_dir = Path(config["directory_structure"]["processed_dir"]) / "extracted"
+    cleaned_dir = Path(config["directory_structure"]["processed_dir"]) / "cleaned"
+    staging_dir = Path(config["directory_structure"]["processed_dir"]) / "staging"
+    resources_dir = Path(config["directory_structure"]["resources_dir"])
     cleaned_dir.mkdir(parents=True, exist_ok=True)
+    staging_dir.mkdir(parents=True, exist_ok=True)
 
     for json_file in sorted(split_dir.glob("chunk_*.json")):
         data_records = process_json_file(json_file)
         process_entities(data_records, config)
 
-    # for entity in config["entities"]:
-    #    entity_name = entity["name"]
-    #    specific_columns = entity.get("specific_columns", [])
-    #    logger.info(f"Starting cleaning for entity: {entity_name}")
-    #    clean_entity_files(
-    #        str(processed_dir / "extracted"),
-    #        str(cleaned_dir),
-    #        specific_columns,
-    #    )
+    for entity in config["entities"]:
+        entity_name = entity["name"]
+        logger.info(f"Starting cleaning for entity: {entity_name}")
+
+        input_file = processed_dir / f"{entity_name}.csv"
+        if not input_file.exists():
+            logger.warning(f"Skipping {entity_name}: File not found: {input_file}")
+            continue
+
+        start_cleaning_process(
+            str(input_file),
+            str(cleaned_dir),
+            str(staging_dir),
+            entity_name,
+            str(resources_dir),
+        )
+
+    logger.info("Cleaning process completed for all entities.")
 
 
 def run_etl_pipeline() -> None:
@@ -217,13 +230,10 @@ def run_etl_pipeline() -> None:
     try:
         # Setup environment
         setup_environment(config)
-
         # Download raw data
         extracted_dir = download_raw_data(config)
-
         # Download mappings
         download_mappings(config)
-
         # Split JSON file into smaller chunks
         input_json_file = get_first_json_file(extracted_dir)
         split_json_to_files(
@@ -231,13 +241,10 @@ def run_etl_pipeline() -> None:
             Path(config["directory_structure"]["processed_dir"]) / "chunks",
             config["chunk_size"],
         )
-
         # Process and clean entities
         process_and_clean_entities(config)
-
         # Explicitly invoke garbage collection
         gc.collect()
-
         elapsed_time = time.time() - start_time
         logger.info(f"ETL pipeline completed in {elapsed_time:.2f} seconds.")
 

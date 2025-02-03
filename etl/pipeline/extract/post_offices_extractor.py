@@ -65,7 +65,7 @@ class PostOfficesExtractor(BaseExtractor):
                         results.append(
                             {
                                 "businessId": business_id,
-                                "postCode": address.get("postCode", ""),
+                                "postalCode": address.get("postCode", ""),
                                 "city": po.get("city", ""),
                                 "municipalityCode": po.get("municipalityCode", ""),
                                 "active": po.get("active", True),

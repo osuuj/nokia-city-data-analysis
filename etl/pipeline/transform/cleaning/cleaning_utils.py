@@ -13,7 +13,6 @@ Key Features:
 """
 
 import logging
-import re
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -81,25 +80,6 @@ def clean_numeric_column(value: Any) -> Optional[str]:
         return str(value)
     except (ValueError, TypeError):
         return None
-
-
-def transform_column_names(df: pd.DataFrame) -> pd.DataFrame:
-    """Transform column names to snake_case without excessive underscores.
-
-    Args:
-        df (pd.DataFrame): The DataFrame whose column names will be transformed.
-
-    Returns:
-        pd.DataFrame: A new DataFrame with column names in snake_case.
-    """
-    new_columns = [
-        re.sub(r"__+", "_", re.sub(r"([a-z])([A-Z])", r"\1_\2", col))
-        .replace(" ", "_")
-        .lower()
-        for col in df.columns
-    ]
-    df.columns = pd.Index(new_columns)
-    return df
 
 
 def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
