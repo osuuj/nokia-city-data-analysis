@@ -8,7 +8,7 @@ charset-normalizer==3.4.0
 click==8.1.7
 darglint==1.8.1
 distlib==0.3.9
-fastapi==0.115.6
+fastapi[standard]>=0.115.5,<0.116.0
 filelock==3.16.1
 greenlet==3.1.1
 h11==0.14.0

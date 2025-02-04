@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:latest
@@ -11,6 +9,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/docker-entrypoint-initdb.d
+
+  # etl:
+  #   build:
+  #     context: ./etl
+  #   container_name: etl
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - .env
+
+  server:
+    build:
+      context: ./server
+    container_name: fastapi
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
 
 volumes:
   postgres_data:

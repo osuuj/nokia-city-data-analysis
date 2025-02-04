@@ -10,7 +10,7 @@ directory_structure:
   extracted_dir: etl/data/2_extracted/  # Directory for data extracted and pre-processed
   processed_dir: etl/data/3_processed/ # Directory for fully processed data
   logs_dir: etl/data/logs/              # Directory for storing log files
-  db_schema_path: server/db/schema.sql  # Path to the database schema file
+  db_schema_path: etl/config/schema.sql  # Path to the database schema file
 
 # File paths for additional configurations
 config_files:
