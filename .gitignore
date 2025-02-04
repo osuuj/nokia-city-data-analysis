@@ -1,3 +1,20 @@
+# Ignore Python virtual environment
+venvs/
+etl_env/
+fastapi_env/
+etl/test/my_test/connect_db.ipynb
+
+
+# Ignore lock-requirements.txt
+lock-requirements.txt
+
+# Ignore
+etl/data/*
+my_folder/
+
+# Ignore everything in the etl/data/resources/ directory
+etl/data/resources/*
+
 # Do not ignore specific address files
 !etl/data/resources/01_addresses_2024-11-14.csv
 !etl/data/resources/02_addresses_2024-11-14.csv
@@ -21,23 +38,6 @@
 
 # Do not ignore municipality_code.csv
 !etl/data/resources/municipality_code.csv
-
-# Ignore Python virtual environment
-venvs/
-etl_env/
-fastapi_env/
-etl/test/my_test/connect_db.ipynb
-
-
-# Ignore lock-requirements.txt
-lock-requirements.txt
-
-# Ignore
-etl/data/*
-my_folder/
-
-# Ignore everything in the etl/data/resources/ directory
-etl/data/resources/*
 
 # Ignore Python cache files
 __pycache__/
