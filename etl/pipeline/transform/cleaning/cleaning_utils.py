@@ -196,3 +196,36 @@ def clean_post_offices(df: pd.DataFrame, specific_columns: List[str]) -> pd.Data
         if column in df.columns:
             df[column] = df[column].apply(clean_numeric_column)
     return df
+
+
+def normalize_postal_codes(
+    df: pd.DataFrame, column_name: str = "postal_code"
+) -> pd.DataFrame:
+    """Ensure all 'postal_code' values are 5 digits long by prepending zeros where necessary.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        column_name (str): The name of the postal code column. Defaults to "postal_code".
+
+    Returns:
+        pd.DataFrame: The DataFrame with normalized 'postal_code' values.
+    """
+    if column_name in df.columns:
+        df[column_name] = df[column_name].fillna(0).astype(int).astype(str).str.zfill(5)
+    else:
+        logger.warning(f"Column '{column_name}' not found in DataFrame.")
+    return df
+
+
+def remove_invalid_post_codes(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove rows where the 'post_code' column has the value 0.0.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: The DataFrame with invalid rows removed.
+    """
+    if "post_code" in df.columns:
+        df = df[df["post_code"] != 0.0]
+    return df

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 
@@ -29,3 +30,17 @@ def save_to_csv(df: pd.DataFrame, output_file: str) -> None:
             )
         else:
             df.to_csv(output_file, index=False, encoding="utf-8")
+
+
+def read_and_concatenate_csv_files(file_paths: List[str]) -> pd.DataFrame:
+    """Read multiple CSV files and concatenate them into one DataFrame.
+
+    Args:
+        file_paths (List[str]): List of paths to the CSV files.
+
+    Returns:
+        pd.DataFrame: Concatenated DataFrame.
+    """
+    dataframes = [pd.read_csv(file_path) for file_path in file_paths]
+    concatenated_df = pd.concat(dataframes, ignore_index=True)
+    return concatenated_df

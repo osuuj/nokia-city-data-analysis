@@ -18,6 +18,7 @@ from etl.pipeline.transform.cleaning.base_cleaning import (
     remove_duplicates,
     standardize_column_names,
 )
+from etl.pipeline.transform.cleaning.post_office_cleaning import clean_post_offices
 from etl.utils.file_io import read_csv
 
 
@@ -44,10 +45,11 @@ def start_cleaning_process(
     df = remove_duplicates(df)
 
     # Step 2: Entity-Specific Cleaning
-    if entity_name == "addresses":
-        df = clean_addresses(df, staging_dir)
-    # elif entity_name == "post_offices":
-    #    df, staging_df = clean_post_offices(df, resources_dir)
+    if entity_name == "post_offices":
+        clean_post_offices(df, resources_dir, staging_dir)
+    elif entity_name == "addresses":
+        clean_addresses(df, staging_dir)
+
     # elif entity_name == "names":
     #    df, staging_df = clean_names(df, resources_dir)
     # elif entity_name == "companies":

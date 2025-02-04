@@ -39,20 +39,6 @@ def remove_unusable_rows(df: pd.DataFrame, required_columns: list) -> pd.DataFra
     return df
 
 
-def remove_invalid_post_codes(df: pd.DataFrame) -> pd.DataFrame:
-    """Remove rows where the 'post_code' column has the value 0.0.
-
-    Args:
-        df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-        pd.DataFrame: The DataFrame with invalid rows removed.
-    """
-    if "post_code" in df.columns:
-        df = df[df["post_code"] != 0.0]
-    return df
-
-
 def clean_building_number(df: pd.DataFrame) -> pd.DataFrame:
     """Remove rows with specific invalid 'business_id' values.
 
@@ -161,25 +147,6 @@ def filter_street_column(df: pd.DataFrame, filter_type: str) -> pd.DataFrame:
     return filtered_df
 
 
-def normalize_postal_codes(
-    df: pd.DataFrame, column_name: str = "postal_code"
-) -> pd.DataFrame:
-    """Ensure all 'postal_code' values are 5 digits long by prepending zeros where necessary.
-
-    Args:
-        df (pd.DataFrame): The input DataFrame.
-        column_name (str): The name of the postal code column. Defaults to "postal_code".
-
-    Returns:
-        pd.DataFrame: The DataFrame with normalized 'postal_code' values.
-    """
-    if column_name in df.columns:
-        df[column_name] = df[column_name].fillna(0).astype(int).astype(str).str.zfill(5)
-    else:
-        logger.warning(f"Column '{column_name}' not found in DataFrame.")
-    return df
-
-
 def clean_street_column(df: pd.DataFrame) -> pd.DataFrame:
     """Clean and normalize the 'street' column in the DataFrame.
 
@@ -225,4 +192,24 @@ def clean_street_column(df: pd.DataFrame) -> pd.DataFrame:
     # Handle specific patterns (e.g., combined data like "1.9.lähtien ...")
     df["street"] = df["street"].str.replace(r"^\d+\.\d+\.\S+\s+", "", regex=True)
 
+    return df
+
+
+def add_columns_from_csv(df: pd.DataFrame, staging_dir: str) -> pd.DataFrame:
+    """Add municipality and active columns to the DataFrame by matching business_id from another CSV file.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        staging_dir (str): Path to the CSV file containing business_id, municipality, and active columns.
+
+    Returns:
+        pd.DataFrame: The DataFrame with added columns.
+    """
+    output_path = f"{staging_dir}/staging_post_offices.csv"
+    additional_data = pd.read_csv(output_path)
+    df = df.merge(
+        additional_data[["business_id", "municipality", "active"]],
+        on="business_id",
+        how="left",
+    )
     return df

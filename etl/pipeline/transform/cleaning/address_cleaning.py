@@ -3,14 +3,17 @@ import logging
 import pandas as pd
 
 from etl.pipeline.transform.cleaning.address_helpers import (
+    add_columns_from_csv,
     clean_building_number,
     clean_entrance_column,
     clean_street_column,
     drop_unnecessary_columns,
     filter_street_column,
+    remove_unusable_rows,
+)
+from etl.pipeline.transform.cleaning.cleaning_utils import (
     normalize_postal_codes,
     remove_invalid_post_codes,
-    remove_unusable_rows,
 )
 from etl.pipeline.transform.cleaning.validate_addresses import validate_street_names
 from etl.utils.file_io import save_to_csv
@@ -18,10 +21,7 @@ from etl.utils.file_io import save_to_csv
 logger = logging.getLogger(__name__)
 
 
-def clean_addresses(
-    df: pd.DataFrame,
-    staging_dir: str,
-) -> pd.DataFrame:
+def clean_addresses(df: pd.DataFrame, staging_dir: str):
     """Cleans and standardizes addresses before filtering invalid rows.
 
     Args:
@@ -46,6 +46,7 @@ def clean_addresses(
     df = clean_building_number(df)
     df = clean_entrance_column(df)
     df = clean_street_column(df)
+    df = add_columns_from_csv(df, staging_dir)
 
     # Step 5: Filter & Move Data to Staging
     missing_street = filter_street_column(df, filter_type="missing")
@@ -83,5 +84,3 @@ def clean_addresses(
     # df = validate_street_names(
     #    df, reference_path="etl/data/resources/Finland_addresses_2024-11-14.csv"
     # )
-
-    return df

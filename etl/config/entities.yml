@@ -46,6 +46,21 @@ entities:
         - business_id
         - company_name
 
+  - name: "post_offices"
+    table: "post_offices"
+    specific_columns: ["post_code","municipality_code"]
+    extractor: "etl.pipeline.extract.post_offices_extractor.PostOfficesExtractor"
+    validation:
+      columns:
+        business_id: "VARCHAR(20)"
+        post_code: "VARCHAR(10)"
+        city: "VARCHAR(100)"
+        municipality_code: "INT"
+        active: "BOOLEAN"
+      required:
+        - business_id
+        - post_code
+
   - name: "addresses"
     table: "addresses"
     specific_columns: ["post_code", "apartment_number", "building_number", "post_office_box"]
@@ -119,21 +134,6 @@ entities:
       required:
         - business_id
         - business_form
-
-  - name: "post_offices"
-    table: "post_offices"
-    specific_columns: ["post_code","municipality_code"]
-    extractor: "etl.pipeline.extract.post_offices_extractor.PostOfficesExtractor"
-    validation:
-      columns:
-        business_id: "VARCHAR(20)"
-        post_code: "VARCHAR(10)"
-        city: "VARCHAR(100)"
-        municipality_code: "INT"
-        active: "BOOLEAN"
-      required:
-        - business_id
-        - post_code
 
   - name: "company_situations"
     table: "company_situations"
