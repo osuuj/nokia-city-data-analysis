@@ -1,5 +1,7 @@
+# Ignore everything in the etl/data/ directory
+etl/data/*
 # Ignore everything in the etl/data/resources/ directory
-!etl/data/resources/*
+!etl/data/resources/
 
 # Ignore Python virtual environment
 venvs/
@@ -9,12 +11,6 @@ etl/test/my_test/connect_db.ipynb
 
 # Ignore lock-requirements.txt
 lock-requirements.txt
-
-# Ignore everything in the etl/data/ directory
-etl/data/*
-
-# Ignore my_folder
-my_folder/
 
 # Ignore Python cache files
 __pycache__/
@@ -31,8 +27,6 @@ __pycache__/
 # Ignore logs and temporary files
 *.log
 *.tmp
-etl/data/v1/logs/
-etl/data/v2/logs/
 
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
@@ -62,4 +56,4 @@ docs/
 *.o
 *.so
 *.a
-*.outls etl/data/resources/
+*.out
