@@ -28,12 +28,11 @@ CREATE TABLE IF NOT EXISTS addresses (
     apartment_number VARCHAR(50),                -- Apartment number
     apartment_id_suffix VARCHAR(50),             -- Additional suffix for apartment ID
     post_office_box VARCHAR(50),                 -- P.O. Box
-    post_code VARCHAR(10),                       -- Postal code
+    postal_code VARCHAR(10),                       -- Postal code
     co VARCHAR(255),                             -- Care of (c/o) field
     country VARCHAR(50) DEFAULT 'Unknown',       -- Country, defaulting to 'Unknown' if not provided
     free_address_line VARCHAR(255),              -- Free-form address line
     registration_date DATE,                      -- Date when the address was registered
-    source VARCHAR(255),                         -- Source of the address information
     FOREIGN KEY (business_id) REFERENCES companies(business_id) ON DELETE CASCADE -- Reference to companies table
 );
 

@@ -1,4 +1,1 @@
-"""ETL Transform Pipeline.
-
-This package contains modules for transforming extracted data into the required formats.
-"""
+"""This package contains modules and functions for transforming and cleaning data in the ETL pipeline for the Nokia City Data Analysis project."""
