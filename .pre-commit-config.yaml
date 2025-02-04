@@ -9,6 +9,29 @@ repos:
         files: ^(etl|server)/
       - id: check-added-large-files
         files: ^(etl|server)/
+        exclude: >
+          (?x)^(
+            etl/data/resources/01_addresses_2024-11-14.csv|
+            etl/data/resources/02_addresses_2024-11-14.csv|
+            etl/data/resources/03_addresses_2024-11-14.csv|
+            etl/data/resources/04_addresses_2024-11-14.csv|
+            etl/data/resources/05_addresses_2024-11-14.csv|
+            etl/data/resources/06_addresses_2024-11-14.csv|
+            etl/data/resources/07_addresses_2024-11-14.csv|
+            etl/data/resources/08_addresses_2024-11-14.csv|
+            etl/data/resources/09_addresses_2024-11-14.csv|
+            etl/data/resources/10_addresses_2024-11-14.csv|
+            etl/data/resources/11_addresses_2024-11-14.csv|
+            etl/data/resources/12_addresses_2024-11-14.csv|
+            etl/data/resources/13_addresses_2024-11-14.csv|
+            etl/data/resources/14_addresses_2024-11-14.csv|
+            etl/data/resources/15_addresses_2024-11-14.csv|
+            etl/data/resources/16_addresses_2024-11-14.csv|
+            etl/data/resources/17_addresses_2024-11-14.csv|
+            etl/data/resources/18_addresses_2024-11-14.csv|
+            etl/data/resources/19_addresses_2024-11-14.csv|
+            etl/data/resources/municipality_code.csv
+          )$
       - id: requirements-txt-fixer
         files: ^(etl|server)/requirements.txt
       - id: forbid-new-submodules
