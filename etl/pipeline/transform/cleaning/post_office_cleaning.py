@@ -82,7 +82,7 @@ def clean_post_offices(
     # Ensure the staging directory exists
     os.makedirs(staging_dir, exist_ok=True)
     # Save the cleaned DataFrame to a CSV file in the staging directory
-    output_path = f"{staging_dir}/cleaned_post_offices.csv"
+    output_path = f"{staging_dir}/staging_post_offices.csv"
     save_to_csv(df, output_path)
 
     return df
