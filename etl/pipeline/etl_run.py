@@ -197,7 +197,6 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
     resources_dir = Path(config["directory_structure"]["resources_dir"])
     cleaned_dir.mkdir(parents=True, exist_ok=True)
     staging_dir.mkdir(parents=True, exist_ok=True)
-
     for json_file in sorted(split_dir.glob("chunk_*.json")):
         data_records = process_json_file(json_file)
         process_entities(data_records, config)

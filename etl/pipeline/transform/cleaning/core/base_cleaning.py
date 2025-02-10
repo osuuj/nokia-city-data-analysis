@@ -51,8 +51,6 @@ def standardize_column_names(df: pd.DataFrame) -> pd.DataFrame:
 
     if changed_columns:
         logger.info(f"Standardized column names: {changed_columns}")
-    else:
-        logger.info("Column names were already standardized.")
 
     return df
 

@@ -13,12 +13,14 @@ Key Features:
 
 """
 
-from etl.pipeline.transform.cleaning.address_cleaning import clean_addresses
-from etl.pipeline.transform.cleaning.base_cleaning import (
+from etl.pipeline.transform.cleaning.address.address_cleaning import clean_addresses
+from etl.pipeline.transform.cleaning.core.base_cleaning import (
     remove_duplicates,
     standardize_column_names,
 )
-from etl.pipeline.transform.cleaning.post_office_cleaning import clean_post_offices
+from etl.pipeline.transform.cleaning.post_office.post_office_cleaning import (
+    clean_post_offices,
+)
 from etl.utils.file_io import read_csv
 
 
@@ -38,9 +40,8 @@ def start_cleaning_process(
         entity_name (str): Name of the entity being processed.
         resources_dir (str): Path to resources directory for additional reference files.
     """
+    # Step 1: Load and preprocess
     df = read_csv(input_file)
-
-    # Step 1: Initial Preprocessing (Keep in memory)
     df = standardize_column_names(df)
     df = remove_duplicates(df)
 

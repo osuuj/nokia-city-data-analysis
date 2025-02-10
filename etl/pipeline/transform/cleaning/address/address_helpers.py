@@ -118,7 +118,7 @@ def filter_street_column(df: pd.DataFrame, filter_type: str) -> pd.DataFrame:
         ValueError: If an invalid filter_type is provided.
     """
     if "street" not in df.columns:
-        print("Warning: 'street' column not found in DataFrame.")
+        logger.warning("'street' column not found in DataFrame.")
         return pd.DataFrame()
 
     if filter_type == "missing":
@@ -144,6 +144,7 @@ def filter_street_column(df: pd.DataFrame, filter_type: str) -> pd.DataFrame:
             "Invalid filter_type. Use 'missing', 'special_characters', or 'long_street'."
         )
 
+    logger.info(f"Filtered {len(filtered_df)} rows using filter type '{filter_type}'.")
     return filtered_df
 
 
