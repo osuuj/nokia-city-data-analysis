@@ -18,10 +18,9 @@ def drop_unnecessary_columns(df: pd.DataFrame, columns_to_drop: list) -> pd.Data
     Returns:
         pd.DataFrame: The DataFrame with specified columns removed.
     """
-    df = df.drop(
+    return df.drop(
         columns=[col for col in columns_to_drop if col in df.columns], errors="ignore"
     )
-    return df
 
 
 def remove_unusable_rows(df: pd.DataFrame, required_columns: list) -> pd.DataFrame:
@@ -49,18 +48,13 @@ def clean_building_number(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The cleaned DataFrame with specific rows removed.
     """
     if "business_id" not in df.columns:
-        print("Warning: 'business_id' column not found in DataFrame.")
+        logger.warning("'business_id' column not found in DataFrame.")
         return df
 
     # Remove decimal points and trim spaces from building_number
-    df.loc[:, "building_number"] = (
-        df["building_number"]
-        .astype(str)
-        .str.strip()  # Trim spaces before and after
-        .str.split(".")
-        .str[0]  # Remove decimal points
+    df["building_number"] = (
+        df["building_number"].astype(str).str.strip().str.split(".").str[0]
     )
-
     return df
 
 
@@ -74,7 +68,7 @@ def clean_entrance_column(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The DataFrame with the cleaned 'entrance' column.
     """
     if "entrance" not in df.columns:
-        print("Warning: 'entrance' column not found in DataFrame.")
+        logger.warning("'entrance' column not found in DataFrame.")
         return df
 
     # Step 1: Remove invalid values
@@ -82,7 +76,7 @@ def clean_entrance_column(df: pd.DataFrame) -> pd.DataFrame:
     df = df[~df["entrance"].isin(invalid_values)].copy()
 
     # Step 2: Standardize common patterns
-    df.loc[:, "entrance"] = df["entrance"].replace(
+    df["entrance"] = df["entrance"].replace(
         {
             "as": "as",
             "As": "as",
@@ -97,10 +91,7 @@ def clean_entrance_column(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Step 3: Normalize case (capitalize all valid entries)
-    df.loc[:, "entrance"] = df["entrance"].str.lower()
-    df.loc[:, "entrance"] = (
-        df["entrance"].astype(str).str.strip()  # Trim spaces before and after
-    )
+    df["entrance"] = df["entrance"].str.lower().astype(str).str.strip()
     return df
 
 
@@ -109,7 +100,7 @@ def filter_street_column(df: pd.DataFrame, filter_type: str) -> pd.DataFrame:
 
     Args:
         df (pd.DataFrame): The input DataFrame.
-        filter_type (str): Type of filtering ("missing", "special_characters", "long_street").
+        filter_type (str): Type of filtering ("missing", "special_characters").
 
     Returns:
         pd.DataFrame: The filtered DataFrame.
@@ -128,17 +119,6 @@ def filter_street_column(df: pd.DataFrame, filter_type: str) -> pd.DataFrame:
             df["street"].str.contains(r"[,./_&\-\d]", na=False)
             | df["street"].str.match(r"^A\s|^Aa\s", na=False)
         ]
-    elif filter_type == "long_street":
-        filtered_df = df[df["street"].str.split().str.len() > 2]
-    elif filter_type == "with_comma":
-        # Filter rows where 'street' contains a comma
-        filtered_df = df[df["street"].str.contains(",", na=False)]
-    elif filter_type == "without_comma":
-        # Filter rows where 'street' does not contain a comma
-        filtered_df = df[~df["street"].str.contains(",", na=False)]
-    elif filter_type == "with_number":
-        # Filter rows where 'street' contains a number
-        filtered_df = df[df["street"].str.contains(r"\d", na=False)]
     else:
         raise ValueError(
             "Invalid filter_type. Use 'missing', 'special_characters', or 'long_street'."
@@ -209,7 +189,7 @@ def add_columns_from_csv(df: pd.DataFrame, staging_dir: str) -> pd.DataFrame:
     output_path = f"{staging_dir}/staging_post_offices.csv"
     additional_data = pd.read_csv(output_path)
     df = df.merge(
-        additional_data[["business_id", "municipality", "active"]],
+        additional_data[["business_id", "municipality", "city", "active"]],
         on="business_id",
         how="left",
     )

@@ -14,10 +14,18 @@ Key Features:
 """
 
 from etl.pipeline.transform.cleaning.address.address_cleaning import clean_addresses
+from etl.pipeline.transform.cleaning.companies.companies_cleaning import clean_companies
 from etl.pipeline.transform.cleaning.core.base_cleaning import (
     remove_duplicates,
     standardize_column_names,
 )
+from etl.pipeline.transform.cleaning.core.final_cleaning import (
+    clean_company_forms,
+    clean_company_situations,
+    clean_main_business_lines,
+    clean_registered_entries,
+)
+from etl.pipeline.transform.cleaning.names.names_cleaning import clean_names
 from etl.pipeline.transform.cleaning.post_office.post_office_cleaning import (
     clean_post_offices,
 )
@@ -49,28 +57,16 @@ def start_cleaning_process(
     if entity_name == "post_offices":
         clean_post_offices(df, resources_dir, staging_dir)
     elif entity_name == "addresses":
-        clean_addresses(df, staging_dir)
-
-    # elif entity_name == "names":
-    #    df, staging_df = clean_names(df, resources_dir)
-    # elif entity_name == "companies":
-    #    df, staging_df = clean_companies(df, resources_dir)
-    # else:
-    #    from etl.pipeline.transform.cleaning.base_cleaning import handle_missing_values
-    #    df, staging_df = handle_missing_values(df, entity_name, resources_dir)
-
-
-#
-## Step 3: Validate Schema & Data Types (Keep in memory)
-# df = validate_data_types(df, entity_name)
-#
-## Step 4: Save Cleaned Data (Write to disk only once)
-# output_file = Path(output_dir) / f"cleaned_{Path(input_file).name}"
-# save_to_csv(df, output_file)
-# print(f"Cleaned file saved: {output_file}")
-#
-## Step 5: Save Staging Data (Only if necessary)
-# if not staging_df.empty:
-#    staging_file = Path(staging_dir) / f"staging_{Path(input_file).name}"
-#    save_to_csv(staging_df, staging_file)
-#    print(f"Staging file saved: {staging_file}")
+        clean_addresses(df, staging_dir, output_dir)
+    elif entity_name == "names":
+        clean_names(df, staging_dir, output_dir)
+    elif entity_name == "companies":
+        clean_companies(df, staging_dir, output_dir)
+    elif entity_name == "company_forms":
+        clean_company_forms(df, output_dir)
+    elif entity_name == "company_situations":
+        clean_company_situations(df, output_dir)
+    elif entity_name == "main_business_lines":
+        clean_main_business_lines(df, output_dir)
+    elif entity_name == "registered_entries":
+        clean_registered_entries(df, output_dir)

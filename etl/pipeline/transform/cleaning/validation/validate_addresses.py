@@ -20,7 +20,6 @@ from etl.pipeline.transform.cleaning.validation.street_matching import (
     find_matched_streets_by_municipality,
     find_matched_streets_by_postal,
 )
-from etl.utils.file_io import save_to_csv
 
 from .house_number_matching import (
     clean_house_number,
@@ -225,10 +224,6 @@ def validate_street_names(
         errors="ignore",
         inplace=True,
     )
-    save_to_csv(
-        address_with_coordinates_df, f"{output_path}/address_with_coordinates.csv"
-    )
-    save_to_csv(unmatched_df, f"{output_path}/unmatched.csv")
 
     logger.info("Street name validation completed.")
 
