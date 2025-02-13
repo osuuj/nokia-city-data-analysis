@@ -16,6 +16,7 @@ CREATE TABLE business_name_history (
     company_type TEXT NOT NULL,
     registration_date DATE NOT NULL,
     end_date DATE NULL,
+    active BOOLEAN NOT NULL,
     source TEXT NOT NULL,
     version INT NOT NULL
 );
@@ -83,7 +84,7 @@ CREATE TABLE registered_entries (
     id SERIAL PRIMARY KEY,
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
     registration_status_code TEXT NOT NULL,
-    registration_date DATE NOT NULL,
+    registration_date DATE NULL,
     end_date DATE NULL,
     register_name TEXT NOT NULL,
     authority TEXT NOT NULL

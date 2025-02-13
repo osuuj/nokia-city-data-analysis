@@ -175,7 +175,7 @@ def standardize_and_clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df["street"] = df["street"].str.title().str.strip()
     df["city"] = df["city"].str.title().str.strip()
     df["country"] = df["country"].str.upper().str.strip()
-    df["city"] = df["city"].replace("", None)
+    df["city"] = df["city"].fillna("Unknown")
     df[["entrance", "co"]] = df[["entrance", "co"]].replace("", None)
     df.drop_duplicates(
         subset=[
@@ -184,11 +184,12 @@ def standardize_and_clean_data(df: pd.DataFrame) -> pd.DataFrame:
             "building_number",
             "postal_code",
             "city",
-            "type",
+            "address_type",
         ],
         keep="first",
         inplace=True,
     )
+    df["city"] = df["city"].fillna("Unknown")
 
     return df
 

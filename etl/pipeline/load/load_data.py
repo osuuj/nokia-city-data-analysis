@@ -74,7 +74,7 @@ def clean_data(df, table_name, engine):
         df = df[df["business_id"].isin(business_ids_in_db)]
 
         # Keep industry NULL (do not replace)
-        df["industry"] = df["industry"].where(pd.notna(df["industry"]), None)
+        df.loc[:, "industry"] = df["industry"].where(pd.notna(df["industry"]), None)
 
     if table_name == "company_forms":
         # Remove rows where business_id does not exist in the businesses table

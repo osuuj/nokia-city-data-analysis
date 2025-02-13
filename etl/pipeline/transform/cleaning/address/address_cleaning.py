@@ -103,10 +103,6 @@ def validate_and_save_street_names(
     save_to_csv(df_merged, f"{output_dir}/cleaned_address_data.csv")
 
     unmatched_df = process_unmatched_addresses(unmatched_df)
-    # Drop the "active" column before inserting into business_name_history
-    unmatched_df = unmatched_df.drop(
-        columns=["active"], errors="ignore"
-    )  # Ignore if the column is already missing
     save_to_csv(unmatched_df, f"{output_dir}/staging_unmatch_address_data.csv")
 
     logger.info("Street name validation completed.")
