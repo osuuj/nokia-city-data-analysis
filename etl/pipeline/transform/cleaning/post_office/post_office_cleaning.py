@@ -5,7 +5,7 @@ import os
 
 import pandas as pd
 
-from etl.pipeline.transform.cleaning.cleaning_utils import (
+from etl.pipeline.transform.cleaning.core.cleaning_utils import (
     normalize_postal_codes,
     remove_invalid_post_codes,
 )
@@ -40,8 +40,6 @@ def match_municipality_codes(df: pd.DataFrame, resources_dir: str) -> pd.DataFra
         municipality_dict = municipality_codes.set_index("code")["city"].to_dict()
         # Update the city column based on the municipality code
         df["city"] = df["municipality"].map(municipality_dict)
-        # Log the DataFrame for debugging
-        logger.info(f"Updated DataFrame: {df.head()}")
     else:
         logger.error("Column 'municipality' not found in DataFrame.")
 
@@ -82,7 +80,7 @@ def clean_post_offices(
     # Ensure the staging directory exists
     os.makedirs(staging_dir, exist_ok=True)
     # Save the cleaned DataFrame to a CSV file in the staging directory
-    output_path = f"{staging_dir}/cleaned_post_offices.csv"
+    output_path = f"{staging_dir}/staging_post_offices.csv"
     save_to_csv(df, output_path)
 
     return df

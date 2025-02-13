@@ -1,54 +1,38 @@
-"""This module provides services for retrieving company data.
+from typing import Dict, List
 
-- Implements data retrieval logic using SQLAlchemy ORM.
-- Maps SQLAlchemy results to Pydantic schemas.
-- Supports pagination for efficient data handling.
-"""
-
-from typing import List
-
-from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from server.backend.models.company import Address, Company
-from server.backend.schemas.address_schema import AddressSchema
-from server.backend.schemas.company_schema import CompanySchema
 
-
-def get_paginated_companies(
-    db: Session, page: int, page_size: int
-) -> List[CompanySchema]:
-    """Retrieve paginated companies from the database.
-
-    Args:
-        db (Session): Database session.
-        page (int): Page number.
-        page_size (int): Number of items per page.
-
-    Returns:
-        List[CompanySchema]: List of company schemas.
+def get_business_data_by_city(db: Session, city: str) -> List[Dict]:
+    query = text(
+        """
+    SELECT
+        a.business_id,
+        a.street,
+        a.building_number,
+        COALESCE(a.entrance, '') AS entrance,
+        CAST(a.postal_code AS TEXT) AS postal_code,
+        a.city,
+        CAST(a.latitude_wgs84 AS TEXT) AS latitude_wgs84,
+        CAST(a.longitude_wgs84 AS TEXT) AS longitude_wgs84,
+        a.address_type,
+        CAST(a.active AS TEXT) AS active,
+        b.company_name,
+        b.company_type,
+        COALESCE(ic.industry_description, '') AS industry_description,
+        COALESCE(w.website, '') AS website
+    FROM
+        addresses a
+    JOIN
+        businesses b ON a.business_id = b.business_id
+    LEFT JOIN
+        industry_classifications ic ON a.business_id = ic.business_id
+    LEFT JOIN
+        websites w ON a.business_id = w.business_id
+    WHERE
+        a.city = :city;
     """
-    offset = (page - 1) * page_size
-    companies = db.query(Company).offset(offset).limit(page_size).all()
-
-    return [CompanySchema.model_validate(company) for company in companies]
-
-
-def get_paginated_addresses(
-    db: Session, page: int, page_size: int
-) -> List[AddressSchema]:
-    """Retrieve paginated addresses from the addresses table.
-
-    Args:
-        db (Session): Database session.
-        page (int): Page number.
-        page_size (int): Number of items per page.
-
-    Returns:
-        List[AddressSchema]: List of addresses.
-    """
-    offset = (page - 1) * page_size
-    stmt = select(Address).offset(offset).limit(page_size)
-    results = db.execute(stmt).scalars().all()
-
-    return [AddressSchema.model_validate(address) for address in results]
+    )
+    result = db.execute(query, {"city": city})
+    return [dict(row) for row in result.mappings()]

@@ -64,7 +64,7 @@ class AddressesExtractor(BaseExtractor):
                     results.append(
                         {
                             "businessId": business_id,
-                            "type": mapped_type,
+                            "addressType": mapped_type,
                             "street": address.get("street", ""),
                             "buildingNumber": building_number,
                             "entrance": address.get("entrance", ""),
