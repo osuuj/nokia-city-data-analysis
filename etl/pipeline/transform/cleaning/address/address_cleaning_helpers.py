@@ -177,6 +177,19 @@ def standardize_and_clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df["country"] = df["country"].str.upper().str.strip()
     df["city"] = df["city"].replace("", None)
     df[["entrance", "co"]] = df[["entrance", "co"]].replace("", None)
+    df.drop_duplicates(
+        subset=[
+            "business_id",
+            "street",
+            "building_number",
+            "postal_code",
+            "city",
+            "type",
+        ],
+        keep="first",
+        inplace=True,
+    )
+
     return df
 
 
@@ -197,17 +210,3 @@ def process_unmatched_addresses(df: pd.DataFrame) -> pd.DataFrame:
     df["postal_code"] = df["postal_code"].astype(str)
     df["municipality"] = df["municipality"].astype(str)
     return df
-
-
-def merge_duplicate_address_types(df: pd.DataFrame) -> pd.DataFrame:
-    """Merge duplicate address types into one record.
-
-    Args:
-        df (pd.DataFrame): The input DataFrame.
-
-    Returns:
-        pd.DataFrame: The DataFrame with merged address types.
-    """
-    return df.groupby(
-        [col for col in df.columns if col != "type"], dropna=False, as_index=False
-    ).agg({"type": lambda x: ", ".join(sorted(set(x)))})

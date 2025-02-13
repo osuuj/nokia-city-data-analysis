@@ -117,23 +117,61 @@ nokia-city-data-analysis/
 ├── pyrightconfig.json            # Pyright type checker configuration
 ├── ruff.toml                     # Ruff linter configuration
 ├── etl/                          # ETL (Extract, Transform, Load) scripts
+│   ├── __init__.py
 │   ├── config/                   # Configuration files
+│   │   ├── __init__.py
+│   │   ├── config_loader.py
+│   │   ├── db.yml
+│   │   ├── directory.yml
+│   │   └── ...                   # Additional config files
 │   ├── data/                     # Data storage
+│   │   ├── 1_raw/
+│   │   ├── 2_extracted/
+│   │   ├── 3_processed/
+│   │   └── logs/
+│   │       ├── etl.log
+│   │       └── etl_debug.log
 │   ├── pipeline/                 # ETL pipeline scripts
+│   │   ├── extract/
+│   │   ├── load/
+│   │   └── transform/
 │   ├── scripts/                  # Execution scripts
+│   │   ├── data_fetcher.py
+│   │   ├── entity_processing.py
+│   │   └── etl_run.py
 │   └── utils/                    # Utility modules
+│       ├── cleaning_utils.py
+│       ├── dynamic_imports.py
+│       └── file_system_utils.py
 ├── frontend/                     # Frontend application
 │   ├── package.json
 │   ├── public/
 │   └── src/
 │       ├── App.js
 │       ├── components/
-│       ├── services/
+│       │   ├── Map.js
+│       │   └── SearchForm.js
+│       └── services/
+│           └── api.js
 ├── server/                       # Backend server
 │   ├── backend/
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   ├── models/
+│   │   │   └── company.py
+│   │   ├── routers/
+│   │   │   └── companies.py
+│   │   ├── schemas/
+│   │   │   └── company.py
+│   │   └── services/
+│   │       └── company_service.py
 │   ├── db/
+│   │   └── schema.sql
 │   ├── requirements.txt          # Backend dependencies
 │   └── tests/                    # Test scripts
+│       ├── test_db_connection.py
+│       └── queries.py            # Test queries from db tables.
 └── venvs/                        # Virtual environments
     ├── etl_env/
     ├── fastapi_env/

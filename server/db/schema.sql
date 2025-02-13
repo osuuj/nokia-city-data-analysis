@@ -1,58 +1,96 @@
-
--- Table: businesses
 CREATE TABLE businesses (
     business_id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    industry_code TEXT NOT NULL,
-    registration_date DATE,
-    end_date DATE,
-    active BOOLEAN DEFAULT TRUE
+    company_name TEXT NOT NULL,
+    company_type TEXT NOT NULL,
+    registration_date DATE NOT NULL,
+    end_date DATE NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    source TEXT NOT NULL,
+    version INT NOT NULL
 );
 
--- Indexes for fast queries
-CREATE INDEX idx_businesses_industry ON businesses(industry_code);
-CREATE INDEX idx_businesses_active ON businesses(active);
+CREATE TABLE business_name_history (
+    id SERIAL PRIMARY KEY,
+    business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
+    company_name TEXT NOT NULL,
+    company_type TEXT NOT NULL,
+    registration_date DATE NOT NULL,
+    end_date DATE NULL,
+    source TEXT NOT NULL,
+    version INT NOT NULL
+);
 
--- Table: addresses
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
     street TEXT NOT NULL,
-    building_number TEXT,
-    entrance TEXT,
-    postal_code TEXT NOT NULL,
-    municipality TEXT NOT NULL,
+    building_number TEXT NOT NULL,
+    entrance TEXT NULL,
+    apartment_number TEXT NULL,
+    postal_code INT NOT NULL,
+    municipality INT NOT NULL,
     city TEXT NOT NULL,
-    country TEXT NOT NULL,
-    latitude FLOAT,
-    longitude FLOAT
+    country TEXT DEFAULT 'FI' NOT NULL,
+    latitude_wgs84 DOUBLE PRECISION NOT NULL,
+    longitude_wgs84 DOUBLE PRECISION NOT NULL,
+    address_type TEXT CHECK (address_type IN ('Postal address', 'Visiting address')),
+    co TEXT NULL,
+    registration_date DATE NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    type TEXT
 );
 
--- Indexes for efficient querying and geospatial lookups
-CREATE INDEX idx_addresses_city ON addresses(city);
-CREATE INDEX idx_addresses_postal_code ON addresses(postal_code);
-CREATE INDEX idx_addresses_location ON addresses USING GIST (ST_GeographyFromText('SRID=4326;POINT(' || longitude || ' ' || latitude || ')'));
+CREATE TABLE industry_classifications (
+    id SERIAL PRIMARY KEY,
+    business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
+    industry_code INT NOT NULL,
+    industry TEXT NULL,
+    industry_description TEXT NOT NULL,
+    registration_date DATE NOT NULL,
+    source TEXT NOT NULL
+);
 
--- Table: company_forms
+CREATE TABLE websites (
+    id SERIAL PRIMARY KEY,
+    business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
+    website TEXT NOT NULL,
+    last_modified DATE NULL,
+    company_id_status TEXT NULL,
+    trade_register_status TEXT NULL,
+    registration_date DATE NULL,
+    end_date DATE NULL
+);
+
 CREATE TABLE company_forms (
     id SERIAL PRIMARY KEY,
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
     business_form TEXT NOT NULL,
-    registration_date DATE,
-    end_date DATE
+    registration_date DATE NULL,
+    end_date DATE NULL,
+    version INT,
+    source TEXT NOT NULL
 );
 
--- Index for form queries
-CREATE INDEX idx_company_forms_business_id ON company_forms(business_id);
-
--- Table: company_situations
 CREATE TABLE company_situations (
     id SERIAL PRIMARY KEY,
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    registration_date DATE
+    situation_type TEXT CHECK (situation_type IN ('Bankrupt', 'Liquidation','Company Re-Organisation')),
+    registration_date DATE NOT NULL,
+    source TEXT NOT NULL
 );
 
--- Index for quick filtering
-CREATE INDEX idx_company_situations_business_id ON company_situations(business_id);
-CREATE INDEX idx_company_situations_type ON company_situations(type);
+CREATE TABLE registered_entries (
+    id SERIAL PRIMARY KEY,
+    business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
+    registration_status_code TEXT NOT NULL,
+    registration_date DATE NOT NULL,
+    end_date DATE NULL,
+    register_name TEXT NOT NULL,
+    authority TEXT NOT NULL
+);
+
+CREATE INDEX idx_location ON addresses USING GIST (point(latitude_wgs84, longitude_wgs84));
+CREATE INDEX idx_city ON addresses(city);
+CREATE INDEX idx_industry ON industry_classifications(industry_code);
+CREATE INDEX idx_website_business ON websites(business_id);
+CREATE INDEX idx_company_forms_business ON company_forms(business_id);

@@ -12,7 +12,6 @@ import pandas as pd
 from etl.pipeline.transform.cleaning.address.address_cleaning_helpers import (
     filter_and_save_special_chars_street_addresses,
     filter_clean_and_save_missing_street_addresses,
-    merge_duplicate_address_types,
     process_unmatched_addresses,
     standardize_and_clean_data,
 )
@@ -100,11 +99,14 @@ def validate_and_save_street_names(
         df, finland_df, staging_dir
     )
 
-    df_merged = merge_duplicate_address_types(address_with_coordinates_df)
-    df_merged = standardize_and_clean_data(df_merged)
+    df_merged = standardize_and_clean_data(address_with_coordinates_df)
     save_to_csv(df_merged, f"{output_dir}/cleaned_address_data.csv")
 
     unmatched_df = process_unmatched_addresses(unmatched_df)
+    # Drop the "active" column before inserting into business_name_history
+    unmatched_df = unmatched_df.drop(
+        columns=["active"], errors="ignore"
+    )  # Ignore if the column is already missing
     save_to_csv(unmatched_df, f"{output_dir}/staging_unmatch_address_data.csv")
 
     logger.info("Street name validation completed.")

@@ -60,7 +60,7 @@ class CompanySituationsExtractor(BaseExtractor):
                 results.append(
                     {
                         "businessId": business_id,
-                        "type": mapped_type,
+                        "situationType": mapped_type,
                         "registrationDate": self.parse_date(
                             situation.get("registrationDate")
                         ),
