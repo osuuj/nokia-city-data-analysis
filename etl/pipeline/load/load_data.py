@@ -124,7 +124,14 @@ def load_csv_to_db(engine, table_name, file_path):
 def load_data():
     """ETL process to load cleaned CSVs into the database."""
     try:
-        engine = create_engine(DATABASE_URL)
+        engine = create_engine(
+            DATABASE_URL,
+            pool_size=10,  # ✅ Keeps up to 10 connections open
+            max_overflow=5,  # ✅ Allows 5 extra temporary connections
+            pool_timeout=30,  # ✅ Waits 30 sec before failing if no connection is available
+            pool_recycle=1800,  # ✅ Recycles connections every 30 min to prevent stale connections
+            echo=False,  # ❌ Set to True for debugging, but disable in production
+        )
         create_tables(engine, db_schema)
 
         # Load all tables

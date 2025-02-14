@@ -7,8 +7,9 @@
 """
 
 from sqlalchemy import Column, Date, Integer, Text
+from sqlalchemy.ext.declarative import declarative_base
 
-from server.backend.database import Base
+Base = declarative_base()
 
 
 class Company(Base):
