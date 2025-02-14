@@ -4,10 +4,10 @@ from fastapi import FastAPI
 
 from server.backend.routers import companies
 
-# Initialize FastAPI application
+# ✅ Initialize FastAPI application
 app = FastAPI(debug=True, title="Nokia City Data API", version="1.0.0")
 
-# Include the companies router
+# ✅ Include optimized companies router
 app.include_router(companies.router, prefix="/api/v1", tags=["Companies"])
 
 

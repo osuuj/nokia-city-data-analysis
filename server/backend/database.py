@@ -9,27 +9,26 @@
 from typing import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from server.backend.config import DATABASE_URL
 
-# Database connection setup
-engine = create_engine(DATABASE_URL, future=True, pool_pre_ping=True)
+# ✅ Enable connection pooling
+engine = create_engine(
+    DATABASE_URL, pool_size=10, max_overflow=5, pool_timeout=30, pool_recycle=1800
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 
 def get_db() -> Generator[Session, None, None]:
-    """Generate a database session for use in database operations.
+    """Provides a database session with connection pooling.
 
     Yields:
-        sqlalchemy.orm.Session: A SQLAlchemy session object.
-
-    Ensures:
-        The session is closed after use.
+        Session: A database session.
     """
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        db.close()  # ✅ Returns connection to the pool instead of closing it
