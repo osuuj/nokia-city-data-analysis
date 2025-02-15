@@ -9,7 +9,7 @@ class AddressSchema(BaseModel):
     type: str
     street: Optional[str]
     building_number: Optional[str]
-    entrance: Optional[str]
+    entrance: Optional[str]  # Allow None
     apartment_number: Optional[str]
     apartment_id_suffix: Optional[str]
     post_office_box: Optional[str]
