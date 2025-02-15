@@ -9,13 +9,10 @@ It uses SQLAlchemy for database interactions and pandas for reading and handling
 """
 
 import logging
-import time
 from pathlib import Path
-from typing import Dict, List, Union
 
 import pandas as pd
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from etl.config.config_loader import CONFIG, DATABASE_URL
@@ -28,174 +25,127 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 processed_dir = Path(CONFIG["directory_structure"]["processed_dir"])
 processed_data_path = processed_dir / "cleaned"
 db_schema = Path(CONFIG["directory_structure"]["db_schema_path"])
-entities = CONFIG["entities"]
+entities = [
+    {"table": "businesses", "file": "cleaned_names.csv"},
+    {"table": "business_name_history", "file": "staging_names_old.csv"},
+    {"table": "addresses", "file": "cleaned_address_data.csv"},
+    {"table": "industry_classifications", "file": "cleaned_main_business_lines.csv"},
+    {"table": "websites", "file": "cleaned_companies_website.csv"},
+    {"table": "company_forms", "file": "cleaned_company_forms.csv"},
+    {"table": "company_situations", "file": "cleaned_company_situations.csv"},
+    {"table": "registered_entries", "file": "cleaned_registered_entries.csv"},
+]
 
 
-def create_tables(engine: Engine, db_schema: str) -> None:
-    """Create tables in the database based on the provided schema.
-
-    Args:
-        engine: SQLAlchemy engine object.
-        db_schema (str): Path to the SQL schema file.
-
-    Raises:
-        ValueError: If table creation fails.
-    """
-    with engine.connect() as connection:
-        with open(db_schema, "r") as schema_file:
-            schema_sql = schema_file.read()
-            statements = schema_sql.split(";")
-            for statement in statements:
-                if statement.strip():
-                    try:
-                        connection.execute(text(statement))
-                    except SQLAlchemyError as e:
-                        print(f"Error creating tables: {e}")
-                        raise ValueError(f"Error creating tables: {e}")
-
-
-def remove_duplicates(engine: Engine, table: str) -> None:
-    """Remove duplicate rows from the specified table using a CTE.
+def create_tables(engine, schema_file):
+    """Create database tables based on SQL schema.
 
     Args:
-        engine: SQLAlchemy engine object.
-        table (str): Name of the table to remove duplicates from.
-
-    Raises:
-        ValueError: If no columns are found for the table.
-        Exception: If there is an error removing duplicates from the table.
+        engine (sqlalchemy.engine.Engine): SQLAlchemy engine object.
+        schema_file (Path): Path to the SQL schema file.
     """
-    with engine.connect() as connection:
-        try:
-            # Get the column names for the table
-            result = connection.execute(
-                text(
-                    "SELECT column_name FROM information_schema.columns WHERE table_name = :table"
-                ),
-                {"table": table},
-            )
-            columns = [row[0] for row in result]
-            if not columns:
-                raise ValueError(f"No columns found for table: {table}")
-
-            # Construct the query with the table name and columns embedded directly
-            columns_str = ", ".join(columns)
-            query = f"""
-                WITH cte AS (
-                    SELECT
-                        ctid,
-                        ROW_NUMBER() OVER (PARTITION BY {columns_str} ORDER BY ctid) AS rnum
-                    FROM {table}
-                )
-                DELETE FROM {table}
-                WHERE ctid IN (
-                    SELECT ctid
-                    FROM cte
-                    WHERE rnum > 1
-                );
-            """
-
-            # Execute the query
-            start_time = time.time()
-            connection.execute(text(query))
-            end_time = time.time()
-
-            print(
-                f"Removed duplicate rows from table {table}. Query took {end_time - start_time:.2f} seconds."
-            )
-        except Exception as e:
-            print(f"Error removing duplicates from table {table}: {e}")
-            raise
+    try:
+        with engine.connect() as conn:
+            with open(schema_file, "r") as schema:
+                conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+                conn.execute(text(schema.read()))
+            conn.commit()
+        print("✅ Tables created successfully.")
+    except SQLAlchemyError as e:
+        print(f"❌ Error creating tables: {e}")
 
 
-def load_data(
-    engine: Engine,
-    processed_data_path: Path,
-    entities: List[Dict[str, Union[str, List[str]]]],
-) -> None:
-    """Load processed data into the database.
+def clean_data(df, table_name, engine):
+    """Apply specific data cleaning rules for each table before inserting into the database.
 
     Args:
-        engine: SQLAlchemy engine object.
-        processed_data_path (Path): Path to the processed data directory.
-        entities (List[Dict[str, Union[str, List[str]]]]): List of entity configurations with 'name', 'table', and 'unique_columns' keys.
+        df (pandas.DataFrame): DataFrame containing the data to be cleaned.
+        table_name (str): Name of the table to which the data belongs.
+        engine (sqlalchemy.engine.Engine): SQLAlchemy engine object.
 
-    Raises:
-        ValueError: If data loading fails for a specific file.
+    Returns:
+        pandas.DataFrame: Cleaned DataFrame.
     """
-    for entity in entities:
-        print(f"Processing entity: {entity['name']}")
-        if isinstance(entity["name"], list):
-            raise ValueError(
-                f"Entity name should be a string, got list: {entity['name']}"
-            )
-        if isinstance(entity["table"], list):
-            raise ValueError(
-                f"Entity table should be a string, got list: {entity['table']}"
-            )
-        folder_path = processed_data_path / entity["name"]
-        if not folder_path.exists():
-            print(f"Data folder not found for entity {entity['name']}. Skipping.")
-            continue
+    if table_name == "industry_classifications":
+        # Remove rows where business_id does not exist in the businesses table
+        business_ids_in_db = set(
+            pd.read_sql("SELECT business_id FROM businesses", engine)["business_id"]
+        )
+        df = df[df["business_id"].isin(business_ids_in_db)]
 
-        for file_path in folder_path.glob("*.csv"):
-            try:
-                # Load the cleaned CSV into a DataFrame
-                df = pd.read_csv(file_path)
+        # Keep industry NULL (do not replace)
+        df.loc[:, "industry"] = df["industry"].where(pd.notna(df["industry"]), None)
 
-                # Write the DataFrame to the database
-                df.to_sql(entity["table"], engine, if_exists="append", index=False)
-                print(f"Loaded {file_path.name} into table {entity['table']}.")
-            except Exception as e:
-                print(
-                    f"Error loading file {file_path.name} into table {entity['table']}: {e}"
-                )
-                raise ValueError(
-                    f"Failed to load {file_path.name} into table {entity['table']}: {e}"
-                )
+    if table_name == "company_forms":
+        # Remove rows where business_id does not exist in the businesses table
+        business_ids_in_db = set(
+            pd.read_sql("SELECT business_id FROM businesses", engine)["business_id"]
+        )
+        df = df[df["business_id"].isin(business_ids_in_db)]
+
+        # Remove duplicates by keeping only the latest version
+        df = df.sort_values(
+            by=["business_id", "business_form", "version"],
+            ascending=[True, True, False],
+        )
+        df = df.drop_duplicates(subset=["business_id", "business_form"], keep="first")
+
+    if table_name == "registered_entries":
+        # Remove rows where business_id does not exist in the businesses table
+        business_ids_in_db = set(
+            pd.read_sql("SELECT business_id FROM businesses", engine)["business_id"]
+        )
+        df = df[df["business_id"].isin(business_ids_in_db)]
+
+    return df
 
 
-def validate_database(
-    engine: Engine, entities: List[Dict[str, Union[str, List[str]]]]
-) -> None:
-    """Validate the database by removing duplicates and ensuring referential integrity.
+def load_csv_to_db(engine, table_name, file_path):
+    """Load cleaned CSV data into PostgreSQL.
 
     Args:
-        engine: SQLAlchemy engine object.
-        entities (List[Dict[str, Union[str, List[str]]]]): List of entity configurations with 'name', 'table', and 'unique_columns' keys.
-
-    Raises:
-        ValueError: If entity table is not a string.
+        engine (sqlalchemy.engine.Engine): SQLAlchemy engine object.
+        table_name (str): Name of the table to load data into.
+        file_path (Path): Path to the CSV file to be loaded.
     """
-    print("Starting database validation...")
+    try:
+        df = pd.read_csv(file_path)
+        df.drop_duplicates(inplace=True)
 
-    # Remove duplicates from each table
-    for entity in entities:
-        print(f"Validating entity: {entity['name']}")
-        table = entity["table"]
-        if isinstance(table, list):
-            raise ValueError(f"Entity table should be a string, got list: {table}")
-        remove_duplicates(engine, table)
+        # Apply cleaning rules before insertion
+        df = clean_data(df, table_name, engine)
 
-    print("Database validation completed.")
+        df.to_sql(table_name, engine, if_exists="append", index=False)
+        print(f"✅ Loaded {file_path} into table {table_name}.")
+    except Exception as e:
+        print(f"❌ Error loading {file_path} into {table_name}: {e}")
+
+
+def load_data():
+    """ETL process to load cleaned CSVs into the database."""
+    try:
+        engine = create_engine(
+            DATABASE_URL,
+            pool_size=10,  # ✅ Keeps up to 10 connections open
+            max_overflow=5,  # ✅ Allows 5 extra temporary connections
+            pool_timeout=30,  # ✅ Waits 30 sec before failing if no connection is available
+            pool_recycle=1800,  # ✅ Recycles connections every 30 min to prevent stale connections
+            echo=False,  # ❌ Set to True for debugging, but disable in production
+        )
+        create_tables(engine, db_schema)
+
+        # Load all tables
+        for entity in entities:
+            file_path = processed_data_path / entity["file"]
+            if file_path.exists():
+                load_csv_to_db(engine, entity["table"], file_path)
+            else:
+                print(f"⚠️ File {entity['file']} not found. Skipping.")
+
+        print("✅ ETL process completed successfully.")
+    except SQLAlchemyError as e:
+        print(f"❌ Database connection error: {e}")
 
 
 if __name__ == "__main__":
-    try:
-        # Create the database engine
-        engine = create_engine(DATABASE_URL)
-        print(f"Database engine created with URL: {DATABASE_URL}")
-
-        # Create tables
-        create_tables(engine, str(db_schema))
-        print("Tables created successfully.")
-
-        # Load data into the database
-        load_data(engine, processed_data_path, entities)
-
-        # Validate the database
-        validate_database(engine, entities)
-
-        print("ETL process completed successfully.")
-    except Exception as e:
-        print(f"ETL process failed: {e}")
+    load_data()

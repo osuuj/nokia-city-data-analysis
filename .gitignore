@@ -1,3 +1,33 @@
+# Ignore everything in the etl/data/ directory
+etl/data/*
+
+# Do not ignore the resources directory itself
+!etl/data/resources/
+
+# Do not ignore specific address files
+!etl/data/resources/01_addresses_2024-11-14.csv
+!etl/data/resources/02_addresses_2024-11-14.csv
+!etl/data/resources/03_addresses_2024-11-14.csv
+!etl/data/resources/04_addresses_2024-11-14.csv
+!etl/data/resources/05_addresses_2024-11-14.csv
+!etl/data/resources/06_addresses_2024-11-14.csv
+!etl/data/resources/07_addresses_2024-11-14.csv
+!etl/data/resources/08_addresses_2024-11-14.csv
+!etl/data/resources/09_addresses_2024-11-14.csv
+!etl/data/resources/10_addresses_2024-11-14.csv
+!etl/data/resources/11_addresses_2024-11-14.csv
+!etl/data/resources/12_addresses_2024-11-14.csv
+!etl/data/resources/13_addresses_2024-11-14.csv
+!etl/data/resources/14_addresses_2024-11-14.csv
+!etl/data/resources/15_addresses_2024-11-14.csv
+!etl/data/resources/16_addresses_2024-11-14.csv
+!etl/data/resources/17_addresses_2024-11-14.csv
+!etl/data/resources/18_addresses_2024-11-14.csv
+!etl/data/resources/19_addresses_2024-11-14.csv
+
+# Do not ignore municipality_code.csv
+!etl/data/resources/municipality_code.csv
+
 # Ignore Python virtual environment
 venvs/
 etl_env/
@@ -6,10 +36,6 @@ etl/test/my_test/connect_db.ipynb
 
 # Ignore lock-requirements.txt
 lock-requirements.txt
-
-# Ignore
-etl/data/*
-my_folder/
 
 # Ignore Python cache files
 __pycache__/
@@ -26,8 +52,6 @@ __pycache__/
 # Ignore logs and temporary files
 *.log
 *.tmp
-etl/data/v1/logs/
-etl/data/v2/logs/
 
 # Ignore Jupyter Notebook checkpoints
 .ipynb_checkpoints/
@@ -38,12 +62,6 @@ Thumbs.db
 
 # Ignore editor/IDE config files
 .vscode/
-
-# Ignore Foam folder
-foam/
-.foam/templates/*
-!.foam/templates/new-note.md
-!.foam/templates/project-template.md
 
 # Ignore personal or environment-specific documentation
 docs/
@@ -64,3 +82,30 @@ docs/
 *.so
 *.a
 *.out
+
+
+# Frontend folder
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

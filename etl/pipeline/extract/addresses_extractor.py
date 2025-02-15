@@ -53,33 +53,33 @@ class AddressesExtractor(BaseExtractor):
         for address in row.get("addresses", []):
             try:
                 mapped_type = self.map_value(address.get("type"), self.address_mapping)
-                mapped_source = self.map_value(
-                    address.get("source"), self.source_mapping
-                )
                 country = address.get("country")
                 if not country:
                     country = self.default_country
 
-                results.append(
-                    {
-                        "businessId": business_id,
-                        "type": mapped_type,
-                        "street": address.get("street", ""),
-                        "buildingNumber": address.get("buildingNumber", ""),
-                        "entrance": address.get("entrance", ""),
-                        "apartmentNumber": address.get("apartmentNumber", ""),
-                        "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
-                        "postOfficeBox": address.get("postOfficeBox", ""),
-                        "postCode": address.get("postCode", ""),
-                        "co": address.get("co", ""),
-                        "country": country,
-                        "freeAddressLine": address.get("freeAddressLine", ""),
-                        "registrationDate": self.parse_date(
-                            address.get("registrationDate", "")
-                        ),
-                        "source": mapped_source,
-                    }
-                )
+                building_number = str(address.get("buildingNumber", "")).strip()
+                if isinstance(building_number, str):
+                    building_number = building_number.strip()
+
+                    results.append(
+                        {
+                            "businessId": business_id,
+                            "addressType": mapped_type,
+                            "street": address.get("street", ""),
+                            "buildingNumber": building_number,
+                            "entrance": address.get("entrance", ""),
+                            "apartmentNumber": address.get("apartmentNumber", ""),
+                            "apartmentIdSuffix": address.get("apartmentIdSuffix", ""),
+                            "postOfficeBox": address.get("postOfficeBox", ""),
+                            "postalCode": address.get("postCode", ""),
+                            "co": address.get("co", ""),
+                            "country": country,
+                            "freeAddressLine": address.get("freeAddressLine", ""),
+                            "registrationDate": self.parse_date(
+                                address.get("registrationDate", "")
+                            ),
+                        }
+                    )
             except Exception as e:
                 self.logger.error(
                     f"Error processing address for businessId '{business_id}': {e}"

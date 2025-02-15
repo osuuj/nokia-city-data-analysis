@@ -51,8 +51,8 @@ This project aims to develop a data analysis and visualization system for Finnis
 | Data Preparation           | 2024-11-24  | Completed    |
 | ETL Pipeline Completion    | 2024-12-27  | Completed  |
 | Backend              | 2025-02-30  | In Progress |
-| Frontend Prototype         | 2025-??-??  | Not Started  |
-| Full System Deployment     | 2025-??-??  | Not Started  |
+| Frontend Prototype         | 2025-05-01  | In Progress  |
+| Full System Deployment     | 2025-06-01  | Not Started  |
 
 ---
 
