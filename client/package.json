@@ -13,8 +13,11 @@
     "@tanstack/react-router": "^1.99.6",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/zod-adapter": "^1.99.9",
+    "@types/mapbox-gl": "^3.4.1",
+    "mapbox-gl": "^1.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-map-gl": "^8.0.1",
     "redaxios": "^0.5.1",
     "zod": "^3.24.1"
   },

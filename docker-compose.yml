@@ -34,6 +34,9 @@ services:
     build:
       context: ./client
     container_name: vite-react
+    depends_on:
+      - db
+      - server
     volumes:
       # Bind mount to sync file changes between host and container, ro = read only
       - ./client:/app

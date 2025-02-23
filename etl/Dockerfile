@@ -9,5 +9,5 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . /code/etl
 
-# Use sh to run the ETL script and then start an interactive shell
-CMD ["sh", "-c", "/bin/sh"]
+# Run the ETL script and then the load data script, and start an interactive shell
+CMD ["sh", "-c", "python etl/pipeline/etl_run.py && python etl/pipeline/load/load_data.py"]
