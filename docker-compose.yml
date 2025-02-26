@@ -33,7 +33,7 @@ services:
   client:
     build:
       context: ./client
-    container_name: vite-react
+    container_name: react
     depends_on:
       - db
       - server
