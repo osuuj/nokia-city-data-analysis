@@ -1,0 +1,64 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-toml
+        files: ^.*\.toml$
+      - id: check-yaml
+        args: ["--unsafe"]
+        files: ^.*\.yml$
+      - id: check-added-large-files
+        files: ^server/
+      - id: requirements-txt-fixer
+        files: ^server/requirements.txt$
+      - id: forbid-new-submodules
+        files: ^server/
+      - id: no-commit-to-branch
+        args: ["--branch=main"]
+        files: ^server/
+      - id: detect-private-key
+        files: ^server/
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        args: ["--config", "server/.black.toml"]  # Pointing to the .black.toml in the server folder
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.9.8
+    hooks:
+      - id: ruff
+        args: ["--config", "server/ruff.toml"]  # Pointing to the ruff.toml file in the server folder
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        args: ["--settings-path", "server/.isort.cfg"]  # Pointing to the .isort.cfg file in the server folder
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder
+
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.395
+    hooks:
+      - id: pyright
+        args: ["--project", "server/pyrightconfig.json"]  # Pointing to the pyrightconfig.json file in the server folder
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder
+
+  - repo: https://github.com/terrencepreilly/darglint
+    rev: v1.8.1
+    hooks:
+      - id: darglint
+        args: ["--docstring-style", "google"]
+        exclude: ^server/data/  # Exclude the data folder from darglint checks
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.3
+    hooks:
+      - id: bandit
+        args: ["--configfile", "server/bandit.yaml"]  # Pointing to the bandit.yaml file in the server folder
+        exclude: ^server/data/  # Exclude the data folder from bandit checks
+        files: ^server/.*\.py$  # Only applies to Python files in the server folder

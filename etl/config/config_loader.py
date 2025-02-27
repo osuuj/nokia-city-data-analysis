@@ -76,6 +76,10 @@ def load_all_configs(config_files: Optional[List[str]] = None) -> Dict[str, Any]
 
     Returns:
         Dict[str, Any]: Combined configuration data with environment variables resolved.
+
+    Raises:
+        FileNotFoundError: If any of the configuration files do not exist.
+        yaml.YAMLError: If any of the YAML files are invalid.
     """
     base_path = Path(__file__).parent
     config_files = config_files or DEFAULT_CONFIG_FILES

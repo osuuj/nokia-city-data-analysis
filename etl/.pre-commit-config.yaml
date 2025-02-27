@@ -1,0 +1,69 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-toml
+        files: ^.*\.toml$
+      - id: check-yaml
+        args: ["--unsafe"]
+        files: ^.*\.yml$
+      - id: check-added-large-files
+        files: ^etl/
+        exclude: >
+          (?x)^(
+            etl/data/resources/.*\.csv|
+            etl/data/municipality_code.csv
+          )$
+      - id: requirements-txt-fixer
+        files: ^etl/requirements.txt$
+      - id: forbid-new-submodules
+        files: ^etl/
+      - id: no-commit-to-branch
+        args: ["--branch=main"]
+        files: ^etl/
+      - id: detect-private-key
+        files: ^etl/
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        args: ["--config", "etl/.black.toml"]
+        files: ^etl/.*\.py$
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.9.8
+    hooks:
+      - id: ruff
+        args: ["--config", "etl/ruff.toml"]
+        files: ^etl/.*\.py$
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        args: ["--settings-path", "etl/.isort.cfg"]
+        files: ^etl/.*\.py$
+
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.395
+    hooks:
+      - id: pyright
+        args: ["--project", "etl/pyrightconfig.json"]
+        files: ^etl/.*\.py$
+
+  - repo: https://github.com/terrencepreilly/darglint
+    rev: v1.8.1
+    hooks:
+      - id: darglint
+        args: ["--docstring-style", "google"]
+        exclude: ^etl/data/
+        files: ^etl/.*\.py$
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.3
+    hooks:
+      - id: bandit
+        args: ["--configfile", "etl/bandit.yaml"]
+        exclude: ^etl/data/
+        files: ^etl/.*\.py$

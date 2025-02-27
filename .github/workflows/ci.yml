@@ -1,0 +1,48 @@
+name: CI/CD Checks
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/*
+
+jobs:
+  lint-and-test:
+    name: Lint, Format, and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+        working-directory: client
+
+      - name: 🔍 Run ESLint
+        run: npm run lint
+        working-directory: client
+
+      - name: 🎨 Run Prettier Check
+        run: npx prettier --check .
+        working-directory: client
+
+      - name: 🎨 Run Stylelint
+        run: npx stylelint "**/*.{css,scss}"
+        working-directory: client
+
+      - name: 🧪 Run Tests
+        run: npm test
+        working-directory: client
