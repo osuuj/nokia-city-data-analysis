@@ -1,6 +1,8 @@
 from typing import Dict
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from server.backend.routers import companies
 
 # ✅ Initialize FastAPI application
