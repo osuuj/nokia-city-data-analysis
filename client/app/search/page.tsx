@@ -1,12 +1,12 @@
-"use client"
-import { useState, useMemo } from "react";
-import { title } from "@/components/primitives";
-import { Input } from "@heroui/input";
-import { SearchIcon } from "@/components/icons";
-import { Form } from "@heroui/form";
+'use client';
+import { useState, useMemo } from 'react';
+import { title } from '@/components/primitives';
+import { Input } from '@heroui/input';
+import { SearchIcon } from '@/components/icons';
+import { Form } from '@heroui/form';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { Spinner } from "@heroui/spinner";
+import { Spinner } from '@heroui/spinner';
 import {
   Table,
   TableHeader,
@@ -14,13 +14,13 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  getKeyValue
-} from "@heroui/table";
-import { Pagination } from "@heroui/pagination";
+  getKeyValue,
+} from '@heroui/table';
+import { Pagination } from '@heroui/pagination';
 
 const BASE_URL = 'http://localhost:8000/api/v1';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Business {
   business_id: string;
@@ -33,7 +33,10 @@ interface Business {
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get('city');
-  const { data, error, isLoading } = useSWR<Business[]>(query ? `${BASE_URL}/businesses_by_city?city=${query}` : null, fetcher);
+  const { data, error, isLoading } = useSWR<Business[]>(
+    query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
+    fetcher,
+  );
   const [page, setPage] = useState(1);
 
   const rowsPerPage = 25;
@@ -66,8 +69,8 @@ export default function SearchPage() {
       aria-label="Search"
       name="city"
       classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
+        inputWrapper: 'bg-default-100',
+        input: 'text-sm',
       }}
       labelPlacement="outside"
       placeholder="Search by city..."
@@ -113,12 +116,12 @@ export default function SearchPage() {
           items={paginatedData}
           emptyContent="No results found"
           loadingContent={<Spinner />}
-          loadingState={isLoading ? "loading" : "idle"}
+          loadingState={isLoading ? 'loading' : 'idle'}
         >
           {(item) => (
             <TableRow key={item?.business_id}>
               {(columnKey) => (
-                <TableCell className={columnKey === "business_id" ? "text-nowrap" : ""}>
+                <TableCell className={columnKey === 'business_id' ? 'text-nowrap' : ''}>
                   {getKeyValue(item, columnKey)}
                 </TableCell>
               )}
