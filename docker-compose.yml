@@ -30,25 +30,25 @@ services:
     ports:
       - "8000:8000"
 
-  client:
-    build:
-      context: ./client
-    container_name: vite-react
-    depends_on:
-      - db
-      - server
-    volumes:
-      # Bind mount to sync file changes between host and container, ro = read only
-      - ./client:/app
-      # Empty node_modules as Anonymous volume => node_modules is not synced
-      - /app/node_modules
-    ports:
-      - '3000:3000'
-    environment:
-      VITE_BACKEND_URL: "http://localhost"
-      VITE_PORT: "3001"
-      VITE_API_PATH: "/api/v1"
-      #restart: "unless-stopped"
+  # client:
+  #   build:
+  #     context: ./client
+  #   container_name: react
+  #   depends_on:
+  #     - db
+  #     - server
+  #   volumes:
+  #     # Bind mount to sync file changes between host and container, ro = read only
+  #     - ./client:/app
+  #     # Empty node_modules as Anonymous volume => node_modules is not synced
+  #     - /app/node_modules
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     VITE_BACKEND_URL: "http://localhost"
+  #     VITE_PORT: "3001"
+  #     VITE_API_PATH: "/api/v1"
+  #     #restart: "unless-stopped"
 
 volumes:
   postgres_data:
