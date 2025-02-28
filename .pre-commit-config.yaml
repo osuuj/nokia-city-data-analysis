@@ -87,3 +87,12 @@ repos:
         args: ["--configfile", "server/bandit.yaml"]
         exclude: ^server/data/
         files: ^server/.*\.py$
+
+  # JavaScript (ESLint & Prettier) - Runs a shell script for Next.js (client)
+  - repo: local
+    hooks:
+      - id: eslint-prettier
+        name: Run ESLint and Prettier
+        entry: bash client/scripts/lint-staged.sh
+        language: system
+        pass_filenames: false
