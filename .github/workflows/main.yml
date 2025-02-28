@@ -29,18 +29,12 @@ jobs:
         run: |
           pip install -r server/requirements.txt  # Install Server-specific requirements
 
-      - name: Install pre-commit hooks
-        run: pre-commit install --install-hooks  # Install hooks in both folders
-
       - name: Run pre-commit hooks for ETL folder
         run: |
           cd etl
-          pre-commit run --all-files  # Run hooks for ETL folder
+          pre-commit run --all-files --config .pre-commit-config.yaml  # Run hooks for ETL folder
 
       - name: Run pre-commit hooks for Server folder
         run: |
           cd server
-          pre-commit run --all-files  # Run hooks for Server folder
-
-      - name: Run pre-commit hooks for the entire repository (optional)
-        run: pre-commit run --all-files  # Run hooks for both folders
+          pre-commit run --all-files --config .pre-commit-config.yaml  # Run hooks for Server folder
