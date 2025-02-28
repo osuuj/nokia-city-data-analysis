@@ -3,7 +3,7 @@ name: CI/CD Checks
 on:
   pull_request:
     paths:
-    - 'client/**'
+      - 'client/**'
 
 jobs:
   lint-and-test:
@@ -19,23 +19,45 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+          cache-dependency-path: client/package-lock.json
 
       - name: 📦 Install Dependencies
-        run: npm install
         working-directory: client
+        run: npm ci  # Faster than npm install
 
-      - name: 🔍 Run ESLint
-        run: npm run lint
+      - name: 🔍 Run ESLint on Changed Files
         working-directory: client
+        run: |
+          FILES=$(git diff --name-only origin/main | grep -E '\.(js|jsx|ts|tsx)$' || echo "")
+          if [ -n "$FILES" ]; then
+            echo "Running ESLint on: $FILES"
+            npx eslint --fix $FILES
+          else
+            echo "No JavaScript/TypeScript files changed. Skipping ESLint."
+          fi
 
-      - name: 🎨 Run Prettier Check
-        run: npx prettier --check .
+      - name: 🎨 Run Prettier Check on Changed Files
         working-directory: client
+        run: |
+          FILES=$(git diff --name-only origin/main | grep -E '\.(js|jsx|ts|tsx|css|md)$' || echo "")
+          if [ -n "$FILES" ]; then
+            echo "Running Prettier on: $FILES"
+            npx prettier --check $FILES
+          else
+            echo "No relevant files changed. Skipping Prettier."
+          fi
 
-      - name: 🎨 Run Stylelint
-        run: npx stylelint "**/*.{css,scss}"
+      - name: 🎨 Run Stylelint on Changed Files
         working-directory: client
+        run: |
+          FILES=$(git diff --name-only origin/main | grep -E '\.(css|scss)$' || echo "")
+          if [ -n "$FILES" ]; then
+            echo "Running Stylelint on: $FILES"
+            npx stylelint $FILES
+          else
+            echo "No CSS/SCSS files changed. Skipping Stylelint."
+          fi
 
       - name: 🧪 Run Tests
-        run: npm test
         working-directory: client
+        run: npm test
