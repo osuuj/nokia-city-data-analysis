@@ -1,11 +1,11 @@
-"use client"
+"use client";
 import { useState, useMemo } from "react";
 import { title } from "@/components/primitives";
 import { Input } from "@heroui/input";
 import { SearchIcon } from "@/components/icons";
 import { Form } from "@heroui/form";
-import { useSearchParams } from 'next/navigation';
-import useSWR from 'swr';
+import { useSearchParams } from "next/navigation";
+import useSWR from "swr";
 import { Spinner } from "@heroui/spinner";
 import {
   Table,
@@ -14,13 +14,13 @@ import {
   TableColumn,
   TableRow,
   TableCell,
-  getKeyValue
+  getKeyValue,
 } from "@heroui/table";
 import { Pagination } from "@heroui/pagination";
 
-const BASE_URL = 'http://localhost:8000/api/v1';
+const BASE_URL = "http://localhost:8000/api/v1";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Business {
   business_id: string;
@@ -32,8 +32,11 @@ interface Business {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get('city');
-  const { data, error, isLoading } = useSWR<Business[]>(query ? `${BASE_URL}/businesses_by_city?city=${query}` : null, fetcher);
+  const query = searchParams.get("city");
+  const { data, error, isLoading } = useSWR<Business[]>(
+    query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
+    fetcher
+  );
   const [page, setPage] = useState(1);
 
   const rowsPerPage = 25;
@@ -72,7 +75,7 @@ export default function SearchPage() {
       labelPlacement="outside"
       placeholder="Search by city..."
       startContent={
-        <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+        <SearchIcon className="pointer-events-none flex-shrink-0 text-base text-default-400" />
       }
       type="search"
       autoCapitalize="on"
@@ -105,7 +108,9 @@ export default function SearchPage() {
         <TableHeader>
           <TableColumn key="company_name">Name</TableColumn>
           <TableColumn key="business_id">Business ID</TableColumn>
-          <TableColumn key="industry_description">Industry</TableColumn>
+          <TableColumn key="industry_description">
+            Industry Description
+          </TableColumn>
           <TableColumn key="latitude_wgs84">Latitude</TableColumn>
           <TableColumn key="longitude_wgs84">Longitude</TableColumn>
         </TableHeader>
@@ -118,7 +123,9 @@ export default function SearchPage() {
           {(item) => (
             <TableRow key={item?.business_id}>
               {(columnKey) => (
-                <TableCell className={columnKey === "business_id" ? "text-nowrap" : ""}>
+                <TableCell
+                  className={columnKey === "business_id" ? "text-nowrap" : ""}
+                >
                   {getKeyValue(item, columnKey)}
                 </TableCell>
               )}
