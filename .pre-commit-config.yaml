@@ -8,21 +8,21 @@ repos:
         args: ["--unsafe"]
         files: ^.*\.yml$
       - id: check-added-large-files
-        files: ^etl/
+        files: ^etl/|^server/
         exclude: >
           (?x)^(
             etl/data/resources/.*\.csv|
             etl/data/municipality_code.csv
           )$
       - id: requirements-txt-fixer
-        files: ^etl/requirements.txt$
+        files: ^etl/requirements.txt$|^server/requirements.txt$
       - id: forbid-new-submodules
-        files: ^etl/
+        files: ^etl/|^server/
       - id: no-commit-to-branch
         args: ["--branch=main"]
-        files: ^etl/
+        files: ^etl/|^server/
       - id: detect-private-key
-        files: ^etl/
+        files: ^etl/|^server/
 
   - repo: https://github.com/psf/black
     rev: 25.1.0
@@ -30,6 +30,9 @@ repos:
       - id: black
         args: ["--config", "etl/.black.toml"]
         files: ^etl/.*\.py$
+      - id: black
+        args: ["--config", "server/.black.toml"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.9.8
@@ -37,6 +40,9 @@ repos:
       - id: ruff
         args: ["--config", "etl/ruff.toml"]
         files: ^etl/.*\.py$
+      - id: ruff
+        args: ["--config", "server/ruff.toml"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
@@ -44,6 +50,9 @@ repos:
       - id: isort
         args: ["--settings-path", "etl/.isort.cfg"]
         files: ^etl/.*\.py$
+      - id: isort
+        args: ["--settings-path", "server/.isort.cfg"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/RobertCraigie/pyright-python
     rev: v1.1.395
@@ -51,6 +60,9 @@ repos:
       - id: pyright
         args: ["--project", "etl/pyrightconfig.json"]
         files: ^etl/.*\.py$
+      - id: pyright
+        args: ["--project", "server/pyrightconfig.json"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/terrencepreilly/darglint
     rev: v1.8.1
@@ -59,6 +71,10 @@ repos:
         args: ["--docstring-style", "google"]
         exclude: ^etl/data/
         files: ^etl/.*\.py$
+      - id: darglint
+        args: ["--docstring-style", "google"]
+        exclude: ^server/data/
+        files: ^server/.*\.py$
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.3
@@ -67,3 +83,7 @@ repos:
         args: ["--configfile", "etl/bandit.yaml"]
         exclude: ^etl/data/
         files: ^etl/.*\.py$
+      - id: bandit
+        args: ["--configfile", "server/bandit.yaml"]
+        exclude: ^server/data/
+        files: ^server/.*\.py$
