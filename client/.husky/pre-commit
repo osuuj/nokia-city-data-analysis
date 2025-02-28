@@ -1,4 +1,5 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+cd client
 npm run lint && npx prettier --check . && npx stylelint "**/*.{css,scss}" && npm test
