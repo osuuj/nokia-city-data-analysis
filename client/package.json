@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
-    "prepare": "husky install"
+    "prepare": "cd .. && husky client/.husky"
   },
   "dependencies": {
     "@heroui/button": "2.2.13",
