@@ -1,16 +1,9 @@
 name: CI/CD Checks
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - feature/*
   pull_request:
-    branches:
-      - main
-      - develop
-      - feature/*
+    paths:
+    - 'client/**'
 
 jobs:
   lint-and-test:
