@@ -1,33 +1,43 @@
-'use client';
+"use client";
 
-import { SwitchProps, useSwitch } from '@heroui/switch';
-import { useIsSSR } from '@react-aria/ssr';
-import { VisuallyHidden } from '@react-aria/visually-hidden';
-import clsx from 'clsx';
-import { useTheme } from 'next-themes';
-import { FC } from 'react';
+import { SwitchProps, useSwitch } from "@heroui/switch";
+import { useIsSSR } from "@react-aria/ssr";
+import { VisuallyHidden } from "@react-aria/visually-hidden";
+import clsx from "clsx";
+import { useTheme } from "next-themes";
+import { FC } from "react";
 
-import { MoonFilledIcon, SunFilledIcon } from '@/components/icons';
+import { MoonFilledIcon, SunFilledIcon } from "@/components/icons";
 
 export interface ThemeSwitchProps {
   className?: string;
-  classNames?: SwitchProps['classNames'];
+  classNames?: SwitchProps["classNames"];
 }
 
-export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => {
+export const ThemeSwitch: FC<ThemeSwitchProps> = ({
+  className,
+  classNames,
+}) => {
   const { theme, setTheme } = useTheme();
   const isSSR = useIsSSR();
 
   const onChange = () => {
-    if (theme === 'light') {
-      setTheme('dark');
+    if (theme === "light") {
+      setTheme("dark");
     } else {
-      setTheme('light');
+      setTheme("light");
     }
   };
-  const { Component, slots, isSelected, getBaseProps, getInputProps, getWrapperProps } = useSwitch({
-    isSelected: theme === 'light' || isSSR,
-    'aria-label': `Switch to ${theme === 'light' || isSSR ? 'dark' : 'light'} mode`,
+  const {
+    Component,
+    slots,
+    isSelected,
+    getBaseProps,
+    getInputProps,
+    getWrapperProps,
+  } = useSwitch({
+    isSelected: theme === "light" || isSSR,
+    "aria-label": `Switch to ${theme === "light" || isSSR ? "dark" : "light"} mode`,
     onChange,
   });
 
@@ -35,9 +45,9 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => 
     <Component
       {...getBaseProps({
         className: clsx(
-          'cursor-pointer px-px transition-opacity hover:opacity-80',
+          "cursor-pointer px-px transition-opacity hover:opacity-80",
           className,
-          classNames?.base,
+          classNames?.base
         ),
       })}
     >
@@ -49,21 +59,25 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => 
         className={slots.wrapper({
           class: clsx(
             [
-              'h-auto w-auto',
-              'bg-transparent',
-              'rounded-lg',
-              'flex items-center justify-center',
-              'group-data-[selected=true]:bg-transparent',
-              '!text-default-500',
-              'pt-px',
-              'px-0',
-              'mx-0',
+              "h-auto w-auto",
+              "bg-transparent",
+              "rounded-lg",
+              "flex items-center justify-center",
+              "group-data-[selected=true]:bg-transparent",
+              "!text-default-500",
+              "pt-px",
+              "px-0",
+              "mx-0",
             ],
-            classNames?.wrapper,
+            classNames?.wrapper
           ),
         })}
       >
-        {!isSelected || isSSR ? <SunFilledIcon size={22} /> : <MoonFilledIcon size={22} />}
+        {!isSelected || isSSR ? (
+          <SunFilledIcon size={22} />
+        ) : (
+          <MoonFilledIcon size={22} />
+        )}
       </div>
     </Component>
   );

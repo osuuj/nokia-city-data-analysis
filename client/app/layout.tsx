@@ -1,14 +1,14 @@
-import '@/styles/globals.css';
-import clsx from 'clsx';
-import { Metadata, Viewport } from 'next';
-import React from 'react';
+import "@/styles/globals.css";
+import clsx from "clsx";
+import { Metadata, Viewport } from "next";
+import React from "react";
 
-import { Providers } from './providers';
+import { Providers } from "./providers";
 
-import Footer from '@/components/footer';
-import Header from '@/components/navbar';
-import { fontSans } from '@/config/fonts';
-import { siteConfig } from '@/config/site';
+import Footer from "@/components/footer";
+import Header from "@/components/navbar";
+import { fontSans } from "@/config/fonts";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: {
@@ -17,23 +17,32 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html suppressHydrationWarning lang="en">
       <head />
-      <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
+      <body
+        className={clsx(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
+      >
+        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <div className="relative flex min-h-screen flex-col">
             <Header />
             <main className="flex-grow">{children}</main>

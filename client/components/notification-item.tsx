@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Avatar, Badge, Button, cn } from '@heroui/react';
-import { Icon } from '@iconify/react';
-import React from 'react';
+import { Avatar, Badge, Button, cn } from "@heroui/react";
+import { Icon } from "@iconify/react";
+import React from "react";
 
-export type NotificationType = 'default' | 'request' | 'file';
+export type NotificationType = "default" | "request" | "file";
 
 export type NotificationItemType = {
   id: string;
@@ -16,10 +16,27 @@ export type NotificationItemType = {
   type?: NotificationType;
 };
 
-export type NotificationItemProps = React.HTMLAttributes<HTMLDivElement> & NotificationItemType;
+export type NotificationItemProps = React.HTMLAttributes<HTMLDivElement> &
+  NotificationItemType;
 
-const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>(
-  ({ children, avatar, name, description, type, time, isRead, className, ...props }, ref) => {
+const NotificationItem = React.forwardRef<
+  HTMLDivElement,
+  NotificationItemProps
+>(
+  (
+    {
+      children,
+      avatar,
+      name,
+      description,
+      type,
+      time,
+      isRead,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     /**
      * Defines the content for different types of notifications.
      */
@@ -37,9 +54,15 @@ const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>
       ),
       file: (
         <div className="flex items-center gap-2">
-          <Icon className="text-secondary" icon="solar:figma-file-linear" width={30} />
+          <Icon
+            className="text-secondary"
+            icon="solar:figma-file-linear"
+            width={30}
+          />
           <div className="flex flex-col">
-            <strong className="text-small font-medium">Brand_Logo_v1.2.fig</strong>
+            <strong className="text-small font-medium">
+              Brand_Logo_v1.2.fig
+            </strong>
             <p className="text-tiny text-default-400">3.4 MB</p>
           </div>
         </div>
@@ -50,11 +73,11 @@ const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>
       <div
         ref={ref}
         className={cn(
-          'flex gap-3 border-b border-divider px-6 py-4',
+          "flex gap-3 border-b border-divider px-6 py-4",
           {
-            'bg-primary-50/50': !isRead,
+            "bg-primary-50/50": !isRead,
           },
-          className,
+          className
         )}
         {...props}
       >
@@ -71,16 +94,17 @@ const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>
         </div>
         <div className="flex flex-col gap-1">
           <p className="text-small text-foreground">
-            <strong className="font-medium">{name}</strong> {description || children}
+            <strong className="font-medium">{name}</strong>{" "}
+            {description || children}
           </p>
           <time className="text-tiny text-default-400">{time}</time>
           {type && contentByType[type]}
         </div>
       </div>
     );
-  },
+  }
 );
 
-NotificationItem.displayName = 'NotificationItem';
+NotificationItem.displayName = "NotificationItem";
 
 export default NotificationItem;
