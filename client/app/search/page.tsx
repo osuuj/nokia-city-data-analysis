@@ -1,8 +1,8 @@
-"use client";
-import { Form } from "@heroui/form";
-import { Input } from "@heroui/input";
-import { Pagination } from "@heroui/pagination";
-import { Spinner } from "@heroui/spinner";
+'use client';
+import { Form } from '@heroui/form';
+import { Input } from '@heroui/input';
+import { Pagination } from '@heroui/pagination';
+import { Spinner } from '@heroui/spinner';
 import {
   Table,
   TableBody,
@@ -11,14 +11,14 @@ import {
   TableHeader,
   TableRow,
   getKeyValue,
-} from "@heroui/table";
-import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import useSWR from "swr";
+} from '@heroui/table';
+import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import useSWR from 'swr';
 
-import { SearchIcon } from "@/components/icons";
+import { SearchIcon } from '@/components/icons';
 
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = 'http://localhost:8000/api/v1';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -32,7 +32,7 @@ interface Business {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get("city");
+  const query = searchParams.get('city');
   const { data, isLoading } = useSWR<Business[]>(
     query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
     fetcher
@@ -69,8 +69,8 @@ export default function SearchPage() {
       aria-label="Search"
       name="city"
       classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
+        inputWrapper: 'bg-default-100',
+        input: 'text-sm',
       }}
       labelPlacement="outside"
       placeholder="Search by city..."
@@ -108,9 +108,7 @@ export default function SearchPage() {
         <TableHeader>
           <TableColumn key="company_name">Name</TableColumn>
           <TableColumn key="business_id">Business ID</TableColumn>
-          <TableColumn key="industry_description">
-            Industry Description
-          </TableColumn>
+          <TableColumn key="industry_description">Industry Description</TableColumn>
           <TableColumn key="latitude_wgs84">Latitude</TableColumn>
           <TableColumn key="longitude_wgs84">Longitude</TableColumn>
         </TableHeader>
@@ -118,14 +116,12 @@ export default function SearchPage() {
           items={paginatedData}
           emptyContent="No results found"
           loadingContent={<Spinner />}
-          loadingState={isLoading ? "loading" : "idle"}
+          loadingState={isLoading ? 'loading' : 'idle'}
         >
           {(item) => (
             <TableRow key={item?.business_id}>
               {(columnKey) => (
-                <TableCell
-                  className={columnKey === "business_id" ? "text-nowrap" : ""}
-                >
+                <TableCell className={columnKey === 'business_id' ? 'text-nowrap' : ''}>
                   {getKeyValue(item, columnKey)}
                 </TableCell>
               )}
