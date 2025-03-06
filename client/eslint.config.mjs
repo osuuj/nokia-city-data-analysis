@@ -31,7 +31,7 @@ export default [
       ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       semi: ["error", "always"],
-      quotes: ["error", "single"],
+      quotes: ["error", "single"], // Enforce single quotes
       // Add other rules here
     },
   },
