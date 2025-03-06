@@ -23,6 +23,14 @@ else
   echo "✅ No JS/TS files to lint."
 fi
 
+# Run Prettier on all files
+echo "🎨 Running Prettier on: $STAGED_FILES"
+npx prettier --write $STAGED_FILES
+if [ $? -ne 0 ]; then
+  echo "❌ Prettier failed. Fix issues before committing."
+  exit 1
+fi
+
 # Run Stylelint on CSS files
 CSS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(css|scss)$' || echo "")
 if [ -n "$CSS_FILES" ]; then
