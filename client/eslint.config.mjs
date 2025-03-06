@@ -2,10 +2,12 @@
 
 import ts from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import * as importPlugin from 'eslint-plugin-import';
+import prettier from 'eslint-plugin-prettier';
+import react from 'eslint-plugin-react';
 
 export default [
   {
-    // Target TypeScript and TSX files
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: tsParser,
@@ -19,22 +21,23 @@ export default [
     },
     plugins: {
       '@typescript-eslint': ts,
+      import: importPlugin,
+      react: react,
+      prettier: prettier,
     },
     rules: {
-      // Extend recommended rules from @typescript-eslint
       ...ts.configs.recommended.rules,
-      // Custom rules
+      'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'react/react-in-jsx-scope': 'off',
-      // Add more specific rules here if needed
-      'no-console': 'warn', // Warn on console.log usage
-      'no-debugger': 'error', // Disallow debugger statements
-      semi: ['error', 'always'], // Enforce semicolons
-      quotes: ['error', 'single'], // Enforce single quotes
+      'import/order': ['error', { 'newlines-between': 'always' }],
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      semi: ['error', 'always'],
+      quotes: ['error', 'single'],
     },
   },
   {
-    // Ignore specific directories
     ignores: ['node_modules/', '.next/', 'dist/', 'out/', 'public/'],
   },
 ];
