@@ -10,18 +10,6 @@ fi
 
 echo "🔍 Running linters and formatters on staged files..."
 
-# Run Prettier on relevant files
-PRETTIER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx|css|md|json|html)$' || echo "")
-if [ -n "$PRETTIER_FILES" ]; then
-  echo "🎨 Running Prettier on: $PRETTIER_FILES"
-  npx prettier --config client/.prettierrc --plugin ./node_modules/prettier-plugin-tailwindcss/dist/index.mjs --write $PRETTIER_FILES
-  if [ $? -ne 0 ]; then
-    echo "❌ Prettier failed. Fix issues before committing."
-    exit 1
-  fi
-else
-  echo "✅ No files to format."
-fi
 
 # Run ESLint on JS/TS files
 JS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$' || echo "")
