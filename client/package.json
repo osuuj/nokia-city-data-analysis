@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
     "@heroui/button": "2.2.13",
@@ -49,7 +50,6 @@
     "autoprefixer": "10.4.19",
     "eslint": "^9.21.0",
     "eslint-config-next": "^15.2.1",
-    "eslint-define-config": "^2.1.0",
     "postcss": "8.4.49",
     "prettier": "^3.5.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
