@@ -3,6 +3,8 @@
 import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
+import prettierConfig from "eslint-config-prettier";
+import prettier from "eslint-plugin-prettier";
 
 export default [
   {
@@ -26,13 +28,17 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tseslint,
+      prettier,
     },
     rules: {
       ...eslint.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       semi: ["error", "always"],
       quotes: ["error", "single"], // Enforce single quotes
-      // Add other rules here
+      "prettier/prettier": "error", // Run Prettier as an ESLint rule
+    },
+    settings: {
+      ...prettierConfig,
     },
   },
 ];
