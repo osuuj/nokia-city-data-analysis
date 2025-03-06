@@ -9,7 +9,7 @@ created: $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE
 ---
 
 ## 📌 Remember This
->
+
 > ⚠️ **Reminder**: [Write your critical focus or key points for today here.]
 
 ---
@@ -49,10 +49,10 @@ created: $FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE
 
 ## 🕒 Schedule
 
-| Time       | Task               |
-|------------|--------------------|
-| 9:00-10:00 | Morning review     |
-| 10:00-12:00| Work on project X  |
+| Time        | Task              |
+| ----------- | ----------------- |
+| 9:00-10:00  | Morning review    |
+| 10:00-12:00 | Work on project X |
 
 ---
 

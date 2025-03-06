@@ -1,7 +1,4 @@
-"use client";
-import Logo from "@/components/osuujIcon";
-
-import { GithubIcon } from "@/components/icons";
+'use client';
 import {
   Badge,
   Button,
@@ -15,19 +12,23 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@heroui/react";
-import { Icon } from "@iconify/react";
+} from '@heroui/react';
+import { Icon } from '@iconify/react';
 
-import { siteConfig } from "@/config/site";
-import NotificationsCard from "./notifications-card";
+import NotificationsCard from './notifications-card';
+
+import Logo from '@/components/osuujIcon';
+import { GithubIcon } from '@/components/icons';
+import { siteConfig } from '@/config/site';
+
 export default function Header() {
   return (
     <div className="w-full">
       <Navbar
         classNames={{
-          base: "pt-2 lg:pt-4 lg:bg-transparent lg:backdrop-filter-none",
-          wrapper: "px-4 sm:px-6",
-          item: "data-[active=true]:text-primary",
+          base: 'pt-2 lg:pt-4 lg:bg-transparent lg:backdrop-filter-none',
+          wrapper: 'px-4 sm:px-6',
+          item: 'data-[active=true]:text-primary',
         }}
         height="60px"
       >
@@ -45,11 +46,7 @@ export default function Header() {
             </Link>
           </NavbarItem>
           <NavbarItem isActive>
-            <Link
-              aria-current="page"
-              className="flex gap-2 text-inherit"
-              href="#"
-            >
+            <Link aria-current="page" className="flex gap-2 text-inherit" href="#">
               Project
             </Link>
           </NavbarItem>
@@ -80,38 +77,26 @@ export default function Header() {
               aria-label="Search"
               classNames={{
                 inputWrapper:
-                  "bg-default-100 group-data-[hover=true]:bg-default-50 group-data-[focus=true]:bg-100",
+                  'bg-default-100 group-data-[hover=true]:bg-default-50 group-data-[focus=true]:bg-100',
               }}
               labelPlacement="outside"
               placeholder="Search..."
               radius="full"
               startContent={
-                <Icon
-                  className="text-default-500"
-                  icon="solar:magnifer-linear"
-                  width={20}
-                />
+                <Icon className="text-default-500" icon="solar:magnifer-linear" width={20} />
               }
             />
           </NavbarItem>
           {/* Mobile search */}
           <NavbarItem className="lg:hidden">
             <Button isIconOnly radius="full" variant="light">
-              <Icon
-                className="text-default-500"
-                icon="solar:magnifer-linear"
-                width={20}
-              />
+              <Icon className="text-default-500" icon="solar:magnifer-linear" width={20} />
             </Button>
           </NavbarItem>
           {/* GitHub */}
           <NavbarItem className="lg:flex">
             <Button isIconOnly radius="full" variant="light">
-              <Link
-                isExternal
-                aria-label="Github"
-                href={siteConfig.links.github}
-              >
+              <Link isExternal aria-label="Github" href={siteConfig.links.github}>
                 <GithubIcon className="text-default-500" width={24} />
               </Link>
             </Button>
@@ -119,11 +104,7 @@ export default function Header() {
           {/* Theme change */}
           <NavbarItem className="hidden lg:flex">
             <Button isIconOnly radius="full" variant="light">
-              <Icon
-                className="text-default-500"
-                icon="solar:sun-linear"
-                width={24}
-              />
+              <Icon className="text-default-500" icon="solar:sun-linear" width={24} />
             </Button>
           </NavbarItem>
 
@@ -144,17 +125,8 @@ export default function Header() {
                   radius="full"
                   variant="light"
                 >
-                  <Badge
-                    color="danger"
-                    content="5"
-                    showOutline={false}
-                    size="md"
-                  >
-                    <Icon
-                      className="text-default-500"
-                      icon="solar:bell-linear"
-                      width={22}
-                    />
+                  <Badge color="danger" content="5" showOutline={false} size="md">
+                    <Icon className="text-default-500" icon="solar:bell-linear" width={22} />
                   </Badge>
                 </Button>
               </PopoverTrigger>

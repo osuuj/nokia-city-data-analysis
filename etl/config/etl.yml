@@ -1,16 +1,16 @@
 # ETL Configuration
 #
 # This file contains configuration settings for the ETL pipeline.
-# It includes language settings, supported codes, API configuration, and 
-# chunk processing details. This file focuses on the behavior of the ETL process 
+# It includes language settings, supported codes, API configuration, and
+# chunk processing details. This file focuses on the behavior of the ETL process
 # rather than file locations.
 
 # Language Configuration
-chosen_language: "en"  # Default language for extraction
+chosen_language: "en" # Default language for extraction
 languages:
-  finnish: "fi"  # Finnish language code
-  english: "en"  # English language code
-  swedish: "sv"  # Swedish language code
+  finnish: "fi" # Finnish language code
+  english: "en" # English language code
+  swedish: "sv" # Swedish language code
 
 # Supported Codes
 codes:
@@ -20,11 +20,11 @@ codes:
 
 # API Configuration
 url_templates:
-  base: "https://avoindata.prh.fi/opendata-ytj-api/v3/"  # Base URL for the API
+  base: "https://avoindata.prh.fi/opendata-ytj-api/v3/" # Base URL for the API
   endpoints:
-    all_companies: "all_companies"  # Endpoint for retrieving all companies
-    description: "description?code={code}&lang={lang}"  # Endpoint for descriptions
+    all_companies: "all_companies" # Endpoint for retrieving all companies
+    description: "description?code={code}&lang={lang}" # Endpoint for descriptions
 
 # Chunk Processing Configuration
-chunk_size: 1000  # Number of items to process per chunk
-download_chunk_size: 1024  # Size of chunks for downloading files in bytes
+chunk_size: 1000 # Number of items to process per chunk
+download_chunk_size: 1024 # Size of chunks for downloading files in bytes

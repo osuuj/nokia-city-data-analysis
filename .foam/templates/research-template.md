@@ -1,10 +1,11 @@
 ---
 title: "Research: {{title}}"
 tags: [research, notes]
-created: {{date:YYYY-MM-DD}}
+created: { { date:YYYY-MM-DD } }
 source: [Book, Article, Video, etc.]
 related: []
 ---
+
 # Research: {{title}}
 
 ## Source Information

@@ -12,9 +12,9 @@ disable_existing_loggers: False
 # Formatters for different logging levels
 formatters:
   standard:
-    format: '%(asctime)s - %(levelname)s - %(message)s'
+    format: "%(asctime)s - %(levelname)s - %(message)s"
   detailed:
-    format: '%(asctime)s - %(levelname)s - [%(module)s: %(lineno)d] %(message)s'
+    format: "%(asctime)s - %(levelname)s - [%(module)s: %(lineno)d] %(message)s"
 
 # Handlers for different destinations
 handlers:
@@ -45,23 +45,23 @@ handlers:
 loggers:
   # Development logger
   development:
-    handlers: ['console_debug', 'file_debug']
+    handlers: ["console_debug", "file_debug"]
     level: DEBUG
     propagate: False
 
   # Production logger
   production:
-    handlers: ['console_error', 'file_standard']
+    handlers: ["console_error", "file_standard"]
     level: ERROR
     propagate: False
 
   # ETL logger (shared for all operations)
   etl:
-    handlers: ['console_debug', 'file_standard']
+    handlers: ["console_debug", "file_standard"]
     level: INFO
     propagate: False
 
 # Root logger
 root:
   level: WARNING
-  handlers: ['console_error']
+  handlers: ["console_error"]

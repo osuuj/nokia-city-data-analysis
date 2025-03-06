@@ -1,33 +1,33 @@
-"use client";
-import Logo from "@/components/osuujIcon";
+'use client';
 
-import type { IconProps } from "@iconify/react";
+import type { IconProps } from '@iconify/react';
+import { Link, Spacer } from '@heroui/react';
+import { Icon } from '@iconify/react';
 
-import { Link, Spacer } from "@heroui/react";
-import { Icon } from "@iconify/react";
+import Logo from '@/components/osuujIcon';
 
-type SocialIconProps = Omit<IconProps, "icon">;
+type SocialIconProps = Omit<IconProps, 'icon'>;
 
 const navLinks = [
   {
-    name: "Home",
-    href: "#",
+    name: 'Home',
+    href: '#',
   },
   {
-    name: "Project",
-    href: "#",
+    name: 'Project',
+    href: '#',
   },
   {
-    name: "Resources",
-    href: "#",
+    name: 'Resources',
+    href: '#',
   },
   {
-    name: "About Us",
-    href: "#",
+    name: 'About Us',
+    href: '#',
   },
   {
-    name: "Contact",
-    href: "#",
+    name: 'Contact',
+    href: '#',
   },
 ];
 
@@ -53,11 +53,9 @@ const socialItems = [
   //   icon: (props: SocialIconProps) => <Icon {...props} icon="fontisto:youtube-play" />,
   // },
   {
-    name: "GitHub",
-    href: "#",
-    icon: (props: SocialIconProps) => (
-      <Icon {...props} icon="fontisto:github" />
-    ),
+    name: 'GitHub',
+    href: '#',
+    icon: (props: SocialIconProps) => <Icon {...props} icon="fontisto:github" />,
   },
 ];
 
@@ -85,12 +83,7 @@ export default function Footer() {
         <Spacer y={6} />
         <div className="flex justify-center gap-x-4">
           {socialItems.map((item) => (
-            <Link
-              key={item.name}
-              isExternal
-              className="text-default-400"
-              href={item.href}
-            >
+            <Link key={item.name} isExternal className="text-default-400" href={item.href}>
               <span className="sr-only">{item.name}</span>
               <item.icon aria-hidden="true" className="w-5" />
             </Link>

@@ -3,8 +3,8 @@ name: Pre-Commit Hooks
 on:
   pull_request:
     paths:
-      - 'etl/**'
-      - 'server/**'
+      - "etl/**"
+      - "server/**"
 
 jobs:
   pre-commit:

@@ -1,11 +1,12 @@
 ---
 title: "{{FOAM_TITLE}}"
 tags: [macro, project]
-created: {{date:YYYY-MM-DD}}
+created: { { date:YYYY-MM-DD } }
 deadline: 2024-12-31
 priority: high
 status: "in-progress"
 ---
+
 # Project: {{FOAM_TITLE}}
 
 ## Summary
@@ -36,8 +37,8 @@ status: "in-progress"
 
 ## Milestones
 
-| Milestone          | Target Date | Status       |
-|--------------------|-------------|--------------|
-| Workspace Setup    | 2024-11-25  | In Progress  |
-| Template Creation  | 2024-11-28  | Not Started  |
-| Note Integration   | 2024-12-05  | Not Started  |
+| Milestone         | Target Date | Status      |
+| ----------------- | ----------- | ----------- |
+| Workspace Setup   | 2024-11-25  | In Progress |
+| Template Creation | 2024-11-28  | Not Started |
+| Note Integration  | 2024-12-05  | Not Started |

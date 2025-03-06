@@ -27,14 +27,17 @@ This project aims to develop a data analysis and visualization system for Finnis
 ## System Architecture
 
 1. **Data Sources**:
+
    - [PRH Open Data](https://avoindata.prh.fi/fi) – Open data on Finnish companies.
 
 2. **ETL Pipeline**:
+
    - Extract raw data from open sources.
    - Transform and clean data to meet database requirements (some memory optimizations needed in the cleaning process).
    - Load data into a PostgreSQL database.
 
 3. **Backend API**:
+
    - RESTful endpoints to fetch company data and run analytics.
 
 4. **Frontend**:
@@ -46,13 +49,13 @@ This project aims to develop a data analysis and visualization system for Finnis
 
 ### Milestones
 
-| Milestone                  | Target Date | Status       |
-|----------------------------|-------------|--------------|
-| Data Preparation           | 2024-11-24  | Completed    |
-| ETL Pipeline Completion    | 2024-12-27  | Completed  |
-| Backend              | 2025-02-30  | In Progress |
-| Frontend Prototype         | 2025-05-01  | In Progress  |
-| Full System Deployment     | 2025-06-01  | Not Started  |
+| Milestone               | Target Date | Status      |
+| ----------------------- | ----------- | ----------- |
+| Data Preparation        | 2024-11-24  | Completed   |
+| ETL Pipeline Completion | 2024-12-27  | Completed   |
+| Backend                 | 2025-02-30  | In Progress |
+| Frontend Prototype      | 2025-05-01  | In Progress |
+| Full System Deployment  | 2025-06-01  | Not Started |
 
 ---
 
@@ -76,12 +79,15 @@ This project aims to develop a data analysis and visualization system for Finnis
 2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder and FastAPIs requirements are located in the `server` folder):
 
    Set up the ETL environment:
+
    ```bash
    python -m venv venvs/etl_env
    source venvs/etl_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
    pip install -r etl/requirements.txt
    ```
+
    Set up the FastAPI environment:
+
    ```bash
    python -m venv venvs/fastapi_env
    source venvs/fastapi_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
@@ -102,7 +108,8 @@ This project aims to develop a data analysis and visualization system for Finnis
    # ENV=production
    CHUNK_SIZE=1000
    ```
-For more information on setting up the project, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+
+   For more information on setting up the project, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ---
 
@@ -178,4 +185,3 @@ nokia-city-data-analysis/
     └── react_env/
 
 ```
-

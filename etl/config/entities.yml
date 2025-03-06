@@ -1,8 +1,8 @@
 # Entity Configurations
 #
-# This file defines the entities processed in the ETL pipeline. Each entity 
-# represents a table or dataset to be extracted, transformed, and loaded. 
-# For each entity, it specifies the name, corresponding database table, 
+# This file defines the entities processed in the ETL pipeline. Each entity
+# represents a table or dataset to be extracted, transformed, and loaded.
+# For each entity, it specifies the name, corresponding database table,
 # and the extractor function to be used.
 #
 # Key Sections:
@@ -48,7 +48,7 @@ entities:
 
   - name: "post_offices"
     table: "post_offices"
-    specific_columns: ["post_code","municipality_code"]
+    specific_columns: ["post_code", "municipality_code"]
     extractor: "etl.pipeline.extract.post_offices_extractor.PostOfficesExtractor"
     validation:
       columns:
@@ -63,7 +63,8 @@ entities:
 
   - name: "addresses"
     table: "addresses"
-    specific_columns: ["post_code", "apartment_number", "building_number", "post_office_box"]
+    specific_columns:
+      ["post_code", "apartment_number", "building_number", "post_office_box"]
     extractor: "etl.pipeline.extract.addresses_extractor.AddressesExtractor"
     validation:
       columns:

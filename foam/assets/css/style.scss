@@ -4,7 +4,7 @@
 @import "{{ site.theme }}";
 
 a {
-  color: #3300ff;
+  color: #30f;
 }
 
 .markdown-body {
@@ -28,12 +28,12 @@ input.task-list-item-checkbox {
 
 img[src*="demo"] {
   border: 1px #eee solid;
-  -webkit-box-shadow: 4px 4px 16px 0px rgba(50, 50, 50, 0.1);
-  -moz-box-shadow: 4px 4px 16px 0px rgba(50, 50, 50, 0.1);
-  box-shadow: 4px 4px 16px 0px rgba(50, 50, 50, 0.1);
+  box-shadow: 4px 4px 16px 0 rgb(50 50 50 / 10%);
+  box-shadow: 4px 4px 16px 0 rgb(50 50 50 / 10%);
+  box-shadow: 4px 4px 16px 0 rgb(50 50 50 / 10%);
 }
 
-@media only screen and (min-width: 1170px) {
+@media only screen and (width >= 1170px) {
   img[src*="demo"] {
     max-width: 130%;
     margin-left: -15%;
@@ -48,16 +48,17 @@ h3,
 h4,
 h5,
 blockquote {
-  font-family: Constantia, "Lucida Bright", Lucidabright, "Lucida Serif", Lucida,
+  font-family:
+    Constantia, "Lucida Bright", Lucidabright, "Lucida Serif", Lucida,
     "DejaVu Serif", "Bitstream Vera Serif", "Liberation Serif", Georgia, serif;
 }
 
-.wikilink:before {
+.wikilink::before {
   content: "[[";
   opacity: 0.5;
 }
 
-.wikilink:after {
+.wikilink::after {
   content: "]]";
   opacity: 0.5;
 }
