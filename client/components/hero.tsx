@@ -19,7 +19,7 @@ export default function Hero() {
         <div className="inline-block max-w-xl justify-center text-center">
           <span className="text-4xl font-bold">Find&nbsp;</span>
           <span className="text-4xl font-bold text-violet-500">
-            Companies&nbsp;
+            Companies in Finland&nbsp;
           </span>
           <br />
           <span className="text-4xl font-bold">Close to You.</span>
