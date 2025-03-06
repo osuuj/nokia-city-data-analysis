@@ -14,7 +14,7 @@ echo "🔍 Running linters and formatters on staged files..."
 JS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(js|jsx|ts|tsx)$' || echo "")
 if [ -n "$JS_FILES" ]; then
   echo "📌 Running ESLint on: $JS_FILES"
-  npx eslint --fix $JS_FILES
+  npx eslint --config /home/justus/repos/etl-to-visualization/nokia-city-data-analysis/client/eslint.config.mjs --fix $JS_FILES
   if [ $? -ne 0 ]; then
     echo "❌ ESLint failed. Fix issues before committing."
     exit 1
