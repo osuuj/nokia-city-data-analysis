@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@heroui/button": "2.2.13",

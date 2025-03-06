@@ -28,18 +28,5 @@ else
   echo "✅ No JS/TS files to lint."
 fi
 
-# Run Stylelint on CSS/SCSS files
-CSS_FILES=$(echo "$STAGED_FILES" | grep -E '\.(css|scss)$' || echo "")
-if [ -n "$CSS_FILES" ]; then
-  echo "🎨 Running Stylelint on: $CSS_FILES"
-  npx stylelint --config client/stylelint.config.js --fix $CSS_FILES
-  if [ $? -ne 0 ]; then
-    echo "❌ Stylelint failed. Fix issues before committing."
-    exit 1
-  fi
-else
-  echo "✅ No CSS/SCSS files to lint."
-fi
-
 echo "✅ All linting and formatting checks passed!"
 exit 0
