@@ -1,0 +1,56 @@
+name: CI/CD Checks
+
+on:
+  pull_request:
+    paths:
+      - 'client/**'
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: 🔍 Check if Linting was Skipped in Pre-commit
+        id: check_lint
+        run: |
+          if git diff --name-only origin/main | grep -E '\.(js|jsx|ts|tsx|css|md)$'; then
+            echo "Linting required"
+            echo "run_lint=true" >> $GITHUB_ENV
+          else
+            echo "No files need linting."
+            echo "run_lint=false" >> $GITHUB_ENV
+          fi
+
+      - name: 🔍 Run ESLint (if required)
+        if: env.run_lint == 'true'
+        working-directory: client
+        run: npx eslint --fix .
+
+      - name: 🎨 Run Prettier Check (if required)
+        if: env.run_lint == 'true'
+        working-directory: client
+        run: npx prettier --check .
+
+      - name: 🎨 Run Stylelint (if required)
+        if: env.run_lint == 'true'
+        working-directory: client
+        run: npx stylelint "**/*.{css,scss}"
+
+    #  - name: 🧪 Run Tests
+    #    working-directory: client
+    #    run:  npm test

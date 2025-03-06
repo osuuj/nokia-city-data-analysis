@@ -1,73 +1,70 @@
+fail_fast: true # Stop at first failure
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: check-toml
-        files: ^(etl|server)/
+        files: ^.*\.toml$
       - id: check-yaml
         args: ["--unsafe"]
-        files: ^(etl|server)/
+        files: ^.*\.yml$
       - id: check-added-large-files
-        files: ^(etl|server)/
+        files: ^etl/|^server/
         exclude: >
           (?x)^(
-            etl/data/resources/01_addresses_2024-11-14.csv|
-            etl/data/resources/02_addresses_2024-11-14.csv|
-            etl/data/resources/03_addresses_2024-11-14.csv|
-            etl/data/resources/04_addresses_2024-11-14.csv|
-            etl/data/resources/05_addresses_2024-11-14.csv|
-            etl/data/resources/06_addresses_2024-11-14.csv|
-            etl/data/resources/07_addresses_2024-11-14.csv|
-            etl/data/resources/08_addresses_2024-11-14.csv|
-            etl/data/resources/09_addresses_2024-11-14.csv|
-            etl/data/resources/10_addresses_2024-11-14.csv|
-            etl/data/resources/11_addresses_2024-11-14.csv|
-            etl/data/resources/12_addresses_2024-11-14.csv|
-            etl/data/resources/13_addresses_2024-11-14.csv|
-            etl/data/resources/14_addresses_2024-11-14.csv|
-            etl/data/resources/15_addresses_2024-11-14.csv|
-            etl/data/resources/16_addresses_2024-11-14.csv|
-            etl/data/resources/17_addresses_2024-11-14.csv|
-            etl/data/resources/18_addresses_2024-11-14.csv|
-            etl/data/resources/19_addresses_2024-11-14.csv|
-            etl/data/resources/municipality_code.csv
+            etl/data/resources/.*\.csv|
+            etl/data/municipality_code.csv
           )$
       - id: requirements-txt-fixer
-        files: ^(etl|server)/requirements.txt
+        files: ^etl/requirements.txt$|^server/requirements.txt$
       - id: forbid-new-submodules
-        files: ^(etl|server)/
+        files: ^etl/|^server/
       - id: no-commit-to-branch
         args: ["--branch=main"]
-        files: ^(etl|server)/
+        files: ^etl/|^server/
       - id: detect-private-key
-        files: ^(etl|server)/
+        files: ^etl/|^server/
 
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
       - id: black
-        args: ["--config", ".black.toml"]
-        files: ^(etl|server)/
+        args: ["--config", "etl/.black.toml"]
+        files: ^etl/.*\.py$
+      - id: black
+        args: ["--config", "server/.black.toml"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.9.4
+    rev: v0.9.9
     hooks:
       - id: ruff
-        args: ["--config", "ruff.toml"]
-        files: ^(etl|server)/
+        args: ["--config", "etl/ruff.toml"]
+        files: ^etl/.*\.py$
+      - id: ruff
+        args: ["--config", "server/ruff.toml"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
     hooks:
       - id: isort
-        args: ["--settings-path", ".isort.cfg"]
-        files: ^(etl|server)/
+        args: ["--settings-path", "etl/.isort.cfg"]
+        files: ^etl/.*\.py$
+      - id: isort
+        args: ["--settings-path", "server/.isort.cfg"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.393
+    rev: v1.1.396
     hooks:
       - id: pyright
-        files: ^(etl|server)/
+        args: ["--project", "etl/pyrightconfig.json"]
+        files: ^etl/.*\.py$
+      - id: pyright
+        args: ["--project", "server/pyrightconfig.json"]
+        files: ^server/.*\.py$
 
   - repo: https://github.com/terrencepreilly/darglint
     rev: v1.8.1
@@ -75,12 +72,29 @@ repos:
       - id: darglint
         args: ["--docstring-style", "google"]
         exclude: ^etl/data/
-        files: ^(etl|server)/
+        files: ^etl/.*\.py$
+      - id: darglint
+        args: ["--docstring-style", "google"]
+        exclude: ^server/data/
+        files: ^server/.*\.py$
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.2
+    rev: 1.8.3
     hooks:
       - id: bandit
-        args: ["--configfile", "bandit.yaml"]
+        args: ["--configfile", "etl/bandit.yaml"]
         exclude: ^etl/data/
-        files: ^(etl|server)/
+        files: ^etl/.*\.py$
+      - id: bandit
+        args: ["--configfile", "server/bandit.yaml"]
+        exclude: ^server/data/
+        files: ^server/.*\.py$
+
+  # JavaScript (ESLint & Prettier) - Runs a shell script for Next.js (client)
+  - repo: local
+    hooks:
+      - id: eslint-prettier
+        name: Run ESLint and Prettier
+        entry: bash client/scripts/lint-staged.sh
+        language: system
+        pass_filenames: false

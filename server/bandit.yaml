@@ -8,14 +8,9 @@ skips:
 
 # List of directories to exclude from scanning
 exclude_dirs:
-  - etl/test/
-  - etl/data/
-  - .git/
-  - .venv/
-  - venv/
+  - db/
   - __pycache__/
-  - build/
-  - dist/
+
 
 # List of files to exclude from scanning
 exclude_files:

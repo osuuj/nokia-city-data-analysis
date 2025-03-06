@@ -4,15 +4,7 @@ target-version = ['py312']
 skip-string-normalization = false
 exclude = '''
 /(
-    \.git
-  | __pycache__
-  | \.mypy_cache
-  | \.pytest_cache
-  | data
-  | docs
-  | venvs
+    __pycache__
   | db
-  | build
-  | dist
 )/
 '''
