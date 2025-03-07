@@ -38,6 +38,7 @@
     "swr": "^2.3.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@eslint/js": "^9.21.0",
     "@heroui/react": "^2.7.4",
     "@iconify/react": "^5.2.0",
