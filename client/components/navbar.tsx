@@ -16,9 +16,10 @@ import {
 import { Icon } from '@iconify/react';
 
 import NotificationsCard from './notifications-card';
+import { ThemeSwitch } from './theme-switch';
 
 import { GithubIcon } from '@/components/icons';
-import Logo from '@/components/osuujIcon';
+import Logo from '@/components/osuuj-icon';
 import { siteConfig } from '@/config/site';
 
 export default function Header() {
@@ -103,9 +104,7 @@ export default function Header() {
           </NavbarItem>
           {/* Theme change */}
           <NavbarItem className="hidden lg:flex">
-            <Button isIconOnly radius="full" variant="light">
-              <Icon className="text-default-500" icon="solar:sun-linear" width={24} />
-            </Button>
+            <ThemeSwitch />
           </NavbarItem>
 
           {/* Settings */}

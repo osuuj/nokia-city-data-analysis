@@ -21,7 +21,7 @@ const TeamAvatar = React.forwardRef<HTMLSpanElement, AvatarProps>(
       radius="md"
       size="sm"
     />
-  )
+  ),
 );
 
 TeamAvatar.displayName = 'TeamAvatar';

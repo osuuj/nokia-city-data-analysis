@@ -1,7 +1,7 @@
 import '@/styles/globals.css';
 import clsx from 'clsx';
-import { Metadata, Viewport } from 'next';
-import React from 'react';
+import type { Metadata, Viewport } from 'next';
+import type React from 'react';
 
 import { Providers } from './providers';
 

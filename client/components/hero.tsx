@@ -13,7 +13,7 @@ export default function Hero() {
         <source src="/background.mp4" type="video/mp4" />
       </video>
 
-      <div className="absolute left-0 top-0 h-full w-full bg-black/40"></div>
+      <div className="absolute left-0 top-0 h-full w-full bg-black/40" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
         <div className="inline-block max-w-xl justify-center text-center">

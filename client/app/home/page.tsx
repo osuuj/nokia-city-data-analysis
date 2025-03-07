@@ -59,7 +59,7 @@ export default function Component() {
         >
           Help & Information
         </Button>
-        <Button
+        {/* <Button
           className="justify-start text-default-500 data-[hover=true]:text-foreground"
           startContent={
             <Icon
@@ -71,7 +71,7 @@ export default function Component() {
           variant="light"
         >
           Log Out
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

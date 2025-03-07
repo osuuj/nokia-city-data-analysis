@@ -13,7 +13,7 @@ import {
   getKeyValue,
 } from '@heroui/table';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 import { SearchIcon } from '@/components/icons';
@@ -35,34 +35,34 @@ export default function SearchPage() {
   const query = searchParams.get('city');
   const { data, isLoading } = useSWR<Business[]>(
     query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
-    fetcher
+    fetcher,
   );
   const [page, setPage] = useState(1);
 
   const rowsPerPage = 25;
 
-  const removeDuplicates = (businesses: Business[]): Business[] => {
+  const removeDuplicates = useCallback((businesses: Business[]): Business[] => {
     const uniqueBusinesses = new Map<string, Business>();
-    businesses.forEach((business) => {
+    for (const business of businesses) {
       uniqueBusinesses.set(business.business_id, business);
-    });
+    }
     return Array.from(uniqueBusinesses.values());
-  };
+  }, []);
 
   const uniqueData = useMemo(() => {
     return data ? removeDuplicates(data) : [];
-  }, [data]);
+  }, [data, removeDuplicates]);
 
   const paginatedData: Business[] = useMemo(() => {
     if (!uniqueData) return [];
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return uniqueData.slice(startIndex, endIndex);
-  }, [uniqueData, page, rowsPerPage]);
+  }, [uniqueData, page]);
 
   const pages = useMemo(() => {
     return data ? Math.ceil(uniqueData.length / rowsPerPage) : 0;
-  }, [data, rowsPerPage]);
+  }, [data, uniqueData.length]);
 
   const searchInput = (
     <Input

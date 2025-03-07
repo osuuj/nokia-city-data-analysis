@@ -1,7 +1,7 @@
 'use client';
 import { TRANSITION_EASINGS } from '@heroui/framer-utils';
 import type { ModalProps } from '@heroui/react';
-import { cn, Drawer, DrawerBody, DrawerContent } from '@heroui/react';
+import { Drawer, DrawerBody, DrawerContent, cn } from '@heroui/react';
 import React from 'react';
 
 const SidebarDrawer = React.forwardRef<
@@ -23,7 +23,7 @@ const SidebarDrawer = React.forwardRef<
       motionProps: drawerMotionProps,
       ...props
     },
-    ref
+    ref,
   ) => {
     const motionProps = React.useMemo(() => {
       if (!!drawerMotionProps && typeof drawerMotionProps === 'object') {
@@ -42,7 +42,7 @@ const SidebarDrawer = React.forwardRef<
             },
           },
           exit: {
-            x: sidebarPlacement == 'left' ? -sidebarWidth : sidebarWidth,
+            x: sidebarPlacement === 'left' ? -sidebarWidth : sidebarWidth,
             transition: {
               x: {
                 duration: 0.2,
@@ -74,7 +74,7 @@ const SidebarDrawer = React.forwardRef<
                   sidebarPlacement === 'left',
                 'inset-y-0 right-0 max-h-[none] rounded-r-none !justify-end':
                   sidebarPlacement === 'right',
-              }
+              },
             ),
             body: cn('p-0', classNames?.body),
             closeButton: cn('z-50', classNames?.closeButton),
@@ -96,14 +96,14 @@ const SidebarDrawer = React.forwardRef<
         <div
           className={cn(
             'hidden h-full max-w-[var(--sidebar-width)] overflow-x-hidden overflow-y-scroll sm:flex',
-            className
+            className,
           )}
         >
           {children}
         </div>
       </>
     );
-  }
+  },
 );
 
 SidebarDrawer.displayName = 'SidebarDrawer';

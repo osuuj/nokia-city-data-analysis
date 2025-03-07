@@ -89,3 +89,13 @@ repos:
         args: ["--configfile", "server/bandit.yaml"]
         exclude: ^server/data/
         files: ^server/.*\.py$
+
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v1.9.4" # Use the sha / tag you want to point at
+    hooks:
+      - id: biome-check
+        additional_dependencies: ["@biomejs/biome@1.9.1"]
+        files: ^client/.*\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?)$
+        exclude: ^client/(ignored-folder|node_modules|\.next)/
+        args: ["--config-path", "client/biome.json"]
+
