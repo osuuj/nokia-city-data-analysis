@@ -32,7 +32,7 @@ export default function Component() {
         </div>
         <span className="text-small font-bold uppercase text-foreground">Acme</span>
       </div>
-      <Spacer y={8} />
+      <Spacer y={4} />
       <div className="flex items-center gap-3 px-3">
         <Avatar isBordered size="sm" src="https://i.pravatar.cc/150?u=a04258114e29026708c" />
         <div className="flex flex-col">
@@ -41,13 +41,13 @@ export default function Component() {
         </div>
       </div>
 
-      <Spacer y={8} />
+      <Spacer y={4} />
 
       <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
         <Sidebar defaultSelectedKey="home" items={sectionItemsWithTeams} />
       </ScrollShadow>
 
-      <Spacer y={8} />
+      <Spacer y={4} />
       <div className="mt-auto flex flex-col">
         <Button
           fullWidth
