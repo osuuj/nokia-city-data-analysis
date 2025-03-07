@@ -4,6 +4,7 @@ import { Avatar, Button, ScrollShadow, Spacer, useDisclosure } from '@heroui/rea
 import { Icon } from '@iconify/react';
 
 import { AcmeIcon } from '@/components/acme';
+import MapComponent from '@/components/map/map';
 import Sidebar from '@/components/sidebar';
 import SidebarDrawer from '@/components/sidebar-drawer';
 import { sectionItemsWithTeams } from '@/components/sidebar-items';
@@ -21,7 +22,21 @@ import { sectionItemsWithTeams } from '@/components/sidebar-items';
  * <Sidebar defaultSelectedKey="home" selectedKeys={[currentPath]} />
  * ```
  */
-export default function Component() {
+
+// Define Location interface
+interface Location {
+  name: string;
+  coordinates: [number, number]; // Ensure it's a tuple
+}
+
+// Define locations using the interface
+const locations: Location[] = [
+  { name: 'Location 1', coordinates: [-74.5, 40] },
+  { name: 'Location 2', coordinates: [-74.6, 40.2] },
+  { name: 'Location 3', coordinates: [-74.7, 40.4] },
+];
+
+export default function Home() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const content = (
@@ -98,7 +113,12 @@ export default function Component() {
           <h2 className="text-medium font-medium text-default-700">Overview</h2>
         </header>
         <main className="mt-4 h-full w-full overflow-visible">
-          <div className="flex h-[90%] w-full flex-col gap-4 rounded-medium border-small border-divider" />
+          <div className="flex h-[90%] w-full flex-col gap-4 rounded-medium border-small border-divider">
+            <div>
+              <h1>My Mapbox Map</h1>
+              <MapComponent locations={locations} />
+            </div>
+          </div>
         </main>
       </div>
     </div>
