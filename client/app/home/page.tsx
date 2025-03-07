@@ -112,11 +112,13 @@ export default function Home() {
           </Button>
           <h2 className="text-medium font-medium text-default-700">Overview</h2>
         </header>
-        <main className="mt-4 h-full w-full overflow-visible">
-          <div className="flex h-[90%] w-full flex-col gap-4 rounded-medium border-small border-divider">
-            <div>
+        <main className="mt-4 h-full w-full overflow-hidden">
+          <div className="flex h-full w-full flex-col gap-4 rounded-medium border-small border-divider">
+            <div className="flex-1 flex flex-col">
               <h1>My Mapbox Map</h1>
-              <MapComponent locations={locations} />
+              <div className="relative flex-1 w-full">
+                <MapComponent locations={locations} />
+              </div>
             </div>
           </div>
         </main>

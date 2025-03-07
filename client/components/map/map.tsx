@@ -1,5 +1,6 @@
 'use client';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css'; // Import Mapbox styles
 import { useEffect, useRef } from 'react';
 
 // Define the Location interface
@@ -28,7 +29,7 @@ export default function MapComponent({ locations }: MapComponentProps) {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
+      style: 'mapbox://styles/superjuuso/cm7z31i3n00sn01r11pdkehua',
       center: [-74.5, 40],
       zoom: 9,
     });
@@ -39,7 +40,17 @@ export default function MapComponent({ locations }: MapComponentProps) {
         .setPopup(new mapboxgl.Popup().setHTML(`<h3>${location.name}</h3>`))
         .addTo(map.current);
     }
+
+    // Resize the map when the window is resized
+    const handleResize = () => {
+      map.current?.resize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [locations]);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '500px' }} />;
+  return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
 }
