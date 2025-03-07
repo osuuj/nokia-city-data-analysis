@@ -5,6 +5,7 @@ on:
     paths:
       - "etl/**"
       - "server/**"
+      - "client/**"
 
 jobs:
   pre-commit:
@@ -45,4 +46,24 @@ jobs:
             pre-commit run --files $FILES
           else
             echo "No Server files changed. Skipping pre-commit."
+          fi
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Node.js Dependencies
+        run: |
+          npm install
+
+      - name: 🔍 Run Pre-commit on Changed Files (Client)
+        run: |
+          FILES=$(git diff --name-only origin/main | grep -E '^client/' || echo "")
+          if [ -n "$FILES" ]; then
+            echo "Running pre-commit on: $FILES"
+            pre-commit run --files $FILES
+          else
+            echo "No Client files changed. Skipping pre-commit."
           fi
