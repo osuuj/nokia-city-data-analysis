@@ -1,7 +1,7 @@
 'use client';
 
-import type { IconProps } from '@iconify/react';
 import { Link, Spacer } from '@heroui/react';
+import type { IconProps } from '@iconify/react';
 import { Icon } from '@iconify/react';
 
 import Logo from '@/components/osuujIcon';
@@ -11,23 +11,23 @@ type SocialIconProps = Omit<IconProps, 'icon'>;
 const navLinks = [
   {
     name: 'Home',
-    href: '#',
+    href: '/home',
   },
   {
     name: 'Project',
-    href: '#',
+    href: '/project',
   },
   {
     name: 'Resources',
-    href: '#',
+    href: '/resources',
   },
   {
     name: 'About Us',
-    href: '#',
+    href: '/about',
   },
   {
     name: 'Contact',
-    href: '#',
+    href: '/contact',
   },
 ];
 

@@ -17,8 +17,8 @@ import { Icon } from '@iconify/react';
 
 import NotificationsCard from './notifications-card';
 
-import Logo from '@/components/osuujIcon';
 import { GithubIcon } from '@/components/icons';
+import Logo from '@/components/osuujIcon';
 import { siteConfig } from '@/config/site';
 
 export default function Header() {
@@ -41,27 +41,27 @@ export default function Header() {
           justify="start"
         >
           <NavbarItem>
-            <Link className="flex gap-2 text-inherit" href="#">
+            <Link className="flex gap-2 text-inherit" href="/home">
               Home
             </Link>
           </NavbarItem>
           <NavbarItem isActive>
-            <Link aria-current="page" className="flex gap-2 text-inherit" href="#">
+            <Link aria-current="page" className="flex gap-2 text-inherit" href="/project">
               Project
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="flex gap-2 text-inherit" href="#">
+            <Link className="flex gap-2 text-inherit" href="/resources">
               Resources
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="flex gap-2 text-inherit" href="#">
+            <Link className="flex gap-2 text-inherit" href="/about">
               About Us
             </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link className="flex gap-2 text-inherit" href="#">
+            <Link className="flex gap-2 text-inherit" href="/contact">
               Contact
             </Link>
           </NavbarItem>
