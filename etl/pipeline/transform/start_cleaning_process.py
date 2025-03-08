@@ -22,8 +22,10 @@ from etl.pipeline.transform.cleaning.core.base_cleaning import (
 from etl.pipeline.transform.cleaning.core.final_cleaning import (
     clean_company_forms,
     clean_company_situations,
-    clean_main_business_lines,
     clean_registered_entries,
+)
+from etl.pipeline.transform.cleaning.main_business_line.main_business_line_cleaning import (
+    clean_main_business_lines,
 )
 from etl.pipeline.transform.cleaning.names.names_cleaning import clean_names
 from etl.pipeline.transform.cleaning.post_office.post_office_cleaning import (

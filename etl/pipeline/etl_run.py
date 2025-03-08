@@ -14,6 +14,7 @@ Key Features:
 
 import gc
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -28,6 +29,11 @@ from etl.pipeline.entity_processing import process_entities
 from etl.pipeline.transform.start_cleaning_process import start_cleaning_process
 from etl.utils.file_system_utils import setup_directories
 from etl.utils.network_utils import download_mapping_files, get_url
+
+# Add project directory to sys.path
+project_dir = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_dir))
+
 
 # Configure logging
 configure_logging()

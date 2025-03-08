@@ -2,11 +2,13 @@
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'; // Import Mapbox styles
 import { useEffect, useRef } from 'react';
+import Marker from './Marker';
 
 // Define the Location interface
 interface Location {
   name: string;
   coordinates: [number, number]; // Tuple with exactly 2 numbers
+  industry: string;
 }
 
 // Define the MapComponent component props

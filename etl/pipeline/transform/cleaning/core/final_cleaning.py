@@ -76,19 +76,6 @@ def clean_registered_entries(df: pd.DataFrame, output_dir: str) -> None:
     save_to_csv(df, f"{output_dir}/cleaned_registered_entries.csv")
 
 
-def clean_main_business_lines(df: pd.DataFrame, output_dir: str) -> None:
-    """Cleans the main_business_lines dataset.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing the main business lines data.
-        output_dir (str): Directory to save the cleaned data.
-    """
-    df = clean_dataset(
-        df, ["industry_description", "source"], ["registration_date"], ["industry"]
-    )
-    save_to_csv(df, f"{output_dir}/cleaned_main_business_lines.csv")
-
-
 def clean_company_forms(df: pd.DataFrame, output_dir: str) -> None:
     """Cleans the company_forms dataset.
 

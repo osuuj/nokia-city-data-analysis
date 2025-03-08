@@ -1,155 +1,155 @@
 Level,TOL 2025,Title_fi,Title_en,Title_sv,Category
 1,A,"Maatalous, metsätalous ja kalatalous","Agriculture, forestry and fisheries","Jordbruk, skogsbruk och fiske",
-2,1,"Kasvinviljely ja kotieläintalous, riistatalous ja niihin liittyvät palvelut","Plant cultivation and livestock farming, game farming and related services","Växtodling och boskapsskötsel, viltuppfödning och relaterade tjänster",A
-3,11,Yksi- ja kaksivuotisten kasvien viljely,Cultivation of annual and biennial plants,Odling av ettåriga och tvååriga växter,A
-4,111,"Viljakasvien, pois lukien riisi, palkokasvien ja öljysiemenkasvien viljely","Cultivation of cereals, excluding rice, pulses and oilseeds","Odling av spannmål, exklusive ris, baljväxter och oljeväxter",A
-5,1110,"Viljakasvien, pois lukien riisi, palkokasvien ja öljysiemenkasvien viljely","Cultivation of cereals, excluding rice, pulses and oilseeds","Odling av spannmål, exklusive ris, baljväxter och oljeväxter",A
-4,112,Riisin viljely,Rice cultivation,Risodling,A
-5,1120,Riisin viljely,Rice cultivation,Risodling,A
-4,113,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely","Cultivation of vegetables and melons, roots and tubers","Odling av grönsaker och meloner, rötter och knölar",A
-5,1131,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely avomaalla pois lukien perunan viljely","Cultivation of vegetables and melons, roots and tubers in the open, excluding potato cultivation","Odling av grönsaker och meloner, rötter och knölar på friland, exklusive potatisodling",A
-5,1132,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely kasvihuoneessa","Cultivation of vegetables and melons, roots and tubers in a greenhouse","Odling av grönsaker och meloner, rötter och knölar i ett växthus",A
-5,1133,Perunan viljely,Potato cultivation,Potatisodling,A
-4,114,Sokeriruoon viljely,Cultivation of sugar cane,Odling av sockerrör,A
-5,1140,Sokeriruoon viljely,Cultivation of sugar cane,Odling av sockerrör,A
-4,115,Tupakan viljely,Tobacco cultivation,Tobaksodling,A
-5,1150,Tupakan viljely,Tobacco cultivation,Tobaksodling,A
-4,116,Kuitukasvien viljely,Cultivation of fiber plants,Odling av fiberväxter,A
-5,1160,Kuitukasvien viljely,Cultivation of fiber plants,Odling av fiberväxter,A
-4,119,Muu yksi- ja kaksivuotisten kasvien viljely,Cultivation of other annual and biennial plants,Odling av andra ettåriga och tvååriga växter,A
-5,1191,Kukkien ja koristekasvien viljely,Cultivation of flowers and ornamental plants,Odling av blommor och prydnadsväxter,A
-5,1199,Muu muualla luokittelematon yksi- ja kaksivuotisten kasvien viljely,Other cultivation of annual and biennial plants not elsewhere classified,Annan odling av ettåriga och tvååriga växter som inte klassificeras någon annanstans,A
-3,12,Monivuotisten kasvien viljely,Cultivation of perennial plants,Odling av fleråriga växter,A
-4,121,Rypäleiden viljely,Cultivation of grapes,Odling av druvor,A
-5,1210,Rypäleiden viljely,Cultivation of grapes,Odling av druvor,A
-4,122,Trooppisten ja subtrooppisten hedelmien viljely,Cultivation of tropical and subtropical fruits,Odling av tropiska och subtropiska frukter,A
-5,1220,Trooppisten ja subtrooppisten hedelmien viljely,Cultivation of tropical and subtropical fruits,Odling av tropiska och subtropiska frukter,A
-4,123,Sitrushedelmien viljely,Cultivation of citrus fruits,Odling av citrusfrukter,A
-5,1230,Sitrushedelmien viljely,Cultivation of citrus fruits,Odling av citrusfrukter,A
-4,124,Kota- ja kivihedelmien viljely,Cultivation of cottage and stone fruits,Odling av stug- och stenfrukter,A
-5,1240,Kota- ja kivihedelmien viljely,Cultivation of cottage and stone fruits,Odling av stug- och stenfrukter,A
-4,125,"Marjojen, pähkinöiden ja muiden puissa ja pensaissa kasvavien hedelmien viljely","Cultivation of berries, nuts and other fruits that grow on trees and bushes","Odling av bär, nötter och andra frukter som växer på träd och buskar",A
-5,1250,"Marjojen, pähkinöiden ja muiden puissa ja pensaissa kasvavien hedelmien viljely","Cultivation of berries, nuts and other fruits that grow on trees and bushes","Odling av bär, nötter och andra frukter som växer på träd och buskar",A
-4,126,Öljyä sisältävien hedelmien viljely,Cultivation of fruits containing oil,Odling av frukt som innehåller olja,A
-5,1260,Öljyä sisältävien hedelmien viljely,Cultivation of fruits containing oil,Odling av frukt som innehåller olja,A
-4,127,Juomakasvien viljely,Cultivation of potable plants,Odling av dricksväxter,A
-5,1270,Juomakasvien viljely,Cultivation of potable plants,Odling av dricksväxter,A
-4,128,"Mauste-, aromi-, rohdos- ja lääkekasvien viljely","Cultivation of spice, aroma, medicinal and medicinal plants","Odling av krydd-, arom-, medicinal- och medicinalväxter",A
-5,1280,"Mauste-, aromi-, rohdos- ja lääkekasvien viljely","Cultivation of spice, aroma, medicinal and medicinal plants","Odling av krydd-, arom-, medicinal- och medicinalväxter",A
-4,129,Muu monivuotisten kasvien viljely,Other cultivation of perennial plants,Annan odling av fleråriga växter,A
-5,1290,Muu monivuotisten kasvien viljely,Other cultivation of perennial plants,Annan odling av fleråriga växter,A
-3,13,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
-4,130,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
-5,1300,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
-3,14,Kotieläintalous,Livestock economy,Boskapsekonomi,A
-4,141,Lypsykarjan kasvatus,Breeding of dairy cattle,Uppfödning av mjölkboskap,A
-5,1410,Lypsykarjan kasvatus,Breeding of dairy cattle,Uppfödning av mjölkboskap,A
-4,142,Muu nautakarjan ja puhvelien kasvatus,Other cattle and buffalo breeding,Annan boskaps- och buffeluppfödning,A
-5,1420,Muu nautakarjan ja puhvelien kasvatus,Other cattle and buffalo breeding,Annan boskaps- och buffeluppfödning,A
-4,143,Hevosten ja muiden hevoseläinten kasvatus,Breeding of horses and other equine animals,Uppfödning av hästar och andra hästdjur,A
-5,1430,Hevosten ja muiden hevoseläinten kasvatus,Breeding of horses and other equine animals,Uppfödning av hästar och andra hästdjur,A
-4,144,Kamelien ja kamelieläinten kasvatus,Breeding of camels and camelids,Uppfödning av kameler och kameldjur,A
-5,1440,Kamelien ja kamelieläinten kasvatus,Breeding of camels and camelids,Uppfödning av kameler och kameldjur,A
-4,145,Lampaiden ja vuohien kasvatus,Breeding of sheep and goats,Uppfödning av får och getter,A
-5,1450,Lampaiden ja vuohien kasvatus,Breeding of sheep and goats,Uppfödning av får och getter,A
-4,146,Sikojen ja porsaiden kasvatus,Breeding of pigs and piglets,Uppfödning av grisar och smågrisar,A
-5,1461,Sikojen ja porsaiden kasvatus porsastuotantoa varten,Breeding of pigs and piglets for pig production,Uppfödning av grisar och smågrisar för grisproduktion,A
-5,1462,Sikojen ja porsaiden kasvatus lihantuotantoa varten,Raising pigs and piglets for meat production,Uppfödning av grisar och smågrisar för köttproduktion,A
-4,147,Siipikarjan kasvatus,Poultry breeding,Fjäderfäuppfödning,A
-5,1471,Kanojen kasvatus munien tuotantoa varten,Raising chickens for egg production,Uppfödning av kycklingar för äggproduktion,A
-5,1472,Broilerien kasvatus lihantuotantoa varten,Breeding of broilers for meat production,Uppfödning av slaktkycklingar för köttproduktion,A
-5,1479,Muu siipikarjan kasvatus,Other poultry farming,Övrig fjäderfäuppfödning,A
-4,148,Muu eläinten kasvatus,Other animal breeding,Annan djuruppfödning,A
-5,1481,Turkiseläinten kasvatus,Breeding of fur animals,Uppfödning av pälsdjur,A
-5,1482,Poronhoito,Reindeer care,Renvård,A
-5,1489,Muu muualla luokittelematon eläinten kasvatus,Other animal breeding not elsewhere classified,Annan djuruppfödning som inte klassificeras någon annanstans,A
-3,15,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
-4,150,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
-5,1500,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
-3,16,Maataloutta palveleva toiminta,Activities serving agriculture,Verksamhet som tjänar jordbruket,A
-4,161,Kasvinviljelyä palveleva toiminta,Activities serving crop cultivation,Aktiviteter som tjänar växtodling,A
-5,1611,Viljelysmaan pitäminen hyvässä kunnossa,Keeping farmland in good condition,Att hålla jordbruksmark i gott skick,A
-5,1612,Muu kasvinviljelyä palveleva toiminta,Other activities serving crop cultivation,Andra aktiviteter som betjänar växtodling,A
-4,162,Kotieläintaloutta palveleva toiminta,Activities serving the livestock industry,Verksamhet som betjänar boskapsnäringen,A
-5,1620,Kotieläintaloutta palveleva toiminta,Activities serving the livestock industry,Verksamhet som betjänar boskapsnäringen,A
-4,163,Sadon jatkokäsittely ja siementen käsittely kasvinviljelyä varten,Further processing of the crop and processing of seeds for crop cultivation,Ytterligare bearbetning av grödan och bearbetning av frön för växtodling,A
-5,1630,Sadon jatkokäsittely ja siementen käsittely kasvinviljelyä varten,Further processing of the crop and processing of seeds for crop cultivation,Ytterligare bearbetning av grödan och bearbetning av frön för växtodling,A
-3,17,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
-4,170,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
-5,1700,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
-2,2,Metsätalous ja puunkorjuu,Forestry and logging,Skogsbruk och avverkning,A
-3,21,Metsänhoito,Forestry,Skogsbruk,A
-4,210,Metsänhoito,Forestry,Skogsbruk,A
-5,2100,Metsänhoito,Forestry,Skogsbruk,A
-3,22,Puunkorjuu,Logging,Skogsavverkning,A
-4,220,Puunkorjuu,Logging,Skogsavverkning,A
-5,2200,Puunkorjuu,Logging,Skogsavverkning,A
-3,23,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
-4,230,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
-5,2300,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
-3,24,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
-4,240,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
-5,2400,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
-2,3,Kalastus ja vesiviljely,Fishing and aquaculture,Fiske och vattenbruk,A
-3,31,Kalastus,Fishing,Fiske,A
-4,311,Merikalastus,Sea fishing,Havsfiske,A
-5,3110,Merikalastus,Sea fishing,Havsfiske,A
-4,312,Sisävesikalastus,Inland fishing,Inlandsfiske,A
-5,3120,Sisävesikalastus,Inland fishing,Inlandsfiske,A
-3,32,Vesiviljely,Aquaculture,Vattenbruk,A
-4,321,Kalanviljely meressä,Fish farming in the sea,Fiskodling i havet,A
-5,3210,Kalanviljely meressä,Fish farming in the sea,Fiskodling i havet,A
-4,322,Kalanviljely sisävesissä,Fish farming in inland waters,Fiskodling i inre vatten,A
-5,3220,Kalanviljely sisävesissä,Fish farming in inland waters,Fiskodling i inre vatten,A
-3,33,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
-4,330,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
-5,3300,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
+2,01,"Kasvinviljely ja kotieläintalous, riistatalous ja niihin liittyvät palvelut","Plant cultivation and livestock farming, game farming and related services","Växtodling och boskapsskötsel, viltuppfödning och relaterade tjänster",A
+3,011,Yksi- ja kaksivuotisten kasvien viljely,Cultivation of annual and biennial plants,Odling av ettåriga och tvååriga växter,A
+4,0111,"Viljakasvien, pois lukien riisi, palkokasvien ja öljysiemenkasvien viljely","Cultivation of cereals, excluding rice, pulses and oilseeds","Odling av spannmål, exklusive ris, baljväxter och oljeväxter",A
+5,01110,"Viljakasvien, pois lukien riisi, palkokasvien ja öljysiemenkasvien viljely","Cultivation of cereals, excluding rice, pulses and oilseeds","Odling av spannmål, exklusive ris, baljväxter och oljeväxter",A
+4,0112,Riisin viljely,Rice cultivation,Risodling,A
+5,01120,Riisin viljely,Rice cultivation,Risodling,A
+4,0113,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely","Cultivation of vegetables and melons, roots and tubers","Odling av grönsaker och meloner, rötter och knölar",A
+5,01131,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely avomaalla pois lukien perunan viljely","Cultivation of vegetables and melons, roots and tubers in the open, excluding potato cultivation","Odling av grönsaker och meloner, rötter och knölar på friland, exklusive potatisodling",A
+5,01132,"Vihannesten ja melonien, juuresten ja mukulakasvien viljely kasvihuoneessa","Cultivation of vegetables and melons, roots and tubers in a greenhouse","Odling av grönsaker och meloner, rötter och knölar i ett växthus",A
+5,01133,Perunan viljely,Potato cultivation,Potatisodling,A
+4,0114,Sokeriruoon viljely,Cultivation of sugar cane,Odling av sockerrör,A
+5,01140,Sokeriruoon viljely,Cultivation of sugar cane,Odling av sockerrör,A
+4,0115,Tupakan viljely,Tobacco cultivation,Tobaksodling,A
+5,01150,Tupakan viljely,Tobacco cultivation,Tobaksodling,A
+4,0116,Kuitukasvien viljely,Cultivation of fiber plants,Odling av fiberväxter,A
+5,01160,Kuitukasvien viljely,Cultivation of fiber plants,Odling av fiberväxter,A
+4,0119,Muu yksi- ja kaksivuotisten kasvien viljely,Cultivation of other annual and biennial plants,Odling av andra ettåriga och tvååriga växter,A
+5,01191,Kukkien ja koristekasvien viljely,Cultivation of flowers and ornamental plants,Odling av blommor och prydnadsväxter,A
+5,01199,Muu muualla luokittelematon yksi- ja kaksivuotisten kasvien viljely,Other cultivation of annual and biennial plants not elsewhere classified,Annan odling av ettåriga och tvååriga växter som inte klassificeras någon annanstans,A
+3,012,Monivuotisten kasvien viljely,Cultivation of perennial plants,Odling av fleråriga växter,A
+4,0121,Rypäleiden viljely,Cultivation of grapes,Odling av druvor,A
+5,01210,Rypäleiden viljely,Cultivation of grapes,Odling av druvor,A
+4,0122,Trooppisten ja subtrooppisten hedelmien viljely,Cultivation of tropical and subtropical fruits,Odling av tropiska och subtropiska frukter,A
+5,01220,Trooppisten ja subtrooppisten hedelmien viljely,Cultivation of tropical and subtropical fruits,Odling av tropiska och subtropiska frukter,A
+4,0123,Sitrushedelmien viljely,Cultivation of citrus fruits,Odling av citrusfrukter,A
+5,01230,Sitrushedelmien viljely,Cultivation of citrus fruits,Odling av citrusfrukter,A
+4,0124,Kota- ja kivihedelmien viljely,Cultivation of cottage and stone fruits,Odling av stug- och stenfrukter,A
+5,01240,Kota- ja kivihedelmien viljely,Cultivation of cottage and stone fruits,Odling av stug- och stenfrukter,A
+4,0125,"Marjojen, pähkinöiden ja muiden puissa ja pensaissa kasvavien hedelmien viljely","Cultivation of berries, nuts and other fruits that grow on trees and bushes","Odling av bär, nötter och andra frukter som växer på träd och buskar",A
+5,01250,"Marjojen, pähkinöiden ja muiden puissa ja pensaissa kasvavien hedelmien viljely","Cultivation of berries, nuts and other fruits that grow on trees and bushes","Odling av bär, nötter och andra frukter som växer på träd och buskar",A
+4,0126,Öljyä sisältävien hedelmien viljely,Cultivation of fruits containing oil,Odling av frukt som innehåller olja,A
+5,01260,Öljyä sisältävien hedelmien viljely,Cultivation of fruits containing oil,Odling av frukt som innehåller olja,A
+4,0127,Juomakasvien viljely,Cultivation of potable plants,Odling av dricksväxter,A
+5,01270,Juomakasvien viljely,Cultivation of potable plants,Odling av dricksväxter,A
+4,0128,"Mauste-, aromi-, rohdos- ja lääkekasvien viljely","Cultivation of spice, aroma, medicinal and medicinal plants","Odling av krydd-, arom-, medicinal- och medicinalväxter",A
+5,01280,"Mauste-, aromi-, rohdos- ja lääkekasvien viljely","Cultivation of spice, aroma, medicinal and medicinal plants","Odling av krydd-, arom-, medicinal- och medicinalväxter",A
+4,0129,Muu monivuotisten kasvien viljely,Other cultivation of perennial plants,Annan odling av fleråriga växter,A
+5,01290,Muu monivuotisten kasvien viljely,Other cultivation of perennial plants,Annan odling av fleråriga växter,A
+3,013,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
+4,0130,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
+5,01300,Taimien kasvatus ja muu kasvien lisääminen,Growing seedlings and other plant propagation,Odla plantor och annan växtförökning,A
+3,014,Kotieläintalous,Livestock economy,Boskapsekonomi,A
+4,0141,Lypsykarjan kasvatus,Breeding of dairy cattle,Uppfödning av mjölkboskap,A
+5,01410,Lypsykarjan kasvatus,Breeding of dairy cattle,Uppfödning av mjölkboskap,A
+4,0142,Muu nautakarjan ja puhvelien kasvatus,Other cattle and buffalo breeding,Annan boskaps- och buffeluppfödning,A
+5,01420,Muu nautakarjan ja puhvelien kasvatus,Other cattle and buffalo breeding,Annan boskaps- och buffeluppfödning,A
+4,0143,Hevosten ja muiden hevoseläinten kasvatus,Breeding of horses and other equine animals,Uppfödning av hästar och andra hästdjur,A
+5,01430,Hevosten ja muiden hevoseläinten kasvatus,Breeding of horses and other equine animals,Uppfödning av hästar och andra hästdjur,A
+4,0144,Kamelien ja kamelieläinten kasvatus,Breeding of camels and camelids,Uppfödning av kameler och kameldjur,A
+5,01440,Kamelien ja kamelieläinten kasvatus,Breeding of camels and camelids,Uppfödning av kameler och kameldjur,A
+4,0145,Lampaiden ja vuohien kasvatus,Breeding of sheep and goats,Uppfödning av får och getter,A
+5,01450,Lampaiden ja vuohien kasvatus,Breeding of sheep and goats,Uppfödning av får och getter,A
+4,0146,Sikojen ja porsaiden kasvatus,Breeding of pigs and piglets,Uppfödning av grisar och smågrisar,A
+5,01461,Sikojen ja porsaiden kasvatus porsastuotantoa varten,Breeding of pigs and piglets for pig production,Uppfödning av grisar och smågrisar för grisproduktion,A
+5,01462,Sikojen ja porsaiden kasvatus lihantuotantoa varten,Raising pigs and piglets for meat production,Uppfödning av grisar och smågrisar för köttproduktion,A
+4,0147,Siipikarjan kasvatus,Poultry breeding,Fjäderfäuppfödning,A
+5,01471,Kanojen kasvatus munien tuotantoa varten,Raising chickens for egg production,Uppfödning av kycklingar för äggproduktion,A
+5,01472,Broilerien kasvatus lihantuotantoa varten,Breeding of broilers for meat production,Uppfödning av slaktkycklingar för köttproduktion,A
+5,01479,Muu siipikarjan kasvatus,Other poultry farming,Övrig fjäderfäuppfödning,A
+4,0148,Muu eläinten kasvatus,Other animal breeding,Annan djuruppfödning,A
+5,01481,Turkiseläinten kasvatus,Breeding of fur animals,Uppfödning av pälsdjur,A
+5,01482,Poronhoito,Reindeer care,Renvård,A
+5,01489,Muu muualla luokittelematon eläinten kasvatus,Other animal breeding not elsewhere classified,Annan djuruppfödning som inte klassificeras någon annanstans,A
+3,015,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
+4,0150,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
+5,01500,Yhdistetty kasvinviljely ja kotieläintalous,Combined crop cultivation and animal husbandry,Kombinerad växtodling och djurhållning,A
+3,016,Maataloutta palveleva toiminta,Activities serving agriculture,Verksamhet som tjänar jordbruket,A
+4,0161,Kasvinviljelyä palveleva toiminta,Activities serving crop cultivation,Aktiviteter som tjänar växtodling,A
+5,01611,Viljelysmaan pitäminen hyvässä kunnossa,Keeping farmland in good condition,Att hålla jordbruksmark i gott skick,A
+5,01612,Muu kasvinviljelyä palveleva toiminta,Other activities serving crop cultivation,Andra aktiviteter som betjänar växtodling,A
+4,0162,Kotieläintaloutta palveleva toiminta,Activities serving the livestock industry,Verksamhet som betjänar boskapsnäringen,A
+5,01620,Kotieläintaloutta palveleva toiminta,Activities serving the livestock industry,Verksamhet som betjänar boskapsnäringen,A
+4,0163,Sadon jatkokäsittely ja siementen käsittely kasvinviljelyä varten,Further processing of the crop and processing of seeds for crop cultivation,Ytterligare bearbetning av grödan och bearbetning av frön för växtodling,A
+5,01630,Sadon jatkokäsittely ja siementen käsittely kasvinviljelyä varten,Further processing of the crop and processing of seeds for crop cultivation,Ytterligare bearbetning av grödan och bearbetning av frön för växtodling,A
+3,017,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
+4,0170,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
+5,01700,Metsästys ja sitä palveleva toiminta,Hunting and activities that serve it,Jakt och aktiviteter som tjänar det,A
+2,02,Metsätalous ja puunkorjuu,Forestry and logging,Skogsbruk och avverkning,A
+3,021,Metsänhoito,Forestry,Skogsbruk,A
+4,0210,Metsänhoito,Forestry,Skogsbruk,A
+5,02100,Metsänhoito,Forestry,Skogsbruk,A
+3,022,Puunkorjuu,Logging,Skogsavverkning,A
+4,0220,Puunkorjuu,Logging,Skogsavverkning,A
+5,02200,Puunkorjuu,Logging,Skogsavverkning,A
+3,023,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
+4,0230,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
+5,02300,Luonnonvaraisina kasvavien tuotteiden keruu pois lukien puu,"Collection of products growing wild, excluding wood","Samling av produkter som växer vilt, exklusive trä",A
+3,024,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
+4,0240,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
+5,02400,Metsätaloutta palveleva toiminta,Activities serving forestry,Verksamhet i skogsbruket,A
+2,03,Kalastus ja vesiviljely,Fishing and aquaculture,Fiske och vattenbruk,A
+3,031,Kalastus,Fishing,Fiske,A
+4,0311,Merikalastus,Sea fishing,Havsfiske,A
+5,03110,Merikalastus,Sea fishing,Havsfiske,A
+4,0312,Sisävesikalastus,Inland fishing,Inlandsfiske,A
+5,03120,Sisävesikalastus,Inland fishing,Inlandsfiske,A
+3,032,Vesiviljely,Aquaculture,Vattenbruk,A
+4,0321,Kalanviljely meressä,Fish farming in the sea,Fiskodling i havet,A
+5,03210,Kalanviljely meressä,Fish farming in the sea,Fiskodling i havet,A
+4,0322,Kalanviljely sisävesissä,Fish farming in inland waters,Fiskodling i inre vatten,A
+5,03220,Kalanviljely sisävesissä,Fish farming in inland waters,Fiskodling i inre vatten,A
+3,033,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
+4,0330,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
+5,03300,Kalastusta ja vesiviljelyä palveleva toiminta,Activities serving fishing and aquaculture,Aktiviteter för fiske och vattenbruk,A
 1,B,Kaivostoiminta ja louhinta,Mining and quarrying,Gruvor och stenbrott,
-2,5,Kivihiilen ja ruskohiilen kaivu,Coal and lignite mining,Kol- och brunkolsbrytning,B
-3,51,Kivihiilen kaivu,Coal mining,Kolbrytning,B
-4,510,Kivihiilen kaivu,Coal mining,Kolbrytning,B
-5,5100,Kivihiilen kaivu,Coal mining,Kolbrytning,B
-3,52,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
-4,520,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
-5,5200,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
-2,6,Raakaöljyn ja maakaasun tuotanto,Crude oil and natural gas production,Råolja och naturgasproduktion,B
-3,61,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
-4,610,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
-5,6100,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
-3,62,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
-4,620,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
-5,6200,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
-2,7,Metallimalmien louhinta,Mining of metal ores,Brytning av metallmalmer,B
-3,71,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
-4,710,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
-5,7100,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
-3,72,Värimetallimalmien louhinta,Mining of non-ferrous metal ores,Brytning av icke-järnmetallmalmer,B
-4,721,Uraani- ja toriummalmien louhinta,Mining of uranium and thorium ores,Brytning av uran- och toriummalmer,B
-5,7210,Uraani- ja toriummalmien louhinta,Mining of uranium and thorium ores,Brytning av uran- och toriummalmer,B
-4,729,Muu värimetallimalmien louhinta,Other mining of non-ferrous metal ores,Annan brytning av icke-järnmetallmalmer,B
-5,7290,Muu värimetallimalmien louhinta,Other mining of non-ferrous metal ores,Annan brytning av icke-järnmetallmalmer,B
-2,8,Muu kaivostoiminta ja louhinta,Other mining and quarrying,Annan brytning och stenbrott,B
-3,81,"Kiven louhinta, hiekan ja saven otto","Stone quarrying, sand and clay extraction","Stenbrytning, sand- och lerutvinning",B
-4,811,"Koristekiven, kalkkikiven, kipsin, liuskekiven ja muun kiven louhinta","Mining of decorative stone, limestone, gypsum, slate and other stone","Brytning av dekorativ sten, kalksten, gips, skiffer och annan sten",B
-5,8110,"Koristekiven, kalkkikiven, kipsin, liuskekiven ja muun kiven louhinta","Mining of decorative stone, limestone, gypsum, slate and other stone","Brytning av dekorativ sten, kalksten, gips, skiffer och annan sten",B
-4,812,"Soran, hiekan, saven ja kaoliinin otto","Taking gravel, sand, clay and kaolin","Tar grus, sand, lera och kaolin",B
-5,8120,"Soran, hiekan, saven ja kaoliinin otto","Taking gravel, sand, clay and kaolin","Tar grus, sand, lera och kaolin",B
-3,89,Muualla luokittelematon kaivostoiminta ja louhinta,Mining and quarrying not elsewhere classified,Gruvor och stenbrytning som inte klassificerats någon annanstans,B
-4,891,Kemiallisten ja lannoitemineraalien louhinta,Mining of chemical and fertilizer minerals,Brytning av kemiska mineraler och gödselmineraler,B
-5,8910,Kemiallisten ja lannoitemineraalien louhinta,Mining of chemical and fertilizer minerals,Brytning av kemiska mineraler och gödselmineraler,B
-4,892,Turpeenotto,Peat extraction,Torvutvinning,B
-5,8920,Turpeenotto,Peat extraction,Torvutvinning,B
-4,893,Suolan tuotanto,Salt production,Saltproduktion,B
-5,8930,Suolan tuotanto,Salt production,Saltproduktion,B
-4,899,Muu muualla luokittelematon kaivostoiminta ja louhinta,Other mining and quarrying not elsewhere classified,Annan gruvdrift och stenbrytning ej klassificerad någon annanstans,B
-5,8990,Muu muualla luokittelematon kaivostoiminta ja louhinta,Other mining and quarrying not elsewhere classified,Annan gruvdrift och stenbrytning ej klassificerad någon annanstans,B
-2,9,Kaivostoimintaa palveleva toiminta,Operations serving mining,Verksamhet som betjänar gruvdrift,B
-3,91,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
-4,910,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
-5,9100,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
-3,99,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
-4,990,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
-5,9900,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
+2,05,Kivihiilen ja ruskohiilen kaivu,Coal and lignite mining,Kol- och brunkolsbrytning,B
+3,051,Kivihiilen kaivu,Coal mining,Kolbrytning,B
+4,0510,Kivihiilen kaivu,Coal mining,Kolbrytning,B
+5,05100,Kivihiilen kaivu,Coal mining,Kolbrytning,B
+3,052,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
+4,0520,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
+5,05200,Ruskohiilen kaivu,Lignite mining,Brunkolsbrytning,B
+2,06,Raakaöljyn ja maakaasun tuotanto,Crude oil and natural gas production,Råolja och naturgasproduktion,B
+3,061,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
+4,0610,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
+5,06100,Raakaöljyn tuotanto,Crude oil production,Råoljeproduktion,B
+3,062,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
+4,0620,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
+5,06200,Maakaasun tuotanto,Natural gas production,Naturgasproduktion,B
+2,07,Metallimalmien louhinta,Mining of metal ores,Brytning av metallmalmer,B
+3,071,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
+4,0710,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
+5,07100,Rautamalmien louhinta,Mining of iron ores,Brytning av järnmalm,B
+3,072,Värimetallimalmien louhinta,Mining of non-ferrous metal ores,Brytning av icke-järnmetallmalmer,B
+4,0721,Uraani- ja toriummalmien louhinta,Mining of uranium and thorium ores,Brytning av uran- och toriummalmer,B
+5,07210,Uraani- ja toriummalmien louhinta,Mining of uranium and thorium ores,Brytning av uran- och toriummalmer,B
+4,0729,Muu värimetallimalmien louhinta,Other mining of non-ferrous metal ores,Annan brytning av icke-järnmetallmalmer,B
+5,07290,Muu värimetallimalmien louhinta,Other mining of non-ferrous metal ores,Annan brytning av icke-järnmetallmalmer,B
+2,08,Muu kaivostoiminta ja louhinta,Other mining and quarrying,Annan brytning och stenbrott,B
+3,081,"Kiven louhinta, hiekan ja saven otto","Stone quarrying, sand and clay extraction","Stenbrytning, sand- och lerutvinning",B
+4,0811,"Koristekiven, kalkkikiven, kipsin, liuskekiven ja muun kiven louhinta","Mining of decorative stone, limestone, gypsum, slate and other stone","Brytning av dekorativ sten, kalksten, gips, skiffer och annan sten",B
+5,08110,"Koristekiven, kalkkikiven, kipsin, liuskekiven ja muun kiven louhinta","Mining of decorative stone, limestone, gypsum, slate and other stone","Brytning av dekorativ sten, kalksten, gips, skiffer och annan sten",B
+4,0812,"Soran, hiekan, saven ja kaoliinin otto","Taking gravel, sand, clay and kaolin","Tar grus, sand, lera och kaolin",B
+5,08120,"Soran, hiekan, saven ja kaoliinin otto","Taking gravel, sand, clay and kaolin","Tar grus, sand, lera och kaolin",B
+3,089,Muualla luokittelematon kaivostoiminta ja louhinta,Mining and quarrying not elsewhere classified,Gruvor och stenbrytning som inte klassificerats någon annanstans,B
+4,0891,Kemiallisten ja lannoitemineraalien louhinta,Mining of chemical and fertilizer minerals,Brytning av kemiska mineraler och gödselmineraler,B
+5,08910,Kemiallisten ja lannoitemineraalien louhinta,Mining of chemical and fertilizer minerals,Brytning av kemiska mineraler och gödselmineraler,B
+4,0892,Turpeenotto,Peat extraction,Torvutvinning,B
+5,08920,Turpeenotto,Peat extraction,Torvutvinning,B
+4,0893,Suolan tuotanto,Salt production,Saltproduktion,B
+5,08930,Suolan tuotanto,Salt production,Saltproduktion,B
+4,0899,Muu muualla luokittelematon kaivostoiminta ja louhinta,Other mining and quarrying not elsewhere classified,Annan gruvdrift och stenbrytning ej klassificerad någon annanstans,B
+5,08990,Muu muualla luokittelematon kaivostoiminta ja louhinta,Other mining and quarrying not elsewhere classified,Annan gruvdrift och stenbrytning ej klassificerad någon annanstans,B
+2,09,Kaivostoimintaa palveleva toiminta,Operations serving mining,Verksamhet som betjänar gruvdrift,B
+3,091,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
+4,0910,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
+5,09100,Raakaöljyn ja maakaasun tuotantoa palveleva toiminta,Operations serving the production of crude oil and natural gas,Verksamhet som betjänar produktion av råolja och naturgas,B
+3,099,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
+4,0990,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
+5,09900,Muu kaivostoimintaa ja louhintaa palveleva toiminta,Other operations serving mining and quarrying,Övrig verksamhet som betjänar gruvdrift och stenbrott,B
 1,C,Teollisuus,Industrial,Industriell,
 2,10,Elintarvikkeiden valmistus,Food manufacturing,Livsmedelstillverkning,C
 3,101,"Teurastus, lihan säilyvyyskäsittely ja lihatuotteiden valmistus","Slaughter, preservation treatment of meat and production of meat products","Slakt, konserveringsbehandling av kött och produktion av köttprodukter",C

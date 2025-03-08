@@ -11,7 +11,7 @@ Key Features:
 - Comprehensive logging and error handling for skipped or invalid records.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 
@@ -77,12 +77,13 @@ class MainBusinessLinesExtractor(BaseExtractor):
             )
 
             # Extract industry 2025 title
-            industry_title = self.get_industry_title(type_code)
+            industry_title, industry_letter = self.get_industry_title(type_code)
 
             results.append(
                 {
                     "business_id": business_id,
                     "industryCode": type_code,
+                    "industryLetter": industry_letter,
                     "industry": industry_title,
                     "industryDescription": mapped_name,
                     "registrationDate": self.parse_date(
@@ -98,7 +99,7 @@ class MainBusinessLinesExtractor(BaseExtractor):
 
         return results
 
-    def get_industry_title(self, type_code: str) -> str:
+    def get_industry_title(self, type_code: str) -> Tuple[str, str]:
         """Get the industry title based on the type code and language.
 
         Args:
@@ -108,6 +109,7 @@ class MainBusinessLinesExtractor(BaseExtractor):
             str: The industry title in the specified language.
         """
         industry_title = ""
+        industry_letter = ""
         lang_column = self.lang
 
         if type_code in self.industry_2025_mapping:
@@ -115,9 +117,10 @@ class MainBusinessLinesExtractor(BaseExtractor):
             for tol_code, data in self.industry_2025_mapping.items():
                 if tol_code == category:
                     industry_title = data[lang_column]
+                    industry_letter = category
                     break
 
-        return industry_title
+        return industry_title, industry_letter
 
     def extract(self, data: pd.DataFrame) -> pd.DataFrame:
         """Extract and process main business line data from raw input.
