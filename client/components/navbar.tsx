@@ -122,37 +122,6 @@ export default function Header() {
           <NavbarItem className="hidden lg:flex">
             <ThemeSwitch />
           </NavbarItem>
-
-          {/* Notifications */}
-          <NavbarItem className="flex">
-            <Popover offset={12} placement="bottom-end">
-              <PopoverTrigger>
-                <Button
-                  disableRipple
-                  isIconOnly
-                  className="overflow-visible"
-                  radius="full"
-                  variant="light"
-                >
-                  <Badge
-                    color="danger"
-                    content="5"
-                    showOutline={false}
-                    size="md"
-                  >
-                    <Icon
-                      className="text-default-500"
-                      icon="solar:bell-linear"
-                      width={22}
-                    />
-                  </Badge>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="max-w-[90vw] p-0 sm:max-w-[380px]">
-                <NotificationsCard className="w-full shadow-none" />
-              </PopoverContent>
-            </Popover>
-          </NavbarItem>
         </NavbarContent>
 
         <NavbarMenu>
