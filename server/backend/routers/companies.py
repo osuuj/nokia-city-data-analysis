@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from server.backend.database import get_db
@@ -24,3 +25,19 @@ def read_businesses_by_city(
         List[Dict[str, str]]: List of business data.
     """
     return get_business_data_by_city(db, city)
+
+@router.get("/cities", response_model=List[str])
+def get_cities(db: Session = Depends(get_db)) -> List[str]:
+    """Retrieve all cities.
+
+    Args:
+        db (Session): Database session.
+
+    Returns:
+        List[str]: List of cities.
+    """
+    query = text("SELECT DISTINCT city FROM addresses")
+    result = db.execute(query).scalars().all()
+    return result
+
+
