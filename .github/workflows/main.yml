@@ -51,11 +51,12 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
 
       - name: 📦 Install Node.js Dependencies
         run: |
+          cd client
           npm install
 
       - name: 🔍 Run Pre-commit on Changed Files (Client)
@@ -63,6 +64,7 @@ jobs:
           FILES=$(git diff --name-only origin/main | grep -E '^client/' || echo "")
           if [ -n "$FILES" ]; then
             echo "Running pre-commit on: $FILES"
+            cd client
             pre-commit run --files $FILES
           else
             echo "No Client files changed. Skipping pre-commit."
