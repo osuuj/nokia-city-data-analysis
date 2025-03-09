@@ -1,8 +1,9 @@
 ---
 title: "Report: {{period}}"
 tags: [report, macro]
-created: {{date:YYYY-MM-DD}}
+created: { { date:YYYY-MM-DD } }
 ---
+
 # {{period}} Report
 
 ## Summary

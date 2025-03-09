@@ -4,34 +4,28 @@
 
 # List of tests to skip
 skips:
-  - B608  # Skip hardcoded SQL expressions test
+  - B608 # Skip hardcoded SQL expressions test
 
 # List of directories to exclude from scanning
 exclude_dirs:
-  - etl/test/
-  - etl/data/
-  - .git/
-  - .venv/
-  - venv/
-  - __pycache__/
-  - build/
-  - dist/
+  - etl/data/ # Ignore data folder
+  - __pycache__/ # Ignore Python cache files
 
 # List of files to exclude from scanning
 exclude_files:
-  - setup.py
-  - manage.py
+  - setup.py # Exclude setup file if present
+  - manage.py # Exclude manage.py file if present
 
 # Output settings
 output:
   # Output format (json, txt, xml, yaml)
   format: txt
   # Output file (leave empty to print to stdout)
-  file: ''
+  file: ""
 
 # Logging settings
 logging:
   # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
   level: INFO
   # Log file (leave empty to print to stdout)
-  file: ''
+  file: ""

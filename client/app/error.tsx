@@ -1,29 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
-export default function Error({
-  error,
-  reset,
-}: {
+interface CustomErrorProps {
   error: Error;
   reset: () => void;
-}) {
+}
+
+export default function CustomError({ error, reset }: CustomErrorProps) {
   useEffect(() => {
     // Log the error to an error reporting service
-    /* eslint-disable no-console */
     console.error(error);
-  }, [error]);
+  }, [error]); // Added `error` to the dependency array
 
   return (
     <div>
       <h2>Something went wrong!</h2>
-      <button
-        onClick={
-          // Attempt to recover by trying to re-render the segment
-          () => reset()
-        }
-      >
+      <button type="button" onClick={() => reset()}>
         Try again
       </button>
     </div>

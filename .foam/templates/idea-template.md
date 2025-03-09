@@ -1,10 +1,11 @@
 ---
 title: "Idea: {{title}}"
 tags: [idea, brainstorming]
-created: {{date:YYYY-MM-DD}}
+created: { { date:YYYY-MM-DD } }
 status: "new"
 related: []
 ---
+
 # Idea: {{title}}
 
 ## Summary

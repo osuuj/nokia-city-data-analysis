@@ -1,11 +1,12 @@
 ---
 title: "Goal: {{title}}"
 tags: [goal, tracker]
-created: {{date:YYYY-MM-DD}}
-deadline: {{date:YYYY-MM-DD}}
+created: { { date:YYYY-MM-DD } }
+deadline: { { date:YYYY-MM-DD } }
 status: "in-progress"
 priority: "high"
 ---
+
 # Goal: {{title}}
 
 ## Summary

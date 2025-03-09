@@ -12,7 +12,7 @@ foam_template:
 - **Yesterday's Note**: [[docs/daily/$FOAM_DATE_YEAR-$FOAM_DATE_MONTH-$FOAM_DATE_DATE#Daily Summary]]
 
 ## 📌 Remember This
->
+
 > ⚠️ **Reminder**: [Write your critical focus for today.]
 
 ## 😊 Mood Tracker (Start of Day)
@@ -35,12 +35,12 @@ foam_template:
 
 ## 🕒 Schedule
 
-| Time       | Task               |
-|------------|--------------------|
-| 09:00-10:00| [Plan your first task.] |
-| 10:00-12:00| [Work on your top priority.] |
-| 13:00-15:00| [Afternoon tasks.] |
-| 15:00-17:00| [Wrap up and review.] |
+| Time        | Task                         |
+| ----------- | ---------------------------- |
+| 09:00-10:00 | [Plan your first task.]      |
+| 10:00-12:00 | [Work on your top priority.] |
+| 13:00-15:00 | [Afternoon tasks.]           |
+| 15:00-17:00 | [Wrap up and review.]        |
 
 ---
 
@@ -60,12 +60,12 @@ foam_template:
 
 ## 🕒 Tomorrow's Schedule
 
-| Time       | Task               |
-|------------|--------------------|
-| 09:00-10:00| [Plan your first task.] |
-| 10:00-12:00| [Work on your top priority.] |
-| 13:00-15:00| [Afternoon tasks.] |
-| 15:00-17:00| [Wrap up and review.] |
+| Time        | Task                         |
+| ----------- | ---------------------------- |
+| 09:00-10:00 | [Plan your first task.]      |
+| 10:00-12:00 | [Work on your top priority.] |
+| 13:00-15:00 | [Afternoon tasks.]           |
+| 15:00-17:00 | [Wrap up and review.]        |
 
 ## 🎯 Goals for Tomorrow
 

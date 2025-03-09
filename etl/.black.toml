@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 88
+target-version = ['py312']
+skip-string-normalization = false
+exclude = '''
+/(
+    __pycache__
+  | data
+)/
+'''

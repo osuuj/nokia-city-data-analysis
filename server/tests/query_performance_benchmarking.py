@@ -2,9 +2,8 @@ import logging
 import time
 
 import pandas as pd
-from sqlalchemy import create_engine, text
-
 from etl.config.config_loader import DATABASE_URL
+from sqlalchemy import create_engine, text
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
