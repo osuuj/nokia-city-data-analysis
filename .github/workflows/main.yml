@@ -55,15 +55,15 @@ jobs:
           cache: "npm"
 
       - name: 📦 Install Node.js Dependencies
-        working-directory: client # Ensure this points to the correct directory
         run: npm install
+        working-directory: client
 
       - name: 🔍 Run Pre-commit on Changed Files (Client)
         run: |
           FILES=$(git diff --name-only origin/main | grep -E '^client/' || echo "")
           if [ -n "$FILES" ]; then
             echo "Running pre-commit on: $FILES"
-            cd client  # Ensure this changes directory to 'client'
+            cd client
             pre-commit run --files $FILES
           else
             echo "No Client files changed. Skipping pre-commit."
