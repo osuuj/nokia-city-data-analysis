@@ -55,9 +55,8 @@ jobs:
           cache: "npm"
 
       - name: 📦 Install Node.js Dependencies
-        run: |
-          cd client
-          npm install
+        working-directory: client
+        run: npm install
 
       - name: 🔍 Run Pre-commit on Changed Files (Client)
         run: |
