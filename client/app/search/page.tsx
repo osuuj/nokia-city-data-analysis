@@ -1,8 +1,7 @@
-'use client';
-import { Form } from '@heroui/form';
-import { Input } from '@heroui/input';
-import { Pagination } from '@heroui/pagination';
-import { Spinner } from '@heroui/spinner';
+"use client";
+import { Pagination } from "@heroui/pagination";
+import { Spinner } from "@heroui/spinner";
+import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
 import {
   Table,
   TableBody,
@@ -11,14 +10,12 @@ import {
   TableHeader,
   TableRow,
   getKeyValue,
-} from '@heroui/table';
-import { useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
-import useSWR from 'swr';
+} from "@heroui/table";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import useSWR from "swr";
 
-import { SearchIcon } from '@/components/icons';
-
-const BASE_URL = 'http://localhost:8000/api/v1';
+const BASE_URL = "http://localhost:8000/api/v1";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -32,12 +29,15 @@ interface Business {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get('city');
+  const query = searchParams.get("city");
   const { data, isLoading } = useSWR<Business[]>(
     query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
-    fetcher,
+    fetcher
   );
+  const { data: cities } = useSWR<string[]>(`${BASE_URL}/cities`, fetcher);
   const [page, setPage] = useState(1);
+
+  const router = useRouter();
 
   const rowsPerPage = 25;
 
@@ -64,30 +64,23 @@ export default function SearchPage() {
     return data ? Math.ceil(uniqueData.length / rowsPerPage) : 0;
   }, [data, uniqueData.length]);
 
-  const searchInput = (
-    <Input
-      aria-label="Search"
-      name="city"
-      classNames={{
-        inputWrapper: 'bg-default-100',
-        input: 'text-sm',
-      }}
-      labelPlacement="outside"
-      placeholder="Search by city..."
-      startContent={
-        <SearchIcon className="pointer-events-none flex-shrink-0 text-base text-default-400" />
-      }
-      type="search"
-      autoCapitalize="on"
-      autoComplete="off"
-    />
-  );
-
   return (
     <>
-      <Form className="mb-4" action="/search">
-        {searchInput}
-      </Form>
+      <Autocomplete
+        className="max-w-xs mb-8"
+        defaultItems={(cities || []).map((city) => ({ name: city }))}
+        label="Search by city"
+        variant="underlined"
+        onSelectionChange={(selected) => {
+          if (selected) {
+            router.push(`/search?city=${selected}`);
+          }
+        }}
+      >
+        {(item) => (
+          <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>
+        )}
+      </Autocomplete>
       <Table
         aria-label="Example table with client async pagination"
         bottomContent={
@@ -108,7 +101,9 @@ export default function SearchPage() {
         <TableHeader>
           <TableColumn key="company_name">Name</TableColumn>
           <TableColumn key="business_id">Business ID</TableColumn>
-          <TableColumn key="industry_description">Industry Description</TableColumn>
+          <TableColumn key="industry_description">
+            Industry Description
+          </TableColumn>
           <TableColumn key="latitude_wgs84">Latitude</TableColumn>
           <TableColumn key="longitude_wgs84">Longitude</TableColumn>
         </TableHeader>
@@ -116,12 +111,14 @@ export default function SearchPage() {
           items={paginatedData}
           emptyContent="No results found"
           loadingContent={<Spinner />}
-          loadingState={isLoading ? 'loading' : 'idle'}
+          loadingState={isLoading ? "loading" : "idle"}
         >
           {(item) => (
             <TableRow key={item?.business_id}>
               {(columnKey) => (
-                <TableCell className={columnKey === 'business_id' ? 'text-nowrap' : ''}>
+                <TableCell
+                  className={columnKey === "business_id" ? "text-nowrap" : ""}
+                >
                   {getKeyValue(item, columnKey)}
                 </TableCell>
               )}
