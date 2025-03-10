@@ -15,7 +15,7 @@ import {
 import { Icon } from '@iconify/react';
 import React from 'react';
 
-import NotificationItem from './notification-item';
+import NotificationItem from './notifications/notification-item';
 
 type Notification = {
   id: string;

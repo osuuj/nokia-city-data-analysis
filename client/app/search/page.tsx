@@ -1,7 +1,7 @@
-"use client";
-import { Pagination } from "@heroui/pagination";
-import { Spinner } from "@heroui/spinner";
-import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
+'use client';
+import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import { Pagination } from '@heroui/pagination';
+import { Spinner } from '@heroui/spinner';
 import {
   Table,
   TableBody,
@@ -10,12 +10,12 @@ import {
   TableHeader,
   TableRow,
   getKeyValue,
-} from "@heroui/table";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import useSWR from "swr";
+} from '@heroui/table';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
+import useSWR from 'swr';
 
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -29,12 +29,12 @@ interface Business {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const query = searchParams.get("city");
+  const query = searchParams.get('city');
   const { data, isLoading } = useSWR<Business[]>(
-    query ? `${BASE_URL}/businesses_by_city?city=${query}` : null,
-    fetcher
+    query ? `${BASE_URL}/api/v1/businesses_by_city?city=${query}` : null,
+    fetcher,
   );
-  const { data: cities } = useSWR<string[]>(`${BASE_URL}/cities`, fetcher);
+  const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher);
   const [page, setPage] = useState(1);
 
   const router = useRouter();
@@ -77,9 +77,7 @@ export default function SearchPage() {
           }
         }}
       >
-        {(item) => (
-          <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>
-        )}
+        {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
       </Autocomplete>
       <Table
         aria-label="Example table with client async pagination"
@@ -101,9 +99,7 @@ export default function SearchPage() {
         <TableHeader>
           <TableColumn key="company_name">Name</TableColumn>
           <TableColumn key="business_id">Business ID</TableColumn>
-          <TableColumn key="industry_description">
-            Industry Description
-          </TableColumn>
+          <TableColumn key="industry_description">Industry Description</TableColumn>
           <TableColumn key="latitude_wgs84">Latitude</TableColumn>
           <TableColumn key="longitude_wgs84">Longitude</TableColumn>
         </TableHeader>
@@ -111,14 +107,12 @@ export default function SearchPage() {
           items={paginatedData}
           emptyContent="No results found"
           loadingContent={<Spinner />}
-          loadingState={isLoading ? "loading" : "idle"}
+          loadingState={isLoading ? 'loading' : 'idle'}
         >
           {(item) => (
             <TableRow key={item?.business_id}>
               {(columnKey) => (
-                <TableCell
-                  className={columnKey === "business_id" ? "text-nowrap" : ""}
-                >
+                <TableCell className={columnKey === 'business_id' ? 'text-nowrap' : ''}>
                   {getKeyValue(item, columnKey)}
                 </TableCell>
               )}

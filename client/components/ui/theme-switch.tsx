@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { useTheme } from 'next-themes';
 import { type FC, useEffect, useState } from 'react';
 
-import { MoonFilledIcon, SunFilledIcon } from '@/components/icons';
+import { MoonFilledIcon, SunFilledIcon } from '@/components/ui/icons';
 
 export interface ThemeSwitchProps {
   className?: string;
@@ -39,6 +39,8 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
       <VisuallyHidden>
         <input
           type="checkbox"
+          id="theme-switch"
+          name="theme-switch"
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         />
       </VisuallyHidden>

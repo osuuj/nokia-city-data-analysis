@@ -1,8 +1,8 @@
 import { Chip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
-import { type SidebarItem, SidebarItemType } from './sidebar';
-import TeamAvatar from './team-avatar';
+import TeamAvatar from '@/components/common/team-avatar';
+import { type SidebarItem, SidebarItemType } from '@/components/layout/sidebar';
 
 /**
  * Please check the https://heroui.com/docs/guide/routing to have a seamless router integration

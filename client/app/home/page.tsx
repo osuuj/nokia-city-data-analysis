@@ -4,10 +4,10 @@ import { Avatar, Button, ScrollShadow, Spacer, useDisclosure } from '@heroui/rea
 import { Icon } from '@iconify/react';
 
 import { AcmeIcon } from '@/components/acme';
+import Sidebar from '@/components/layout/sidebar';
+import SidebarDrawer from '@/components/layout/sidebar-drawer';
+import { sectionItemsWithTeams } from '@/components/layout/sidebar-items';
 import MapComponent from '@/components/map/map';
-import Sidebar from '@/components/sidebar';
-import SidebarDrawer from '@/components/sidebar-drawer';
-import { sectionItemsWithTeams } from '@/components/sidebar-items';
 
 /**
  * 💡 TIP: You can use the usePathname hook from Next.js App Router to get the current pathname

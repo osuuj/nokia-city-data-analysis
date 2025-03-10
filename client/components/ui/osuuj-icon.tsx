@@ -11,9 +11,10 @@ export default function Logo() {
   return (
     <Image
       src={logoSrc}
-      alt="Ouuj Logo"
+      alt="Logo"
       width={60}
       height={60}
+      style={{ width: '60px', height: '60px' }}
       priority // Ensures fast loading
     />
   );

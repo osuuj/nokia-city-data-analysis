@@ -4,7 +4,7 @@ import { Link, Spacer } from '@heroui/react';
 import type { IconProps } from '@iconify/react';
 import { Icon } from '@iconify/react';
 
-import Logo from '@/components/osuuj-icon';
+import Logo from '@/components/ui/osuuj-icon';
 
 type SocialIconProps = Omit<IconProps, 'icon'>;
 

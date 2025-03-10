@@ -1,6 +1,6 @@
 import type React from 'react';
 
-import type { IconSvgProps } from './types';
+import type { IconSvgProps } from './utils/types';
 
 export const AcmeIcon: React.FC<IconSvgProps> = ({ size = 32, width, height, ...props }) => (
   <svg
