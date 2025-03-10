@@ -97,6 +97,7 @@ entities:
       columns:
         business_id: "VARCHAR(20)"
         industry_code: "VARCHAR(50)"
+        industry_letter: "VARCHAR(1)"
         industry: "VARCHAR(255)"
         industry_description: "VARCHAR(255)"
         registration_date: "DATE"

@@ -53,6 +53,7 @@ class MainBusinessLineSchema(BaseModel):
     """Pydantic schema for Main Business Line entity."""
 
     industry_code: Optional[str]
+    industry_letter: Optional[str]
     industry: Optional[str]
     industry_description: Optional[str]
     registration_date: Optional[date]

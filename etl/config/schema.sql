@@ -45,6 +45,7 @@ CREATE TABLE industry_classifications (
     id SERIAL PRIMARY KEY,
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
     industry_code INT NOT NULL,
+    industry_letter TEXT NOT NULL,
     industry TEXT NULL,
     industry_description TEXT NOT NULL,
     registration_date DATE NOT NULL,
