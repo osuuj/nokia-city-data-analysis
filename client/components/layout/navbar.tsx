@@ -37,27 +37,26 @@ export default function Header() {
     <div className="w-full">
       <Navbar
         classNames={{
-          base: 'pt-2 lg:pt-4 lg:bg-transparent lg:backdrop-filter-none',
-          wrapper: 'px-4 sm:px-6',
+          base: 'pt-2 pb-2 lg:pt-4 lg:pb-4 lg:bg-transparent lg:backdrop-filter-none',
+          wrapper: 'px-4 sm:px-6 flex items-center justify-between',
           item: 'data-[active=true]:text-primary',
           menuItem: 'data-[active=true]:text-primary',
-          menu: 'mt-2',
+          menu: 'mt-2 transition-transform duration-300 ease-in-out',
         }}
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
         height="60px"
       >
-        <NavbarBrand>
+        {/* 🟢 Left Section: Logo & Mobile Menu (Balanced Width) */}
+        <NavbarBrand className="flex items-center flex-auto min-w-0 md:justify-start">
           <NavbarMenuToggle
-            className="mr-2 h-6 sm:hidden"
+            className="mr-2 h-6 md:hidden"
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           />
           <Logo />
         </NavbarBrand>
-        <NavbarContent
-          className="ml-4 hidden h-12 w-full max-w-fit gap-4 rounded-full bg-content2 px-4 dark:bg-content1 sm:flex"
-          justify="start"
-        >
+        {/* 🟠 Center Section: Navbar Items (Ensured Equal Spacing) */}
+        <NavbarContent className="hidden md:flex flex-1 justify-center gap-6 max-w-[500px] h-12 w-full rounded-full bg-content2 px-4 dark:bg-content1">
           {navbarItems.map((item) => (
             <NavbarItem key={item.href} isActive={pathname === item.href}>
               <Link className="flex gap-2 text-inherit" href={item.href}>
@@ -66,13 +65,10 @@ export default function Header() {
             </NavbarItem>
           ))}
         </NavbarContent>
-        {/* Right Menu */}
-        <NavbarContent
-          className="ml-auto flex h-12 max-w-fit items-center gap-0 rounded-full p-0 lg:bg-content2 lg:px-1 lg:dark:bg-content1"
-          justify="end"
-        >
+        {/* 🔵 Right Section: GitHub & Theme Switch (Balanced Width) */}
+        <NavbarContent className=" flex flex-1 justify-end items-center gap-0 min-w-[150px] h-12 max-w-fit rounded-full p-0 lg:bg-content2 lg:px-1 lg:dark:bg-content1">
           {/* Search */}
-          <NavbarItem className="mr-2 hidden lg:flex">
+          <NavbarItem className="hidden lg:flex">
             <Input
               aria-label="Search"
               id="search-input"
@@ -104,12 +100,12 @@ export default function Header() {
             </Button>
           </NavbarItem>
           {/* Theme change */}
-          <NavbarItem className="hidden lg:flex">
+          <NavbarItem className="lg:flex">
             <ThemeSwitch aria-label="Toggle theme" />
           </NavbarItem>
         </NavbarContent>
-
-        <NavbarMenu>
+        {/* 🔴 Mobile Navigation Menu */}
+        <NavbarMenu className="transition-transform duration-300 ease-in-out">
           {navbarItems.map((item) => (
             <NavbarMenuItem key={item.href} isActive={pathname === item.href}>
               <Link className="text-inherit" href={item.href} onPress={() => setIsMenuOpen(false)}>
