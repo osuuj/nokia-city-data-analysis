@@ -1,8 +1,8 @@
 'use client';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'; // Import Mapbox styles
+import Marker from '@/components/map/marker';
 import { useEffect, useRef } from 'react';
-import Marker from './Marker';
 
 // Define the Location interface
 interface Location {

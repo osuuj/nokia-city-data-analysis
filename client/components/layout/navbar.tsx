@@ -12,6 +12,7 @@ import {
   NavbarMenuToggle,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 

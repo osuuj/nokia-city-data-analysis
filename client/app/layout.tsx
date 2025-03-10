@@ -3,12 +3,10 @@ import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
 
-import { Providers } from './providers';
-
-import Footer from '@/components/layout/footer';
-import Header from '@/components/layout/navbar';
+import ConditionalLayout from '@/components/conditional-layout'; // ✅ Import the new component
 import { fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: {
@@ -31,11 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head />
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </div>
+          <ConditionalLayout>
+            {' '}
+            {/* ✅ This component handles Header/Footer visibility */}
+            {children}
+          </ConditionalLayout>
         </Providers>
       </body>
     </html>
