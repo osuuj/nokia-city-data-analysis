@@ -6,7 +6,7 @@ import type React from 'react';
 import { Providers } from './providers';
 
 import Footer from '@/components/layout/footer';
-import Header from '@/components/navbar';
+import Header from '@/components/layout/navbar';
 import { fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
 
