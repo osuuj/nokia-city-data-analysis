@@ -2,8 +2,7 @@
 
 import { Providers } from '@/app/providers';
 import Sidebar from '@/components/layout/sidebar';
-import SidebarDrawer from '@/components/layout/sidebar-drawer';
-import { sectionItemsWithTeams } from '@/components/layout/sidebar-items';
+import { sectionItemsWithTabs } from '@/components/layout/sidebar-items';
 import Logo from '@/components/ui/osuuj-icon';
 import { ThemeSwitch } from '@/components/ui/theme-switch';
 import { Button, ScrollShadow, Spacer, useDisclosure } from '@heroui/react';
@@ -15,7 +14,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const currentPath = pathname.split('/')?.[1] || 'home';
 
-  const content = (
+  const sidebarContent = (
     <div className="relative flex h-full w-72 flex-1 flex-col p-6">
       <div className="flex items-center gap-2 px-2">
         <div className="flex h-15 w-15 items-center justify-center">
@@ -27,7 +26,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
         <Sidebar
           defaultSelectedKey="home"
           selectedKeys={[currentPath]}
-          items={sectionItemsWithTeams}
+          items={sectionItemsWithTabs}
         />
       </ScrollShadow>
 
@@ -50,10 +49,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   return (
     <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
       <div className="flex h-dvh w-full">
-        <SidebarDrawer isOpen={isOpen} onOpenChange={onOpenChange}>
-          {content}
-        </SidebarDrawer>
-        <div className="w-full flex-1 flex-col p-4">
+        <div className="hidden sm:block w-72">{sidebarContent}</div>
+        <div className="flex flex-1 flex-col p-4">
           <header className="flex h-16 items-center gap-2 rounded-medium border-small border-divider px-4">
             <Button
               isIconOnly
@@ -72,6 +69,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
             <ThemeSwitch className="fixed right-4 z-50 p-2 shadow-lg" />
             <h2 className="text-medium font-medium text-default-700">Overview</h2>
           </header>
+
+          {/* Forward the child content (which is the `page.tsx` content) */}
           <main className="mt-4 h-full w-full overflow-hidden">{children}</main>
         </div>
       </div>

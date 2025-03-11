@@ -1,10 +1,30 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
 export default function AboutPage() {
+  const router = useRouter();
+  const { pathname } = router;
+
   return (
-    <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
-      <div className="inline-block max-w-xl justify-center text-center">
-        <span className="text-4xl font-bold">Not&nbsp;</span>
-        <span className="text-4xl font-bold text-red-500">Started&nbsp;</span>
+    <div className="flex flex-col h-full w-full p-6 rounded-medium border-small border-divider">
+      <h1 className="text-2xl font-bold mb-4">About Us</h1>
+      <div className="flex space-x-4 mb-4">
+        <Link
+          href="/about/juuso"
+          className={`px-4 py-2 rounded ${pathname === '/about/juuso' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+        >
+          Juuso
+        </Link>
+        <Link
+          href="/about/kassu"
+          className={`px-4 py-2 rounded ${pathname === '/about/kassu' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+        >
+          Kassu
+        </Link>
       </div>
+      <div className="flex-1">{/* This is where the child pages will be rendered */}</div>
     </div>
   );
 }
