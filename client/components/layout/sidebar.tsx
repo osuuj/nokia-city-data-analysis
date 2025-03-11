@@ -1,19 +1,24 @@
 'use client';
 
+import type { Filter } from '@/components/filters/filters-types';
+import FiltersWrapper from '@/components/filters/filters-wrapper';
 import {
   Accordion,
   AccordionItem,
+  Button,
+  Divider,
   Listbox,
   ListboxItem,
   type ListboxProps,
   ListboxSection,
   type ListboxSectionProps,
+  ScrollShadow,
   type Selection,
   Tooltip,
   cn,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export enum SidebarItemType {
   Nest = 'nest',
@@ -33,6 +38,7 @@ export type SidebarItem = {
 
 export type SidebarProps = Omit<ListboxProps<SidebarItem>, 'children'> & {
   items: SidebarItem[];
+  filters: Filter[];
   isCompact?: boolean;
   hideEndContent?: boolean;
   iconClassName?: string;
@@ -46,6 +52,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
   (
     {
       items,
+      filters,
       isCompact,
       defaultSelectedKey,
       onSelect,
@@ -59,7 +66,19 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
     },
     ref,
   ) => {
-    const [selected, setSelected] = React.useState<React.Key>(defaultSelectedKey);
+    const [selected, setSelected] = useState<React.Key>(defaultSelectedKey);
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      setIsClient(true);
+      console.log('Sidebar items:', items);
+      console.log('Filters received in Sidebar:', filters);
+    }, [filters, items]);
+
+    const toggleFilters = () => {
+      setIsFiltersOpen((prev) => !prev);
+    };
 
     const sectionClasses = {
       ...sectionClassesProp,
@@ -251,57 +270,80 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
     );
 
     return (
-      <Listbox
-        key={isCompact ? 'compact' : 'default'}
-        ref={ref}
-        hideSelectedIcon
-        as="nav"
-        className={cn('list-none', className)}
-        classNames={{
-          ...classNames,
-          list: cn('items-center', classNames?.list),
-        }}
-        color="default"
-        itemClasses={{
-          ...itemClasses,
-          base: cn(
-            'px-3 min-h-11 rounded-large h-[44px] data-[selected=true]:bg-default-100',
-            itemClasses?.base,
-          ),
-          title: cn(
-            'text-small font-medium text-default-500 group-data-[selected=true]:text-foreground',
-            itemClasses?.title,
-          ),
-        }}
-        items={items}
-        selectedKeys={[selected] as unknown as Selection}
-        selectionMode="single"
-        variant="flat"
-        onSelectionChange={(keys) => {
-          const key = Array.from(keys)[0];
+      <div className="flex flex-col w-full h-full">
+        <ScrollShadow className="h-full max-h-full py-2">
+          <Listbox
+            key={isCompact ? 'compact' : 'default'}
+            ref={ref}
+            hideSelectedIcon
+            as="nav"
+            aria-label="Main navigation"
+            className={cn('list-none', className)}
+            classNames={{
+              ...classNames,
+              list: cn('items-center', classNames?.list),
+            }}
+            color="default"
+            itemClasses={{
+              ...itemClasses,
+              base: cn(
+                'px-3 min-h-11 rounded-large h-[44px] data-[selected=true]:bg-default-100',
+                itemClasses?.base,
+              ),
+              title: cn(
+                'text-small font-medium text-default-500 group-data-[selected=true]:text-foreground',
+                itemClasses?.title,
+              ),
+            }}
+            items={items}
+            selectedKeys={[selected] as unknown as Selection}
+            selectionMode="single"
+            variant="flat"
+            onSelectionChange={(keys) => {
+              const key = Array.from(keys)[0];
 
-          setSelected(key as React.Key);
-          onSelect?.(key as string);
-        }}
-        {...props}
-      >
-        {(item) => {
-          return item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest ? (
-            renderNestItem(item)
-          ) : item.items && item.items?.length > 0 ? (
-            <ListboxSection
-              key={item.key}
-              classNames={sectionClasses}
-              showDivider={isCompact}
-              title={item.title}
-            >
-              {item.items.map(renderItem)}
-            </ListboxSection>
-          ) : (
-            renderItem(item)
-          );
-        }}
-      </Listbox>
+              setSelected(key as React.Key);
+              onSelect?.(key as string);
+            }}
+            {...props}
+          >
+            {(item) => {
+              return item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest ? (
+                renderNestItem(item)
+              ) : item.items && item.items?.length > 0 ? (
+                <ListboxSection
+                  key={item.key}
+                  classNames={sectionClasses}
+                  showDivider={isCompact}
+                  title={item.title}
+                >
+                  {item.items.map(renderItem)}
+                </ListboxSection>
+              ) : (
+                renderItem(item)
+              );
+            }}
+          </Listbox>
+        </ScrollShadow>
+
+        <Divider className="my-2" />
+
+        <nav className="flex flex-col w-72 h-full bg-content1 shadow-md p-4">
+          <Button
+            onPress={toggleFilters}
+            className="w-full p-2 bg-gray-200 hover:bg-gray-300 rounded-md"
+          >
+            {isFiltersOpen ? 'Hide Filters' : 'Show Filters'}
+          </Button>
+
+          {isFiltersOpen && (
+            <div className="border border-default-200 rounded-md bg-white p-4 h-[400px] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Filters</h3>
+              <FiltersWrapper items={filters} />
+            </div>
+          )}
+        </nav>
+      </div>
     );
   },
 );
