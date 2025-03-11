@@ -1,5 +1,3 @@
-'use client';
-
 export default function KassuPage() {
   return (
     <div className="flex flex-col h-full w-full p-6 rounded-medium border-small border-divider">

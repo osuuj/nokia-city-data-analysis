@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation'; // ✅ Correct way to get pathname in App Router
 
 export default function AboutPage() {
-  const router = useRouter();
-  const { pathname } = router;
+  const pathname = usePathname(); // ✅ Works in App Router
 
   return (
     <div className="flex flex-col h-full w-full p-6 rounded-medium border-small border-divider">

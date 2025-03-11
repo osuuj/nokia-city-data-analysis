@@ -15,8 +15,8 @@ const config = {
       },
     },
   },
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]'], // ✅ Support both class and data-theme for dark mode
   plugins: [heroui()],
 };
 
-export default config; // ✅ Use ES module export
+export default config;
