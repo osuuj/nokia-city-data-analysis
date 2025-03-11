@@ -18,6 +18,7 @@ export type RangeFilter = {
 };
 
 export type Filter = {
+  key: string;
   type: FilterTypeEnum;
   title: string;
   description?: string;

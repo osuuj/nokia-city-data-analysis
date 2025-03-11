@@ -77,5 +77,3 @@ export const sectionItems: SidebarItem[] = [
     ],
   },
 ];
-
-export const sectionItemsWithTabs: SidebarItem[] = [...sectionItems];
