@@ -35,7 +35,7 @@ export default function HomePage() {
   const [selectedTab, setSelectedTab] = useState('map');
 
   return (
-    <div className="flex flex-col h-full w-full p-6 rounded-medium border-small border-divider">
+    <div className="flex-1 flex-col h-full w-full p-6 rounded-medium border-small border-divider">
       {/* ✅ Tabs Navigation */}
       <Tabs
         selectedKey={selectedTab}

@@ -328,7 +328,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
 
         <Divider className="my-2" />
 
-        <nav className="flex flex-col w-72 h-full bg-content1 shadow-md p-4">
+        <nav className="flex flex-col w-72 h-full shadow-md p-4">
           <Button
             onPress={toggleFilters}
             className="w-full p-2 bg-gray-200 hover:bg-gray-300 rounded-md"
@@ -336,12 +336,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
             {isFiltersOpen ? 'Hide Filters' : 'Show Filters'}
           </Button>
 
-          {isFiltersOpen && (
-            <div className="border border-default-200 rounded-md bg-white p-4 h-[400px] overflow-y-auto">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Filters</h3>
-              <FiltersWrapper items={filters} />
-            </div>
-          )}
+          {isFiltersOpen && <FiltersWrapper items={filters} />}
         </nav>
       </div>
     );

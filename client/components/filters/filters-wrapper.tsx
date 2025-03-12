@@ -14,7 +14,6 @@ import {
   CheckboxGroup,
   Divider,
   RadioGroup,
-  ScrollShadow,
   Switch,
   Tab,
   Tabs,
@@ -106,10 +105,7 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
     return (
       <div
         ref={ref}
-        className={cn(
-          'h-full max-h-80 w-full max-w-sm overflow-y-auto rounded-medium bg-content1 p-6',
-          className,
-        )}
+        className={cn('h-full max-h-80 w-full max-w-sm rounded-medium bg-content1 p-6', className)}
       >
         {showTitle && (
           <>
@@ -121,26 +117,21 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
         {items.length === 0 ? (
           <p className="text-center text-small text-default-500">Loading filters...</p>
         ) : (
-          <ScrollShadow
-            className={cn('-mx-6 h-full px-6', scrollShadowClassName)}
-            style={{ maxHeight: showActions ? 'calc(100% - 220px)' : '100%' }}
-          >
-            <div className="flex flex-col gap-6">
-              {items.map((filter) => (
-                <div key={filter.title} className="flex flex-col gap-3">
-                  {filter.type !== FilterTypeEnum.CheckboxGroup ? (
-                    <div>
-                      <h3 className="text-medium font-medium leading-8 text-default-600">
-                        {filter.title}
-                      </h3>
-                      <p className="text-small text-default-400">{filter.description}</p>
-                    </div>
-                  ) : null}
-                  {renderFilter(filter)}
-                </div>
-              ))}
-            </div>
-          </ScrollShadow>
+          <div className="flex flex-col gap-6">
+            {items.map((filter) => (
+              <div key={filter.title} className="flex flex-col gap-3">
+                {filter.type !== FilterTypeEnum.CheckboxGroup ? (
+                  <div>
+                    <h3 className="text-medium font-medium leading-8 text-default-600">
+                      {filter.title}
+                    </h3>
+                    <p className="text-small text-default-400">{filter.description}</p>
+                  </div>
+                ) : null}
+                {renderFilter(filter)}
+              </div>
+            ))}
+          </div>
         )}
 
         {showActions && (
