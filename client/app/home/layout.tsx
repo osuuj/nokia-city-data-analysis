@@ -1,5 +1,4 @@
 'use client';
-
 import { Providers } from '@/app/providers';
 import { filters } from '@/components/filters/filters-data';
 import Sidebar from '@/components/layout/sidebar';
@@ -7,7 +6,7 @@ import SidebarDrawer from '@/components/layout/sidebar-drawer';
 import { sectionItems } from '@/components/layout/sidebar-items';
 import Logo from '@/components/ui/osuuj-icon';
 import { ThemeSwitch } from '@/components/ui/theme-switch';
-import { Button, ScrollShadow, Spacer, useDisclosure } from '@heroui/react';
+import { Button, Divider, ScrollShadow, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { usePathname } from 'next/navigation';
 
@@ -17,14 +16,14 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const currentPath = pathname.split('/')?.[1] || 'home';
 
   const content = (
-    <div className="relative flex h-full w-72 flex-1 flex-col p-6">
+    <div className="relative flex h-full w-72 flex-1 flex-col p-4">
       <div className="flex items-center gap-2 px-2">
         <div className="flex h-15 w-15 items-center justify-center">
           <Logo />
         </div>
       </div>
 
-      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
+      <ScrollShadow className=" h-full max-h-full py-4 pr-6">
         <Sidebar
           defaultSelectedKey="home"
           selectedKeys={[currentPath]}
@@ -33,8 +32,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
         />
       </ScrollShadow>
 
-      <Spacer y={4} />
       <div className="mt-auto flex flex-col">
+        <Divider className="my-2" />
         <Button
           fullWidth
           className="justify-start text-default-500 data-[hover=true]:text-foreground"

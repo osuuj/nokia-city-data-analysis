@@ -12,7 +12,6 @@ import {
   type ListboxProps,
   ListboxSection,
   type ListboxSectionProps,
-  ScrollShadow,
   type Selection,
   Tooltip,
   cn,
@@ -271,67 +270,67 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
 
     return (
       <div className="flex flex-col w-full h-full">
-        <ScrollShadow className="h-full max-h-full py-2">
-          <Listbox
-            key={isCompact ? 'compact' : 'default'}
-            ref={ref}
-            hideSelectedIcon
-            as="nav"
-            aria-label="Main navigation"
-            className={cn('list-none', className)}
-            classNames={{
-              ...classNames,
-              list: cn('items-center', classNames?.list),
-            }}
-            color="default"
-            itemClasses={{
-              ...itemClasses,
-              base: cn(
-                'px-3 min-h-11 rounded-large h-[44px] data-[selected=true]:bg-default-100',
-                itemClasses?.base,
-              ),
-              title: cn(
-                'text-small font-medium text-default-500 group-data-[selected=true]:text-foreground',
-                itemClasses?.title,
-              ),
-            }}
-            items={items}
-            selectedKeys={[selected] as unknown as Selection}
-            selectionMode="single"
-            variant="flat"
-            onSelectionChange={(keys) => {
-              const key = Array.from(keys)[0];
+        <Listbox
+          key={isCompact ? 'compact' : 'default'}
+          ref={ref}
+          hideSelectedIcon
+          as="nav"
+          aria-label="Main navigation"
+          className={cn('list-none', className)}
+          classNames={{
+            ...classNames,
+            list: cn('items-center', classNames?.list),
+          }}
+          color="default"
+          itemClasses={{
+            ...itemClasses,
+            base: cn(
+              'px-3 min-h-11 rounded-large h-[44px] data-[selected=true]:bg-default-100',
+              itemClasses?.base,
+            ),
+            title: cn(
+              'text-small font-medium text-default-500 group-data-[selected=true]:text-foreground',
+              itemClasses?.title,
+            ),
+          }}
+          items={items}
+          selectedKeys={[selected] as unknown as Selection}
+          selectionMode="single"
+          variant="flat"
+          onSelectionChange={(keys) => {
+            const key = Array.from(keys)[0];
 
-              setSelected(key as React.Key);
-              onSelect?.(key as string);
-            }}
-            {...props}
-          >
-            {(item) => {
-              return item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest ? (
-                renderNestItem(item)
-              ) : item.items && item.items?.length > 0 ? (
-                <ListboxSection
-                  key={item.key}
-                  classNames={sectionClasses}
-                  showDivider={isCompact}
-                  title={item.title}
-                >
-                  {item.items.map(renderItem)}
-                </ListboxSection>
-              ) : (
-                renderItem(item)
-              );
-            }}
-          </Listbox>
-        </ScrollShadow>
+            setSelected(key as React.Key);
+            onSelect?.(key as string);
+          }}
+          {...props}
+        >
+          {(item) => {
+            return item.items && item.items?.length > 0 && item?.type === SidebarItemType.Nest ? (
+              renderNestItem(item)
+            ) : item.items && item.items?.length > 0 ? (
+              <ListboxSection
+                key={item.key}
+                classNames={sectionClasses}
+                showDivider={isCompact}
+                title={item.title}
+              >
+                {item.items.map(renderItem)}
+              </ListboxSection>
+            ) : (
+              renderItem(item)
+            );
+          }}
+        </Listbox>
 
         <Divider className="my-2" />
 
-        <nav className="flex flex-col w-72 h-full shadow-md p-4">
+        <nav className="flex flex-col h-full p-1 ">
           <Button
+            color="primary"
             onPress={toggleFilters}
-            className="w-full p-2 bg-gray-200 hover:bg-gray-300 rounded-md"
+            className="min-h-11 rounded-large "
+            startContent={<Icon icon="solar:tuning-square-bold" width={24} />}
           >
             {isFiltersOpen ? 'Hide Filters' : 'Show Filters'}
           </Button>

@@ -3,8 +3,8 @@ import { FilterTypeEnum } from '@/components/filters/filters-types';
 
 export const filters: Filter[] = [
   {
-    key: 'category',
-    title: 'Category',
+    key: 'industry',
+    title: 'Industry',
     type: FilterTypeEnum.CheckboxGroup, // ✅ Use Enum instead of string
     options: [
       { value: 'tech', title: 'Tech' },
@@ -13,14 +13,14 @@ export const filters: Filter[] = [
     ],
   },
   {
-    key: 'price',
-    title: 'Price Range',
+    key: 'distance',
+    title: 'Maximum distance',
     type: FilterTypeEnum.PriceRange, // ✅ Use Enum instead of string
     range: {
       min: 0,
-      max: 1000,
-      step: 10,
-      defaultValue: [100, 900],
+      max: 150,
+      step: 5,
+      defaultValue: [0, 900],
     },
   },
   {

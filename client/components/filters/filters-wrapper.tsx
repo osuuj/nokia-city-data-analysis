@@ -36,7 +36,7 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
     {
       items,
       title = 'Filters',
-      showTitle = true,
+      showTitle = false,
       showActions = true,
       className,
       scrollShadowClassName,
@@ -105,7 +105,7 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
     return (
       <div
         ref={ref}
-        className={cn('h-full max-h-80 w-full max-w-sm rounded-medium bg-content1 p-6', className)}
+        className={cn('h-full max-h-80 w-full max-w-sm rounded-medium p-1', className)}
       >
         {showTitle && (
           <>
@@ -122,10 +122,10 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
               <div key={filter.title} className="flex flex-col gap-3">
                 {filter.type !== FilterTypeEnum.CheckboxGroup ? (
                   <div>
-                    <h3 className="text-medium font-medium leading-8 text-default-600">
+                    <h3 className="text-small font-medium leading-8 text-default-500">
                       {filter.title}
                     </h3>
-                    <p className="text-small text-default-400">{filter.description}</p>
+                    <p className="text-small text-default-500">{filter.description}</p>
                   </div>
                 ) : null}
                 {renderFilter(filter)}
@@ -136,8 +136,8 @@ const FiltersWrapper = React.forwardRef<HTMLDivElement, FiltersWrapperProps>(
 
         {showActions && (
           <>
-            <Divider className="my-6 bg-default-100" />
-            <div className="mt-auto flex flex-col gap-2">
+            <Divider className="my-6 bg-default-100 " />
+            <div className="mt-auto flex flex-col gap-3 pb-8">
               <Button
                 color="primary"
                 startContent={
