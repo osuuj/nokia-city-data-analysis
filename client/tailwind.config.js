@@ -15,6 +15,7 @@ const config = {
       },
     },
   },
+
   darkMode: ['class', '[data-theme="dark"]'], // ✅ Support both class and data-theme for dark mode
   plugins: [heroui()],
 };

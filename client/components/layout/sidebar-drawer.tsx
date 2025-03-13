@@ -17,7 +17,7 @@ const SidebarDrawer = React.forwardRef<
       className,
       onOpenChange,
       isOpen,
-      sidebarWidth = 290,
+      sidebarWidth = 320,
       classNames = {},
       sidebarPlacement = 'left',
       motionProps: drawerMotionProps,
@@ -86,6 +86,7 @@ const SidebarDrawer = React.forwardRef<
           style={{
             // @ts-ignore
             '--sidebar-width': `${sidebarWidth}px`,
+            width: `${sidebarWidth}px`, // Ensure it doesn't expand
           }}
           onOpenChange={onOpenChange}
         >

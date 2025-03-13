@@ -51,20 +51,22 @@ export default function HomePage() {
             </CardBody>
           </Card>
         </Tab>
-        <Tab key="table" title="Table">
-          <Card>
-            <CardBody>
-              <div className="relative flex-1 w-full h-[500px]">
-                <TableComponent />
-              </div>
-            </CardBody>
-          </Card>
-        </Tab>
+
         <Tab key="analytics" title="Analytics">
           <Card>
             <CardBody>
               <div className="relative flex-1 w-full h-[500px]">
                 <AnalyticsComponent />
+              </div>
+            </CardBody>
+          </Card>
+        </Tab>
+
+        <Tab key="table" title="Table">
+          <Card>
+            <CardBody>
+              <div className="relative flex-1 w-full h-[500px]">
+                <TableComponent />
               </div>
             </CardBody>
           </Card>

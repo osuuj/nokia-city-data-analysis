@@ -325,11 +325,11 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
 
         <Divider className="my-2" />
 
-        <nav className="flex flex-col h-full p-1 ">
+        <nav className="flex flex-col h-full p-1">
           <Button
             color="primary"
             onPress={toggleFilters}
-            className="min-h-11 rounded-large "
+            className="min-h-11 rounded-large justify-start "
             startContent={<Icon icon="solar:tuning-square-bold" width={24} />}
           >
             {isFiltersOpen ? 'Hide Filters' : 'Show Filters'}

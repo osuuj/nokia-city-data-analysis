@@ -16,7 +16,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const currentPath = pathname.split('/')?.[1] || 'home';
 
   const content = (
-    <div className="relative flex h-full w-72 flex-1 flex-col p-4">
+    <div className="relative flex h-full w-80 flex-1 flex-col p-4">
       <div className="flex items-center gap-2 px-2">
         <div className="flex h-15 w-15 items-center justify-center">
           <Logo />
