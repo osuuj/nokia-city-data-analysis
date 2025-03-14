@@ -35,27 +35,27 @@ services:
       CHUNK_SIZE: ${CHUNK_SIZE}
       API_URL: ${API_URL}
 
-  client:
-    build:
-      context: ./client
-    container_name: react
-    depends_on:
-      - db
-      - server
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-      - next_cache:/app/.next
-    ports:
-      - '3000:3000'
-    env_file:
-      - .env
-    environment:
-      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-      VITE_PORT: "3001"
-      VITE_API_PATH: "/api/v1"
-      ENV: ${ENV}
-
+#  client:
+#    build:
+#      context: ./client
+#    container_name: react
+#    depends_on:
+#      - db
+#      - server
+#    volumes:
+#      - ./client:/app
+#      - /app/node_modules
+#      - next_cache:/app/.next
+#    ports:
+#      - '3000:3000'
+#    env_file:
+#      - .env
+#    environment:
+#      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+#      VITE_PORT: "3001"
+#      VITE_API_PATH: "/api/v1"
+#      ENV: ${ENV}
+#
 volumes:
   postgres_data:
   next_cache:
