@@ -1,8 +1,10 @@
 'use client';
-
+console.log('✅ HomePage Component Mounted');
+import { useSearch } from '@/components/hooks/search-data';
 import { Card, CardBody, Tab, Tabs } from '@heroui/react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 // ✅ Dynamically Import Components
 const MapComponent = dynamic(() => import('@/components/map/map'), {
@@ -18,35 +20,51 @@ const AnalyticsComponent = dynamic(() => import('@/components/analytics/analytic
   loading: () => <p>Loading Analytics...</p>,
 });
 
-interface Location {
-  name: string;
-  coordinates: [number, number];
-  industry: string;
-}
-
-// ✅ Dummy Locations for Map
-const locations: Location[] = [
-  { name: 'Location 1', coordinates: [-74.5, 40], industry: 'Tech' },
-  { name: 'Location 2', coordinates: [-74.6, 40.2], industry: 'Finance' },
-  { name: 'Location 3', coordinates: [-74.7, 40.4], industry: 'Healthcare' },
-];
-
 export default function HomePage() {
   const [selectedTab, setSelectedTab] = useState('map');
+  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const city = searchParams.get('city') || undefined; // ✅ Extract city from URL and handle `null`
+
+  // ✅ Fetch businesses for the selected city
+  const { paginatedData, isLoading: searchLoading, pages, page, setPage } = useSearch(city);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setSelectedTab(tab);
+    }
+    setIsLoading(false);
+  }, [searchParams]);
+  console.log('Table Data:', paginatedData);
+  if (isLoading || searchLoading) {
+    return <p>Loading...</p>;
+  }
 
   return (
-    <div className="flex-1 flex-col h-full w-full p-6 rounded-medium border-small border-divider">
+    <div className="relative flex flex-col p-4 rounded-medium border-small border-divider">
       {/* ✅ Tabs Navigation */}
       <Tabs
         selectedKey={selectedTab}
-        onSelectionChange={(key) => setSelectedTab(String(key))}
+        onSelectionChange={(key) => {
+          setSelectedTab(String(key));
+          router.push(`?tab=${key}`);
+        }}
         aria-label="Data Views"
       >
         <Tab key="map" title="Map">
           <Card>
             <CardBody>
-              <div className="relative w-full h-[500px]">
-                <MapComponent locations={locations} />
+              <div className="relative w-full h-[710px]">
+                <MapComponent
+                  locations={paginatedData.map((business) => ({
+                    name: business.company_name, // ✅ Map `company_name` to `name`
+                    coordinates: [business.latitude_wgs84, business.longitude_wgs84], // ✅ Create coordinate array
+                    industry: business.industry_description || 'Unknown', // ✅ Use industry description or default
+                  }))}
+                />
               </div>
             </CardBody>
           </Card>
@@ -55,7 +73,7 @@ export default function HomePage() {
         <Tab key="analytics" title="Analytics">
           <Card>
             <CardBody>
-              <div className="relative flex-1 w-full h-[500px]">
+              <div className="relative w-full h-[710px]">
                 <AnalyticsComponent />
               </div>
             </CardBody>
@@ -65,8 +83,28 @@ export default function HomePage() {
         <Tab key="table" title="Table">
           <Card>
             <CardBody>
-              <div className="relative flex-1 w-full h-[500px]">
-                <TableComponent />
+              <div className="relative w-full h-[710px] max-w-4xl mx-auto overflow-hidden">
+                <TableComponent
+                  data={paginatedData.map((business) => ({
+                    id: Number(business.business_id),
+                    workerID: 0,
+                    externalWorkerID: '',
+                    memberInfo: {
+                      name: business.company_name,
+                      email: '',
+                      avatar: '',
+                    },
+                    country: { name: '', icon: null },
+                    role: business.industry_description || 'Unknown',
+                    workerType: 'Employee',
+                    status: 'Active',
+                    startDate: new Date(),
+                    teams: [],
+                  }))}
+                  pages={pages}
+                  page={page}
+                  setPage={setPage}
+                />
               </div>
             </CardBody>
           </Card>

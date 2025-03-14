@@ -1,6 +1,9 @@
+# Use an official Node.js runtime as a parent image
 FROM node:20.15.0-bookworm-slim
 
+# Set environment variables
 ENV NODE_ENV development
+ENV NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
 # Set working directory
 WORKDIR /app
@@ -14,17 +17,13 @@ RUN npm install
 # Copy the current directory contents into the container
 COPY . .
 
-# Ensure necessary directories are writable
+# Ensure necessary directories are writable and set the owner
 RUN mkdir -p /app/.next /app/node_modules && \
-    chown -R node:node /app/.next /app/node_modules
+    chown -R node:node /app/.next /app/node_modules && \
+    chown -R node:node /app
 
-# Set the owner of the directory
-RUN chown -R node:node /app
-
+# Switch to the node user
 USER node
-
-# Set environment variables for backend URL
-ENV NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
 # Run the app when the container launches
 CMD ["npm", "run", "dev"]

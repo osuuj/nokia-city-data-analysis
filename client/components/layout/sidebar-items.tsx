@@ -58,21 +58,21 @@ export const sectionItems: SidebarItem[] = [
     items: [
       {
         key: 'map',
-        href: '#',
+        href: '?tab=map',
         title: 'Map',
         icon: 'solar:compass-big-bold',
       },
       {
-        key: 'table',
-        href: '#',
-        icon: 'solar:window-frame-bold',
-        title: 'Table',
-      },
-      {
         key: 'analytics',
-        href: '#',
+        href: '?tab=analytics',
         icon: 'solar:chart-bold',
         title: 'Analytics',
+      },
+      {
+        key: 'table',
+        href: '?tab=table',
+        icon: 'solar:window-frame-bold',
+        title: 'Table',
       },
     ],
   },

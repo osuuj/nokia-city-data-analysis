@@ -1,5 +1,5 @@
 'use client';
-import type { Selection } from '@heroui/react';
+import type { Selection, SortDescriptor } from '@heroui/react';
 import {
   Button,
   Chip,
@@ -28,15 +28,14 @@ import {
 } from '@heroui/react';
 import { SearchIcon } from '@heroui/shared-icons';
 import { Icon } from '@iconify/react';
-import type { SortDescriptor } from '@react-types/shared';
 import type { Key } from '@react-types/shared';
+import type React from 'react';
 import type { ReactNode } from 'react';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import type { ColumnsKey, StatusOptions, Users } from './data';
-
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ArrowDownIcon } from './arrow-down';
 import { ArrowUpIcon } from './arrow-up';
 import { CopyText } from './copy-text';
+import type { ColumnsKey, StatusOptions, Users } from './data';
 import { DeleteFilledIcon } from './delete';
 import { EditLinearIcon } from './edit';
 import { EyeFilledIcon } from './eye';
@@ -46,20 +45,29 @@ import { useMemoizedCallback } from '@/components/table/use-memoized-callback';
 import { Status } from './Status';
 import { INITIAL_VISIBLE_COLUMNS, columns, users } from './data';
 
-export default function Component() {
+export default function TableComponent({
+  data,
+  pages,
+  page,
+  setPage,
+}: {
+  data: Users[];
+  pages: number;
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+}) {
   const [filterValue, setFilterValue] = useState('');
+  const [rowsPerPage] = useState(10);
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]));
   const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [rowsPerPage] = useState(10);
-  const [page, setPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'memberInfo' as Key,
     direction: 'ascending',
   });
 
-  const [workerTypeFilter, setWorkerTypeFilter] = React.useState('all');
-  const [statusFilter, setStatusFilter] = React.useState('all');
-  const [startDateFilter, setStartDateFilter] = React.useState('all');
+  const [workerTypeFilter, setWorkerTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [startDateFilter, setStartDateFilter] = useState('all');
 
   const headerColumns = useMemo(() => {
     if (visibleColumns === 'all') return columns;
@@ -98,7 +106,7 @@ export default function Component() {
   );
 
   const filteredItems = useMemo(() => {
-    let filteredUsers = [...users];
+    let filteredUsers = [...data];
 
     if (filterValue) {
       filteredUsers = filteredUsers.filter((user) =>
@@ -109,9 +117,7 @@ export default function Component() {
     filteredUsers = filteredUsers.filter(itemFilter);
 
     return filteredUsers;
-  }, [filterValue, itemFilter]);
-
-  const pages = Math.ceil(filteredItems.length / rowsPerPage) || 1;
+  }, [filterValue, data, itemFilter]);
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
@@ -554,7 +560,7 @@ export default function Component() {
         </div>
       </div>
     );
-  }, [filterSelectedKeys, page, pages, filteredItems.length, onPreviousPage, onNextPage]);
+  }, [filterSelectedKeys, page, pages, filteredItems.length, onPreviousPage, onNextPage, setPage]);
 
   const handleMemberClick = useMemoizedCallback(() => {
     setSortDescriptor({

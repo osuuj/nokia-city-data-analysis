@@ -1,12 +1,15 @@
 'use client';
 import { Providers } from '@/app/providers';
 import { filters } from '@/components/filters/filters-data';
+import HomeHeader from '@/components/layout/home-header';
 import Sidebar from '@/components/layout/sidebar';
 import SidebarDrawer from '@/components/layout/sidebar-drawer';
 import { sectionItems } from '@/components/layout/sidebar-items';
+import { GithubIcon } from '@/components/ui/icons';
 import Logo from '@/components/ui/osuuj-icon';
 import { ThemeSwitch } from '@/components/ui/theme-switch';
-import { Button, Divider, ScrollShadow, useDisclosure } from '@heroui/react';
+import { siteConfig } from '@/config/site';
+import { Button, Divider, Link, NavbarItem, ScrollShadow, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { usePathname } from 'next/navigation';
 
@@ -18,7 +21,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const content = (
     <div className="relative flex h-full w-80 flex-1 flex-col p-4">
       <div className="flex items-center gap-2 px-2">
-        <div className="flex h-15 w-15 items-center justify-center">
+        <div className="flex h-16 w-15 items-center justify-center">
           <Logo />
         </div>
       </div>
@@ -55,26 +58,10 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
           {content}
         </SidebarDrawer>
         <div className="flex flex-1 flex-col p-4">
-          <header className="flex h-16 items-center gap-2 rounded-medium border-small border-divider px-4">
-            <Button
-              isIconOnly
-              className="flex sm:hidden"
-              size="sm"
-              variant="light"
-              onPress={onOpen}
-            >
-              <Icon
-                className="text-default-500"
-                height={24}
-                icon="solar:hamburger-menu-outline"
-                width={24}
-              />
-            </Button>
-            <ThemeSwitch className="fixed right-4 z-50 p-2 shadow-lg" />
-            <h2 className="text-medium font-medium text-default-700">Overview</h2>
-          </header>
+          <HomeHeader onOpen={onOpen} />
           <main className="flex-1 mt-4 h-full w-full overflow-hidden">{children}</main>
-          <footer className="flex h-16 items-center justify-center gap-2 rounded-medium border-small border-divider px-4">
+          <Divider className="my-2" />
+          <footer className="flex h-10 items-center justify-center">
             <p className="text-default-500 text-small">
               © 2025 <strong>Osuuj</strong>. All rights reserved.
             </p>
