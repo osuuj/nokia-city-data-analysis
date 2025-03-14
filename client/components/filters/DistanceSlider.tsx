@@ -1,6 +1,6 @@
 'use client';
 
-import type { RangeFilter, RangeValue } from '@/components/filters/filters-types';
+import type { RangeFilter, RangeValue } from '@/components/utils/filtersTypes';
 import type { SliderProps } from '@heroui/react';
 
 import { Input, Slider, cn } from '@heroui/react';

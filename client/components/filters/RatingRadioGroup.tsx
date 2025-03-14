@@ -6,7 +6,7 @@ import { RadioGroup } from '@heroui/react';
 import { cn } from '@heroui/react';
 import React from 'react';
 
-import RatingRadioItem from '@/components/filters/rating-radio-item';
+import RatingRadioItem from '@/components/filters/RatingRadioItem';
 
 export type RatingRadioGroupProps = RadioGroupProps & {
   hideStarsText?: boolean;

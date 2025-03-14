@@ -1,7 +1,7 @@
 'use client';
 
-import type { Filter } from '@/components/filters/filters-types';
-import FiltersWrapper from '@/components/filters/filters-wrapper';
+import FiltersWrapper from '@/components/filters/FiltersWrapper';
+import type { Filter } from '@/components/utils/filtersTypes';
 import {
   Accordion,
   AccordionItem,

@@ -1,11 +1,11 @@
 'use client';
 
-import ColorRadioItem from '@/components/filters/color-radio-item';
-import DistanceSlider from '@/components/filters/distance-slider';
-import type { Filter } from '@/components/filters/filters-types';
-import { FilterTypeEnum } from '@/components/filters/filters-types';
-import RatingRadioGroup from '@/components/filters/rating-radio-group';
-import TagGroupItem from '@/components/filters/tag-group-item';
+import ColorRadioItem from '@/components/filters/ColorRadioItem';
+import DistanceSlider from '@/components/filters/DistanceSlider';
+import RatingRadioGroup from '@/components/filters/RatingRadioGroup';
+import TagGroupItem from '@/components/filters/TagGroupItem';
+import type { Filter } from '@/components/utils/filtersTypes';
+import { FilterTypeEnum } from '@/components/utils/filtersTypes';
 import {
   Accordion,
   AccordionItem,

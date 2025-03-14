@@ -32,15 +32,15 @@ import type { Key } from '@react-types/shared';
 import type React from 'react';
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ArrowDownIcon } from './arrow-down';
-import { ArrowUpIcon } from './arrow-up';
-import { CopyText } from './copy-text';
+import { ArrowDownIcon } from '../icons/ArrowDown';
+import { ArrowUpIcon } from '../icons/ArrowUp';
+import { DeleteFilledIcon } from '../icons/Delete';
+import { EditLinearIcon } from '../icons/Edit';
+import { EyeFilledIcon } from '../icons/Eye';
+import { CopyText } from './CopyText';
 import type { ColumnsKey, StatusOptions, Users } from './data';
-import { DeleteFilledIcon } from './delete';
-import { EditLinearIcon } from './edit';
-import { EyeFilledIcon } from './eye';
 
-import { useMemoizedCallback } from '@/components/table/use-memoized-callback';
+import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
 
 import { Status } from './Status';
 import { INITIAL_VISIBLE_COLUMNS, columns, users } from './data';

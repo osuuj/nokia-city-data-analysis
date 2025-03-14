@@ -1,7 +1,7 @@
 'use client';
 
-import Footer from '@/components/layout/footer';
-import Header from '@/components/layout/navbar';
+import Footer from '@/components/layout/Footer';
+import Header from '@/components/layout/Navbar';
 import { usePathname } from 'next/navigation';
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {

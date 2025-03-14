@@ -1,4 +1,4 @@
-import type { SidebarItem } from '@/components/layout/sidebar';
+import type { SidebarItem } from '@/components/dashboard/Sidebar';
 
 export const sectionItems: SidebarItem[] = [
   {

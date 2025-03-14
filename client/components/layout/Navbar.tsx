@@ -1,8 +1,9 @@
 'use client';
+
 import {
   Button,
+  Link as HeroLink,
   Input,
-  Link,
   Navbar,
   NavbarBrand,
   NavbarContent,
@@ -15,11 +16,11 @@ import { Icon } from '@iconify/react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-import { ThemeSwitch } from '@/components/ui/theme-switch';
-
-import { GithubIcon } from '@/components/ui/icons';
-import Logo from '@/components/ui/osuuj-icon';
+import { ThemeSwitch } from '@/components/common/ThemeSwitch';
+import { GithubIcon } from '@/components/icons/Icons';
+import Logo from '@/components/icons/OsuujIcon';
 import { siteConfig } from '@/config/site';
+import NextLink from 'next/link';
 
 const navbarItems = [
   { href: '/home', label: 'Home' },
@@ -30,7 +31,7 @@ const navbarItems = [
 ];
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(() => false); // Ensure stable initial value
   const pathname = usePathname();
 
   return (
@@ -47,7 +48,7 @@ export default function Header() {
         onMenuOpenChange={setIsMenuOpen}
         height="60px"
       >
-        {/* 🟢 Left Section: Logo & Mobile Menu (Balanced Width) */}
+        {/* 🟢 Left Section: Logo & Mobile Menu */}
         <NavbarBrand className="flex items-center flex-auto min-w-0 md:justify-start">
           <NavbarMenuToggle
             className="mr-2 h-6 md:hidden"
@@ -55,18 +56,20 @@ export default function Header() {
           />
           <Logo />
         </NavbarBrand>
-        {/* 🟠 Center Section: Navbar Items (Ensured Equal Spacing) */}
+
+        {/* 🟠 Center Section: Navbar Items */}
         <NavbarContent className="hidden md:flex flex-1 justify-center gap-6 max-w-[500px] h-12 w-full rounded-full bg-content2 px-4 dark:bg-content1">
           {navbarItems.map((item) => (
             <NavbarItem key={item.href} isActive={pathname === item.href}>
-              <Link className="flex gap-2 text-inherit" href={item.href}>
+              <NextLink className="flex gap-2 text-inherit" href={item.href}>
                 {item.label}
-              </Link>
+              </NextLink>
             </NavbarItem>
           ))}
         </NavbarContent>
-        {/* 🔵 Right Section: GitHub & Theme Switch (Balanced Width) */}
-        <NavbarContent className=" flex flex-1 justify-end items-center gap-0 min-w-[150px] h-12 max-w-fit rounded-full p-0 lg:bg-content2 lg:px-1 lg:dark:bg-content1">
+
+        {/* 🔵 Right Section: Search, GitHub & Theme Switch */}
+        <NavbarContent className="flex flex-1 justify-end items-center gap-0 min-w-[150px] h-12 max-w-fit rounded-full p-0 lg:bg-content2 lg:px-1 lg:dark:bg-content1">
           {/* Search */}
           <NavbarItem className="hidden lg:flex">
             <Input
@@ -85,32 +88,45 @@ export default function Header() {
               }
             />
           </NavbarItem>
+
           {/* Mobile search */}
           <NavbarItem className="lg:hidden">
             <Button isIconOnly radius="full" variant="light" aria-label="Search">
               <Icon className="text-default-500" icon="solar:magnifer-linear" width={20} />
             </Button>
           </NavbarItem>
+
           {/* GitHub */}
           <NavbarItem className="lg:flex">
             <Button isIconOnly radius="full" variant="light" aria-label="GitHub">
-              <Link isExternal aria-label="Github" href={siteConfig.links.github}>
+              <a
+                href={siteConfig.links.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+              >
                 <GithubIcon className="text-default-500" width={24} />
-              </Link>
+              </a>
             </Button>
           </NavbarItem>
-          {/* Theme change */}
+
+          {/* Theme Switch */}
           <NavbarItem className="lg:flex">
             <ThemeSwitch aria-label="Toggle theme" />
           </NavbarItem>
         </NavbarContent>
+
         {/* 🔴 Mobile Navigation Menu */}
         <NavbarMenu className="transition-transform duration-300 ease-in-out">
           {navbarItems.map((item) => (
             <NavbarMenuItem key={item.href} isActive={pathname === item.href}>
-              <Link className="text-inherit" href={item.href} onPress={() => setIsMenuOpen(false)}>
+              <NextLink
+                className="text-inherit"
+                href={item.href}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 {item.label}
-              </Link>
+              </NextLink>
             </NavbarMenuItem>
           ))}
         </NavbarMenu>

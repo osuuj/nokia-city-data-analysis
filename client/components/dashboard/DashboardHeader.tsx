@@ -1,8 +1,8 @@
 'use client';
 
-import { useSearch } from '@/components/hooks/search-data';
-import { GithubIcon } from '@/components/ui/icons';
-import { ThemeSwitch } from '@/components/ui/theme-switch';
+import { ThemeSwitch } from '@/components/common/ThemeSwitch';
+import { useSearch } from '@/components/hooks/useSearch';
+import { GithubIcon } from '@/components/icons/Icons';
 import { siteConfig } from '@/config/site';
 import { Autocomplete, AutocompleteItem, Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';

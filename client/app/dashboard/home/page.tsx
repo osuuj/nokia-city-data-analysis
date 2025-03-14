@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 // ✅ Dynamically Import Components
-const MapComponent = dynamic(() => import('@/components/map/map'), {
+const MapComponent = dynamic(() => import('@/components/map/Map'), {
   ssr: false,
   loading: () => <p>Loading Map...</p>,
 });

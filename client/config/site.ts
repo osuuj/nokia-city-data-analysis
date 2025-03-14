@@ -3,51 +3,37 @@ export type SiteConfig = typeof siteConfig;
 export const siteConfig = {
   name: 'Next.js + HeroUI',
   description: 'Make beautiful websites regardless of your design experience.',
+
+  hero: {
+    title: {
+      before: 'Find ',
+      highlight: 'Companies in Finland ',
+      after: 'Close to You.',
+    },
+    description:
+      "We built this platform to showcase our skills and abilities. Without industry experience, it's challenging to get opportunities—so we created this project to prove our expertise in real-world applications.",
+  },
+
   navItems: [
-    {
-      label: 'Home',
-      href: '/',
-    },
-    {
-      label: 'Search',
-      href: '/search',
-    },
+    { label: 'Home', href: '/' },
+    { label: 'Search', href: '/search' },
   ],
-  navMenuItems: [
-    {
-      label: 'Profile',
-      href: '/profile',
-    },
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-    },
-    {
-      label: 'Projects',
-      href: '/projects',
-    },
-    {
-      label: 'Team',
-      href: '/team',
-    },
-    {
-      label: 'Calendar',
-      href: '/calendar',
-    },
-    {
-      label: 'Settings',
-      href: '/settings',
-    },
-    {
-      label: 'Help & Feedback',
-      href: '/help-feedback',
-    },
-    {
-      label: 'Logout',
-      href: '/logout',
-    },
+
+  footerNav: [
+    { name: 'Home', href: '/home' },
+    { name: 'Project', href: '/project' },
+    { name: 'Resources', href: '/resources' },
+    { name: 'About Us', href: '/about' },
+    { name: 'Contact', href: '/contact' },
   ],
   links: {
     github: 'https://github.com/osuuj/nokia-city-data-analysis',
   },
+  socialLinks: [
+    {
+      name: 'GitHub',
+      href: 'https://github.com/osuuj/nokia-city-data-analysis',
+      icon: 'fontisto:github',
+    },
+  ],
 };

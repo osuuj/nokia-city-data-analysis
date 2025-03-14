@@ -1,15 +1,12 @@
 'use client';
-import { Providers } from '@/app/providers';
+import { Providers } from '@/app/context/Providers';
+import Logo from '@/components/common/osuuj-icon';
 import { filters } from '@/components/filters/filters-data';
 import HomeHeader from '@/components/layout/home-header';
 import Sidebar from '@/components/layout/sidebar';
 import SidebarDrawer from '@/components/layout/sidebar-drawer';
 import { sectionItems } from '@/components/layout/sidebar-items';
-import { GithubIcon } from '@/components/ui/icons';
-import Logo from '@/components/ui/osuuj-icon';
-import { ThemeSwitch } from '@/components/ui/theme-switch';
-import { siteConfig } from '@/config/site';
-import { Button, Divider, Link, NavbarItem, ScrollShadow, useDisclosure } from '@heroui/react';
+import { Button, Divider, ScrollShadow, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { usePathname } from 'next/navigation';
 
