@@ -1,11 +1,11 @@
-"use client";
-import TableView from "@/components/table/TableView"; // ✅ Import TableView
-import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import useSWR, { mutate } from "swr";
+'use client';
+import TableView from '@/components/table/TableView'; // ✅ Import TableView
+import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import useSWR, { mutate } from 'swr';
 
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = 'http://localhost:8000/api/v1';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -20,9 +20,9 @@ interface Business {
 export default function HomePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // ✅ Read city from URL (ensure it's safe)
-  const query = decodeURIComponent(searchParams.get("city") || "");
+  const query = decodeURIComponent(searchParams.get('city') || '');
 
   // ✅ Keep selected city state controlled
   const [selectedCity, setSelectedCity] = useState<string>(query);
@@ -32,7 +32,7 @@ export default function HomePage() {
     ? `${BASE_URL}/businesses_by_city?city=${encodeURIComponent(selectedCity)}`
     : null;
 
-  console.log("🚀 Fetching data from:", businessesApiUrl);
+  console.log('🚀 Fetching data from:', businessesApiUrl);
 
   // ✅ Fetch businesses based on selectedCity
   const { data, error, isValidating } = useSWR<Business[]>(businessesApiUrl, fetcher);
@@ -41,12 +41,12 @@ export default function HomePage() {
   const { data: cities = [] } = useSWR<string[]>(`${BASE_URL}/cities`, fetcher);
 
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 50;
 
   // ✅ Ensure state updates when URL changes
   useEffect(() => {
     if (query !== selectedCity) {
-      console.log("🔄 URL changed, updating selectedCity:", query);
+      console.log('🔄 URL changed, updating selectedCity:', query);
       setSelectedCity(query);
       mutate(businessesApiUrl); // ✅ Revalidate SWR on city change
     }
@@ -73,7 +73,10 @@ export default function HomePage() {
   }, [uniqueData, page]);
 
   // ✅ Calculate total pages correctly
-  const totalPages = useMemo(() => (uniqueData.length > 0 ? Math.ceil(uniqueData.length / rowsPerPage) : 0), [uniqueData]);
+  const totalPages = useMemo(
+    () => (uniqueData.length > 0 ? Math.ceil(uniqueData.length / rowsPerPage) : 0),
+    [uniqueData],
+  );
 
   return (
     <div className="p-4">
@@ -85,8 +88,8 @@ export default function HomePage() {
         variant="underlined"
         selectedKey={selectedCity || undefined}
         onSelectionChange={(selected) => {
-          if (selected && typeof selected === "string") {
-            console.log("✅ City selected:", selected);
+          if (selected && typeof selected === 'string') {
+            console.log('✅ City selected:', selected);
             setSelectedCity(selected);
 
             // ✅ Update URL & Fetch data
@@ -103,19 +106,19 @@ export default function HomePage() {
 
       {/* ✅ Use TableView (no inline table) */}
       <TableView
-      data={paginatedData}
-      columns={[
-        { key: "company_name", label: "Name" },
-        { key: "business_id", label: "Business ID" },
-        { key: "industry_description", label: "Industry Description" },
-        { key: "latitude_wgs84", label: "Latitude" },
-        { key: "longitude_wgs84", label: "Longitude" },
-      ]} // ✅ Ensure columns is provided
-      currentPage={page}
-      totalPages={totalPages}
-      onPageChange={setPage}
-      isLoading={isValidating}
-    />
+        data={paginatedData}
+        columns={[
+          { key: 'company_name', label: 'Name' },
+          { key: 'business_id', label: 'Business ID' },
+          { key: 'industry_description', label: 'Industry Description' },
+          { key: 'latitude_wgs84', label: 'Latitude' },
+          { key: 'longitude_wgs84', label: 'Longitude' },
+        ]} // ✅ Ensure columns is provided
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        isLoading={isValidating}
+      />
     </div>
   );
 }

@@ -258,7 +258,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
         ref={ref}
         hideSelectedIcon
         as="nav"
-        aria-label="Sidebar Navigation"  // ✅ Add this line
+        aria-label="Sidebar Navigation" // ✅ Add this line
         className={cn('list-none', className)}
         classNames={{
           ...classNames,

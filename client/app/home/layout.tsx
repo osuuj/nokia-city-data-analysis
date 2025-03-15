@@ -1,13 +1,13 @@
-"use client";
+'use client';
 import { Providers } from '@/app/context/Providers';
 import { ThemeSwitch } from '@/components/common/ThemeSwitch';
 import { GithubIcon } from '@/components/icons/Icons';
-import HomeFooter from "@/components/layout/HomeFooter";
-import SidebarWrapper from "@/components/sidebar/SidebarWrapper";
+import HomeFooter from '@/components/layout/HomeFooter';
+import SidebarWrapper from '@/components/sidebar/SidebarWrapper';
 import { siteConfig } from '@/config/site';
-import { Button, Link } from "@heroui/react";
-import { Icon } from "@iconify/react";
-import { useState } from "react";
+import { Button, Link } from '@heroui/react';
+import { Icon } from '@iconify/react';
+import { useState } from 'react';
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);

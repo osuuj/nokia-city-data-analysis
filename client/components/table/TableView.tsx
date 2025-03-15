@@ -1,141 +1,172 @@
-"use client";
+'use client';
 
 import {
-	Input,
-	Pagination,
-	Spinner,
-	Table,
-	TableBody,
-	TableCell,
-	TableColumn,
-	TableHeader,
-	TableRow
-} from "@heroui/react";
-import { SearchIcon } from "@heroui/shared-icons";
-import { useEffect, useMemo, useState } from "react";
+  Input,
+  Pagination,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from '@heroui/react';
+import { SearchIcon } from '@heroui/shared-icons';
+import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
+import { useAsyncList } from '@react-stately/data';
+import { useEffect, useMemo, useState } from 'react';
 
 interface Business {
-	business_id: string;
-	company_name: string;
-	industry_description: string;
-	latitude_wgs84: number;
-	longitude_wgs84: number;
+  business_id: string;
+  company_name: string;
+  industry_description: string;
+  latitude_wgs84: number;
+  longitude_wgs84: number;
 }
 
 interface TableViewProps {
-	data: Business[];
-	currentPage: number;
-	totalPages: number;
-	onPageChange: (page: number) => void;
-	isLoading: boolean;
+  data: Business[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
 }
 
 export default function TableView({
-	data,
-	currentPage,
-	totalPages,
-	onPageChange,
-	isLoading,
+  data,
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading,
 }: TableViewProps) {
-	// ✅ Search, Sort, and Filter State
-	const [sortedData, setSortedData] = useState<Business[]>(data);
-	const [sortKey, setSortKey] = useState<keyof Business | null>(null);
-	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-	const [searchTerm, setSearchTerm] = useState("");
+  // ✅ Search, Sort, and Filter State
+  const [sortedData, setSortedData] = useState<Business[]>(data);
+  const [sortKey, setSortKey] = useState<keyof Business | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hasMore, setHasMore] = useState(false);
 
-	// ✅ Handle Sorting
-	useEffect(() => {
-		const filteredData = [...data];
-		if (sortKey) {
-			filteredData.sort((a, b) => {
-				if (a[sortKey]! < b[sortKey]!) return sortDirection === "asc" ? -1 : 1;
-				if (a[sortKey]! > b[sortKey]!) return sortDirection === "asc" ? 1 : -1;
-				return 0;
-			});
-		}
-		setSortedData(filteredData);
-	}, [data, sortKey, sortDirection]);
+  const list = useAsyncList({
+    async load({ signal, cursor }) {
+      if (cursor) {
+        setIsLoading(false);
+      }
 
-	// ✅ Handle Search
-	const filteredData = useMemo(() => {
-		return sortedData.filter((item) =>
-			item.company_name.toLowerCase().includes(searchTerm.toLowerCase()),
-		);
-	}, [sortedData, searchTerm]);
+      // If no cursor is available, then we're loading the first page.
+      // Otherwise, the cursor is the next URL to load, as returned from the previous page.
+      const res = await fetch(cursor || 'https://swapi.py4e.com/api/people/?search=', { signal });
+      const json = await res.json();
 
-	return (
-		<div className="p-4">
-			{/* ✅ Search Input */}
-			<Input
-				className="mb-4"
-				placeholder="Search by company name..."
-				startContent={<SearchIcon width={16} />}
-				value={searchTerm}
-				onChange={(e) => setSearchTerm(e.target.value)}
-			/>
+      setHasMore(json.next !== null);
 
-			<Table>
-				<TableHeader>
-					<TableColumn
-						key="company_name"
-						onClick={() => setSortKey("company_name")}
-					>
-						Name
-					</TableColumn>
-					<TableColumn
-						key="business_id"
-						onClick={() => setSortKey("business_id")}
-					>
-						Business ID
-					</TableColumn>
-					<TableColumn
-						key="industry_description"
-						onClick={() => setSortKey("industry_description")}
-					>
-						Industry
-					</TableColumn>
-					<TableColumn
-						key="latitude_wgs84"
-						onClick={() => setSortKey("latitude_wgs84")}
-					>
-						Latitude
-					</TableColumn>
-					<TableColumn
-						key="longitude_wgs84"
-						onClick={() => setSortKey("longitude_wgs84")}
-					>
-						Longitude
-					</TableColumn>
-				</TableHeader>
-				<TableBody
-					items={filteredData}
-					emptyContent="No results found"
-					loadingContent={<Spinner />}
-					loadingState={isLoading ? "loading" : "idle"}
-				>
-					{(item) => (
-						<TableRow key={item.business_id}>
-							<TableCell>{item.company_name}</TableCell>
-							<TableCell>{item.business_id}</TableCell>
-							<TableCell>{item.industry_description}</TableCell>
-							<TableCell>{item.latitude_wgs84}</TableCell>
-							<TableCell>{item.longitude_wgs84}</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
+      return {
+        items: json.results,
+        cursor: json.next,
+      };
+    },
+  });
+  const [loaderRef, scrollerRef] = useInfiniteScroll({
+    hasMore,
+    onLoadMore: list.loadMore,
+  });
 
-			{/* ✅ Pagination */}
-			<div className="flex justify-center mt-4">
-				<Pagination
-					showControls
-					showShadow
-					color="primary"
-					page={currentPage}
-					total={totalPages}
-					onChange={onPageChange}
-				/>
-			</div>
-		</div>
-	);
+  // ✅ Handle Sorting
+  useEffect(() => {
+    const filteredData = [...data];
+    if (sortKey) {
+      filteredData.sort((a, b) => {
+        if (a[sortKey]! < b[sortKey]!) return sortDirection === 'asc' ? -1 : 1;
+        if (a[sortKey]! > b[sortKey]!) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    setSortedData(filteredData);
+  }, [data, sortKey, sortDirection]);
+
+  // ✅ Handle Search
+  const filteredData = useMemo(() => {
+    return sortedData.filter((item) =>
+      item.company_name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [sortedData, searchTerm]);
+
+  return (
+    <div className="p-4">
+      {/* ✅ Search Input */}
+      <Input
+        className="mb-4"
+        placeholder="Search by company name..."
+        startContent={<SearchIcon width={16} />}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      <Table
+        isHeaderSticky
+        aria-label="Example table with infinite pagination"
+        baseRef={scrollerRef}
+        bottomContent={
+          hasMore ? (
+            <div className="flex w-full justify-center">
+              <Spinner ref={loaderRef} color="white" />
+            </div>
+          ) : null
+        }
+        classNames={{
+          base: 'max-h-[520px] overflow-scroll',
+          table: 'min-h-[400px]',
+        }}
+      >
+        <TableHeader>
+          <TableColumn key="company_name" onClick={() => setSortKey('company_name')}>
+            Name
+          </TableColumn>
+          <TableColumn key="business_id" onClick={() => setSortKey('business_id')}>
+            Business ID
+          </TableColumn>
+          <TableColumn
+            key="industry_description"
+            onClick={() => setSortKey('industry_description')}
+          >
+            Industry
+          </TableColumn>
+          <TableColumn key="latitude_wgs84" onClick={() => setSortKey('latitude_wgs84')}>
+            Latitude
+          </TableColumn>
+          <TableColumn key="longitude_wgs84" onClick={() => setSortKey('longitude_wgs84')}>
+            Longitude
+          </TableColumn>
+        </TableHeader>
+        <TableBody
+          isLoading={isLoading}
+          items={filteredData}
+          emptyContent="No results found"
+          loadingContent={<Spinner />}
+          loadingState={isLoading ? 'loading' : 'idle'}
+        >
+          {(item) => (
+            <TableRow key={item.business_id}>
+              <TableCell>{item.company_name}</TableCell>
+              <TableCell>{item.business_id}</TableCell>
+              <TableCell>{item.industry_description}</TableCell>
+              <TableCell>{item.latitude_wgs84}</TableCell>
+              <TableCell>{item.longitude_wgs84}</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* ✅ Pagination */}
+      <div className="flex justify-center mt-4">
+        <Pagination
+          showControls
+          showShadow
+          color="primary"
+          page={currentPage}
+          total={totalPages}
+          onChange={onPageChange}
+        />
+      </div>
+    </div>
+  );
 }

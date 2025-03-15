@@ -9,10 +9,10 @@ export interface Business {
 }
 
 interface CompanyStore {
-  companies: Business[];  // ✅ Added missing `companies`
+  companies: Business[]; // ✅ Added missing `companies`
   selectedCompanies: Business[];
   isLoading: boolean;
-  setCompanies: (companies: Business[]) => void;  // ✅ Added missing `setCompanies`
+  setCompanies: (companies: Business[]) => void; // ✅ Added missing `setCompanies`
   setSelectedCompanies: (selected: Business[]) => void;
 }
 
@@ -22,7 +22,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   isLoading: false,
 
   setCompanies: (companies) => {
-    console.log("🏪 Zustand Store: Setting companies", companies.length);
+    console.log('🏪 Zustand Store: Setting companies', companies.length);
     set({ companies });
   },
 
