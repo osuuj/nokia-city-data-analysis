@@ -1,4 +1,4 @@
-import type { SidebarItem } from '@/components/dashboard/Sidebar';
+import type { SidebarItem } from '@/components/old/dashboard/Sidebar';
 
 export const sectionItems: SidebarItem[] = [
   {
@@ -49,30 +49,6 @@ export const sectionItems: SidebarItem[] = [
         href: '/contact',
         icon: 'solar:hand-shake-bold',
         title: 'Contact',
-      },
-    ],
-  },
-  {
-    key: 'tabs',
-    title: 'Tabs',
-    items: [
-      {
-        key: 'map',
-        href: '?tab=map',
-        title: 'Map',
-        icon: 'solar:compass-big-bold',
-      },
-      {
-        key: 'analytics',
-        href: '?tab=analytics',
-        icon: 'solar:chart-bold',
-        title: 'Analytics',
-      },
-      {
-        key: 'table',
-        href: '?tab=table',
-        icon: 'solar:window-frame-bold',
-        title: 'Table',
       },
     ],
   },
