@@ -1,17 +1,8 @@
-import { useCompanyStore } from '@/app/state/useCompanyStore';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import type { Business } from '@/types/business';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// ✅ Business type
-export interface Business {
-  business_id: string;
-  company_name: string;
-  industry_description: string;
-  latitude_wgs84: number;
-  longitude_wgs84: number;
-}
 
 // ✅ Function to fetch businesses for a selected city
 const fetchCompanies = async (city: string): Promise<Business[]> => {
@@ -33,7 +24,7 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
   return Array.isArray(data) ? data : [];
 };
 
-// ✅ Function to fetch cities
+// ✅ Function to fetch cities (React Query only, no Zustand)
 const fetchCities = async (): Promise<string[]> => {
   console.log('📡 Fetching cities...');
   const response = await fetch(`${BASE_URL}/api/v1/cities`);
@@ -45,25 +36,13 @@ const fetchCities = async (): Promise<string[]> => {
   return cities;
 };
 
-// ✅ React Query Hook to Fetch Cities
+// ✅ React Query Hook to Fetch Cities (NO Zustand)
 export function useFetchCities() {
-  const { setAvailableCities } = useCompanyStore();
-  
-  const query = useQuery<string[], Error>({
+  return useQuery<string[], Error>({
     queryKey: ['cities'],
     queryFn: fetchCities,
     staleTime: 1000 * 60 * 10, // ✅ Cache cities for 10 minutes
   });
-
-  // ✅ Store fetched cities in Zustand when available
-  useEffect(() => {
-    if (query.data) {
-      console.log('✅ Storing cities in Zustand:', query.data);
-      setAvailableCities(query.data);
-    }
-  }, [query.data, setAvailableCities]);
-
-  return query;
 }
 
 // ✅ Hook to fetch businesses using React Query

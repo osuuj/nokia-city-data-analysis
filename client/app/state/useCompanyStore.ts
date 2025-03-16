@@ -1,17 +1,20 @@
+import type { Business, CompanyStore } from "@/types/business";
 import { create } from 'zustand';
 
-interface CompanyStore {
-  selectedCity: string;
-  availableCities: string[];
-
-  setSelectedCity: (city: string) => void;
-  setAvailableCities: (cities: string[]) => void;
-}
 
 export const useCompanyStore = create<CompanyStore>((set) => ({
   selectedCity: '',
-  availableCities: [],
-
-  setSelectedCity: (city) => set({ selectedCity: city }),
-  setAvailableCities: (cities) => set({ availableCities: cities }),
+  setSelectedCity: (city: string) => set({ selectedCity: city }),
+  selectedRows: {},
+  toggleRow: (business: Business) =>
+    set((state) => {
+      const newSelection = { ...state.selectedRows };
+      if (newSelection[business.business_id]) {
+        delete newSelection[business.business_id];
+      } else {
+        newSelection[business.business_id] = business;
+      }
+      return { selectedRows: newSelection };
+    }),
+  clearSelection: () => set({ selectedRows: {} }),
 }));

@@ -5,3 +5,11 @@ export interface Business {
   latitude_wgs84: number;
   longitude_wgs84: number;
 }
+
+export interface CompanyStore {
+  selectedCity: string;
+  setSelectedCity: (city: string) => void;
+  selectedRows: Record<string, Business>;
+  toggleRow: (business: Business) => void;
+  clearSelection: () => void;
+}

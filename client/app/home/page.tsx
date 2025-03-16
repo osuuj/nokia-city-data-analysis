@@ -1,59 +1,85 @@
-'use client';
+"use client";
+import { useCompanyStore } from "@/app/state/useCompanyStore";
+import { useFetchCompanies } from "@/components/hooks/useFetchData";
+import TableView from "@/components/table/TableView";
+import type { Business } from "@/types/business";
+import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
 
-import { useCompanyStore } from '@/app/state/useCompanyStore';
-import { useFetchCities, useFetchCompanies } from '@/components/hooks/useFetchData';
-import TableView from '@/components/table/TableView';
-import type { Business } from '@/types/business';
-import { Autocomplete, AutocompleteItem } from '@heroui/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function HomePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
-  // ✅ Zustand state for selected city
   const { selectedCity, setSelectedCity } = useCompanyStore();
-  
+
+  // ✅ Read city from URL (ensure it's safe)
+  const query = decodeURIComponent(searchParams.get("city") || "");
+
   // ✅ Fetch businesses using React Query
-  const { data: businesses = [], error, isLoading } = useFetchCompanies(selectedCity);
-  
-  // ✅ Fetch cities for search dropdown
-  const { data: cities = [] } = useFetchCities();
+  const { data, error, isFetching } = useFetchCompanies(selectedCity);
 
-  // ✅ Pagination state
+  // ✅ Fetch cities using SWR
+  const { data: cities = [] } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
+    dedupingInterval: 1000 * 60 * 10,
+    revalidateOnFocus: false,
+  });
+
   const [page, setPage] = useState(1);
-  const rowsPerPage = 50;
+  const rowsPerPage = 25;
 
- const uniqueBusinesses = useMemo(() => {
-  const unique = new Map<string, Business>();
-  
-  for (const business of businesses) {
-    unique.set(business.business_id, business);
-  }
+  // ✅ Ensure state updates when URL changes
+  useEffect(() => {
+    if (query !== selectedCity) {
+      console.log("🔄 URL changed, updating selectedCity:", query);
+      setSelectedCity(query);
+    }
+  }, [query, selectedCity, setSelectedCity]);
 
-    return Array.from(unique.values());
-  }, [businesses]);
+  // ✅ Remove duplicate businesses (Use `for...of`)
+  const removeDuplicates = useCallback((businesses: Business[]): Business[] => {
+    const uniqueBusinesses = new Map<string, Business>();
+    for (const business of businesses) {
+      uniqueBusinesses.set(business.business_id, business);
+    }
+    return Array.from(uniqueBusinesses.values());
+  }, []);
 
-  // ✅ Paginate businesses
+  // ✅ Memoized business list
+  const uniqueData = useMemo(() => (data ? removeDuplicates(data) : []), [data, removeDuplicates]);
+
+  // ✅ Paginate Data
   const paginatedData = useMemo(() => {
+    if (!uniqueData) return [];
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    return uniqueBusinesses.slice(startIndex, endIndex);
-  }, [uniqueBusinesses, page]);
+    return uniqueData.slice(startIndex, endIndex);
+  }, [uniqueData, page]);
+
+  // ✅ Calculate total pages correctly
+  const totalPages = useMemo(() => (uniqueData.length > 0 ? Math.ceil(uniqueData.length / rowsPerPage) : 0), [uniqueData]);
+
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="p-4">
       {/* ✅ Search Bar */}
       <Autocomplete
         className="max-w-xs mb-8"
-        items={cities.map((city) => ({ name: city }))}
+        items={(cities as string[])
+          .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
+          .map((city) => ({ name: city }))} // ✅ Ensure the object has a `name` property
         label="Search by city"
         variant="underlined"
         selectedKey={selectedCity || undefined}
+        onInputChange={(input) => {
+          setSearchQuery(input);
+        }}
         onSelectionChange={(selected) => {
-          if (typeof selected === 'string') {
-            console.log('✅ City selected:', selected);
+          if (selected && typeof selected === "string") {
             setSelectedCity(selected);
             router.replace(`/home?city=${encodeURIComponent(selected)}`);
           }
@@ -62,23 +88,23 @@ export default function HomePage() {
         {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
       </Autocomplete>
 
-      {/* ✅ Show error if fetching fails */}
+      {/* ✅ Handle Errors */}
       {error && <p className="text-red-500">❌ Error fetching data: {error.message}</p>}
 
       {/* ✅ Table View */}
-     <TableView
-        data={paginatedData} 
-        columns={[ // ✅ Use correct prop name if needed
+      <TableView
+        data={paginatedData}
+        columns={[
           { key: "company_name", label: "Name" },
           { key: "business_id", label: "Business ID" },
-          { key: "industry_description", label: "Industry" },
+          { key: "industry_description", label: "Industry Description" },
           { key: "latitude_wgs84", label: "Latitude" },
           { key: "longitude_wgs84", label: "Longitude" },
         ]}
         currentPage={page}
-        totalPages={Math.max(1, Math.ceil(uniqueBusinesses.length / rowsPerPage))}
+        totalPages={totalPages}
         onPageChange={setPage}
-        isLoading={isLoading}
+        isLoading={isFetching}
       />
     </div>
   );
