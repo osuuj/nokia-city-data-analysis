@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import type { Business } from "@/types/business";
 import {
   Input,
   Pagination,
@@ -10,22 +11,15 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
-import { SearchIcon } from '@heroui/shared-icons';
-import { useInfiniteScroll } from '@heroui/use-infinite-scroll';
-import { useAsyncList } from '@react-stately/data';
-import { useEffect, useMemo, useState } from 'react';
-
-interface Business {
-  business_id: string;
-  company_name: string;
-  industry_description: string;
-  latitude_wgs84: number;
-  longitude_wgs84: number;
-}
+} from "@heroui/react";
+import { SearchIcon } from "@heroui/shared-icons";
+import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
+import { useAsyncList } from "@react-stately/data";
+import { useEffect, useMemo, useState } from "react";
 
 interface TableViewProps {
   data: Business[];
+  columns: { key: string; label: string }[]; // ✅ Ensure `columns` exists
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -42,9 +36,12 @@ export default function TableView({
   // ✅ Search, Sort, and Filter State
   const [sortedData, setSortedData] = useState<Business[]>(data);
   const [sortKey, setSortKey] = useState<keyof Business | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [searchTerm, setSearchTerm] = useState("");
   const [hasMore, setHasMore] = useState(false);
+
+  // ✅ Selection State
+  const [selectedKeys, setSelectedKeys] = useState(new Set<string>());
 
   const list = useAsyncList({
     async load({ signal, cursor }) {
@@ -52,9 +49,10 @@ export default function TableView({
         setIsLoading(false);
       }
 
-      // If no cursor is available, then we're loading the first page.
-      // Otherwise, the cursor is the next URL to load, as returned from the previous page.
-      const res = await fetch(cursor || 'https://swapi.py4e.com/api/people/?search=', { signal });
+      const res = await fetch(
+        cursor || "https://swapi.py4e.com/api/people/?search=",
+        { signal }
+      );
       const json = await res.json();
 
       setHasMore(json.next !== null);
@@ -65,6 +63,7 @@ export default function TableView({
       };
     },
   });
+
   const [loaderRef, scrollerRef] = useInfiniteScroll({
     hasMore,
     onLoadMore: list.loadMore,
@@ -75,8 +74,8 @@ export default function TableView({
     const filteredData = [...data];
     if (sortKey) {
       filteredData.sort((a, b) => {
-        if (a[sortKey]! < b[sortKey]!) return sortDirection === 'asc' ? -1 : 1;
-        if (a[sortKey]! > b[sortKey]!) return sortDirection === 'asc' ? 1 : -1;
+        if (a[sortKey]! < b[sortKey]!) return sortDirection === "asc" ? -1 : 1;
+        if (a[sortKey]! > b[sortKey]!) return sortDirection === "asc" ? 1 : -1;
         return 0;
       });
     }
@@ -86,7 +85,7 @@ export default function TableView({
   // ✅ Handle Search
   const filteredData = useMemo(() => {
     return sortedData.filter((item) =>
-      item.company_name.toLowerCase().includes(searchTerm.toLowerCase()),
+      item.company_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [sortedData, searchTerm]);
 
@@ -113,27 +112,27 @@ export default function TableView({
           ) : null
         }
         classNames={{
-          base: 'max-h-[520px] overflow-scroll',
-          table: 'min-h-[400px]',
+          base: "max-h-[520px] overflow-scroll",
+          table: "min-h-[400px]",
         }}
+        selectionMode="multiple"
+        selectedKeys={selectedKeys}
+        onSelectionChange={setSelectedKeys}
       >
         <TableHeader>
-          <TableColumn key="company_name" onClick={() => setSortKey('company_name')}>
+          <TableColumn key="company_name" onClick={() => setSortKey("company_name")}>
             Name
           </TableColumn>
-          <TableColumn key="business_id" onClick={() => setSortKey('business_id')}>
+          <TableColumn key="business_id" onClick={() => setSortKey("business_id")}>
             Business ID
           </TableColumn>
-          <TableColumn
-            key="industry_description"
-            onClick={() => setSortKey('industry_description')}
-          >
+          <TableColumn key="industry_description" onClick={() => setSortKey("industry_description")}>
             Industry
           </TableColumn>
-          <TableColumn key="latitude_wgs84" onClick={() => setSortKey('latitude_wgs84')}>
+          <TableColumn key="latitude_wgs84" onClick={() => setSortKey("latitude_wgs84")}>
             Latitude
           </TableColumn>
-          <TableColumn key="longitude_wgs84" onClick={() => setSortKey('longitude_wgs84')}>
+          <TableColumn key="longitude_wgs84" onClick={() => setSortKey("longitude_wgs84")}>
             Longitude
           </TableColumn>
         </TableHeader>
@@ -142,7 +141,7 @@ export default function TableView({
           items={filteredData}
           emptyContent="No results found"
           loadingContent={<Spinner />}
-          loadingState={isLoading ? 'loading' : 'idle'}
+          loadingState={isLoading ? "loading" : "idle"}
         >
           {(item) => (
             <TableRow key={item.business_id}>
