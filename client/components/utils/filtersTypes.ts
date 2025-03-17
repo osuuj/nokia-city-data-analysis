@@ -1,6 +1,6 @@
 export enum FilterTypeEnum {
   Tabs = 'tabs',
-  PriceRange = 'price_range',
+  DistanceRange = 'distance_range',
   Rating = 'rating',
   TagGroup = 'tag_group',
   CheckboxGroup = 'checkbox_group',

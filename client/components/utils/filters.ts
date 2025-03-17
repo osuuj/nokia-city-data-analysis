@@ -12,18 +12,13 @@ export const filters: Filter[] = [
         description: "Share user's location to use distance filter",
         value: 'userLocation',
       },
-      {
-        title: 'Number of companies',
-        description: 'Choose the number of companies',
-        value: 'companiesCount',
-      },
     ],
   },
   {
     key: 'industries',
     title: 'Industries',
     description: 'Select as many as you want',
-    type: FilterTypeEnum.TagGroup,
+    type: FilterTypeEnum.CheckboxGroup,
     options: [
       {
         title: 'Agriculture & Fishing',

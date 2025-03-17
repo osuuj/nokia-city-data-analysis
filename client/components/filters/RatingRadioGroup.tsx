@@ -2,8 +2,7 @@
 
 import type { RadioGroupProps } from '@heroui/react';
 
-import { RadioGroup } from '@heroui/react';
-import { cn } from '@heroui/react';
+import { RadioGroup, cn } from '@heroui/react';
 import React from 'react';
 
 import RatingRadioItem from '@/components/filters/RatingRadioItem';

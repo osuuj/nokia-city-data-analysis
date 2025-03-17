@@ -1,30 +1,19 @@
-"use client";
-
-import type { Business } from "@/types/business";
+'use client';
+import { TableToolbar } from '@/components/table/TableToolbar';
+import type { Business, TableViewProps } from '@/components/table/tableConfig';
+import { columns } from '@/components/table/tableConfig';
+import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
 import {
-  Input,
   Pagination,
-  Spinner,
+  type Selection,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
-} from "@heroui/react";
-import { SearchIcon } from "@heroui/shared-icons";
-import { useInfiniteScroll } from "@heroui/use-infinite-scroll";
-import { useAsyncList } from "@react-stately/data";
-import { useEffect, useMemo, useState } from "react";
-
-interface TableViewProps {
-  data: Business[];
-  columns: { key: string; label: string }[]; // ✅ Ensure `columns` exists
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  isLoading: boolean;
-}
+} from '@heroui/react';
+import { useMemo, useState } from 'react';
 
 export default function TableView({
   data,
@@ -33,139 +22,140 @@ export default function TableView({
   onPageChange,
   isLoading,
 }: TableViewProps) {
-  // ✅ Search, Sort, and Filter State
-  const [sortedData, setSortedData] = useState<Business[]>(data);
-  const [sortKey, setSortKey] = useState<keyof Business | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [hasMore, setHasMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<string>());
 
-  // ✅ Selection State
-  const [selectedKeys, setSelectedKeys] = useState(new Set<string>());
-
-  const list = useAsyncList({
-    async load({ signal, cursor }) {
-      if (cursor) {
-        setIsLoading(false);
-      }
-
-      const res = await fetch(
-        cursor || "https://swapi.py4e.com/api/people/?search=",
-        { signal }
-      );
-      const json = await res.json();
-
-      setHasMore(json.next !== null);
-
-      return {
-        items: json.results,
-        cursor: json.next,
-      };
-    },
+  // ✅ Sorting State
+  const [sortDescriptor, setSortDescriptor] = useState<{
+    column: keyof Business;
+    direction: 'asc' | 'desc';
+  }>({
+    column: 'company_name',
+    direction: 'asc',
   });
 
-  const [loaderRef, scrollerRef] = useInfiniteScroll({
-    hasMore,
-    onLoadMore: list.loadMore,
+  /** ✅ Toggle Sorting */
+  const toggleSort = useMemoizedCallback((key: keyof Business) => {
+    setSortDescriptor((prev) => ({
+      column: key,
+      direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
   });
 
-  // ✅ Handle Sorting
-  useEffect(() => {
-    const filteredData = [...data];
-    if (sortKey) {
-      filteredData.sort((a, b) => {
-        if (a[sortKey]! < b[sortKey]!) return sortDirection === "asc" ? -1 : 1;
-        if (a[sortKey]! > b[sortKey]!) return sortDirection === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-    setSortedData(filteredData);
-  }, [data, sortKey, sortDirection]);
-
-  // ✅ Handle Search
+  /** ✅ Filtered Data */
   const filteredData = useMemo(() => {
-    return sortedData.filter((item) =>
-      item.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+    return (
+      data?.filter((item) => item.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      []
     );
-  }, [sortedData, searchTerm]);
+  }, [data, searchTerm]);
+
+  /** ✅ Sorted Data Before Pagination */
+  const sortedData = useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      const col = sortDescriptor.column;
+      const valueA = a[col];
+      const valueB = b[col];
+
+      const compareResult = valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+      return sortDescriptor.direction === 'desc' ? -compareResult : compareResult;
+    });
+  }, [filteredData, sortDescriptor]);
+
+  /** ✅ Selection Handling (Improved with Filters) */
+  const filterSelectedKeys = useMemo(() => {
+    if (selectedKeys === 'all') {
+      return new Set(sortedData.map((item) => item.business_id));
+    }
+
+    let resultKeys = new Set<string>();
+    if (searchTerm) {
+      for (const item of sortedData) {
+        if ((selectedKeys as Set<string>).has(item.business_id)) {
+          resultKeys.add(item.business_id);
+        }
+      }
+    } else {
+      resultKeys = new Set(Array.from(selectedKeys as Set<string>));
+    }
+    return resultKeys;
+  }, [selectedKeys, sortedData, searchTerm]);
+
+  /** ✅ Selection Change Handler */
+  const handleSelectionChange = useMemoizedCallback((keys: Selection) => {
+    if (keys === 'all') {
+      const filteredKeys = new Set(sortedData.map((item) => item.business_id));
+      setSelectedKeys(filteredKeys);
+    } else {
+      setSelectedKeys(new Set(keys as Set<string>));
+    }
+  });
 
   return (
-    <div className="p-4">
-      {/* ✅ Search Input */}
-      <Input
-        className="mb-4"
-        placeholder="Search by company name..."
-        startContent={<SearchIcon width={16} />}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-
-      <Table
-        isHeaderSticky
-        aria-label="Example table with infinite pagination"
-        baseRef={scrollerRef}
-        bottomContent={
-          hasMore ? (
-            <div className="flex w-full justify-center">
-              <Spinner ref={loaderRef} color="white" />
-            </div>
-          ) : null
-        }
-        classNames={{
-          base: "max-h-[520px] overflow-scroll",
-          table: "min-h-[400px]",
-        }}
-        selectionMode="multiple"
-        selectedKeys={selectedKeys}
-        onSelectionChange={setSelectedKeys}
-      >
-        <TableHeader>
-          <TableColumn key="company_name" onClick={() => setSortKey("company_name")}>
-            Name
-          </TableColumn>
-          <TableColumn key="business_id" onClick={() => setSortKey("business_id")}>
-            Business ID
-          </TableColumn>
-          <TableColumn key="industry_description" onClick={() => setSortKey("industry_description")}>
-            Industry
-          </TableColumn>
-          <TableColumn key="latitude_wgs84" onClick={() => setSortKey("latitude_wgs84")}>
-            Latitude
-          </TableColumn>
-          <TableColumn key="longitude_wgs84" onClick={() => setSortKey("longitude_wgs84")}>
-            Longitude
-          </TableColumn>
-        </TableHeader>
-        <TableBody
-          isLoading={isLoading}
-          items={filteredData}
-          emptyContent="No results found"
-          loadingContent={<Spinner />}
-          loadingState={isLoading ? "loading" : "idle"}
-        >
-          {(item) => (
-            <TableRow key={item.business_id}>
-              <TableCell>{item.company_name}</TableCell>
-              <TableCell>{item.business_id}</TableCell>
-              <TableCell>{item.industry_description}</TableCell>
-              <TableCell>{item.latitude_wgs84}</TableCell>
-              <TableCell>{item.longitude_wgs84}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      {/* ✅ Pagination */}
-      <div className="flex justify-center mt-4">
-        <Pagination
-          showControls
-          showShadow
-          color="primary"
-          page={currentPage}
-          total={totalPages}
-          onChange={onPageChange}
+    <>
+      <div className="p-2">
+        <TableToolbar
+          searchTerm={searchTerm}
+          onSearch={setSearchTerm}
+          selectedKeys={filterSelectedKeys} // ✅ Ensure `TableToolbar` supports this
         />
+
+        <Table
+          isHeaderSticky
+          aria-label="Sortable & Selectable Table"
+          classNames={{
+            base: 'max-h-[520px] overflow-scroll',
+            table: 'min-h-[400px]',
+          }}
+          selectionMode="multiple"
+          selectedKeys={filterSelectedKeys}
+          onSelectionChange={handleSelectionChange}
+        >
+          {/* ✅ Clickable Table Header for Sorting */}
+          <TableHeader>
+            {columns.map(({ key, label }) => (
+              <TableColumn key={key} onClick={() => toggleSort(key)} className="cursor-pointer">
+                {label}{' '}
+                {sortDescriptor.column === key
+                  ? sortDescriptor.direction === 'asc'
+                    ? '▲'
+                    : '▼'
+                  : ''}
+              </TableColumn>
+            ))}
+          </TableHeader>
+
+          {/* ✅ Sorted & Selectable Table Body */}
+          <TableBody isLoading={isLoading} loadingState={isLoading ? 'loading' : 'idle'}>
+            {sortedData.length > 0 ? (
+              sortedData.map((item) => (
+                <TableRow key={item.business_id}>
+                  {columns.map((col) => (
+                    <TableCell key={col.key}>{String(item[col.key as keyof Business])}</TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  No data available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        <div className="flex justify-center mt-4">
+          <Pagination
+            showControls
+            showShadow
+            color="primary"
+            page={currentPage}
+            total={totalPages}
+            onChange={onPageChange}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

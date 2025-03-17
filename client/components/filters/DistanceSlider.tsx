@@ -47,7 +47,7 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
     const maxDistance = range?.max ?? 100; // Default max distance 100 km
 
     const rangePips = React.useMemo(() => {
-      const totalPips = 25; // Number of pips to display
+      const totalPips = 15; // Number of pips to display
       return Array.from({ length: totalPips }, (_, i) => {
         const pipValue = (i / (totalPips - 1)) * maxDistance; // Scale pips along the range
         const isInRange = pipValue <= value;
