@@ -2,6 +2,8 @@
 
 import { useFetchCompanies } from '@/components/hooks/useFetchData';
 import TableView from '@/components/table/TableView';
+import type { TableColumnConfig } from '@/components/table/tableConfig';
+import { columns as allColumns } from '@/components/table/tableConfig';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { Business } from '@/types/business';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
@@ -11,6 +13,10 @@ import useSWR from 'swr';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const getVisibleColumns = (columns: TableColumnConfig[]): TableColumnConfig[] => {
+  return columns.filter((column) => column.visible);
+};
 
 export default function HomePage() {
   const searchParams = useSearchParams();
@@ -62,6 +68,9 @@ export default function HomePage() {
   // ✅ Search Query State
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ✅ Generate Columns Dynamically
+  const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
+
   return (
     <div className="p-2">
       {/* ✅ Search Input */}
@@ -90,13 +99,7 @@ export default function HomePage() {
       {/* ✅ Table View with Improved Selection Handling */}
       <TableView
         data={paginatedData}
-        columns={[
-          { key: 'company_name', label: 'Company Name' },
-          { key: 'business_id', label: 'Business ID' },
-          { key: 'industry_description', label: 'Industry' },
-          { key: 'latitude_wgs84', label: 'Latitude' },
-          { key: 'longitude_wgs84', label: 'Longitude' },
-        ]}
+        columns={visibleColumns}
         currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}

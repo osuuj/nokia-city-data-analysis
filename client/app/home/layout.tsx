@@ -5,7 +5,7 @@ import { GithubIcon } from '@/components/icons/Icons';
 import HomeFooter from '@/components/layout/HomeFooter';
 import SidebarWrapper from '@/components/sidebar/SidebarWrapper';
 import { siteConfig } from '@/config/site';
-import { Button, Link, cn } from '@heroui/react';
+import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
@@ -13,7 +13,7 @@ import { useMediaQuery } from 'usehooks-ts';
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const isCompact = isCollapsed || isMobile; // ✅ Now available here
+  const isCompact = isCollapsed || isMobile;
 
   const onToggle = () => {
     setIsCollapsed((prev) => !prev);
@@ -25,16 +25,11 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       <SidebarWrapper isCollapsed={isCollapsed} onToggle={onToggle} />
 
       {/* ✅ Main Content */}
-      <div className="flex-1 flex flex-col p-4 max-w-[calc(100vw-80px)]">
+      <div className="flex-1 flex flex-col transition-all duration-300 min-w-0">
         {/* ✅ HEADER */}
-        <header
-          className={cn(
-            'flex items-center justify-between w-full transition-all duration-300',
-            !isCompact ? 'pl-72 md:pl-64 sm:pl-56' : 'pl-16',
-          )}
-        >
+        <header className="flex items-center justify-between w-full transition-all duration-300 p-4 border-b border-divider">
           {/* ✅ Sidebar Toggle (Left) - Moves when screen shrinks */}
-          <div className="flex items-center flex-shrink-0 sm:hidden md:flex transition-all duration-300">
+          <div className="flex items-center flex-shrink-0 md:flex transition-all duration-300">
             <Button isIconOnly size="sm" variant="light" onPress={onToggle}>
               <Icon
                 className="text-default-500"

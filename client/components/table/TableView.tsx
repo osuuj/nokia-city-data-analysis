@@ -84,8 +84,17 @@ export default function TableView({
       <Table
         isHeaderSticky
         aria-label="Sortable Table"
-        className="w-full max-w-full overflow-x-auto"
-        topContent={<TableToolbar searchTerm={searchTerm} onSearch={setSearchTerm} />}
+        classNames={{
+          base: 'max-w-full overflow-x-auto md:overflow-visible h-[750px]',
+          wrapper: 'w-full responsive-custom-class',
+          table: 'min-w-full w-auto sm:w-full',
+          thead: 'responsive-header-class',
+          td: 'text-base md:text-sm sm:text-xs w-auto',
+          th: 'text-base md:text-sm sm:text-xs w-auto',
+        }}
+        topContent={
+          <TableToolbar searchTerm={searchTerm} onSearch={setSearchTerm} selectedKeys={new Set()} />
+        }
         topContentPlacement="outside"
         bottomContent={bottomContent}
         bottomContentPlacement="outside"
@@ -96,7 +105,7 @@ export default function TableView({
             <TableColumn
               key={key}
               onClick={() => toggleSort(key)}
-              className="cursor-pointer whitespace-nowrap min-w-[150px] px-2"
+              className="cursor-pointer min-w-[60px] sm:min-w-[80px] md:min-w-[100px] lg:min-w-[120px] xl:min-w-[150px] px-2"
             >
               {label}{' '}
               {sortDescriptor.column === key
