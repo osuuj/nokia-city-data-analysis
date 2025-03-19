@@ -1,8 +1,8 @@
 'use client';
 
-import { useCompanyStore } from '@/app/state/useCompanyStore';
 import { useFetchCompanies } from '@/components/hooks/useFetchData';
 import TableView from '@/components/table/TableView';
+import { useCompanyStore } from '@/store/useCompanyStore';
 import type { Business } from '@/types/business';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import { useRouter, useSearchParams } from 'next/navigation';

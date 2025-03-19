@@ -1,11 +1,9 @@
 'use client';
 
 import type { RadioProps } from '@heroui/react';
-
-import { VisuallyHidden, useRadio, useRadioGroupContext } from '@heroui/react';
-import { cn } from '@heroui/react';
+import { VisuallyHidden, cn, useRadio, useRadioGroupContext } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const RatingRadioItem = React.forwardRef<HTMLInputElement, RadioProps>((props, ref) => {
   const {
@@ -18,62 +16,28 @@ const RatingRadioItem = React.forwardRef<HTMLInputElement, RadioProps>((props, r
 
   const groupContext = useRadioGroupContext();
 
-  const isSelected =
-    isSelfSelected || Number(groupContext.groupState.selectedValue) >= Number(props.value);
-  const isReadOnly = groupContext.groupState.isReadOnly;
-  const size = props.size || groupContext.size || 'md';
-  const color = props.color || groupContext.color || 'primary';
+  const isSelected = useMemo(
+    () => isSelfSelected || Number(groupContext.groupState.selectedValue) >= Number(props.value),
+    [isSelfSelected, groupContext.groupState.selectedValue, props.value],
+  );
 
-  const starWidth = React.useMemo(() => {
-    switch (size) {
-      case 'sm':
-        return 16;
-      case 'md':
-        return 24;
-      case 'lg':
-        return 32;
-    }
-  }, [size]);
-
-  const starColor = React.useMemo(() => {
-    switch (color) {
-      case 'primary':
-        return 'text-primary';
-      case 'secondary':
-        return 'text-secondary';
-      case 'success':
-        return 'text-success';
-      case 'warning':
-        return 'text-warning';
-      case 'danger':
-        return 'text-danger';
-      default:
-        return 'text-primary';
-    }
-  }, [color]);
-
-  const baseProps = getBaseProps();
+  const starWidth = useMemo(() => {
+    return { sm: 16, md: 24, lg: 32 }[props.size || groupContext.size || 'md'];
+  }, [props.size, groupContext.size]);
 
   return (
     <Component
-      {...baseProps}
+      {...getBaseProps()}
       ref={ref}
-      className={cn(baseProps.className, {
-        'cursor-default': isReadOnly,
+      className={cn(getBaseProps().className, {
+        'cursor-default': groupContext.groupState.isReadOnly,
       })}
     >
       <VisuallyHidden>
         <input {...getInputProps()} />
       </VisuallyHidden>
       <Icon
-        className={cn(
-          'pointer-events-none transition-transform-colors',
-          isSelected ? starColor : 'text-default-200',
-          {
-            'ring-2 ring-focus ring-offset-2 ring-offset-content1': isFocusVisible,
-            'group-data-[pressed=true]:scale-90': !isReadOnly,
-          },
-        )}
+        className={cn(isSelected ? 'text-primary' : 'text-default-200')}
         icon="solar:star-bold"
         width={starWidth}
       />

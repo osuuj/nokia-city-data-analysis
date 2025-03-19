@@ -103,15 +103,21 @@ def construct_database_url(config: Dict[str, Any]) -> str:
     Returns:
         str: Database connection URL.
     """
-    db_config = config.get("db", {})
-    dbname = os.getenv("POSTGRES_DB", db_config.get("dbname", "default_db"))
-    user = os.getenv("POSTGRES_USER", db_config.get("user", "default_user"))
-    password = os.getenv(
-        "POSTGRES_PASSWORD", db_config.get("password", "default_password")
-    )
-    host = os.getenv("DB_HOST", db_config.get("host", "localhost"))
-    port = os.getenv("DB_PORT", db_config.get("port", "5432"))
-    return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+    db_url_local = os.getenv("DATABASE_URL_LOCAL")
+    db_url_docker = os.getenv("DATABASE_URL_DOCKER")
+
+    if os.getenv("ENV") == "development":
+        return (
+            db_url_local
+            if db_url_local
+            else "postgresql://default_user:default_password@localhost:5432/default_db"
+        )
+    else:
+        return (
+            db_url_docker
+            if db_url_docker
+            else "postgresql://default_user:default_password@postgres_db:5432/default_db"
+        )
 
 
 # Main configuration loader

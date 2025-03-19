@@ -5,7 +5,8 @@ import { SearchIcon } from '@heroui/shared-icons';
 export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
   return (
     <Input
-      className="sm:w-1/6"
+      className="w-1/6 min-w-[200px]"
+      size="sm"
       placeholder="Search company ..."
       startContent={<SearchIcon width={16} />}
       value={searchTerm}

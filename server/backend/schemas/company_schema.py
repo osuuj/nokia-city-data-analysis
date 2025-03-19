@@ -6,7 +6,7 @@
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -52,7 +52,7 @@ class NameSchema(BaseModel):
 class MainBusinessLineSchema(BaseModel):
     """Pydantic schema for Main Business Line entity."""
 
-    industry_code: Optional[str]
+    industry_code: Optional[int]
     industry_letter: Optional[str]
     industry: Optional[str]
     industry_description: Optional[str]
@@ -122,25 +122,28 @@ class CompanySituationSchema(BaseModel):
         from_attributes = True
 
 
-class CompanySchema(BaseModel):
-    """Pydantic schema for Company entity."""
+class BusinessData(BaseModel):
+    """Pydantic schema for Business Data entity."""
 
     business_id: str
+    street: Optional[str]
+    building_number: Optional[str]
+    entrance: Optional[str]
+    postal_code: Optional[str]
+    city: Optional[str]
+    latitude_wgs84: Optional[str]
+    longitude_wgs84: Optional[str]
+    address_type: Optional[str]
+    active: Optional[str]
+    company_name: Optional[str]
+    company_type: Optional[str]
+    industry_description: Optional[str]
+    industry_letter: Optional[str]
+    industry: Optional[str]
+    registration_date: Optional[str]
     website: Optional[str]
-    company_id_status: Optional[str]
-    trade_register_status: Optional[str]
-    registration_date: Optional[date]
-    end_date: Optional[date]
-    last_modified: Optional[date]
-    names: List[NameSchema] = []
-    addresses: List[AddressSchema] = []
-    main_business_lines: List[MainBusinessLineSchema] = []
-    registered_entries: List[RegisteredEntrySchema] = []
-    company_forms: List[CompanyFormSchema] = []
-    post_offices: List[PostOfficeSchema] = []
-    company_situations: List[CompanySituationSchema] = []
 
     class Config:
-        """Configuration for CompanySchema."""
+        """Configuration for BusinessData."""
 
         from_attributes = True

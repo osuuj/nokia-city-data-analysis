@@ -1,10 +1,10 @@
 'use client';
 
-import type { RangeFilter, RangeValue } from '@/components/utils/filtersTypes';
+import type { RangeFilter } from '@/components/utils/filtersTypes';
 import type { SliderProps } from '@heroui/react';
 
 import { Input, Slider, cn } from '@heroui/react';
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 export type DistanceSliderProps = Omit<SliderProps, 'ref'> & {
   range?: RangeFilter;
@@ -15,19 +15,11 @@ function clampValue(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function scaleValue(value: number, fromRange: RangeValue, toRange: RangeValue = [0, 100]) {
-  const [fromMin, fromMax] = fromRange;
-  const [toMin, toMax] = toRange;
-  const scale = (toMax - toMin) / (fromMax - fromMin);
-  return (value - fromMin) * scale + toMin;
-}
-
 const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange: boolean }> = ({
   index,
   totalPips,
   isInRange,
 }) => {
-  // Linearly scale the pip height from 30% to 100% based on position
   const height = `${clampValue((index / totalPips) * 100, 0, 100)}%`;
 
   return (
@@ -42,14 +34,13 @@ const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange:
 const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
   ({ range, className, ...props }, ref) => {
     const defaultValue = typeof range?.defaultValue === 'number' ? range.defaultValue : 0;
-    const [value, setValue] = React.useState<number>(defaultValue);
-
+    const [value, setValue] = useState<number>(defaultValue);
     const maxDistance = range?.max ?? 100; // Default max distance 100 km
 
-    const rangePips = React.useMemo(() => {
-      const totalPips = 15; // Number of pips to display
+    const rangePips = useMemo(() => {
+      const totalPips = 15;
       return Array.from({ length: totalPips }, (_, i) => {
-        const pipValue = (i / (totalPips - 1)) * maxDistance; // Scale pips along the range
+        const pipValue = (i / (totalPips - 1)) * maxDistance;
         const isInRange = pipValue <= value;
 
         return (
@@ -63,12 +54,15 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
       });
     }, [value, maxDistance]);
 
-    const onInputValueChange = (inputValue: string) => {
-      const newValue = Number(inputValue);
-      if (!Number.isNaN(newValue)) {
-        setValue(clampValue(newValue, 0, maxDistance));
-      }
-    };
+    const onInputValueChange = useCallback(
+      (inputValue: string) => {
+        const newValue = Number(inputValue);
+        if (!Number.isNaN(newValue)) {
+          setValue(clampValue(newValue, 0, maxDistance));
+        }
+      },
+      [maxDistance],
+    );
 
     return (
       <div className={cn('flex flex-col gap-3', className)}>
@@ -81,11 +75,11 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
             maxValue={maxDistance}
             step={range?.step || 1}
             value={value}
-            onChange={(value) => setValue(value as number)}
+            onChange={(val) => setValue(val as number)}
             size="sm"
           />
         </div>
-        <div className="w-24 text-sm ">
+        <div className="w-24 text-sm">
           <Input
             aria-label="Distance"
             labelPlacement="inside"

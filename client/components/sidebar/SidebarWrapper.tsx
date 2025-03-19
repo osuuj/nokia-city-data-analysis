@@ -18,8 +18,11 @@ export default function SidebarWrapper({
   return (
     <aside
       className={cn(
-        'relative flex h-full w-72 flex-col border-r border-divider p-6 transition-width',
-        { 'w-16 items-center px-2 py-6': isCompact },
+        'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
+        {
+          'w-72 md:w-52 sm:w-5 px-4': !isCompact, // ✅ Gradually shrink instead of jumping to `w-16`
+          'w-16 items-center px-2 py-6': isCompact, // ✅ Collapse only at 768px
+        },
       )}
     >
       <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>

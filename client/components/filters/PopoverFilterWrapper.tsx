@@ -1,7 +1,6 @@
 'use client';
 
 import type { PopoverProps } from '@heroui/react';
-
 import {
   Button,
   Divider,
@@ -11,7 +10,7 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
   title?: string;
@@ -21,6 +20,30 @@ export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
 const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
   ({ title, children, ...props }, ref) => {
     const { isOpen, onClose, onOpenChange } = useDisclosure();
+
+    // ✅ Restored: Auto-close popover on window resize
+    useEffect(() => {
+      const handleResize = () => {
+        if (isOpen) onClose();
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, [isOpen, onClose]);
+
+    // ✅ Restored: Close popover when ESC key is pressed
+    const handleKeyDown = useCallback(
+      (event: KeyboardEvent) => {
+        if (event.key === 'Escape' && isOpen) {
+          onClose();
+        }
+      },
+      [isOpen, onClose],
+    );
+
+    useEffect(() => {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     return (
       <Popover ref={ref} isOpen={isOpen} onOpenChange={onOpenChange} {...props}>

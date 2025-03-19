@@ -1,11 +1,11 @@
 'use client';
 import { TableToolbar } from '@/components/table/TableToolbar';
-import type { Business, TableViewProps } from '@/components/table/tableConfig';
-import { columns } from '@/components/table/tableConfig';
+import type { TableViewProps } from '@/components/table/tableConfig';
 import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
+import { useCompanyStore } from '@/store/useCompanyStore'; // ✅ Zustand for visible columns & selected rows
+import type { Business } from '@/types/business';
 import {
   Pagination,
-  type Selection,
   Table,
   TableBody,
   TableCell,
@@ -22,8 +22,9 @@ export default function TableView({
   onPageChange,
   isLoading,
 }: TableViewProps) {
+  const { visibleColumns } = useCompanyStore(); // ✅ Zustand to control which columns are shown
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<string>());
 
   // ✅ Sorting State
   const [sortDescriptor, setSortDescriptor] = useState<{
@@ -62,100 +63,70 @@ export default function TableView({
     });
   }, [filteredData, sortDescriptor]);
 
-  /** ✅ Selection Handling (Improved with Filters) */
-  const filterSelectedKeys = useMemo(() => {
-    if (selectedKeys === 'all') {
-      return new Set(sortedData.map((item) => item.business_id));
-    }
-
-    let resultKeys = new Set<string>();
-    if (searchTerm) {
-      for (const item of sortedData) {
-        if ((selectedKeys as Set<string>).has(item.business_id)) {
-          resultKeys.add(item.business_id);
-        }
-      }
-    } else {
-      resultKeys = new Set(Array.from(selectedKeys as Set<string>));
-    }
-    return resultKeys;
-  }, [selectedKeys, sortedData, searchTerm]);
-
-  /** ✅ Selection Change Handler */
-  const handleSelectionChange = useMemoizedCallback((keys: Selection) => {
-    if (keys === 'all') {
-      const filteredKeys = new Set(sortedData.map((item) => item.business_id));
-      setSelectedKeys(filteredKeys);
-    } else {
-      setSelectedKeys(new Set(keys as Set<string>));
-    }
-  });
+  const bottomContent = useMemo(
+    () => (
+      <div className="flex flex-col items-center justify-center gap-2 px-2 py-2 sm:flex-row">
+        <Pagination
+          showControls
+          showShadow
+          color="primary"
+          page={currentPage}
+          total={totalPages}
+          onChange={onPageChange}
+        />
+      </div>
+    ),
+    [currentPage, totalPages, onPageChange],
+  );
 
   return (
-    <>
-      <div className="p-2">
-        <TableToolbar
-          searchTerm={searchTerm}
-          onSearch={setSearchTerm}
-          selectedKeys={filterSelectedKeys} // ✅ Ensure `TableToolbar` supports this
-        />
+    <div className="h-full w-full p-6">
+      <Table
+        isHeaderSticky
+        aria-label="Sortable Table"
+        className="w-full max-w-full overflow-x-auto"
+        topContent={<TableToolbar searchTerm={searchTerm} onSearch={setSearchTerm} />}
+        topContentPlacement="outside"
+        bottomContent={bottomContent}
+        bottomContentPlacement="outside"
+      >
+        {/* ✅ Clickable Table Header for Sorting */}
+        <TableHeader>
+          {visibleColumns.map(({ key, label }) => (
+            <TableColumn
+              key={key}
+              onClick={() => toggleSort(key)}
+              className="cursor-pointer whitespace-nowrap min-w-[150px] px-2"
+            >
+              {label}{' '}
+              {sortDescriptor.column === key
+                ? sortDescriptor.direction === 'asc'
+                  ? '▲'
+                  : '▼'
+                : ''}
+            </TableColumn>
+          ))}
+        </TableHeader>
 
-        <Table
-          isHeaderSticky
-          aria-label="Sortable & Selectable Table"
-          classNames={{
-            base: 'max-h-[520px] overflow-scroll',
-            table: 'min-h-[400px]',
-          }}
-          selectionMode="multiple"
-          selectedKeys={filterSelectedKeys}
-          onSelectionChange={handleSelectionChange}
-        >
-          {/* ✅ Clickable Table Header for Sorting */}
-          <TableHeader>
-            {columns.map(({ key, label }) => (
-              <TableColumn key={key} onClick={() => toggleSort(key)} className="cursor-pointer">
-                {label}{' '}
-                {sortDescriptor.column === key
-                  ? sortDescriptor.direction === 'asc'
-                    ? '▲'
-                    : '▼'
-                  : ''}
-              </TableColumn>
-            ))}
-          </TableHeader>
-
-          {/* ✅ Sorted & Selectable Table Body */}
-          <TableBody isLoading={isLoading} loadingState={isLoading ? 'loading' : 'idle'}>
-            {sortedData.length > 0 ? (
-              sortedData.map((item) => (
-                <TableRow key={item.business_id}>
-                  {columns.map((col) => (
-                    <TableCell key={col.key}>{String(item[col.key as keyof Business])}</TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center">
-                  No data available
-                </TableCell>
+        {/* ✅ Sorted Table Body */}
+        <TableBody isLoading={isLoading} loadingState={isLoading ? 'loading' : 'idle'}>
+          {sortedData.length > 0 ? (
+            sortedData.map((item) => (
+              <TableRow key={item.business_id}>
+                {visibleColumns.map((col) => (
+                  <TableCell key={col.key}>{String(item[col.key as keyof Business])}</TableCell>
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-
-        <div className="flex justify-center mt-4">
-          <Pagination
-            showControls
-            showShadow
-            color="primary"
-            page={currentPage}
-            total={totalPages}
-            onChange={onPageChange}
-          />
-        </div>
-      </div>
-    </>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={visibleColumns.length} className="text-center">
+                No data available
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

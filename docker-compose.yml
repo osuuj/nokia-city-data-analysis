@@ -30,7 +30,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URI: ${DATABASE_URI}
+      DATABASE_URI: ${DATABASE_URL_DOCKER}
       ENV: ${ENV}
       CHUNK_SIZE: ${CHUNK_SIZE}
       API_URL: ${API_URL}
