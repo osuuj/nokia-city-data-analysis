@@ -9,4 +9,7 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY . /code/server
 
-CMD ["fastapi", "run", "server/backend/main.py", "--port", "8000"]
+# Expose the port for FastAPI
+EXPOSE 8000
+
+CMD ["uvicorn", "server.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

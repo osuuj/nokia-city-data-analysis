@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+build
+coverage
+.git
+.gitignore
+Dockerfile
+docker-compose.yml

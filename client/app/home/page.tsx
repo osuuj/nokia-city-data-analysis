@@ -1,128 +1,178 @@
 'use client';
+import { useDebounce } from '@/components/hooks/useDebounce';
+import { useFetchCompanies } from '@/components/hooks/useFetchData';
+import TableView from '@/components/table/TableView';
+import { useCompanyStore } from '@/store/useCompanyStore';
+import type { Business } from '@/types/business';
+import type { SortDescriptor } from '@/types/table';
+import { columns as allColumns } from '@/types/table';
+import { getDistanceInKm } from '@/utils/geo';
+import { getVisibleColumns } from '@/utils/table';
+import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import useSWR from 'swr';
 
-import { Avatar, Button, ScrollShadow, Spacer, useDisclosure } from '@heroui/react';
-import { Icon } from '@iconify/react';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-import { AcmeIcon } from '@/components/acme';
-import MapComponent from '@/components/map/map';
-import Sidebar from '@/components/sidebar';
-import SidebarDrawer from '@/components/sidebar-drawer';
-import { sectionItemsWithTeams } from '@/components/sidebar-items';
+export default function HomePage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { selectedCity, setSelectedCity } = useCompanyStore();
+  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
+  const userLocation = useCompanyStore((s) => s.userLocation);
+  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
 
-/**
- * 💡 TIP: You can use the usePathname hook from Next.js App Router to get the current pathname
- * and use it as the active key for the Sidebar component.
- *
- * ```tsx
- * import {usePathname} from "next/navigation";
- *
- * const pathname = usePathname();
- * const currentPath = pathname.split("/")?.[1]
- *
- * <Sidebar defaultSelectedKey="home" selectedKeys={[currentPath]} />
- * ```
- */
+  const query = decodeURIComponent(searchParams.get('city') || '');
 
-// Define Location interface
-interface Location {
-  name: string;
-  coordinates: [number, number]; // Ensure it's a tuple
-}
+  const { data, error, isFetching } = useFetchCompanies(selectedCity);
+  const { data: cities = [] } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
+    dedupingInterval: 1000 * 60 * 10,
+    revalidateOnFocus: false,
+  });
 
-// Define locations using the interface
-const locations: Location[] = [
-  { name: 'Location 1', coordinates: [-74.5, 40] },
-  { name: 'Location 2', coordinates: [-74.6, 40.2] },
-  { name: 'Location 3', coordinates: [-74.7, 40.4] },
-];
+  useEffect(() => {
+    if (query && query !== selectedCity) {
+      setSelectedCity(query);
+      setSearchTerm(''); // ✅ Clear search
+      setPage(1); // ✅ Reset to page 1
+    }
+  }, [query, selectedCity, setSelectedCity]);
 
-export default function Home() {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
+    column: 'company_name',
+    direction: 'asc',
+  });
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const rowsPerPage = 25;
 
-  const content = (
-    <div className="relative flex h-full w-72 flex-1 flex-col p-6">
-      <div className="flex items-center gap-2 px-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground">
-          <AcmeIcon className="text-background" />
-        </div>
-        <span className="text-small font-bold uppercase text-foreground">Acme</span>
-      </div>
-      <Spacer y={4} />
-      <div className="flex items-center gap-3 px-3">
-        <Avatar isBordered size="sm" src="https://i.pravatar.cc/150?u=a04258114e29026708c" />
-        <div className="flex flex-col">
-          <p className="text-small font-medium text-default-600">John Doe</p>
-          <p className="text-tiny text-default-400">Product Designer</p>
-        </div>
-      </div>
+  const uniqueBusinesses = useMemo(() => {
+    if (!data) return [];
+    const map = new Map<string, Business>();
+    for (const business of data) {
+      map.set(business.business_id, business);
+    }
+    return Array.from(map.values());
+  }, [data]);
 
-      <Spacer y={4} />
+  const filteredAndSortedBusinesses = useMemo(() => {
+    if (!uniqueBusinesses || isFetching) return [];
 
-      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
-        <Sidebar defaultSelectedKey="home" items={sectionItemsWithTeams} />
-      </ScrollShadow>
+    let filtered = uniqueBusinesses;
 
-      <Spacer y={4} />
-      <div className="mt-auto flex flex-col">
-        <Button
-          fullWidth
-          className="justify-start text-default-500 data-[hover=true]:text-foreground"
-          startContent={
-            <Icon className="text-default-500" icon="solar:info-circle-line-duotone" width={24} />
-          }
-          variant="light"
-        >
-          Help & Information
-        </Button>
-        {/* <Button
-          className="justify-start text-default-500 data-[hover=true]:text-foreground"
-          startContent={
-            <Icon
-              className="rotate-180 text-default-500"
-              icon="solar:minus-circle-line-duotone"
-              width={24}
-            />
-          }
-          variant="light"
-        >
-          Log Out
-        </Button> */}
-      </div>
-    </div>
-  );
+    // 🔍 Filter by search
+    if (debouncedSearchTerm) {
+      filtered = filtered.filter((item) =>
+        item.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
+      );
+    }
+
+    // 🔍 Filter by industry
+    if (selectedIndustries.length > 0) {
+      filtered = filtered.filter((item) => selectedIndustries.includes(item.industry_letter || ''));
+    }
+
+    // 📍 Filter by distance
+    if (userLocation && distanceLimit != null) {
+      filtered = filtered.filter((item) => {
+        const companyHasLocation = item.latitude_wgs84 && item.longitude_wgs84;
+        if (!companyHasLocation) return false;
+
+        const companyCoords = {
+          latitude: item.latitude_wgs84,
+          longitude: item.longitude_wgs84,
+        };
+
+        const distance = getDistanceInKm(userLocation, companyCoords);
+        return distance <= distanceLimit;
+      });
+    }
+
+    return filtered.sort((a, b) => {
+      const col = sortDescriptor.column;
+      const valA = a[col] ?? '';
+      const valB = b[col] ?? '';
+      const result = valA < valB ? -1 : valA > valB ? 1 : 0;
+      return sortDescriptor.direction === 'desc' ? -result : result;
+    });
+  }, [
+    uniqueBusinesses,
+    isFetching,
+    debouncedSearchTerm,
+    selectedIndustries,
+    sortDescriptor,
+    userLocation,
+    distanceLimit,
+  ]);
+
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredAndSortedBusinesses.slice(start, start + rowsPerPage);
+  }, [filteredAndSortedBusinesses, page]);
+
+  const totalPages = Math.ceil(filteredAndSortedBusinesses.length / rowsPerPage) || 1;
+
+  const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
 
   return (
-    <div className="flex h-dvh w-full">
-      <SidebarDrawer
-        className="!border-r-small border-divider"
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-      >
-        {content}
-      </SidebarDrawer>
-      <div className="w-full flex-1 flex-col p-4">
-        <header className="flex h-16 items-center gap-2 rounded-medium border-small border-divider px-4">
-          <Button isIconOnly className="flex sm:hidden" size="sm" variant="light" onPress={onOpen}>
-            <Icon
-              className="text-default-500"
-              height={24}
-              icon="solar:hamburger-menu-outline"
-              width={24}
-            />
-          </Button>
-          <h2 className="text-medium font-medium text-default-700">Overview</h2>
-        </header>
-        <main className="mt-4 h-full w-full overflow-hidden">
-          <div className="flex h-full w-full flex-col gap-4 rounded-medium border-small border-divider">
-            <div className="flex-1 flex flex-col">
-              <h1>My Mapbox Map</h1>
-              <div className="relative flex-1 w-full">
-                <MapComponent locations={locations} />
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+    <div className="md:p-2 p-1">
+      {/* ✅ Search Input */}
+      {cities.length > 0 && (
+        <Autocomplete
+          classNames={{
+            base: 'md:max-w-xs max-w-[30vw] min-w-[200px]',
+          }}
+          popoverProps={{
+            classNames: {
+              content: 'max-w-[40vw] md:max-w-xs',
+            },
+          }}
+          items={(cities as string[])
+            .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((city) => ({ name: city }))}
+          label="Search by city"
+          variant="underlined"
+          selectedKey={selectedCity}
+          onInputChange={setSearchQuery}
+          onSelectionChange={(selected) => {
+            if (typeof selected === 'string') {
+              setSelectedCity(selected);
+              router.replace(`/home?city=${encodeURIComponent(selected)}`);
+            }
+          }}
+        >
+          {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
+        </Autocomplete>
+      )}
+
+      {/* ✅ Feedback Messages */}
+      {error && (
+        <p className="text-red-500 text-sm mt-2">❌ Error fetching data: {error.message}</p>
+      )}
+
+      {isFetching && <p className="text-default-500 text-sm mt-2">⏳ Loading city data...</p>}
+
+      {!isFetching && filteredAndSortedBusinesses.length === 0 && (
+        <p className="text-default-500 text-sm mt-2">⚠️ No matching companies found.</p>
+      )}
+
+      {/* ✅ Table View with Improved Selection Handling */}
+      <TableView
+        data={paginatedData}
+        columns={visibleColumns}
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        isLoading={isFetching}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+      />
     </div>
   );
 }

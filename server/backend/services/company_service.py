@@ -1,10 +1,12 @@
-from typing import Dict, List
+from typing import List
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from server.backend.schemas.company_schema import BusinessData
 
-def get_business_data_by_city(db: Session, city: str) -> List[Dict]:
+
+def get_business_data_by_city(db: Session, city: str) -> List[BusinessData]:
     """Fetches business data for a given city using optimized queries.
 
     Args:
@@ -12,7 +14,7 @@ def get_business_data_by_city(db: Session, city: str) -> List[Dict]:
         city (str): Name of the city to filter businesses.
 
     Returns:
-        List[Dict]: List of business data records.
+        List[BusinessData]: List of business data records.
     """
     query = text(
         """
@@ -30,11 +32,14 @@ def get_business_data_by_city(db: Session, city: str) -> List[Dict]:
             b.company_name,
             b.company_type,
             COALESCE(ic.industry_description, '') AS industry_description,
+            COALESCE(ic.industry_letter, '') AS industry_letter,
+            COALESCE(ic.industry, '') AS industry,
+            COALESCE(CAST(ic.registration_date AS TEXT), '') AS registration_date,
             COALESCE(w.website, '') AS website  -- ✅ Handles NULL values in SQL
         FROM addresses a
         JOIN businesses b ON a.business_id = b.business_id
         LEFT JOIN LATERAL (
-            SELECT industry_description
+            SELECT industry_description, industry_letter, industry, registration_date
             FROM industry_classifications ic
             WHERE ic.business_id = a.business_id
             ORDER BY ic.registration_date DESC
@@ -51,4 +56,6 @@ def get_business_data_by_city(db: Session, city: str) -> List[Dict]:
         """
     )
     result = db.execute(query, {"city": city})
-    return [dict(row._mapping) for row in result]  # ✅ Faster dictionary conversion
+    return [
+        BusinessData(**row._mapping) for row in result
+    ]  # ✅ Convert to BusinessData objects

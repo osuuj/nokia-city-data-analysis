@@ -1,0 +1,51 @@
+query = text(
+        """
+        SELECT
+            a.business_id,
+            a.street,
+            a.building_number,
+            COALESCE(a.entrance, '') AS entrance,
+            CAST(a.postal_code AS TEXT) AS postal_code,
+            a.city,
+            CAST(a.latitude_wgs84 AS TEXT) AS latitude_wgs84,
+            CAST(a.longitude_wgs84 AS TEXT) AS longitude_wgs84,
+            a.address_type,
+            CAST(a.active AS TEXT) AS active,
+            b.company_name,
+            b.company_type,
+            COALESCE(ic.industry_description, '') AS industry_description,
+            COALESCE(w.website, '') AS website  -- ✅ Handles NULL values in SQL
+        FROM addresses a
+        JOIN businesses b ON a.business_id = b.business_id
+        LEFT JOIN LATERAL (
+            SELECT industry_description
+            FROM industry_classifications ic
+            WHERE ic.business_id = a.business_id
+            ORDER BY ic.registration_date DESC
+            LIMIT 1
+        ) ic ON true
+        LEFT JOIN LATERAL (
+            SELECT website
+            FROM websites w
+            WHERE w.business_id = a.business_id
+            ORDER BY w.registration_date DESC
+            LIMIT 1
+        ) w ON true
+        WHERE a.city = :city;
+        """
+
+        we should modify this because I want different values:Here is example what I get.
+         "business_id": "2434586-3",
+    "street": "Huvilakatu",
+    "building_number": "13-15",
+    "entrance": "b",
+    "postal_code": "150",
+    "city": "Nokia",
+    "latitude_wgs84": "60.155788",
+    "longitude_wgs84": "24.944342",
+    "address_type": "Visiting address",
+    "active": "true",
+    "company_name": "Korhonen Senioradvising Oy",
+    "company_type": "Company name",
+    "industry_description": "Business And Other Management Consultancy Activities",
+    "website": ""

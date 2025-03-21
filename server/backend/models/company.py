@@ -37,6 +37,11 @@ class MainBusinessLine(Base):
     __tablename__ = "industry_classifications"
     id = Column(Integer, primary_key=True, autoincrement=True)
     source = Column(Text, nullable=False)
+    industry_code = Column(Integer, nullable=False)
+    industry_letter = Column(Text, nullable=False)
+    industry = Column(Text, nullable=True)
+    industry_description = Column(Text, nullable=False)
+    registration_date = Column(Date, nullable=False)
     # Add other fields and relationships as needed
 
 

@@ -10,6 +10,7 @@
     "biome:fix": "biome check --fix ."
   },
   "dependencies": {
+    "@heroui/autocomplete": "^2.3.17",
     "@heroui/button": "2.2.13",
     "@heroui/code": "2.2.10",
     "@heroui/input": "2.4.13",
@@ -26,7 +27,6 @@
     "@heroui/theme": "2.4.9",
     "@react-aria/ssr": "3.9.7",
     "@react-aria/visually-hidden": "3.8.19",
-    "@tanstack/react-query": "^5.66.9",
     "clsx": "2.1.1",
     "framer-motion": "11.13.1",
     "intl-messageformat": "^10.5.0",
@@ -39,9 +39,12 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@eslint/js": "^9.21.0",
-    "@heroui/react": "^2.7.4",
+    "@heroui/react": "^2.7.5",
+    "@heroui/use-infinite-scroll": "^2.2.7",
     "@iconify/react": "^5.2.0",
+    "@react-stately/data": "^3.12.2",
     "@react-types/shared": "3.25.0",
+    "@tanstack/react-query": "^5.68.0",
     "@types/mapbox-gl": "^3.4.1",
     "@types/node": "20.5.7",
     "@types/react": "18.3.3",
@@ -49,10 +52,12 @@
     "autoprefixer": "10.4.19",
     "mapbox-gl": "^3.10.0",
     "postcss": "8.4.49",
+    "react-map-gl": "^8.0.1",
     "recharts": "^2.15.1",
     "tailwind-variants": "0.3.0",
     "tailwindcss": "3.4.16",
     "typescript": "^5.6.3",
-    "usehooks-ts": "^3.1.1"
+    "usehooks-ts": "^3.1.1",
+    "zustand": "^5.0.3"
   }
 }

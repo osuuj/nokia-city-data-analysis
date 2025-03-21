@@ -1,12 +1,11 @@
 import '@/styles/globals.css';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import type React from 'react';
 
-import { Providers } from './providers';
-
-import Footer from '@/components/footer';
-import Header from '@/components/navbar';
+import { Providers } from '@/app/context/Providers';
+import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import { fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
 
@@ -27,15 +26,23 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning lang="en">
-      <head />
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        <Script id="theme-loader" strategy="beforeInteractive">
+          {`
+            (function() {
+              const theme = localStorage.getItem('theme') || 'dark';
+              document.documentElement.setAttribute('data-theme', theme);
+            })();
+          `}
+        </Script>
+      </head>
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
-        <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </div>
+        <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>
       </body>
     </html>
