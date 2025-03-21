@@ -1,5 +1,5 @@
 'use client';
-
+import { useDebounce } from '@/components/hooks/useDebounce';
 import { useFetchCompanies } from '@/components/hooks/useFetchData';
 import TableView from '@/components/table/TableView';
 import type { TableColumnConfig } from '@/components/table/tableConfig';
@@ -22,6 +22,7 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { selectedCity, setSelectedCity } = useCompanyStore();
+  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
 
   // ✅ Get city from URL and decode safely
   const query = decodeURIComponent(searchParams.get('city') || '');
@@ -39,6 +40,8 @@ export default function HomePage() {
   useEffect(() => {
     if (query && query !== selectedCity) {
       setSelectedCity(query);
+      setSearchTerm(''); // ✅ Clear search
+      setPage(1); // ✅ Reset to page 1
     }
   }, [query, selectedCity, setSelectedCity]);
 
@@ -52,18 +55,53 @@ export default function HomePage() {
     return Array.from(map.values());
   }, [data]);
 
-  // ✅ Pagination State
+  // ✅ useState
+  const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [sortDescriptor, setSortDescriptor] = useState<{
+    column: keyof Business;
+    direction: 'asc' | 'desc';
+  }>({
+    column: 'company_name',
+    direction: 'asc',
+  });
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const rowsPerPage = 25;
 
-  // ✅ Paginate Data Efficiently
+  const filteredAndSortedBusinesses = useMemo(() => {
+    if (!uniqueBusinesses || isFetching) return [];
+
+    let filtered = uniqueBusinesses;
+
+    // 🔍 Filter by search
+    if (debouncedSearchTerm) {
+      filtered = filtered.filter((item) =>
+        item.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
+      );
+    }
+
+    // 🔍 Filter by industry
+    if (selectedIndustries.length > 0) {
+      filtered = filtered.filter((item) => selectedIndustries.includes(item.industry || ''));
+    }
+
+    // ✅ Sort
+    return [...filtered].sort((a, b) => {
+      const col = sortDescriptor.column;
+      const valA = a[col] ?? '';
+      const valB = b[col] ?? '';
+      const result = valA < valB ? -1 : valA > valB ? 1 : 0;
+      return sortDescriptor.direction === 'desc' ? -result : result;
+    });
+  }, [uniqueBusinesses, debouncedSearchTerm, selectedIndustries, sortDescriptor, isFetching]);
+
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
-    return uniqueBusinesses.slice(start, start + rowsPerPage);
-  }, [uniqueBusinesses, page]);
+    return filteredAndSortedBusinesses.slice(start, start + rowsPerPage);
+  }, [filteredAndSortedBusinesses, page]);
 
-  // ✅ Compute Total Pages
-  const totalPages = Math.ceil(uniqueBusinesses.length / rowsPerPage) || 1;
+  const totalPages = Math.ceil(filteredAndSortedBusinesses.length / rowsPerPage) || 1;
 
   // ✅ Search Query State
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,10 +110,17 @@ export default function HomePage() {
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
 
   return (
-    <div className="p-2">
+    <div className="md:p-2 p-1">
       {/* ✅ Search Input */}
       <Autocomplete
-        className="max-w-xs"
+        classNames={{
+          base: 'md:max-w-xs max-w-[30vw] min-w-[200px]',
+        }}
+        popoverProps={{
+          classNames: {
+            content: 'max-w-[40vw] md:max-w-xs',
+          },
+        }}
         items={(cities as string[])
           .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
           .map((city) => ({ name: city }))}
@@ -93,8 +138,16 @@ export default function HomePage() {
         {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
       </Autocomplete>
 
-      {/* ✅ Error Handling */}
-      {error && <p className="text-red-500">❌ Error fetching data: {error.message}</p>}
+      {/* ✅ Feedback Messages */}
+      {error && (
+        <p className="text-red-500 text-sm mt-2">❌ Error fetching data: {error.message}</p>
+      )}
+
+      {isFetching && <p className="text-default-500 text-sm mt-2">⏳ Loading city data...</p>}
+
+      {!isFetching && filteredAndSortedBusinesses.length === 0 && (
+        <p className="text-default-500 text-sm mt-2">⚠️ No matching companies found.</p>
+      )}
 
       {/* ✅ Table View with Improved Selection Handling */}
       <TableView
@@ -104,6 +157,10 @@ export default function HomePage() {
         totalPages={totalPages}
         onPageChange={setPage}
         isLoading={isFetching}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
       />
     </div>
   );

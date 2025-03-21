@@ -1,52 +1,21 @@
 'use client';
 
 import type { PopoverProps } from '@heroui/react';
-import {
-  Button,
-  Divider,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  useDisclosure,
-} from '@heroui/react';
+import { Button, Divider, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React, { useCallback, useEffect } from 'react';
+import React from 'react';
 
 export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
   title?: string;
   children: React.ReactNode;
+  onApply?: () => void;
+  onCancel?: () => void;
 };
 
 const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
-  ({ title, children, ...props }, ref) => {
-    const { isOpen, onClose, onOpenChange } = useDisclosure();
-
-    // ✅ Restored: Auto-close popover on window resize
-    useEffect(() => {
-      const handleResize = () => {
-        if (isOpen) onClose();
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, [isOpen, onClose]);
-
-    // ✅ Restored: Close popover when ESC key is pressed
-    const handleKeyDown = useCallback(
-      (event: KeyboardEvent) => {
-        if (event.key === 'Escape' && isOpen) {
-          onClose();
-        }
-      },
-      [isOpen, onClose],
-    );
-
-    useEffect(() => {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-
+  ({ title, children, onApply, onCancel, ...props }, ref) => {
     return (
-      <Popover ref={ref} isOpen={isOpen} onOpenChange={onOpenChange} {...props}>
+      <Popover ref={ref} {...props}>
         <PopoverTrigger>
           <Button
             className="bg-default-100 text-default-800"
@@ -56,15 +25,14 @@ const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapp
             {title}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="flex max-w-xs flex-col items-start gap-2 px-4 pt-4">
-          <span className="mb-2 text-medium font-medium text-default-600">{title}</span>
-          <div className="w-full px-2">{children}</div>
-          <Divider className="mt-3 bg-default-100" />
+        <PopoverContent className="flex max-w-xs flex-col items-start gap-1 md:gap-2 px-1 pt-2 md:px-2 md:pt-4">
+          <div className="w-full px-1 md:px-2">{children}</div>
+          <Divider className="mt-1 md:mt-2 bg-default-100" />
           <div className="flex w-full justify-end gap-2 py-2">
-            <Button size="sm" variant="flat" onPress={onClose}>
+            <Button size="sm" variant="flat" onPress={onCancel}>
               Cancel
             </Button>
-            <Button color="primary" size="sm" variant="flat" onPress={onClose}>
+            <Button color="primary" size="sm" variant="flat" onPress={onApply}>
               Apply
             </Button>
           </div>

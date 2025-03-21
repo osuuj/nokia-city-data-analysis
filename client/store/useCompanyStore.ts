@@ -3,11 +3,11 @@ import type { Business, CompanyStore } from '@/types/business';
 import { create } from 'zustand';
 
 export const useCompanyStore = create<CompanyStore>((set) => ({
-  // City selection
+  // ✅ City selection
   selectedCity: '',
   setSelectedCity: (city: string) => set({ selectedCity: city }),
 
-  // Row selection logic
+  // ✅ Row selection
   selectedRows: {},
   toggleRow: (business: Business) =>
     set((state) => {
@@ -21,8 +21,8 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
     }),
   clearSelection: () => set({ selectedRows: {} }),
 
-  // Column visibility logic
-  visibleColumns: columns.filter((col) => col.visible), // Initialize from config
+  // ✅ Column visibility
+  visibleColumns: columns.filter((col) => col.visible),
   toggleColumnVisibility: (key) =>
     set((state) => {
       const updatedColumns = state.visibleColumns.some((col) => col.key === key)
@@ -33,8 +33,20 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
               ? [columns.find((col) => col.key === key) as (typeof columns)[0]]
               : []),
           ];
-
       return { visibleColumns: updatedColumns };
     }),
   resetColumns: () => set({ visibleColumns: columns.filter((col) => col.visible) }),
+
+  // ✅ Industry filter state
+  selectedIndustries: [],
+  setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
+  toggleIndustry: (industry: string) =>
+    set((state) => {
+      const exists = state.selectedIndustries.includes(industry);
+      const updated = exists
+        ? state.selectedIndustries.filter((i) => i !== industry)
+        : [...state.selectedIndustries, industry];
+      return { selectedIndustries: updated };
+    }),
+  clearIndustries: () => set({ selectedIndustries: [] }),
 }));

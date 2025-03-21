@@ -20,14 +20,14 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen flex-row w-full overflow-hidden">
       {/* ✅ Sidebar */}
       <SidebarWrapper isCollapsed={isCollapsed} onToggle={onToggle} />
 
       {/* ✅ Main Content */}
-      <div className="flex-1 flex flex-col transition-all duration-300 min-w-0">
+      <div className="flex-1 flexflex-grow transition-all duration-300 min-w-0 h-full">
         {/* ✅ HEADER */}
-        <header className="flex items-center justify-between w-full transition-all duration-300 p-4 border-b border-divider">
+        <header className="flex items-center justify-between w-full transition-all duration-300 border-b border-divider md:p-4 p-1">
           {/* ✅ Sidebar Toggle (Left) - Moves when screen shrinks */}
           <div className="flex items-center flex-shrink-0 md:flex transition-all duration-300">
             <Button isIconOnly size="sm" variant="light" onPress={onToggle}>
@@ -53,13 +53,10 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
 
         {/* ✅ MAIN CONTENT */}
         <Providers>
-          <main className="flex-1 mt-4 w-full overflow-x-auto">{children}</main>
+          <main className="flex-1 mt-1 w-full overflow-x-auto">{children}</main>
         </Providers>
 
-        {/* ✅ FOOTER */}
-        <div className="mt-auto">
-          <HomeFooter />
-        </div>
+        <HomeFooter />
       </div>
     </div>
   );

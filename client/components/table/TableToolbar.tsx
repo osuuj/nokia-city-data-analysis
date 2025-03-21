@@ -4,7 +4,7 @@ import { SearchInput } from '@/components/table/SearchInput';
 import { SortDropdown } from '@/components/table/SortDropdown';
 import type { ToolbarProps } from '@/components/table/tableConfig';
 import { Divider } from '@heroui/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 export function TableToolbar({
   searchTerm,
@@ -14,33 +14,17 @@ export function TableToolbar({
   setUseLocation,
   address,
   setAddress,
+  sortDescriptor,
+  setSortDescriptor,
 }: ToolbarProps) {
-  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
-    new Set([
-      'company_name',
-      'business_id',
-      'industry_description',
-      'latitude_wgs84',
-      'longitude_wgs84',
-    ]),
-  );
-
-  const [sortDescriptor, setSortDescriptor] = useState({
-    column: 'company_name',
-    direction: 'asc',
-  });
-
   return useMemo(
     () => (
-      <div className="flex items-center gap-4 overflow-x-auto w-full px-[6px] py-[4px] whitespace-nowrap">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center w-full min-h-14 whitespace-nowrap min-w-[240px]:overflow-x-hidden overflow-x-auto">
+        <div className="flex items-center gap-2">
           <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
           <Divider className="h-5" orientation="vertical" />
           <SortDropdown setSortDescriptor={setSortDescriptor} />
-          <ColumnVisibilityDropdown
-            visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
-          />
+          <ColumnVisibilityDropdown />
           <Divider className="h-5" orientation="vertical" />
           <FilterGroup
             useLocation={useLocation}
@@ -65,7 +49,7 @@ export function TableToolbar({
       setUseLocation,
       address,
       setAddress,
-      visibleColumns,
+      setSortDescriptor,
     ],
   );
 }

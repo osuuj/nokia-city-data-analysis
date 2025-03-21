@@ -26,9 +26,11 @@ export interface CompanyStore {
   selectedRows: Record<string, Business>;
   toggleRow: (business: Business) => void;
   clearSelection: () => void;
-
-  // Column visibility state
   visibleColumns: TableColumnConfig[];
   toggleColumnVisibility: (key: keyof Business) => void;
   resetColumns: () => void;
+  selectedIndustries: string[];
+  setSelectedIndustries: (values: string[]) => void;
+  toggleIndustry: (industry: string) => void;
+  clearIndustries: () => void;
 }

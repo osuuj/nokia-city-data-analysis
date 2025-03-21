@@ -2,7 +2,7 @@
 import { TableToolbar } from '@/components/table/TableToolbar';
 import type { TableViewProps } from '@/components/table/tableConfig';
 import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
-import { useCompanyStore } from '@/store/useCompanyStore'; // ✅ Zustand for visible columns & selected rows
+import { useCompanyStore } from '@/store/useCompanyStore';
 import type { Business } from '@/types/business';
 import {
   Pagination,
@@ -21,21 +21,15 @@ export default function TableView({
   totalPages,
   onPageChange,
   isLoading,
+  searchTerm,
+  setSearchTerm,
+  sortDescriptor,
+  setSortDescriptor,
 }: TableViewProps) {
-  const { visibleColumns } = useCompanyStore(); // ✅ Zustand to control which columns are shown
+  const { visibleColumns } = useCompanyStore();
+  const [useLocation, setUseLocation] = useState(false);
+  const [address, setAddress] = useState('');
 
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // ✅ Sorting State
-  const [sortDescriptor, setSortDescriptor] = useState<{
-    column: keyof Business;
-    direction: 'asc' | 'desc';
-  }>({
-    column: 'company_name',
-    direction: 'asc',
-  });
-
-  /** ✅ Toggle Sorting */
   const toggleSort = useMemoizedCallback((key: keyof Business) => {
     setSortDescriptor((prev) => ({
       column: key,
@@ -51,22 +45,18 @@ export default function TableView({
     );
   }, [data, searchTerm]);
 
-  /** ✅ Sorted Data Before Pagination */
-  const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
-      const col = sortDescriptor.column;
-      const valueA = a[col];
-      const valueB = b[col];
-
-      const compareResult = valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
-      return sortDescriptor.direction === 'desc' ? -compareResult : compareResult;
-    });
-  }, [filteredData, sortDescriptor]);
-
   const bottomContent = useMemo(
     () => (
-      <div className="flex flex-col items-center justify-center gap-2 px-2 py-2 sm:flex-row">
+      <div className="flex flex-col items-center justify-center gap-2 px-2 py-2">
         <Pagination
+          disableCursorAnimation={true}
+          classNames={{
+            base: 'text-sm gap-1',
+            item: 'w-8 h-8 md:w-10 md:h-10',
+            cursor: 'w-8 h-8 md:w-10 md:h-10', // Add explicit padding
+            next: 'w-8 h-8 md:w-10 md:h-10',
+            prev: 'w-8 h-8 md:w-10 md:h-10',
+          }}
           showControls
           showShadow
           color="primary"
@@ -80,20 +70,31 @@ export default function TableView({
   );
 
   return (
-    <div className="h-full w-full p-6">
+    <div className="h-full w-full p-1 md:p-2">
       <Table
         isHeaderSticky
+        selectionMode="multiple"
         aria-label="Sortable Table"
         classNames={{
-          base: 'max-w-full overflow-x-auto md:overflow-visible h-[750px]',
-          wrapper: 'w-full responsive-custom-class',
+          base: 'max-w-full overflow-x-auto overflow-y-hidden md:h-[780px] h-[800px]',
+          wrapper: 'w-full',
           table: 'min-w-full w-auto sm:w-full',
-          thead: 'responsive-header-class',
-          td: 'text-base md:text-sm sm:text-xs w-auto',
-          th: 'text-base md:text-sm sm:text-xs w-auto',
+
+          td: 'md:text-sm text-xs w-auto',
+          th: 'md:text-sm text-xs w-auto',
         }}
         topContent={
-          <TableToolbar searchTerm={searchTerm} onSearch={setSearchTerm} selectedKeys={new Set()} />
+          <TableToolbar
+            searchTerm={searchTerm}
+            onSearch={setSearchTerm}
+            selectedKeys={new Set()}
+            useLocation={useLocation} // ✅ Added
+            setUseLocation={setUseLocation} // ✅ Added
+            address={address} // ✅ Added
+            setAddress={setAddress} // ✅ Added
+            sortDescriptor={sortDescriptor}
+            setSortDescriptor={setSortDescriptor}
+          />
         }
         topContentPlacement="outside"
         bottomContent={bottomContent}
@@ -102,12 +103,8 @@ export default function TableView({
         {/* ✅ Clickable Table Header for Sorting */}
         <TableHeader>
           {visibleColumns.map(({ key, label }) => (
-            <TableColumn
-              key={key}
-              onClick={() => toggleSort(key)}
-              className="cursor-pointer min-w-[60px] sm:min-w-[80px] md:min-w-[100px] lg:min-w-[120px] xl:min-w-[150px] px-2"
-            >
-              {label}{' '}
+            <TableColumn key={key} onClick={() => toggleSort(key)}>
+              {label}
               {sortDescriptor.column === key
                 ? sortDescriptor.direction === 'asc'
                   ? '▲'
@@ -119,8 +116,8 @@ export default function TableView({
 
         {/* ✅ Sorted Table Body */}
         <TableBody isLoading={isLoading} loadingState={isLoading ? 'loading' : 'idle'}>
-          {sortedData.length > 0 ? (
-            sortedData.map((item) => (
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
               <TableRow key={item.business_id}>
                 {visibleColumns.map((col) => (
                   <TableCell key={col.key}>{String(item[col.key as keyof Business])}</TableCell>
