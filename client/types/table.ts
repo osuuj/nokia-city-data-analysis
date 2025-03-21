@@ -95,3 +95,7 @@ export interface SortDescriptor {
   column: keyof Business;
   direction: 'asc' | 'desc';
 }
+
+export interface SortDropdownProps {
+  setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
+}

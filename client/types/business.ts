@@ -1,4 +1,5 @@
-import type { TableColumnConfig } from '@/components/table/tableConfig';
+import type { TableColumnConfig } from '@/types/table';
+import type { Coordinates } from '@/utils/geo';
 
 export interface Business {
   business_id: string;
@@ -33,4 +34,8 @@ export interface CompanyStore {
   setSelectedIndustries: (values: string[]) => void;
   toggleIndustry: (industry: string) => void;
   clearIndustries: () => void;
+  userLocation: Coordinates | null;
+  setUserLocation: (coords: Coordinates | null) => void;
+  distanceLimit: number | null;
+  setDistanceLimit: (value: number | null) => void;
 }

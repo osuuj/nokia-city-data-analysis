@@ -1,19 +1,9 @@
 'use client';
 
-import type { RangeFilter } from '@/components/utils/filtersTypes';
-import type { SliderProps } from '@heroui/react';
-
+import type { DistanceSliderProps } from '@/types/filters';
+import { clampValue } from '@/utils/number';
 import { Input, Slider, cn } from '@heroui/react';
-import React, { useCallback, useMemo, useState } from 'react';
-
-export type DistanceSliderProps = Omit<SliderProps, 'ref'> & {
-  range?: RangeFilter;
-  animation?: 'opacity' | 'height';
-};
-
-function clampValue(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
+import React, { useCallback, useMemo } from 'react';
 
 const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange: boolean }> = ({
   index,
@@ -32,15 +22,11 @@ const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange:
 };
 
 const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
-  ({ range, className, ...props }, ref) => {
-    const defaultValue = typeof range?.defaultValue === 'number' ? range.defaultValue : 0;
-    const [value, setValue] = useState<number>(defaultValue);
-    const maxDistance = range?.max ?? 100; // Default max distance 100 km
-
+  ({ className, value, onChange, minValue = 0, maxValue = 100, step = 1, ...props }, ref) => {
     const rangePips = useMemo(() => {
       const totalPips = 15;
       return Array.from({ length: totalPips }, (_, i) => {
-        const pipValue = (i / (totalPips - 1)) * maxDistance;
+        const pipValue = (i / (totalPips - 1)) * maxValue;
         const isInRange = pipValue <= value;
 
         return (
@@ -52,16 +38,16 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
           />
         );
       });
-    }, [value, maxDistance]);
+    }, [value, maxValue]);
 
     const onInputValueChange = useCallback(
       (inputValue: string) => {
         const newValue = Number(inputValue);
         if (!Number.isNaN(newValue)) {
-          setValue(clampValue(newValue, 0, maxDistance));
+          onChange(clampValue(newValue, minValue, maxValue));
         }
       },
-      [maxDistance],
+      [onChange, minValue, maxValue],
     );
 
     return (
@@ -71,17 +57,19 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
           <Slider
             {...props}
             ref={ref}
-            minValue={0}
-            maxValue={maxDistance}
-            step={range?.step || 1}
+            minValue={minValue}
+            maxValue={maxValue}
+            step={step}
             value={value}
-            onChange={(val) => setValue(val as number)}
+            onChange={(val) => onChange(val as number)}
             size="sm"
+            aria-label="Distance in kilometers"
           />
         </div>
         <div className="w-24 text-sm">
           <Input
-            aria-label="Distance"
+            aria-label="Distance input"
+            label="Distance"
             labelPlacement="inside"
             type="number"
             startContent={<p className="text-default-500 text-sm">km</p>}

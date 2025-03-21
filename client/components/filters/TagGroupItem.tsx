@@ -1,13 +1,9 @@
 'use client';
 
-import type { CheckboxProps } from '@heroui/react';
+import type { TagGroupItemProps } from '@/types/filters';
 import { Chip, VisuallyHidden, cn, useCheckbox } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React from 'react';
-
-export type TagGroupItemProps = Omit<CheckboxProps, 'icon'> & {
-  icon?: string;
-};
 
 const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
   ({ icon, size = 'md', ...props }, ref) => {

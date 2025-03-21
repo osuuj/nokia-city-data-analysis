@@ -1,4 +1,4 @@
-import type { SearchInputProps } from '@/components/table/tableConfig';
+import type { SearchInputProps } from '@/types/table';
 import { Input } from '@heroui/react';
 import { SearchIcon } from '@heroui/shared-icons';
 

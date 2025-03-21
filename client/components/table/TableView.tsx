@@ -1,9 +1,9 @@
 'use client';
 import { TableToolbar } from '@/components/table/TableToolbar';
-import type { TableViewProps } from '@/components/table/tableConfig';
 import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { Business } from '@/types/business';
+import type { TableViewProps } from '@/types/table';
 import {
   Pagination,
   Table,
@@ -29,6 +29,7 @@ export default function TableView({
   const { visibleColumns } = useCompanyStore();
   const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
 
   const toggleSort = useMemoizedCallback((key: keyof Business) => {
     setSortDescriptor((prev) => ({
@@ -37,7 +38,6 @@ export default function TableView({
     }));
   });
 
-  /** ✅ Filtered Data */
   const filteredData = useMemo(() => {
     return (
       data?.filter((item) => item.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -83,11 +83,13 @@ export default function TableView({
           td: 'md:text-sm text-xs w-auto',
           th: 'md:text-sm text-xs w-auto',
         }}
+        selectedKeys={selectedKeys}
+        onSelectionChange={(keys) => setSelectedKeys(new Set(keys as Set<string>))}
         topContent={
           <TableToolbar
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
-            selectedKeys={new Set()}
+            selectedKeys={selectedKeys}
             useLocation={useLocation} // ✅ Added
             setUseLocation={setUseLocation} // ✅ Added
             address={address} // ✅ Added

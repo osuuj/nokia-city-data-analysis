@@ -1,12 +1,8 @@
 'use client';
 
-import type { RadioProps } from '@heroui/react';
-
-import { Tooltip, VisuallyHidden, useRadio } from '@heroui/react';
-import { cn } from '@heroui/react';
+import type { ColorRadioItemProps } from '@/types/filters';
+import { Tooltip, VisuallyHidden, cn, useRadio } from '@heroui/react';
 import React from 'react';
-
-export type ColorRadioItemProps = Omit<RadioProps, 'color'> & { color?: string; tooltip?: string };
 
 const ColorRadioItem = React.forwardRef<HTMLInputElement, ColorRadioItemProps>(
   ({ color, tooltip, ...props }, ref) => {

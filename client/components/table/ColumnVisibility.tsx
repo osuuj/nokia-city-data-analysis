@@ -1,12 +1,11 @@
-import { columns } from '@/components/table/tableConfig';
 import { useCompanyStore } from '@/store/useCompanyStore';
+import { columns } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
 export function ColumnVisibilityDropdown() {
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
   const toggleColumnVisibility = useCompanyStore((state) => state.toggleColumnVisibility);
-
   const selectedKeys = new Set(visibleColumns.map((col) => col.key));
 
   return (

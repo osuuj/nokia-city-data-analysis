@@ -3,9 +3,10 @@
 import DistanceSlider from '@/components/filters/DistanceSlider';
 import PopoverFilterWrapper from '@/components/filters/PopoverFilterWrapper';
 import TagGroupItem from '@/components/filters/TagGroupItem';
-import type { FilterGroupProps } from '@/components/table/tableConfig';
-import { filters } from '@/components/utils/filters';
 import { useCompanyStore } from '@/store/useCompanyStore';
+import type { FilterGroupProps } from '@/types/table';
+import { filters } from '@/utils/filters';
+import { requestBrowserLocation } from '@/utils/geo';
 import { CheckboxGroup, Input, Switch } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useEffect, useState } from 'react';
@@ -21,6 +22,11 @@ export default function FilterGroup({
   const industryFilter = filters.find((filter) => filter.key === 'industries');
   const toggleIndustry = useCompanyStore((s) => s.toggleIndustry);
   const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
+  const [draftDistance, setDraftDistance] = useState<number>(0);
+  const userLocation = useCompanyStore((s) => s.userLocation);
+  const setUserLocation = useCompanyStore((s) => s.setUserLocation);
+  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
+  const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
 
   useEffect(() => {
     if (useLocation) {
@@ -63,18 +69,34 @@ export default function FilterGroup({
       {/* Distance Filter */}
       <PopoverFilterWrapper
         title="Distance"
-        onApply={() => setSelectedIndustries(draftIndustries)}
-        onCancel={() => setDraftIndustries(selectedIndustries)}
+        onApply={() => {
+          setDistanceLimit(draftDistance);
+        }}
+        onCancel={() => {
+          setDraftDistance(distanceLimit ?? 30);
+        }}
       >
         <div className="flex flex-col gap-2">
           <Switch
             isSelected={useLocation}
-            onValueChange={(value: boolean) => {
-              if (typeof setUseLocation === 'function') {
-                console.log('Switch toggled, new value:', value);
-                setUseLocation(value); // ✅ This will only run if it's a function
+            onValueChange={async (value: boolean) => {
+              if (value) {
+                try {
+                  const coords = await requestBrowserLocation();
+                  console.log('User location:', coords);
+                  setUserLocation(coords);
+                  setUseLocation(true);
+                } catch (error) {
+                  console.error('Location error:', error);
+                  setUseLocation(false);
+                  setUserLocation(null);
+                  alert(
+                    'We couldn’t access your location. Please enable location access in your browser.',
+                  );
+                }
               } else {
-                console.error('setUseLocation is not a function', setUseLocation);
+                setUseLocation(false);
+                setUserLocation(null);
               }
             }}
             size="sm"
@@ -94,20 +116,20 @@ export default function FilterGroup({
               onChange={(e) => setAddress(e.target.value)}
             />
           )}
-          {useLocation && (
+          {useLocation && userLocation && (
             <DistanceSlider
               aria-label="Distance Filter"
-              range={{
-                min: 0,
-                defaultValue: [0, 30],
-                max: 30,
-                step: 1,
-              }}
-              classNames={{
-                base: 'py-1 md:py-2',
-                label: 'text-xs md:text-sm',
-              }}
+              minValue={0}
+              maxValue={30}
+              step={1}
+              value={draftDistance}
+              onChange={(val) => setDraftDistance(val as number)}
+              className="py-1 md:py-2 text-xs md:text-sm"
             />
+          )}
+
+          {useLocation && !userLocation && (
+            <p className="text-xs text-default-500">Waiting for location permission...</p>
           )}
         </div>
       </PopoverFilterWrapper>

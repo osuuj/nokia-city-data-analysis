@@ -10,6 +10,7 @@
     "biome:fix": "biome check --fix ."
   },
   "dependencies": {
+    "@heroui/autocomplete": "^2.3.17",
     "@heroui/button": "2.2.13",
     "@heroui/code": "2.2.10",
     "@heroui/input": "2.4.13",
@@ -38,7 +39,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@eslint/js": "^9.21.0",
-    "@heroui/react": "^2.7.4",
+    "@heroui/react": "^2.7.5",
     "@heroui/use-infinite-scroll": "^2.2.7",
     "@iconify/react": "^5.2.0",
     "@react-stately/data": "^3.12.2",

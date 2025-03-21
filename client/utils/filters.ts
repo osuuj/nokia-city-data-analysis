@@ -1,5 +1,5 @@
-import type { Filter } from '@/components/utils/filtersTypes';
-import { FilterTypeEnum } from '@/components/utils/filtersTypes';
+import type { Filter } from '@/types/filters';
+import { FilterTypeEnum } from '@/types/filters';
 
 export const filters: Filter[] = [
   {

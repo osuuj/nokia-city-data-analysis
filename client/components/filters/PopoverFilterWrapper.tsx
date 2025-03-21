@@ -1,21 +1,22 @@
 'use client';
 
-import type { PopoverProps } from '@heroui/react';
-import { Button, Divider, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import type { PopoverFilterWrapperProps } from '@/types/filters';
+import {
+  Button,
+  Divider,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  useDisclosure,
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React from 'react';
 
-export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
-  title?: string;
-  children: React.ReactNode;
-  onApply?: () => void;
-  onCancel?: () => void;
-};
-
 const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
   ({ title, children, onApply, onCancel, ...props }, ref) => {
+    const { isOpen, onOpenChange, onClose } = useDisclosure();
     return (
-      <Popover ref={ref} {...props}>
+      <Popover ref={ref} isOpen={isOpen} onOpenChange={onOpenChange} {...props}>
         <PopoverTrigger>
           <Button
             className="bg-default-100 text-default-800"
@@ -32,7 +33,15 @@ const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapp
             <Button size="sm" variant="flat" onPress={onCancel}>
               Cancel
             </Button>
-            <Button color="primary" size="sm" variant="flat" onPress={onApply}>
+            <Button
+              color="primary"
+              size="sm"
+              variant="flat"
+              onPress={() => {
+                onApply?.();
+                onClose();
+              }}
+            >
               Apply
             </Button>
           </div>

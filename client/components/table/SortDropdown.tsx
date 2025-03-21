@@ -1,15 +1,10 @@
-import type { SortDescriptor } from '@/components/table/tableConfig';
-import { columns } from '@/components/table/tableConfig';
 import type { Business } from '@/types/business';
+import type { SortDescriptor, SortDropdownProps } from '@/types/table';
+import { columns } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
-interface SortDropdownProps {
-  setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
-}
-
 export function SortDropdown({ setSortDescriptor }: SortDropdownProps) {
-  // ✅ Filter only columns where visible: false
   const hiddenColumns = columns.filter((col) => col.visible);
 
   return (

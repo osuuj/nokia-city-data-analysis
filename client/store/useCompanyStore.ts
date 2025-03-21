@@ -1,5 +1,5 @@
-import { columns } from '@/components/table/tableConfig';
 import type { Business, CompanyStore } from '@/types/business';
+import { columns } from '@/types/table';
 import { create } from 'zustand';
 
 export const useCompanyStore = create<CompanyStore>((set) => ({
@@ -49,4 +49,11 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedIndustries: updated };
     }),
   clearIndustries: () => set({ selectedIndustries: [] }),
+
+  // ✅ Location filter state
+  userLocation: null,
+  setUserLocation: (coords) => set({ userLocation: coords }),
+
+  distanceLimit: null,
+  setDistanceLimit: (value) => set({ distanceLimit: value }),
 }));
