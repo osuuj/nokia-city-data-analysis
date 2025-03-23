@@ -88,7 +88,15 @@ export function TableView({
           th: 'md:text-sm text-xs w-auto',
         }}
         selectedKeys={selectedKeys}
-        onSelectionChange={(keys) => setSelectedKeys(new Set(keys as Set<string>))}
+        onSelectionChange={(keys) => {
+          if (keys === 'all') {
+            // Select all filtered rows
+            const allKeys = new Set(filteredData.map((item) => item.business_id));
+            setSelectedKeys(allKeys);
+          } else {
+            setSelectedKeys(new Set(keys as Set<string>));
+          }
+        }}
         topContent={
           <TableToolbar
             searchTerm={searchTerm}
@@ -100,6 +108,7 @@ export function TableView({
             setAddress={setAddress}
             sortDescriptor={sortDescriptor}
             setSortDescriptor={setSortDescriptor}
+            setSelectedKeys={setSelectedKeys}
           />
         }
         topContentPlacement="outside"

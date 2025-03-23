@@ -8,7 +8,7 @@ import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterOption } from '@/types/filters';
 import type { ToolbarProps } from '@/types/table';
 import { filters } from '@/utils/filters';
-import { Chip, Divider } from '@heroui/react';
+import { Button, Chip, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useMemo } from 'react';
 
@@ -26,6 +26,7 @@ export function TableToolbar({
   setAddress,
   sortDescriptor,
   setSortDescriptor,
+  setSelectedKeys,
 }: ToolbarProps) {
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
@@ -63,6 +64,22 @@ export function TableToolbar({
                 ? 'All companies selected'
                 : `${selectedKeys instanceof Set ? selectedKeys.size : 0} companies selected`}
             </div>
+            <Button
+              size="sm"
+              variant="flat"
+              className="bg-default-100 text-default-800"
+              onPress={() => {
+                onSearch('');
+                setSelectedIndustries([]);
+                setDistanceLimit(null);
+                setUserLocation(null);
+                setUseLocation(false);
+                setAddress('');
+                setSelectedKeys(new Set());
+              }}
+            >
+              Reset Filters
+            </Button>
           </div>
         </div>
 
@@ -123,6 +140,7 @@ export function TableToolbar({
       distanceLimit,
       setDistanceLimit,
       setUserLocation,
+      setSelectedKeys,
     ],
   );
 }
