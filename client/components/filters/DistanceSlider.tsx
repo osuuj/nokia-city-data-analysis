@@ -21,7 +21,11 @@ const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange:
   );
 };
 
-const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
+/**
+ * DistanceSlider
+ * A combined slider + number input component for selecting distance in kilometers.
+ */
+export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
   ({ className, value, onChange, minValue = 0, maxValue = 100, step = 1, ...props }, ref) => {
     const rangePips = useMemo(() => {
       const totalPips = 15;
@@ -83,5 +87,3 @@ const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
 );
 
 DistanceSlider.displayName = 'DistanceSlider';
-
-export default DistanceSlider;

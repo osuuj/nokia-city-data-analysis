@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
 import type { Business } from '@/types/business';
+import { useQuery } from '@tanstack/react-query';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-
-// ✅ Function to fetch businesses for a selected city
+/**
+ * fetchCompanies
+ * Fetches businesses for the given city from the backend API.
+ *
+ * @param city - The city name to filter businesses
+ * @returns A promise that resolves to an array of Business objects
+ */
 const fetchCompanies = async (city: string): Promise<Business[]> => {
   if (!city) {
     console.warn('⚠️ City is empty, skipping fetch.');
@@ -12,7 +17,9 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
   }
 
   console.log('📡 Fetching companies from:', city);
-  const response = await fetch(`${BASE_URL}/api/v1/businesses_by_city?city=${encodeURIComponent(city)}`);
+  const response = await fetch(
+    `${BASE_URL}/api/v1/businesses_by_city?city=${encodeURIComponent(city)}`,
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch businesses');
@@ -24,32 +31,50 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
   return Array.isArray(data) ? data : [];
 };
 
-// ✅ Function to fetch cities (React Query only, no Zustand)
+/**
+ * fetchCities
+ * Fetches a list of all supported cities from the backend API.
+ *
+ * @returns A promise that resolves to an array of city names
+ */
 const fetchCities = async (): Promise<string[]> => {
   console.log('📡 Fetching cities...');
   const response = await fetch(`${BASE_URL}/api/v1/cities`);
+
   if (!response.ok) {
     throw new Error('Failed to fetch cities');
   }
+
   const cities = await response.json();
   console.log('✅ Cities fetched:', cities);
   return cities;
 };
 
-// ✅ React Query Hook to Fetch Cities (NO Zustand)
+/**
+ * useFetchCities
+ * React Query hook to fetch available cities.
+ *
+ * @returns { data, error, isLoading }
+ */
 export function useFetchCities() {
   return useQuery<string[], Error>({
     queryKey: ['cities'],
     queryFn: fetchCities,
-    staleTime: 1000 * 60 * 10, // ✅ Cache cities for 10 minutes
+    staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
 
-// ✅ Hook to fetch businesses using React Query
+/**
+ * useFetchCompanies
+ * React Query hook to fetch businesses by selected city.
+ *
+ * @param city - Selected city name
+ * @returns { data, error, isLoading }
+ */
 export function useFetchCompanies(city: string) {
   return useQuery<Business[], Error>({
     queryKey: ['companies', city],
     queryFn: () => fetchCompanies(city),
-    enabled: !!city, // ✅ Only fetch if a city is selected
+    enabled: !!city, // only fetch if a city is selected
   });
 }

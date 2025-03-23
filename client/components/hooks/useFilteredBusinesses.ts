@@ -3,6 +3,7 @@ import { getDistanceInKm } from '@/utils/geo';
 import { useMemo } from 'react';
 
 /**
+ * useFilteredBusinesses
  * Filters and sorts a list of businesses based on various criteria.
  *
  * @param data - The list of businesses to filter and sort.

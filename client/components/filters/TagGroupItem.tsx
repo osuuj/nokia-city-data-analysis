@@ -5,7 +5,11 @@ import { Chip, VisuallyHidden, cn, useCheckbox } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React from 'react';
 
-const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
+/**
+ * TagGroupItem
+ * A custom-styled tag component used inside a checkbox group for filter selections.
+ */
+export const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
   ({ icon, size = 'md', ...props }, ref) => {
     const { children, isSelected, getBaseProps, getLabelProps, getInputProps } = useCheckbox(props);
 
@@ -18,7 +22,7 @@ const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
           className={cn(
             'transition-colors',
             isSelected ? 'bg-primary text-white' : 'bg-default-200 text-default-600',
-          )} // ✅ Use className instead of classNames
+          )}
           radius="sm"
           size={size}
           startContent={
@@ -40,5 +44,3 @@ const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
 );
 
 TagGroupItem.displayName = 'TagGroupItem';
-
-export default TagGroupItem;

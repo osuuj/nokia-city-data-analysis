@@ -5,11 +5,11 @@
  * Displays a searchable, sortable, paginated company list with filters.
  */
 
+import { useFetchCompanies } from '@/components/hooks/useCompaniesQuery';
 import { useDebounce } from '@/components/hooks/useDebounce';
-import { useFetchCompanies } from '@/components/hooks/useFetchData';
 import { useFilteredBusinesses } from '@/components/hooks/useFilteredBusinesses';
 import { usePagination } from '@/components/hooks/usePagination';
-import TableView from '@/components/table/TableView';
+import { TableView } from '@/components/table/TableView';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { SortDescriptor } from '@/types/table';
 import { columns as allColumns } from '@/types/table';

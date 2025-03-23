@@ -5,6 +5,7 @@ import type { SortDropdownProps } from '@/types/table';
 import { columns } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
+
 /**
  * SortDropdown
  * A dropdown menu to apply column sorting logic in the table.

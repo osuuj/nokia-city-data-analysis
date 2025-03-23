@@ -31,6 +31,14 @@ export type RangeFilter = {
 /**
  * Generic filter structure used to render dynamic filter UIs.
  */
+export type FilterOption = {
+  title: string;
+  value: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+};
+
 export type Filter = {
   key: string;
   type: FilterTypeEnum;
@@ -38,13 +46,7 @@ export type Filter = {
   description?: string;
   range?: RangeFilter;
   defaultOpen?: boolean;
-  options?: Array<{
-    title: string;
-    value: string;
-    description?: string;
-    icon?: string;
-    color?: string;
-  }>;
+  options?: FilterOption[];
 };
 
 /**
