@@ -1,4 +1,5 @@
-import type { Business, CompanyStore } from '@/types/business';
+import type { Business } from '@/types/business';
+import type { CompanyStore } from '@/types/companyStore';
 import { columns } from '@/types/table';
 import { create } from 'zustand';
 
@@ -20,30 +21,45 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Currently selected rows (keyed by business_id) */
   selectedRows: {},
 
+  /** Set of selected row keys (used for fast lookup in components) */
+  selectedKeys: new Set<string>(),
+  setSelectedKeys: (keys) => {
+    set((state) => {
+      if (keys === 'all') {
+        const allKeys = new Set(Object.keys(state.selectedRows));
+        return { selectedKeys: allKeys };
+      }
+      return { selectedKeys: keys };
+    });
+  },
+
   /**
    * Toggle a row's selection status.
-   * Adds/removes business from selectedRows.
+   * Adds/removes business from selectedRows and updates selectedKeys.
    */
   toggleRow: (business: Business) =>
     set((state) => {
-      const newSelection = { ...state.selectedRows };
-      if (newSelection[business.business_id]) {
-        delete newSelection[business.business_id];
+      const newRows = { ...state.selectedRows };
+      const newKeys = new Set(state.selectedKeys);
+
+      if (newRows[business.business_id]) {
+        delete newRows[business.business_id];
+        newKeys.delete(business.business_id);
       } else {
-        newSelection[business.business_id] = business;
+        newRows[business.business_id] = business;
+        newKeys.add(business.business_id);
       }
-      return { selectedRows: newSelection };
+
+      return { selectedRows: newRows, selectedKeys: newKeys };
     }),
 
   /** Clear all selected rows */
-  clearSelection: () => set({ selectedRows: {} }),
+  clearSelection: () => set({ selectedRows: {}, selectedKeys: new Set<string>() }),
 
   /** Columns visible in the table (from config) */
   visibleColumns: columns.filter((col) => col.visible),
 
-  /**
-   * Toggle visibility of a column by key.
-   */
+  /** Toggle visibility of a column by key */
   toggleColumnVisibility: (key) =>
     set((state) => {
       const updatedColumns = state.visibleColumns.some((col) => col.key === key)

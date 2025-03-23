@@ -12,6 +12,8 @@ export interface CompanyStore {
 
   // ✅ Row selection logic
   selectedRows: Record<string, Business>;
+  selectedKeys: Set<string>;
+  setSelectedKeys: (keys: Set<string> | 'all') => void;
   toggleRow: (business: Business) => void;
   clearSelection: () => void;
 

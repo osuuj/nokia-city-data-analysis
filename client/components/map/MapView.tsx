@@ -1,47 +1,86 @@
 'use client';
-
-import mapboxgl from 'mapbox-gl';
-import type React from 'react';
-import { useEffect, useRef } from 'react';
-
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
-
-export interface Location {
-  name: string;
-  coordinates: [number, number];
-  industry: string;
-}
+import type { Business } from '@/types/business';
+import { filters } from '@/utils/filters';
+import { useMemo, useState } from 'react';
+import MapboxMap, { Marker, Popup } from 'react-map-gl/mapbox';
 
 export interface MapViewProps {
-  locations: Location[];
+  businesses: Business[];
 }
 
 /**
  * MapView
- * Renders a Mapbox map with markers for each location.
+ * Interactive map displaying business locations using react-map-gl.
  */
-export const MapView: React.FC<MapViewProps> = ({ locations }) => {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+export function MapView({ businesses }: MapViewProps) {
+  const [selected, setSelected] = useState<Business | null>(null);
 
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/superjuuso/cm7z31i3n00sn01r11pdkehua',
-      center: [27.95, 64.48],
-      zoom: 3,
-    });
+  function getIndustryMeta(code: string) {
+    return industryOptions.find((opt) => opt.value === code);
+  }
 
-    for (const location of locations) {
-      new mapboxgl.Marker()
-        .setLngLat(location.coordinates)
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${location.name}</h3>`))
-        .addTo(map);
-    }
+  const markers = useMemo(
+    () => businesses.filter((b) => b.latitude_wgs84 != null && b.longitude_wgs84 != null),
+    [businesses],
+  );
 
-    return () => map.remove();
-  }, [locations]);
+  return (
+    <MapboxMap
+      initialViewState={{
+        longitude: 25.171,
+        latitude: 64.296,
+        zoom: 4,
+      }}
+      style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
+      mapStyle="mapbox://styles/superjuuso/cm7z31i3n00sn01r11pdkehua"
+      mapboxAccessToken={mapboxToken}
+    >
+      {markers.map((b) => {
+        const { longitude_wgs84, latitude_wgs84 } = b;
 
-  return <div ref={mapContainerRef} className="w-full h-full rounded-md border" />;
-};
+        return (
+          <Marker
+            key={b.business_id}
+            longitude={b.longitude_wgs84}
+            latitude={b.latitude_wgs84}
+            anchor="bottom"
+            onClick={() => setSelected(b)}
+          >
+            {(() => {
+              const meta = getIndustryMeta(b.industry_letter ?? '');
+              const iconCode = meta?.value ?? b.industry_letter ?? 'default';
+              const src = `/mapbox-icons/${iconCode}.svg`;
+              return (
+                <img
+                  src={src}
+                  alt={meta?.title || 'Industry'}
+                  className="w-6 h-6 drop-shadow-md cursor-pointer"
+                  style={{ transform: 'translateY(-50%)' }}
+                />
+              );
+            })()}
+          </Marker>
+        );
+      })}
+
+      {selected && selected.longitude_wgs84 != null && selected.latitude_wgs84 != null && (
+        <Popup
+          longitude={selected.longitude_wgs84}
+          latitude={selected.latitude_wgs84}
+          anchor="top"
+          onClose={() => setSelected(null)}
+          closeOnClick={false}
+        >
+          <div className="text-sm">
+            <strong>{selected.company_name}</strong>
+            <p>{selected.industry || 'No industry'}</p>
+            <p>{selected.city}</p>
+          </div>
+        </Popup>
+      )}
+    </MapboxMap>
+  );
+}

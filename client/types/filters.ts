@@ -37,6 +37,7 @@ export type FilterOption = {
   description?: string;
   icon?: string;
   color?: string;
+  svgIconPath?: string; // ✅ add this line
 };
 
 export type Filter = {

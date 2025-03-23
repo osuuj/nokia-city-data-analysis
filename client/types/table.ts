@@ -104,7 +104,7 @@ export interface ToolbarProps {
   setAddress: Dispatch<SetStateAction<string>>;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
-  setSelectedKeys: Dispatch<SetStateAction<Set<string>>>;
+  setSelectedKeys: (keys: Set<string> | 'all') => void;
 }
 
 /**

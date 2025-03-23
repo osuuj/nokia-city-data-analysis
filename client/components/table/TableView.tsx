@@ -16,12 +16,9 @@ import {
 } from '@heroui/react';
 import { useMemo, useState } from 'react';
 
-/**
- * TableView
- * Renders a full-featured table with search, sort, column visibility, filters, and pagination.
- */
 export function TableView({
   data,
+  allFilteredData,
   currentPage,
   totalPages,
   onPageChange,
@@ -30,11 +27,12 @@ export function TableView({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
-}: TableViewProps) {
+}: TableViewProps & { allFilteredData: Business[] }) {
   const { visibleColumns } = useCompanyStore();
   const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const selectedKeys = useCompanyStore((s) => s.selectedKeys);
+  const setSelectedKeys = useCompanyStore((s) => s.setSelectedKeys);
 
   const toggleSort = useMemoizedCallback((key: keyof Business) => {
     setSortDescriptor((prev) => ({
@@ -90,8 +88,7 @@ export function TableView({
         selectedKeys={selectedKeys}
         onSelectionChange={(keys) => {
           if (keys === 'all') {
-            // Select all filtered rows
-            const allKeys = new Set(filteredData.map((item) => item.business_id));
+            const allKeys = new Set(allFilteredData.map((item) => item.business_id));
             setSelectedKeys(allKeys);
           } else {
             setSelectedKeys(new Set(keys as Set<string>));
