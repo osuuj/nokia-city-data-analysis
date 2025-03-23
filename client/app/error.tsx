@@ -7,16 +7,26 @@ interface CustomErrorProps {
   reset: () => void;
 }
 
+/**
+ * Displays a fallback UI when an error occurs in the app.
+ *
+ * @component
+ * @param {CustomErrorProps} props - The error object and reset function
+ */
 export default function CustomError({ error, reset }: CustomErrorProps) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error);
-  }, [error]); // Added `error` to the dependency array
+    console.error(error); // You could replace with logging service
+  }, [error]);
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button type="button" onClick={() => reset()}>
+    <div className="p-4 text-center">
+      <h2 className="text-xl font-semibold text-red-600">Something went wrong!</h2>
+      <p className="text-default-600 mt-2">{error.message}</p>
+      <button
+        type="button"
+        onClick={() => reset()}
+        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded"
+      >
         Try again
       </button>
     </div>

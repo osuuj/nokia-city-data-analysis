@@ -7,10 +7,22 @@ import { type FC, useCallback } from 'react';
 
 import { MoonFilledIcon, SunFilledIcon } from '@/components/icons/Icons';
 
+/**
+ * Props for the ThemeSwitch component.
+ */
 export interface ThemeSwitchProps {
+  /** Optional class name for styling */
   className?: string;
 }
 
+/**
+ * ThemeSwitch Component
+ *
+ * A toggle button to switch between light and dark themes using `next-themes`.
+ *
+ * @example
+ * <ThemeSwitch className="ml-2" />
+ */
 export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
   const { resolvedTheme, setTheme } = useTheme();
 

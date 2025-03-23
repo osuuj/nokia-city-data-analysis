@@ -1,5 +1,9 @@
-import type { IconSvgProps } from '@/types/';
+import type { IconSvgProps } from '@/types';
 
+/**
+ * DeleteFilledIcon
+ * Trash can icon used for delete actions.
+ */
 export const DeleteFilledIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

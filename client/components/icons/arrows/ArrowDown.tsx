@@ -1,5 +1,9 @@
-import type { IconSvgProps } from '@/types/';
+import type { IconSvgProps } from '@/types';
 
+/**
+ * ArrowDownIcon
+ * A downward-facing arrow SVG used for dropdowns or sorting indicators.
+ */
 export const ArrowDownIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

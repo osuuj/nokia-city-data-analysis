@@ -5,14 +5,26 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import type { FC } from 'react';
 
-interface ButtonStartProps {
+/**
+ * Props for the ButtonStart component.
+ */
+export interface ButtonStartProps {
+  /** Text to display on the button */
   label?: string;
   href?: string;
   className?: string;
   disabled?: boolean;
 }
 
-const ButtonStart: FC<ButtonStartProps> = ({
+/**
+ * ButtonStart Component
+ *
+ * A versatile button that supports both internal (Next.js) and external links.
+ *
+ * @example
+ * <ButtonStart label="Start Exploring" href="/home" />
+ */
+export const ButtonStart: FC<ButtonStartProps> = ({
   label = 'Start Exploring',
   href = '/home',
   className = '',
@@ -51,5 +63,3 @@ const ButtonStart: FC<ButtonStartProps> = ({
     </Link>
   );
 };
-
-export default ButtonStart;

@@ -1,4 +1,4 @@
-@import 'mapbox-gl/dist/mapbox-gl.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'mapbox-gl/dist/mapbox-gl.css';  /* ✅ Bringing in external map styles */
+@tailwind base;                          /* ✅ Tailwind's normalize + defaults */
+@tailwind components;                    /* ✅ Your custom components (if any) */
+@tailwind utilities;                     /* ✅ Tailwind utility classes */

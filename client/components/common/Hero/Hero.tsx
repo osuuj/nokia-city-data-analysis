@@ -1,11 +1,20 @@
 'use client';
-import ButtonStart from '@/components/common/Button';
+
+import { ButtonStart } from '@/components/common/Button';
 import { siteConfig } from '@/config/site';
 
-export default function Hero() {
+/**
+ * Hero Component
+ *
+ * Displays a fullscreen landing section with background video, heading text,
+ * description, and a call-to-action button.
+ *
+ * @returns {JSX.Element} The rendered Hero section.
+ */
+export const Hero = (): JSX.Element => {
   return (
     <div className="relative h-[calc(100vh-24rem)] w-full overflow-hidden">
-      {/* 🔹 Video Background (Improved Loading) */}
+      {/* 🔹 Video Background */}
       <video
         autoPlay
         loop
@@ -17,7 +26,7 @@ export default function Hero() {
         <source src="videos/background.mp4" type="video/mp4" />
       </video>
 
-      {/* 🔹 Background Overlay (Simplified) */}
+      {/* 🔹 Background Overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-40" />
 
       {/* 🔹 Hero Content */}
@@ -30,7 +39,7 @@ export default function Hero() {
           </h1>
           <p className="mt-4 text-sm sm:text-base md:text-lg">{siteConfig.hero.description}</p>
 
-          {/* 🔹 Improved Button */}
+          {/* 🔹 Call-to-Action Button */}
           <div className="mt-8">
             <ButtonStart label="Start Exploring" href="/home" />
           </div>
@@ -38,4 +47,4 @@ export default function Hero() {
       </div>
     </div>
   );
-}
+};

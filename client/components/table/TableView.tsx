@@ -1,6 +1,6 @@
 'use client';
-import { TableToolbar } from '@/components/table/TableToolbar';
-import { useMemoizedCallback } from '@/components/table/useMemoizedCallback';
+import { TableToolbar } from '@/config/components/table/TableToolbar';
+import { useMemoizedCallback } from '@/config/components/table/useMemoizedCallback';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { Business } from '@/types/business';
 import type { TableViewProps } from '@/types/table';

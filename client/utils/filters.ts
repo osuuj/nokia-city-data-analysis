@@ -1,6 +1,10 @@
 import type { Filter } from '@/types/filters';
 import { FilterTypeEnum } from '@/types/filters';
 
+/**
+ * List of available industry filters with icons and metadata.
+ * Used for populating industry dropdowns and tagging UI.
+ */
 export const filters: Filter[] = [
   {
     key: 'filtersOptions',

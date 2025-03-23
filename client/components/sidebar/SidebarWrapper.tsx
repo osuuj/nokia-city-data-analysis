@@ -1,17 +1,22 @@
 'use client';
 
-import OsuujLogo from '@/components/icons/OsuujIcon';
-import { sectionItems } from '@/components/sidebar/SidebarItems';
+import { OsuujLogo } from '@/components/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useMediaQuery } from 'usehooks-ts';
+import { Sidebar } from './Sidebar';
+import { sectionItems } from './SidebarItems';
 
-import Sidebar from '@/components/sidebar/Sidebar';
+export interface SidebarWrapperProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
 
-export default function SidebarWrapper({
-  isCollapsed,
-  onToggle,
-}: { isCollapsed: boolean; onToggle: () => void }) {
+/**
+ * SidebarWrapper
+ * A container for the Sidebar component with layout logic and responsiveness.
+ */
+export const SidebarWrapper = ({ isCollapsed, onToggle }: SidebarWrapperProps) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isCompact = isCollapsed || isMobile;
 
@@ -20,8 +25,8 @@ export default function SidebarWrapper({
       className={cn(
         'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
         {
-          'w-72 md:w-52 sm:w-5 px-4': !isCompact, // ✅ Gradually shrink instead of jumping to `w-16`
-          'w-16 items-center px-2 py-6': isCompact, // ✅ Collapse only at 768px
+          'w-72 md:w-52 sm:w-5 px-4': !isCompact,
+          'w-16 items-center px-2 py-6': isCompact,
         },
       )}
     >
@@ -33,14 +38,12 @@ export default function SidebarWrapper({
 
       <Spacer y={2} />
 
-      {/* Scrollable Sidebar */}
       <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
         <Sidebar defaultSelectedKey="home" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
       <Spacer y={2} />
 
-      {/* Help & Feedback */}
       <div className={cn('mt-auto flex flex-col', { 'items-center': isCompact })}>
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
           <Button
@@ -70,4 +73,4 @@ export default function SidebarWrapper({
       </div>
     </aside>
   );
-}
+};

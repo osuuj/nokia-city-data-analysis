@@ -1,9 +1,9 @@
 'use client';
 
-import FilterGroup from '@/components/filters/FilterGroup';
-import { ColumnVisibilityDropdown } from '@/components/table/ColumnVisibility';
-import { SearchInput } from '@/components/table/SearchInput';
-import { SortDropdown } from '@/components/table/SortDropdown';
+import FilterGroup from '@/config/components/filters/FilterGroup';
+import { ColumnVisibilityDropdown } from '@/config/components/table/ColumnVisibility';
+import { SearchInput } from '@/config/components/table/SearchInput';
+import { SortDropdown } from '@/config/components/table/SortDropdown';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { ToolbarProps } from '@/types/table';
 import { filters } from '@/utils/filters';
@@ -43,7 +43,7 @@ export function TableToolbar({
           <div className="flex items-center gap-2">
             <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
             <Divider className="h-5" orientation="vertical" />
-            <SortDropdown setSortDescriptor={setSortDescriptor} />
+            <SortDropdown sortDescriptor={sortDescriptor} setSortDescriptor={setSortDescriptor} />
             <ColumnVisibilityDropdown />
             <Divider className="h-5" orientation="vertical" />
             <FilterGroup
@@ -110,6 +110,7 @@ export function TableToolbar({
       setUseLocation,
       address,
       setAddress,
+      sortDescriptor,
       setSortDescriptor,
       selectedIndustryItems,
       selectedIndustries,

@@ -12,6 +12,12 @@ interface ProvidersProps {
 
 const queryClient = new QueryClient();
 
+/**
+ * Wraps the application with all global providers:
+ * - TanStack Query (data fetching)
+ * - HeroUI component system
+ * - NextThemes (theme management)
+ */
 export function Providers({ children, themeProps }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>

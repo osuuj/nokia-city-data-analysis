@@ -1,8 +1,8 @@
 'use client';
 
-import DistanceSlider from '@/components/filters/DistanceSlider';
-import PopoverFilterWrapper from '@/components/filters/PopoverFilterWrapper';
-import TagGroupItem from '@/components/filters/TagGroupItem';
+import DistanceSlider from '@/config/components/filters/DistanceSlider';
+import PopoverFilterWrapper from '@/config/components/filters/PopoverFilterWrapper';
+import TagGroupItem from '@/config/components/filters/TagGroupItem';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterGroupProps } from '@/types/table';
 import { filters } from '@/utils/filters';

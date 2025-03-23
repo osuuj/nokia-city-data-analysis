@@ -1,3 +1,7 @@
+/**
+ * DefaultCircleSvg
+ * A solid gray circle used as a neutral status indicator.
+ */
 export const DefaultCircleSvg = (
   <svg
     className="text-foreground"

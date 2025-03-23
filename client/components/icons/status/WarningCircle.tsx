@@ -1,3 +1,7 @@
+/**
+ * WarningCircleSvg
+ * A solid yellow circle used to indicate a warning status.
+ */
 export const WarningCircleSvg = (
   <svg
     fill="none"

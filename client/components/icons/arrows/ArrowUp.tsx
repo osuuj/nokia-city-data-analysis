@@ -1,5 +1,9 @@
-import type { IconSvgProps } from '@/types/';
+import type { IconSvgProps } from '@/types';
 
+/**
+ * ArrowUpIcon
+ * An upward-facing arrow SVG used for dropdowns or sorting indicators.
+ */
 export const ArrowUpIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

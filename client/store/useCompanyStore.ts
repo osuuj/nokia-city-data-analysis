@@ -2,13 +2,28 @@ import type { Business, CompanyStore } from '@/types/business';
 import { columns } from '@/types/table';
 import { create } from 'zustand';
 
+/**
+ * Zustand global store for managing:
+ * - Selected city
+ * - Table row selection
+ * - Column visibility
+ * - Industry filters
+ * - Location-based filtering
+ */
 export const useCompanyStore = create<CompanyStore>((set) => ({
-  // ✅ City selection
+  /** Selected city from search or URL */
   selectedCity: '',
+
+  /** Set selected city */
   setSelectedCity: (city: string) => set({ selectedCity: city }),
 
-  // ✅ Row selection
+  /** Currently selected rows (keyed by business_id) */
   selectedRows: {},
+
+  /**
+   * Toggle a row's selection status.
+   * Adds/removes business from selectedRows.
+   */
   toggleRow: (business: Business) =>
     set((state) => {
       const newSelection = { ...state.selectedRows };
@@ -19,10 +34,16 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       }
       return { selectedRows: newSelection };
     }),
+
+  /** Clear all selected rows */
   clearSelection: () => set({ selectedRows: {} }),
 
-  // ✅ Column visibility
+  /** Columns visible in the table (from config) */
   visibleColumns: columns.filter((col) => col.visible),
+
+  /**
+   * Toggle visibility of a column by key.
+   */
   toggleColumnVisibility: (key) =>
     set((state) => {
       const updatedColumns = state.visibleColumns.some((col) => col.key === key)
@@ -35,11 +56,17 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
           ];
       return { visibleColumns: updatedColumns };
     }),
+
+  /** Reset visible columns to default (from config) */
   resetColumns: () => set({ visibleColumns: columns.filter((col) => col.visible) }),
 
-  // ✅ Industry filter state
+  /** Selected industry letter filters (A-Z) */
   selectedIndustries: [],
+
+  /** Replace all selected industries */
   setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
+
+  /** Toggle individual industry selection */
   toggleIndustry: (industry: string) =>
     set((state) => {
       const exists = state.selectedIndustries.includes(industry);
@@ -48,12 +75,19 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
         : [...state.selectedIndustries, industry];
       return { selectedIndustries: updated };
     }),
+
+  /** Clear all industry filters */
   clearIndustries: () => set({ selectedIndustries: [] }),
 
-  // ✅ Location filter state
+  /** Coordinates from browser geolocation (if allowed) */
   userLocation: null,
+
+  /** Set coordinates */
   setUserLocation: (coords) => set({ userLocation: coords }),
 
+  /** Distance limit for filtering companies (in km) */
   distanceLimit: null,
+
+  /** Set distance limit */
   setDistanceLimit: (value) => set({ distanceLimit: value }),
 }));

@@ -1,5 +1,9 @@
-import type { IconSvgProps } from '@/types/';
+import type { IconSvgProps } from '@/types';
 
+/**
+ * EyeFilledIcon
+ * A solid eye icon commonly used to indicate visibility or "view" action.
+ */
 export const EyeFilledIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

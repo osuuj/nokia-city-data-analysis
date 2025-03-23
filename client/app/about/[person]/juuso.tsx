@@ -1,3 +1,7 @@
+/**
+ * About page for Juuso.
+ * Contains Juuso's profile or information content.
+ */
 export default function JuusoPage() {
   return (
     <div className="flex flex-col h-full w-full p-6 rounded-medium border-small border-divider">

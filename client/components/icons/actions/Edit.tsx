@@ -1,5 +1,9 @@
-import type { IconSvgProps } from '@/types/';
+import type { IconSvgProps } from '@/types';
 
+/**
+ * EditLinearIcon
+ * Pencil-style icon representing an edit action.
+ */
 export const EditLinearIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

@@ -1,7 +1,10 @@
 import type { SearchInputProps } from '@/types/table';
 import { Input } from '@heroui/react';
 import { SearchIcon } from '@heroui/shared-icons';
-
+/**
+ * SearchInput
+ * A small input used to filter table content by keyword.
+ */
 export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
   return (
     <Input

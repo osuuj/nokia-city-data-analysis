@@ -6,7 +6,6 @@ interface Company {
   industry: string;
 }
 
-// Industry to custom Figma-designed icons
 const industryIcons: { [key: string]: string } = {
   Technology: '/icons/tech.svg',
   Finance: '/icons/finance.svg',
@@ -15,7 +14,11 @@ const industryIcons: { [key: string]: string } = {
   Education: '/icons/education.svg',
 };
 
-export default function Marker(map: mapboxgl.Map, company: Company) {
+/**
+ * createMarker
+ * Adds a custom marker to a Mapbox map using company info and industry icon.
+ */
+export function createMarker(map: mapboxgl.Map, company: Company) {
   const markerElement = document.createElement('div');
   markerElement.className = 'custom-marker';
 

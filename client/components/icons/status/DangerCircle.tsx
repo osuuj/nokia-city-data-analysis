@@ -1,3 +1,7 @@
+/**
+ * DangerCircleSvg
+ * A solid red circle used to indicate an error or danger status.
+ */
 export const DangerCircleSvg = (
   <svg fill="none" height="7" viewBox="0 0 7 7" width="7" xmlns="http://www.w3.org/2000/svg">
     <title>Danger Circle</title>
