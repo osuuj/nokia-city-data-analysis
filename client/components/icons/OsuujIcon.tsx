@@ -5,12 +5,18 @@ import { useTheme } from 'next-themes';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-interface OsuujLogoProps {
+export interface OsuujLogoProps {
+  /** Whether to prioritize loading (affects <Image />) */
   large?: boolean;
+  /** Additional className for layout control */
   className?: string;
 }
 
-export default function OsuujLogo({ large = false, className = '' }: OsuujLogoProps) {
+/**
+ * OsuujLogo
+ * Dynamically switches the logo between light/dark mode.
+ */
+export const OsuujLogo = ({ large = false, className = '' }: OsuujLogoProps) => {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -29,4 +35,4 @@ export default function OsuujLogo({ large = false, className = '' }: OsuujLogoPr
       <Image src={logoSrc} alt="Osuuj Logo" fill className="object-contain" priority={large} />
     </div>
   );
-}
+};

@@ -12,9 +12,14 @@ import {
 import { Icon } from '@iconify/react';
 import React from 'react';
 
-const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
+/**
+ * PopoverFilterWrapper
+ * A generic wrapper for filter components with Apply/Cancel logic in a popover layout.
+ */
+export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
   ({ title, children, onApply, onCancel, ...props }, ref) => {
     const { isOpen, onOpenChange, onClose } = useDisclosure();
+
     return (
       <Popover ref={ref} isOpen={isOpen} onOpenChange={onOpenChange} {...props}>
         <PopoverTrigger>
@@ -52,5 +57,3 @@ const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapp
 );
 
 PopoverFilterWrapper.displayName = 'PopoverFilterWrapper';
-
-export default PopoverFilterWrapper;

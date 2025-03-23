@@ -4,20 +4,23 @@ import mapboxgl from 'mapbox-gl';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 
-// 🔥 Add Your Own Mapbox Token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 
-interface Location {
+export interface Location {
   name: string;
   coordinates: [number, number];
   industry: string;
 }
 
-interface MapProps {
+export interface MapViewProps {
   locations: Location[];
 }
 
-const MapComponent: React.FC<MapProps> = ({ locations }) => {
+/**
+ * MapView
+ * Renders a Mapbox map with markers for each location.
+ */
+export const MapView: React.FC<MapViewProps> = ({ locations }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -42,5 +45,3 @@ const MapComponent: React.FC<MapProps> = ({ locations }) => {
 
   return <div ref={mapContainerRef} className="w-full h-full rounded-md border" />;
 };
-
-export default MapComponent;

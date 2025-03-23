@@ -18,11 +18,12 @@ export type NotificationItemType = {
 
 export type NotificationItemProps = React.HTMLAttributes<HTMLDivElement> & NotificationItemType;
 
-const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>(
+/**
+ * NotificationItem
+ * A flexible card representing an individual notification with support for types like file or request.
+ */
+export const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>(
   ({ children, avatar, name, description, type, time, isRead, className, ...props }, ref) => {
-    /**
-     * Defines the content for different types of notifications.
-     */
     const contentByType: Record<NotificationType, React.ReactNode> = {
       default: null,
       request: (
@@ -82,5 +83,3 @@ const NotificationItem = React.forwardRef<HTMLDivElement, NotificationItemProps>
 );
 
 NotificationItem.displayName = 'NotificationItem';
-
-export default NotificationItem;

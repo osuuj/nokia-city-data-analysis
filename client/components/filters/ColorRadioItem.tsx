@@ -4,7 +4,11 @@ import type { ColorRadioItemProps } from '@/types/filters';
 import { Tooltip, VisuallyHidden, cn, useRadio } from '@heroui/react';
 import React from 'react';
 
-const ColorRadioItem = React.forwardRef<HTMLInputElement, ColorRadioItemProps>(
+/**
+ * ColorRadioItem
+ * A circular color swatch used for color-based selection in forms.
+ */
+export const ColorRadioItem = React.forwardRef<HTMLInputElement, ColorRadioItemProps>(
   ({ color, tooltip, ...props }, ref) => {
     const { Component, isSelected, isFocusVisible, getBaseProps, getInputProps } = useRadio(props);
 
@@ -35,5 +39,3 @@ const ColorRadioItem = React.forwardRef<HTMLInputElement, ColorRadioItemProps>(
 );
 
 ColorRadioItem.displayName = 'ColorRadioItem';
-
-export default ColorRadioItem;

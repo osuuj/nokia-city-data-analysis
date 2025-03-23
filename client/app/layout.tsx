@@ -5,7 +5,7 @@ import Script from 'next/script';
 import type React from 'react';
 
 import { Providers } from '@/app/context/Providers';
-import ConditionalLayout from '@/components/layout/ConditionalLayout';
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout/ConditionalLayout';
 import { fontSans } from '@/config/fonts';
 import { siteConfig } from '@/config/site';
 
@@ -24,13 +24,19 @@ export const viewport: Viewport = {
   ],
 };
 
+/**
+ * Root layout component wrapping all pages in the application.
+ * Applies global styles, fonts, providers, and metadata configuration.
+ */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Preload fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
+        {/* Theme loader script to prevent flicker */}
         <Script id="theme-loader" strategy="beforeInteractive">
           {`
             (function() {

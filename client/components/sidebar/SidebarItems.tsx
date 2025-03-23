@@ -1,5 +1,9 @@
-import type { SidebarItem } from '@/components/sidebar/Sidebar';
+import type { SidebarItem } from './Sidebar';
 
+/**
+ * sectionItems
+ * Data for sidebar sections and navigation links.
+ */
 export const sectionItems: SidebarItem[] = [
   {
     key: 'overview',

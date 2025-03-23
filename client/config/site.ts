@@ -1,5 +1,6 @@
-export type SiteConfig = typeof siteConfig;
-
+/**
+ * Configuration object for site-wide metadata and navigation.
+ */
 export const siteConfig = {
   name: 'Next.js + HeroUI',
   description: 'Make beautiful websites regardless of your design experience.',
@@ -26,9 +27,11 @@ export const siteConfig = {
     { name: 'About Us', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ],
+
   links: {
     github: 'https://github.com/osuuj/nokia-city-data-analysis',
   },
+
   socialLinks: [
     {
       name: 'GitHub',
@@ -37,3 +40,8 @@ export const siteConfig = {
     },
   ],
 };
+
+/**
+ * Type definition for the `siteConfig` object.
+ */
+export type SiteConfig = typeof siteConfig;

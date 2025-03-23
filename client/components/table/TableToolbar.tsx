@@ -1,16 +1,21 @@
 'use client';
 
-import FilterGroup from '@/components/filters/FilterGroup';
-import { ColumnVisibilityDropdown } from '@/components/table/ColumnVisibility';
+import { FilterGroup } from '@/components/filters/FilterGroup';
+import { ColumnVisibilityDropdown } from '@/components/table/ColumnVisibilityDropdown';
 import { SearchInput } from '@/components/table/SearchInput';
 import { SortDropdown } from '@/components/table/SortDropdown';
 import { useCompanyStore } from '@/store/useCompanyStore';
+import type { FilterOption } from '@/types/filters';
 import type { ToolbarProps } from '@/types/table';
 import { filters } from '@/utils/filters';
-import { Chip, Divider } from '@heroui/react';
+import { Button, Chip, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useMemo } from 'react';
 
+/**
+ * TableToolbar
+ * Top section of the table that includes search, sorting, column visibility, filters, and summary tags.
+ */
 export function TableToolbar({
   searchTerm,
   onSearch,
@@ -21,6 +26,7 @@ export function TableToolbar({
   setAddress,
   sortDescriptor,
   setSortDescriptor,
+  setSelectedKeys,
 }: ToolbarProps) {
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
@@ -30,8 +36,8 @@ export function TableToolbar({
 
   const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
-  const selectedIndustryItems = selectedIndustries.flatMap((val) => {
-    const match = industryOptions.find((opt) => opt.value === val);
+  const selectedIndustryItems = selectedIndustries.flatMap((val: string) => {
+    const match = industryOptions.find((opt: FilterOption) => opt.value === val);
     return match ? [match] : [];
   });
 
@@ -43,7 +49,7 @@ export function TableToolbar({
           <div className="flex items-center gap-2">
             <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
             <Divider className="h-5" orientation="vertical" />
-            <SortDropdown setSortDescriptor={setSortDescriptor} />
+            <SortDropdown sortDescriptor={sortDescriptor} setSortDescriptor={setSortDescriptor} />
             <ColumnVisibilityDropdown />
             <Divider className="h-5" orientation="vertical" />
             <FilterGroup
@@ -58,13 +64,29 @@ export function TableToolbar({
                 ? 'All companies selected'
                 : `${selectedKeys instanceof Set ? selectedKeys.size : 0} companies selected`}
             </div>
+            <Button
+              size="sm"
+              variant="flat"
+              className="bg-default-100 text-default-800"
+              onPress={() => {
+                onSearch('');
+                setSelectedIndustries([]);
+                setDistanceLimit(null);
+                setUserLocation(null);
+                setUseLocation(false);
+                setAddress('');
+                setSelectedKeys(new Set());
+              }}
+            >
+              Reset Filters
+            </Button>
           </div>
         </div>
 
         {/* Filter tags row */}
         <div className="flex flex-wrap gap-2 mt-2 ml-1">
           {/* Industry tags */}
-          {selectedIndustryItems.map((item) => (
+          {selectedIndustryItems.map((item: FilterOption) => (
             <Chip
               key={item.value}
               size="sm"
@@ -75,7 +97,7 @@ export function TableToolbar({
                 item.icon ? <Icon icon={item.icon} className="text-default-500" width={14} /> : null
               }
               onClose={() => {
-                setSelectedIndustries(selectedIndustries.filter((v) => v !== item.value));
+                setSelectedIndustries(selectedIndustries.filter((v: string) => v !== item.value));
               }}
             >
               {item.title}
@@ -110,6 +132,7 @@ export function TableToolbar({
       setUseLocation,
       address,
       setAddress,
+      sortDescriptor,
       setSortDescriptor,
       selectedIndustryItems,
       selectedIndustries,
@@ -117,6 +140,7 @@ export function TableToolbar({
       distanceLimit,
       setDistanceLimit,
       setUserLocation,
+      setSelectedKeys,
     ],
   );
 }

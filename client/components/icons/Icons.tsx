@@ -2,6 +2,10 @@ import type * as React from 'react';
 
 import type { IconSvgProps } from '@/types/';
 
+/**
+ * Logo
+ * Primary Osuuj logo SVG used for branding or headers.
+ */
 export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height, ...props }) => (
   <svg
     fill="none"
@@ -20,7 +24,10 @@ export const Logo: React.FC<IconSvgProps> = ({ size = 36, width, height, ...prop
     />
   </svg>
 );
-
+/**
+ * DiscordIcon
+ * Brand icon for Discord, typically used in footer or social links.
+ */
 export const DiscordIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, ...props }) => {
   return (
     <svg
@@ -38,7 +45,10 @@ export const DiscordIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, 
     </svg>
   );
 };
-
+/**
+ * TwitterIcon
+ * Brand icon for Twitter/X, commonly used in social sections.
+ */
 export const TwitterIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, ...props }) => {
   return (
     <svg
@@ -56,7 +66,10 @@ export const TwitterIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, 
     </svg>
   );
 };
-
+/**
+ * GithubIcon
+ * Brand icon for GitHub, used for linking to repositories.
+ */
 export const GithubIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, ...props }) => {
   return (
     <svg
@@ -76,7 +89,10 @@ export const GithubIcon: React.FC<IconSvgProps> = ({ size = 24, width, height, .
     </svg>
   );
 };
-
+/**
+ * MoonFilledIcon
+ * Moon icon for toggling or indicating dark theme.
+ */
 export const MoonFilledIcon = ({ size = 24, width, height, ...props }: IconSvgProps) => (
   <svg
     aria-hidden="true"
@@ -92,7 +108,10 @@ export const MoonFilledIcon = ({ size = 24, width, height, ...props }: IconSvgPr
     />
   </svg>
 );
-
+/**
+ * SunFilledIcon
+ * Sun icon for toggling or indicating light theme.
+ */
 export const SunFilledIcon = ({ size = 24, width, height, ...props }: IconSvgProps) => (
   <svg
     aria-hidden="true"
@@ -108,7 +127,10 @@ export const SunFilledIcon = ({ size = 24, width, height, ...props }: IconSvgPro
     </g>
   </svg>
 );
-
+/**
+ * HeartFilledIcon
+ * A filled heart icon, typically used for favorites or likes.
+ */
 export const HeartFilledIcon = ({ size = 24, width, height, ...props }: IconSvgProps) => (
   <svg
     aria-hidden="true"
@@ -127,7 +149,10 @@ export const HeartFilledIcon = ({ size = 24, width, height, ...props }: IconSvgP
     />
   </svg>
 );
-
+/**
+ * SearchIcon
+ * Magnifying glass icon used for search inputs or buttons.
+ */
 export const SearchIcon = (props: IconSvgProps) => (
   <svg
     aria-hidden="true"

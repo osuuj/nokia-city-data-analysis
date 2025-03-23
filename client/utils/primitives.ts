@@ -1,5 +1,13 @@
 import { tv } from 'tailwind-variants';
 
+/**
+ * Gradient-styled heading text.
+ *
+ * Supports multiple color variants, sizes, and full-width layout.
+ *
+ * @example
+ * <h1 className={title({ size: 'lg', color: 'blue' })}>Welcome</h1>
+ */
 export const title = tv({
   base: 'inline font-semibold tracking-tight',
   variants: {
@@ -32,6 +40,14 @@ export const title = tv({
   ],
 });
 
+/**
+ * Responsive subtitle text with muted color.
+ *
+ * Used below hero headers and in section descriptions.
+ *
+ * @example
+ * <p className={subtitle()}>Explore our datasets</p>
+ */
 export const subtitle = tv({
   base: 'my-2 block w-full max-w-full text-lg text-default-600 md:w-1/2 lg:text-xl',
   variants: {

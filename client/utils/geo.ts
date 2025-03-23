@@ -1,7 +1,18 @@
-export type Coordinates = { latitude: number; longitude: number };
+/**
+ * Represents a geographic coordinate pair.
+ */
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
 
 /**
- * Calculates distance between two points in kilometers using Haversine formula.
+ * Calculates the distance in kilometers between two geo-coordinates
+ * using the Haversine formula.
+ *
+ * @param point1 - First coordinate (e.g. user location)
+ * @param point2 - Second coordinate (e.g. company location)
+ * @returns Distance in kilometers
  */
 export function getDistanceInKm(point1: Coordinates, point2: Coordinates): number {
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -19,6 +30,12 @@ export function getDistanceInKm(point1: Coordinates, point2: Coordinates): numbe
   return R * c;
 }
 
+/**
+ * Prompts the user for browser location access and returns their current coordinates.
+ *
+ * @returns A promise that resolves to the user's geolocation (latitude & longitude)
+ * @throws If geolocation is not supported or permission is denied
+ */
 export function requestBrowserLocation(): Promise<Coordinates> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {

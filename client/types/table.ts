@@ -1,6 +1,9 @@
 import type { Business } from '@/types/business';
 import type { Dispatch, SetStateAction } from 'react';
 
+/**
+ * Defines metadata for a column in the data table.
+ */
 export interface TableColumnConfig {
   key: keyof Business;
   label: string;
@@ -8,6 +11,12 @@ export interface TableColumnConfig {
   userVisible: boolean;
 }
 
+/**
+ * Default column definitions used across the app.
+ *
+ * - `visible`: determines if column is shown in the table
+ * - `userVisible`: determines if user can toggle it in the UI
+ */
 export const columns: TableColumnConfig[] = [
   { key: 'business_id', label: 'Business ID', visible: true, userVisible: true },
   { key: 'company_name', label: 'Company Name', visible: true, userVisible: true },
@@ -33,6 +42,9 @@ export const columns: TableColumnConfig[] = [
   { key: 'website', label: 'Website', visible: false, userVisible: false },
 ];
 
+/**
+ * Props for the main data table view.
+ */
 export interface TableViewProps {
   data: Business[];
   columns: TableColumnConfig[];
@@ -42,38 +54,46 @@ export interface TableViewProps {
   isLoading: boolean;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
-  sortDescriptor: {
-    column: keyof Business;
-    direction: 'asc' | 'desc';
-  };
-  setSortDescriptor: React.Dispatch<
-    React.SetStateAction<{
-      column: keyof Business;
-      direction: 'asc' | 'desc';
-    }>
-  >;
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
 }
 
+/**
+ * Props for the table header component.
+ */
 export interface TableHeaderProps {
   columns: TableColumnConfig[];
 }
 
+/**
+ * Props for rendering a single table cell.
+ */
 export interface TableCellRendererProps {
   item: Business;
   columnKey: keyof Business;
 }
 
+/**
+ * Props for the search input in the toolbar.
+ */
 export interface SearchInputProps {
   searchTerm: string;
   onSearch: (value: string) => void;
 }
 
+/**
+ * Props passed to the filter group (industry, distance).
+ */
 export interface FilterGroupProps {
   useLocation: boolean;
   setUseLocation: Dispatch<SetStateAction<boolean>>;
   address: string;
   setAddress: Dispatch<SetStateAction<string>>;
 }
+
+/**
+ * Props for the top table toolbar, including search, filters, and sort.
+ */
 export interface ToolbarProps {
   searchTerm: string;
   onSearch: (value: string) => void;
@@ -84,18 +104,39 @@ export interface ToolbarProps {
   setAddress: Dispatch<SetStateAction<string>>;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
+  setSelectedKeys: Dispatch<SetStateAction<Set<string>>>;
 }
 
+/**
+ * Props for the column visibility dropdown.
+ */
 export interface ColumnVisibilityDropdownProps {
   visibleColumns: Set<string>;
   setVisibleColumns: Dispatch<SetStateAction<Set<string>>>;
 }
 
+/**
+ * Represents the current sorting state of the table.
+ */
 export interface SortDescriptor {
   column: keyof Business;
   direction: 'asc' | 'desc';
 }
 
+/**
+ * Props passed to the sort dropdown in the toolbar.
+ */
 export interface SortDropdownProps {
-  setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
+}
+
+export interface FilteredBusinessParams {
+  data: Business[] | undefined;
+  searchTerm: string;
+  selectedIndustries: string[];
+  userLocation: { latitude: number; longitude: number } | null;
+  distanceLimit: number | null;
+  sortDescriptor: SortDescriptor;
+  isFetching: boolean;
 }

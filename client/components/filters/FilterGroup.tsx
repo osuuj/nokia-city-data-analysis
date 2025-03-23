@@ -1,9 +1,10 @@
 'use client';
 
-import DistanceSlider from '@/components/filters/DistanceSlider';
-import PopoverFilterWrapper from '@/components/filters/PopoverFilterWrapper';
-import TagGroupItem from '@/components/filters/TagGroupItem';
+import { DistanceSlider } from '@/components/filters/DistanceSlider';
+import { PopoverFilterWrapper } from '@/components/filters/PopoverFilterWrapper';
+import { TagGroupItem } from '@/components/filters/TagGroupItem';
 import { useCompanyStore } from '@/store/useCompanyStore';
+import type { FilterOption } from '@/types/filters';
 import type { FilterGroupProps } from '@/types/table';
 import { filters } from '@/utils/filters';
 import { requestBrowserLocation } from '@/utils/geo';
@@ -11,15 +12,18 @@ import { CheckboxGroup, Input, Switch } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useEffect, useState } from 'react';
 
-export default function FilterGroup({
+/**
+ * FilterGroup
+ * Groups industry and distance filters into a reusable popover component in the toolbar.
+ */
+export const FilterGroup = ({
   useLocation,
   setUseLocation,
   address,
   setAddress,
-}: FilterGroupProps) {
+}: FilterGroupProps) => {
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
-  const industryFilter = filters.find((filter) => filter.key === 'industries');
   const toggleIndustry = useCompanyStore((s) => s.toggleIndustry);
   const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
   const [draftDistance, setDraftDistance] = useState<number>(0);
@@ -27,6 +31,8 @@ export default function FilterGroup({
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
   const distanceLimit = useCompanyStore((s) => s.distanceLimit);
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
+
+  const industryFilter = filters.find((filter) => filter.key === 'industries');
 
   useEffect(() => {
     if (useLocation) {
@@ -46,7 +52,7 @@ export default function FilterGroup({
         onApply={() => setSelectedIndustries(draftIndustries)}
         onCancel={() => setDraftIndustries(selectedIndustries)}
       >
-        <div className="max-h-60 overflow-y-auto  transition-all duration-300">
+        <div className="max-h-60 overflow-y-auto transition-all duration-300">
           <CheckboxGroup
             aria-label="Select industry"
             className="gap-1"
@@ -54,7 +60,7 @@ export default function FilterGroup({
             value={draftIndustries}
             onChange={(vals) => setDraftIndustries(vals)}
           >
-            {industryFilter?.options?.map((option) => (
+            {(industryFilter?.options ?? []).map((option: FilterOption) => (
               <TagGroupItem key={option.value} value={option.value} className="p-6">
                 <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
                   <Icon icon={option.icon || ''} className="text-xs md:text-sm" />
@@ -69,12 +75,8 @@ export default function FilterGroup({
       {/* Distance Filter */}
       <PopoverFilterWrapper
         title="Distance"
-        onApply={() => {
-          setDistanceLimit(draftDistance);
-        }}
-        onCancel={() => {
-          setDraftDistance(distanceLimit ?? 30);
-        }}
+        onApply={() => setDistanceLimit(draftDistance)}
+        onCancel={() => setDraftDistance(distanceLimit ?? 30)}
       >
         <div className="flex flex-col gap-2">
           <Switch
@@ -103,6 +105,7 @@ export default function FilterGroup({
           >
             Share location
           </Switch>
+
           {!useLocation && (
             <Input
               aria-label="Enter address"
@@ -116,6 +119,7 @@ export default function FilterGroup({
               onChange={(e) => setAddress(e.target.value)}
             />
           )}
+
           {useLocation && userLocation && (
             <DistanceSlider
               aria-label="Distance Filter"
@@ -135,4 +139,4 @@ export default function FilterGroup({
       </PopoverFilterWrapper>
     </div>
   );
-}
+};

@@ -1,6 +1,6 @@
-import type { TableColumnConfig } from '@/types/table';
-import type { Coordinates } from '@/utils/geo';
-
+/**
+ * Represents a single business entity in the system.
+ */
 export interface Business {
   business_id: string;
   company_name: string;
@@ -19,23 +19,4 @@ export interface Business {
   industry?: string;
   registration_date?: string;
   website?: string;
-}
-
-export interface CompanyStore {
-  selectedCity: string;
-  setSelectedCity: (city: string) => void;
-  selectedRows: Record<string, Business>;
-  toggleRow: (business: Business) => void;
-  clearSelection: () => void;
-  visibleColumns: TableColumnConfig[];
-  toggleColumnVisibility: (key: keyof Business) => void;
-  resetColumns: () => void;
-  selectedIndustries: string[];
-  setSelectedIndustries: (values: string[]) => void;
-  toggleIndustry: (industry: string) => void;
-  clearIndustries: () => void;
-  userLocation: Coordinates | null;
-  setUserLocation: (coords: Coordinates | null) => void;
-  distanceLimit: number | null;
-  setDistanceLimit: (value: number | null) => void;
 }

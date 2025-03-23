@@ -1,3 +1,7 @@
+/**
+ * Resources page component.
+ * Placeholder content to be implemented later.
+ */
 export default function ResourcePage() {
   return (
     <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">

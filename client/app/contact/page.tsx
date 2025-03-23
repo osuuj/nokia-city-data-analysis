@@ -1,3 +1,7 @@
+/**
+ * Contact page component.
+ * Currently not implemented and shows a placeholder message.
+ */
 export default function ContactPage() {
   return (
     <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
