@@ -1,73 +1,86 @@
 'use client';
-import type { Business } from '@/types/business';
-import { filters } from '@/utils/filters';
-import type { BBox } from 'geojson';
-import { useMemo, useRef, useState } from 'react';
+
+import type { CompanyProperties } from '@/types';
+import { Card, CardBody, Link } from '@heroui/react';
+import type { Feature, FeatureCollection, Point } from 'geojson';
+import type { GeoJSONSource } from 'mapbox-gl';
+import { useTheme } from 'next-themes';
+import { useEffect, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
-import MapboxMap, { Marker, Popup } from 'react-map-gl/mapbox';
-import type { PointFeature } from 'supercluster';
-import useSupercluster from 'use-supercluster';
+import MapboxMap, { Popup } from 'react-map-gl/mapbox';
 
 export interface MapViewProps {
-  businesses: Business[];
+  geojson: FeatureCollection<Point, CompanyProperties>;
 }
 
-/**
- * MapView
- * Interactive map displaying business locations using react-map-gl and clustering.
- */
-export function MapView({ businesses }: MapViewProps) {
-  const [selected, setSelected] = useState<Business | null>(null);
-  const [bounds, setBounds] = useState<BBox>();
-  const [zoom, setZoom] = useState(4);
+export const MapView = function MapView({ geojson }: MapViewProps) {
+  const [selected, setSelected] = useState<Feature<Point, CompanyProperties> | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
+  const { theme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-  const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
-  function getIndustryMeta(code: string) {
-    return industryOptions.find((opt) => opt.value === code);
-  }
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded || !geojson) return;
 
-  // Convert businesses to clusterable points
-  const points: PointFeature<{
-    cluster: false;
-    businessId: string;
-    business: Business;
-  }>[] = useMemo(() => {
-    if (!bounds) return [];
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
 
-    const [west, south, east, north] = bounds;
+    for (const letter of letters) {
+      const url = `/mapbox-icons/${letter}.png`;
+      map.loadImage(url, (err, image) => {
+        if (err) {
+          console.error(`Error loading icon "${letter}":`, err);
+          return;
+        }
+        if (image && !map.hasImage(letter)) {
+          map.addImage(letter, image);
+        }
+      });
+    }
 
-    return businesses
-      .filter((b) => {
-        return (
-          b.longitude_wgs84 >= west &&
-          b.longitude_wgs84 <= east &&
-          b.latitude_wgs84 >= south &&
-          b.latitude_wgs84 <= north
-        );
-      })
-      .map((b) => ({
-        type: 'Feature' as const,
-        properties: {
-          cluster: false,
-          businessId: b.business_id,
-          business: b,
+    if (!map.getSource('companies')) {
+      map.addSource('companies', {
+        type: 'geojson',
+        data: geojson,
+      });
+
+      map.addLayer({
+        id: 'company-icons',
+        type: 'symbol',
+        source: 'companies',
+        layout: {
+          'icon-image': [
+            'case',
+            ['has', 'industry_letter'],
+            [
+              'case',
+              ['in', ['get', 'industry_letter'], ['literal', letters]],
+              ['get', 'industry_letter'],
+              'marker-15',
+            ],
+            'marker-15',
+          ],
+          'icon-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0,
+            0.6, // At zoom level 0, icon size is 0.6
+            22,
+            1.2, // At zoom level 22, icon size is 1.2
+          ],
+          'icon-allow-overlap': true,
         },
-        geometry: {
-          type: 'Point',
-          coordinates: [b.longitude_wgs84, b.latitude_wgs84],
-        },
-      }));
-  }, [businesses, bounds]);
-
-  const { clusters } = useSupercluster({
-    points,
-    bounds,
-    zoom,
-    options: { radius: 40, maxZoom: 12 },
-  });
+      });
+    } else {
+      const source = map.getSource('companies');
+      if (source && 'setData' in source) {
+        (source as GeoJSONSource).setData(geojson);
+      }
+    }
+  }, [mapLoaded, geojson]);
 
   return (
     <MapboxMap
@@ -75,120 +88,90 @@ export function MapView({ businesses }: MapViewProps) {
       initialViewState={{
         longitude: 25.171,
         latitude: 64.296,
-        zoom: 4,
-      }}
-      onLoad={() => {
-        setTimeout(() => {
-          if (!mapRef.current) return;
-
-          const valid = businesses.filter(
-            (b) => b.latitude_wgs84 != null && b.longitude_wgs84 != null,
-          );
-
-          if (valid.length === 0) return;
-
-          const fitBounds = valid.reduce(
-            (acc, b) => {
-              acc[0][0] = Math.min(acc[0][0], b.longitude_wgs84);
-              acc[0][1] = Math.min(acc[0][1], b.latitude_wgs84);
-              acc[1][0] = Math.max(acc[1][0], b.longitude_wgs84);
-              acc[1][1] = Math.max(acc[1][1], b.latitude_wgs84);
-              return acc;
-            },
-            [
-              [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY],
-              [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY],
-            ] as [[number, number], [number, number]],
-          );
-
-          mapRef.current.fitBounds(fitBounds, {
-            padding: 80,
-            duration: 1000,
-            maxZoom: 13,
-          });
-        }, 100); // ⏳ Small delay to let map render first
-      }}
-      onMoveEnd={(e) => {
-        const b = e.target.getBounds();
-        const z = e.target.getZoom();
-
-        if (!b) return; // ✅ guard
-
-        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-        setZoom(z);
+        zoom: 5,
       }}
       style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
       mapStyle="mapbox://styles/superjuuso/cm7z31i3n00sn01r11pdkehua"
       mapboxAccessToken={mapboxToken}
+      onLoad={() => setMapLoaded(true)}
       onClick={(e) => {
-        if ((e.originalEvent.target as HTMLElement).tagName !== 'IMG') {
-          setSelected(null);
-        }
+        const feature = e.features?.[0] as Feature<Point, CompanyProperties> | undefined;
+        setSelected(feature?.properties ? feature : null);
       }}
+      interactiveLayerIds={['company-icons']}
     >
-      {clusters.map((cluster) => {
-        const [longitude, latitude] = cluster.geometry.coordinates;
-        if ('cluster' in cluster.properties && cluster.properties.cluster) {
-          const pointCount = cluster.properties.point_count;
-          return (
-            <Marker
-              key={`cluster-${cluster.id}`}
-              longitude={longitude}
-              latitude={latitude}
-              anchor="center"
-              onClick={() => {
-                const expansionZoom = Math.min(zoom + 2, 18);
-                mapRef.current?.easeTo({
-                  center: [longitude, latitude],
-                  zoom: expansionZoom,
-                  duration: 600,
-                });
-              }}
-            >
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center shadow-md">
-                {pointCount}
-              </div>
-            </Marker>
-          );
-        }
-
-        const b: Business = cluster.properties.business;
-        const meta = getIndustryMeta(b.industry_letter ?? '');
-        const iconCode = meta?.value ?? b.industry_letter ?? 'default';
-        const src = `/mapbox-icons/${iconCode}.svg`;
-
-        return (
-          <Marker
-            key={b.business_id}
-            longitude={b.longitude_wgs84}
-            latitude={b.latitude_wgs84}
-            anchor="bottom"
-            onClick={() => setSelected(b)}
+      {selected?.geometry && (
+        <>
+          <style>
+            {`
+              /* Light theme */
+              .mapboxgl-popup-content {
+                background-color: ${theme === 'dark' ? '#52525b' : 'white'} !important;
+                border: 1px solid ${theme === 'dark' ? '#333' : '#e0e0e0'} !important;
+              }
+              .mapboxgl-popup-tip {
+                background-color: transparent !important;
+              }
+              .mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+                border-bottom-color: ${theme === 'dark' ? '#52525b' : 'white'} !important;
+              }
+              .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+                border-top-color: ${theme === 'dark' ? '#52525b' : 'white'} !important;
+              }
+              .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+                border-right-color: ${theme === 'dark' ? '#52525b' : 'white'} !important;
+              }
+              .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+                border-left-color: ${theme === 'dark' ? '#52525b' : 'white'} !important;
+              }
+              .mapboxgl-popup-close-button {
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 5px 10px;
+              }
+              .mapboxgl-popup-close-button:hover {
+                background-color: rgba(0,0,0,0.2);
+              }
+            `}
+          </style>
+          <Popup
+            longitude={selected.geometry.coordinates[0]}
+            latitude={selected.geometry.coordinates[1]}
+            anchor="top"
+            onClose={() => setSelected(null)}
+            closeOnClick={false}
+            className={`!p-0 !bg-transparent !shadow-none ${theme === 'dark' ? 'dark' : ''}`}
           >
-            <img
-              src={src}
-              alt={meta?.title || 'Industry'}
-              className="w-6 h-6 drop-shadow-md cursor-pointer"
-              style={{ transform: 'translateY(-50%)' }}
-            />
-          </Marker>
-        );
-      })}
-
-      {selected && selected.longitude_wgs84 != null && selected.latitude_wgs84 != null && (
-        <Popup
-          longitude={selected.longitude_wgs84}
-          latitude={selected.latitude_wgs84}
-          anchor="top"
-          onClose={() => setSelected(null)}
-          closeOnClick={false}
-        >
-          <div className="text-sm font-medium text-black bg-white rounded-md shadow-lg p-2 max-w-[220px]">
-            <strong className="block text-primary-700 truncate">{selected.company_name}</strong>
-            <span className="text-xs text-gray-600">{selected.city}</span>
-          </div>
-        </Popup>
+            <Card className="max-w-[220px] p-0 shadow-small">
+              <CardBody className="p-2">
+                <strong className="block text-primary truncate">
+                  {selected.properties.company_name}
+                </strong>
+                <span className="text-xs text-default-600">{selected.properties.street}</span>
+                <span className="text-xs text-default-600">
+                  {selected.properties.street} {selected.properties.building_number}{' '}
+                  {selected.properties.entrance}
+                </span>
+                <span className="text-xs block mt-1 text-default-500">
+                  {selected.properties.industry_description}
+                </span>
+                {selected.properties.website && (
+                  <Link
+                    href={selected.properties.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs mt-1 underline"
+                    color="primary"
+                  >
+                    {selected.properties.website}
+                  </Link>
+                )}
+              </CardBody>
+            </Card>
+          </Popup>
+        </>
       )}
     </MapboxMap>
   );
-}
+};

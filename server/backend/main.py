@@ -3,13 +3,14 @@ from typing import Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.backend.routers import companies
+from server.backend.routers import companies, geojson_companies
 
 # ✅ Initialize FastAPI application
 app = FastAPI(debug=True, title="Nokia City Data API", version="1.0.0")
 
 # ✅ Include optimized companies router
 app.include_router(companies.router, prefix="/api/v1", tags=["Companies"])
+app.include_router(geojson_companies.router, prefix="/api/v1", tags=["GeoJSON"])
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Business } from '@/types/business';
+import type { CompanyProperties } from '@/types';
 import type { SortDropdownProps } from '@/types/table';
 import { columns } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
@@ -34,7 +34,7 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
           base: 'text-left',
         }}
         onSelectionChange={(keys) => {
-          const key = Array.from(keys)[0] as keyof Business;
+          const key = Array.from(keys)[0] as keyof CompanyProperties;
           setSortDescriptor((prev) => ({
             column: key,
             direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',

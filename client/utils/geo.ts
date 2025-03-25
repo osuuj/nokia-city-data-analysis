@@ -1,3 +1,5 @@
+import type { CompanyProperties } from '@/types/business';
+
 /**
  * Represents a geographic coordinate pair.
  */
@@ -9,10 +11,6 @@ export type Coordinates = {
 /**
  * Calculates the distance in kilometers between two geo-coordinates
  * using the Haversine formula.
- *
- * @param point1 - First coordinate (e.g. user location)
- * @param point2 - Second coordinate (e.g. company location)
- * @returns Distance in kilometers
  */
 export function getDistanceInKm(point1: Coordinates, point2: Coordinates): number {
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -32,9 +30,6 @@ export function getDistanceInKm(point1: Coordinates, point2: Coordinates): numbe
 
 /**
  * Prompts the user for browser location access and returns their current coordinates.
- *
- * @returns A promise that resolves to the user's geolocation (latitude & longitude)
- * @throws If geolocation is not supported or permission is denied
  */
 export function requestBrowserLocation(): Promise<Coordinates> {
   return new Promise((resolve, reject) => {
@@ -53,5 +48,45 @@ export function requestBrowserLocation(): Promise<Coordinates> {
         reject(error);
       },
     );
+  });
+}
+
+/**
+ * Filters a list of companies to those within the specified distance (in km) of the user.
+ */
+export function filterByDistance(
+  data: CompanyProperties[],
+  userLocation: Coordinates,
+  maxDistanceKm: number,
+): CompanyProperties[] {
+  return data.filter((company) => {
+    // Safely extract lat/lon from known property names
+    const latRaw =
+      (company as Record<string, unknown>).latitude ??
+      (company as Record<string, unknown>).latitude_wgs84;
+    const lonRaw =
+      (company as Record<string, unknown>).longitude ??
+      (company as Record<string, unknown>).longitude_wgs84;
+
+    const lat =
+      typeof latRaw === 'string'
+        ? Number.parseFloat(latRaw)
+        : typeof latRaw === 'number'
+          ? latRaw
+          : Number.NaN;
+
+    const lon =
+      typeof lonRaw === 'string'
+        ? Number.parseFloat(lonRaw)
+        : typeof lonRaw === 'number'
+          ? lonRaw
+          : Number.NaN;
+
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return false;
+    }
+
+    const distance = getDistanceInKm(userLocation, { latitude: lat, longitude: lon });
+    return distance <= maxDistanceKm;
   });
 }

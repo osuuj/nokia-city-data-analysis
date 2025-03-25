@@ -5,15 +5,6 @@ import { useMemo } from 'react';
 /**
  * useFilteredBusinesses
  * Filters and sorts a list of businesses based on various criteria.
- *
- * @param data - The list of businesses to filter and sort.
- * @param searchTerm - The search string to match against company names.
- * @param selectedIndustries - The selected industry letters to filter by.
- * @param userLocation - Coordinates to filter by distance (if enabled).
- * @param distanceLimit - Max allowed distance in km from userLocation.
- * @param sortDescriptor - Determines which column and direction to sort by.
- * @param isFetching - Skip computation while data is loading.
- * @returns The filtered and sorted list of businesses.
  */
 export function useFilteredBusinesses({
   data,
@@ -29,27 +20,51 @@ export function useFilteredBusinesses({
 
     let filtered = [...data];
 
+    // 🔍 Filter by name
     if (searchTerm) {
       filtered = filtered.filter((item) =>
         item.company_name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
+    // 🏭 Filter by industry
     if (selectedIndustries.length > 0) {
-      filtered = filtered.filter((item) => selectedIndustries.includes(item.industry_letter || ''));
+      filtered = filtered.filter((item) => selectedIndustries.includes(item.industry_letter ?? ''));
     }
 
+    // 📍 Filter by distance (optional)
     if (userLocation && distanceLimit != null) {
       filtered = filtered.filter((item) => {
-        if (!item.latitude_wgs84 || !item.longitude_wgs84) return false;
-        const distance = getDistanceInKm(userLocation, {
-          latitude: item.latitude_wgs84,
-          longitude: item.longitude_wgs84,
-        });
+        const latRaw =
+          (item as Record<string, unknown>).latitude ??
+          (item as Record<string, unknown>).latitude_wgs84;
+
+        const lonRaw =
+          (item as Record<string, unknown>).longitude ??
+          (item as Record<string, unknown>).longitude_wgs84;
+
+        const lat =
+          typeof latRaw === 'string'
+            ? Number.parseFloat(latRaw)
+            : typeof latRaw === 'number'
+              ? latRaw
+              : Number.NaN;
+
+        const lon =
+          typeof lonRaw === 'string'
+            ? Number.parseFloat(lonRaw)
+            : typeof lonRaw === 'number'
+              ? lonRaw
+              : Number.NaN;
+
+        if (Number.isNaN(lat) || Number.isNaN(lon)) return false;
+
+        const distance = getDistanceInKm(userLocation, { latitude: lat, longitude: lon });
         return distance <= distanceLimit;
       });
     }
 
+    // 🔀 Sort by column
     return filtered.sort((a, b) => {
       const key = sortDescriptor.column;
       const valA = a[key] ?? '';

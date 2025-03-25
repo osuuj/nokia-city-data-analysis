@@ -60,9 +60,7 @@ export function TableToolbar({
             />
             <Divider className="h-5" orientation="vertical" />
             <div className="text-xs whitespace-nowrap text-default-600">
-              {selectedKeys === 'all'
-                ? 'All companies selected'
-                : `${selectedKeys instanceof Set ? selectedKeys.size : 0} companies selected`}
+              {`${selectedKeys.size} companies selected`}
             </div>
             <Button
               size="sm"

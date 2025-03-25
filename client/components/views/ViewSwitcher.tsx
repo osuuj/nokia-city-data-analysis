@@ -2,24 +2,15 @@
 
 import { MapView } from '@/components/map/MapView';
 import { TableView } from '@/components/table/TableView';
-import type { Business } from '@/types/business';
-import type { TableViewProps } from '@/types/table';
-import type { ViewMode } from '@/types/view';
-
-interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
-  data: Business[];
-  allFilteredData: Business[];
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-}
-
+import type { CompanyProperties } from '@/types';
+import type { ViewSwitcherProps } from '@/types/view';
 /**
  * ViewSwitcher
  * Controls display of TableView, MapView, or both in split layout.
  */
 export function ViewSwitcher({
   data,
-  allFilteredData,
+  geojson,
   viewMode,
   setViewMode,
   columns,
@@ -31,13 +22,14 @@ export function ViewSwitcher({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
-}: ViewSwitcherProps) {
+  allFilteredData, // Add this prop
+}: ViewSwitcherProps & { allFilteredData: CompanyProperties[] }) {
   return (
     <div className="w-full h-full">
       {viewMode === 'table' && (
         <TableView
           data={data}
-          allFilteredData={allFilteredData}
+          allFilteredData={allFilteredData} // Ensure all filtered data is passed
           columns={columns}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -50,18 +42,18 @@ export function ViewSwitcher({
         />
       )}
 
-      {viewMode === 'map' && (
+      {viewMode === 'map' && geojson && (
         <div className="h-[80vh] w-full">
-          <MapView businesses={data} />
+          <MapView geojson={geojson} />
         </div>
       )}
 
-      {viewMode === 'split' && (
+      {viewMode === 'split' && geojson && (
         <div className="flex flex-col md:flex-row gap-4 w-full h-full">
           <div className="md:w-1/2 w-full">
             <TableView
               data={data}
-              allFilteredData={allFilteredData}
+              allFilteredData={allFilteredData} // Ensure all filtered data is passed
               columns={columns}
               currentPage={currentPage}
               totalPages={totalPages}
@@ -74,7 +66,7 @@ export function ViewSwitcher({
             />
           </div>
           <div className="md:w-1/2 w-full h-[80vh]">
-            <MapView businesses={data} />
+            <MapView geojson={geojson} />
           </div>
         </div>
       )}

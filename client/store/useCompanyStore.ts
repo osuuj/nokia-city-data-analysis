@@ -1,4 +1,4 @@
-import type { Business } from '@/types/business';
+import type { CompanyProperties } from '@/types/business';
 import type { CompanyStore } from '@/types/companyStore';
 import { columns } from '@/types/table';
 import { create } from 'zustand';
@@ -15,7 +15,6 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
   selectedCity: '',
 
-  /** Set selected city */
   setSelectedCity: (city: string) => set({ selectedCity: city }),
 
   /** Currently selected rows (keyed by business_id) */
@@ -23,21 +22,19 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
 
   /** Set of selected row keys (used for fast lookup in components) */
   selectedKeys: new Set<string>(),
-  setSelectedKeys: (keys) => {
-    set((state) => {
-      if (keys === 'all') {
-        const allKeys = new Set(Object.keys(state.selectedRows));
-        return { selectedKeys: allKeys };
-      }
-      return { selectedKeys: keys };
-    });
-  },
 
-  /**
-   * Toggle a row's selection status.
-   * Adds/removes business from selectedRows and updates selectedKeys.
-   */
-  toggleRow: (business: Business) =>
+  /** Set selected keys directly or via "all" */
+  setSelectedKeys: (keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]) =>
+    set((state) => {
+      if (keys === 'all' && allFilteredData) {
+        // Select all rows across all pages (using `allFilteredData`)
+        return { selectedKeys: new Set(allFilteredData.map((item) => item.business_id)) };
+      }
+      return { selectedKeys: keys instanceof Set ? keys : new Set() };
+    }),
+
+  /** Toggle selection of a single row */
+  toggleRow: (business: CompanyProperties) =>
     set((state) => {
       const newRows = { ...state.selectedRows };
       const newKeys = new Set(state.selectedKeys);
@@ -53,36 +50,42 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedRows: newRows, selectedKeys: newKeys };
     }),
 
-  /** Clear all selected rows */
   clearSelection: () => set({ selectedRows: {}, selectedKeys: new Set<string>() }),
 
-  /** Columns visible in the table (from config) */
+  /** Column visibility */
   visibleColumns: columns.filter((col) => col.visible),
 
-  /** Toggle visibility of a column by key */
-  toggleColumnVisibility: (key) =>
+  toggleColumnVisibility: (key: keyof CompanyProperties) =>
     set((state) => {
-      const updatedColumns = state.visibleColumns.some((col) => col.key === key)
+      // Check if column is already visible
+      const isVisible = state.visibleColumns.some((col) => col.key === key);
+
+      // Find the column definition from the available columns
+      const column = columns.find((col) => col.key === key);
+
+      if (!column) {
+        console.error(`Column with key ${key} not found!`);
+        return state; // Return unchanged state if column is not found
+      }
+
+      // Update the columns visibility based on whether it's visible or not
+      const updatedColumns = isVisible
         ? state.visibleColumns.filter((col) => col.key !== key)
-        : [
-            ...state.visibleColumns,
-            ...(columns.find((col) => col.key === key)
-              ? [columns.find((col) => col.key === key) as (typeof columns)[0]]
-              : []),
-          ];
+        : [...state.visibleColumns, column]; // No need to check `find` again
+
       return { visibleColumns: updatedColumns };
     }),
 
-  /** Reset visible columns to default (from config) */
-  resetColumns: () => set({ visibleColumns: columns.filter((col) => col.visible) }),
+  resetColumns: () =>
+    set({
+      visibleColumns: columns.filter((col) => col.visible),
+    }),
 
-  /** Selected industry letter filters (A-Z) */
+  /** Industry filtering */
   selectedIndustries: [],
 
-  /** Replace all selected industries */
   setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
 
-  /** Toggle individual industry selection */
   toggleIndustry: (industry: string) =>
     set((state) => {
       const exists = state.selectedIndustries.includes(industry);
@@ -92,18 +95,14 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedIndustries: updated };
     }),
 
-  /** Clear all industry filters */
   clearIndustries: () => set({ selectedIndustries: [] }),
 
-  /** Coordinates from browser geolocation (if allowed) */
+  /** Location filters */
   userLocation: null,
 
-  /** Set coordinates */
   setUserLocation: (coords) => set({ userLocation: coords }),
 
-  /** Distance limit for filtering companies (in km) */
   distanceLimit: null,
 
-  /** Set distance limit */
   setDistanceLimit: (value) => set({ distanceLimit: value }),
 }));

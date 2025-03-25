@@ -65,7 +65,9 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
             maxValue={maxValue}
             step={step}
             value={value}
-            onChange={(val) => onChange(val as number)}
+            onChange={(val) => {
+              if (typeof val === 'number') onChange(val);
+            }}
             size="sm"
             aria-label="Distance in kilometers"
           />

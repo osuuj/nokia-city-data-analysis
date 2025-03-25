@@ -1,11 +1,11 @@
-import type { Business } from '@/types/business';
 import type { Dispatch, SetStateAction } from 'react';
+import type { CompanyProperties } from './business';
 
 /**
  * Defines metadata for a column in the data table.
  */
 export interface TableColumnConfig {
-  key: keyof Business;
+  key: keyof CompanyProperties;
   label: string;
   visible: boolean;
   userVisible: boolean;
@@ -13,9 +13,6 @@ export interface TableColumnConfig {
 
 /**
  * Default column definitions used across the app.
- *
- * - `visible`: determines if column is shown in the table
- * - `userVisible`: determines if user can toggle it in the UI
  */
 export const columns: TableColumnConfig[] = [
   { key: 'business_id', label: 'Business ID', visible: true, userVisible: true },
@@ -25,8 +22,6 @@ export const columns: TableColumnConfig[] = [
   { key: 'entrance', label: 'Entrance', visible: false, userVisible: false },
   { key: 'postal_code', label: 'Postal Code', visible: false, userVisible: false },
   { key: 'city', label: 'City', visible: false, userVisible: false },
-  { key: 'latitude_wgs84', label: 'Latitude', visible: false, userVisible: false },
-  { key: 'longitude_wgs84', label: 'Longitude', visible: false, userVisible: false },
   { key: 'address_type', label: 'Address Type', visible: false, userVisible: false },
   { key: 'company_type', label: 'Company Type', visible: false, userVisible: false },
   { key: 'industry', label: 'Industry', visible: true, userVisible: true },
@@ -46,7 +41,7 @@ export const columns: TableColumnConfig[] = [
  * Props for the main data table view.
  */
 export interface TableViewProps {
-  data: Business[];
+  data: CompanyProperties[];
   columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;
@@ -69,8 +64,8 @@ export interface TableHeaderProps {
  * Props for rendering a single table cell.
  */
 export interface TableCellRendererProps {
-  item: Business;
-  columnKey: keyof Business;
+  item: CompanyProperties;
+  columnKey: keyof CompanyProperties;
 }
 
 /**
@@ -97,7 +92,7 @@ export interface FilterGroupProps {
 export interface ToolbarProps {
   searchTerm: string;
   onSearch: (value: string) => void;
-  selectedKeys: Set<string> | 'all';
+  selectedKeys: Set<string>;
   useLocation: boolean;
   setUseLocation: Dispatch<SetStateAction<boolean>>;
   address: string;
@@ -119,7 +114,7 @@ export interface ColumnVisibilityDropdownProps {
  * Represents the current sorting state of the table.
  */
 export interface SortDescriptor {
-  column: keyof Business;
+  column: keyof CompanyProperties;
   direction: 'asc' | 'desc';
 }
 
@@ -132,7 +127,7 @@ export interface SortDropdownProps {
 }
 
 export interface FilteredBusinessParams {
-  data: Business[] | undefined;
+  data: CompanyProperties[] | undefined;
   searchTerm: string;
   selectedIndustries: string[];
   userLocation: { latitude: number; longitude: number } | null;

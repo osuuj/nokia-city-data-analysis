@@ -3,7 +3,7 @@
 import { useMemoizedCallback } from '@/components/hooks/useMemoizedCallback';
 import { TableToolbar } from '@/components/table/TableToolbar';
 import { useCompanyStore } from '@/store/useCompanyStore';
-import type { Business } from '@/types/business';
+import type { CompanyProperties } from '@/types';
 import type { TableColumnConfig, TableViewProps } from '@/types/table';
 import {
   Pagination,
@@ -18,7 +18,7 @@ import { useMemo, useState } from 'react';
 
 export function TableView({
   data,
-  allFilteredData,
+  allFilteredData, // <-- Make sure all filtered rows are passed
   currentPage,
   totalPages,
   onPageChange,
@@ -27,14 +27,14 @@ export function TableView({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
-}: TableViewProps & { allFilteredData: Business[] }) {
+}: TableViewProps & { allFilteredData: CompanyProperties[] }) {
   const { visibleColumns } = useCompanyStore();
   const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
   const selectedKeys = useCompanyStore((s) => s.selectedKeys);
   const setSelectedKeys = useCompanyStore((s) => s.setSelectedKeys);
 
-  const toggleSort = useMemoizedCallback((key: keyof Business) => {
+  const toggleSort = useMemoizedCallback((key: keyof CompanyProperties) => {
     setSortDescriptor((prev) => ({
       column: key,
       direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
@@ -43,7 +43,7 @@ export function TableView({
 
   const filteredData = useMemo(() => {
     return (
-      data?.filter((item) => item.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      data?.filter((item) => item.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ??
       []
     );
   }, [data, searchTerm]);
@@ -88,10 +88,11 @@ export function TableView({
         selectedKeys={selectedKeys}
         onSelectionChange={(keys) => {
           if (keys === 'all') {
+            // Select all rows across all pages (using `allFilteredData`)
             const allKeys = new Set(allFilteredData.map((item) => item.business_id));
             setSelectedKeys(allKeys);
           } else {
-            setSelectedKeys(new Set(keys as Set<string>));
+            setSelectedKeys(new Set(keys as Set<string>)); // Normal selection for non-all keys
           }
         }}
         topContent={
@@ -130,7 +131,9 @@ export function TableView({
             filteredData.map((item) => (
               <TableRow key={item.business_id}>
                 {visibleColumns.map((col: TableColumnConfig) => (
-                  <TableCell key={col.key}>{String(item[col.key as keyof Business])}</TableCell>
+                  <TableCell key={col.key}>
+                    {String(item[col.key as keyof CompanyProperties])}
+                  </TableCell>
                 ))}
               </TableRow>
             ))

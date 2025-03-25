@@ -1,5 +1,5 @@
 import type { Coordinates } from '@/utils/geo';
-import type { Business } from './business';
+import type { CompanyProperties } from './business';
 import type { TableColumnConfig } from './table';
 
 /**
@@ -11,15 +11,15 @@ export interface CompanyStore {
   setSelectedCity: (city: string) => void;
 
   // ✅ Row selection logic
-  selectedRows: Record<string, Business>;
+  selectedRows: Record<string, CompanyProperties>;
   selectedKeys: Set<string>;
   setSelectedKeys: (keys: Set<string> | 'all') => void;
-  toggleRow: (business: Business) => void;
+  toggleRow: (business: CompanyProperties) => void;
   clearSelection: () => void;
 
   // 📊 Column visibility control
   visibleColumns: TableColumnConfig[];
-  toggleColumnVisibility: (key: keyof Business) => void;
+  toggleColumnVisibility: (key: keyof CompanyProperties) => void;
   resetColumns: () => void;
 
   // 🏭 Industry filter logic

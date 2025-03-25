@@ -58,12 +58,12 @@ export const FilterGroup = ({
             className="gap-1"
             orientation="vertical"
             value={draftIndustries}
-            onChange={(vals) => setDraftIndustries(vals)}
+            onChange={(vals: string[]) => setDraftIndustries(vals)}
           >
             {(industryFilter?.options ?? []).map((option: FilterOption) => (
               <TagGroupItem key={option.value} value={option.value} className="p-6">
                 <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Icon icon={option.icon || ''} className="text-xs md:text-sm" />
+                  {option.icon && <Icon icon={option.icon} className="text-xs md:text-sm" />}
                   {option.title}
                 </div>
               </TagGroupItem>

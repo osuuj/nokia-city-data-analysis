@@ -20,3 +20,21 @@ export interface Business {
   registration_date?: string;
   website?: string;
 }
+
+export type CompanyProperties = {
+  business_id: string;
+  company_name: string;
+  industry_letter: string;
+  industry_description?: string;
+  company_type?: string;
+  industry?: string;
+  street?: string;
+  building_number?: string;
+  entrance?: string;
+  address_type?: string;
+  website?: string;
+  city?: string;
+  postal_code?: string;
+  active?: string;
+  registration_date?: string;
+};
