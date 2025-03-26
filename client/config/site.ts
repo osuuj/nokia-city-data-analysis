@@ -1,39 +1,69 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: 'Next.js + HeroUI',
-  description: 'Make beautiful websites regardless of your design experience.',
-
-  hero: {
-    title: {
-      before: 'Find ',
-      highlight: 'Companies in Finland ',
-      after: 'Close to You.',
-    },
-    description:
-      "We built this platform to showcase our skills and abilities. Without industry experience, it's challenging to get opportunities—so we created this project to prove our expertise in real-world applications.",
-  },
-
+  name: "Next.js + HeroUI",
+  description: "Make beautiful websites regardless of your design experience.",
   navItems: [
-    { label: 'Home', href: '/' },
-    { label: 'Search', href: '/search' },
+    {
+      label: "Home",
+      href: "/",
+    },
+    {
+      label: "Docs",
+      href: "/docs",
+    },
+    {
+      label: "Pricing",
+      href: "/pricing",
+    },
+    {
+      label: "Blog",
+      href: "/blog",
+    },
+    {
+      label: "About",
+      href: "/about",
+    },
   ],
-
-  footerNav: [
-    { name: 'Home', href: '/home' },
-    { name: 'Project', href: '/project' },
-    { name: 'Resources', href: '/resources' },
-    { name: 'About Us', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+  navMenuItems: [
+    {
+      label: "Profile",
+      href: "/profile",
+    },
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+    },
+    {
+      label: "Projects",
+      href: "/projects",
+    },
+    {
+      label: "Team",
+      href: "/team",
+    },
+    {
+      label: "Calendar",
+      href: "/calendar",
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+    },
+    {
+      label: "Help & Feedback",
+      href: "/help-feedback",
+    },
+    {
+      label: "Logout",
+      href: "/logout",
+    },
   ],
   links: {
-    github: 'https://github.com/osuuj/nokia-city-data-analysis',
+    github: "https://github.com/heroui-inc/heroui",
+    twitter: "https://twitter.com/hero_ui",
+    docs: "https://heroui.com",
+    discord: "https://discord.gg/9b6yyZKmH4",
+    sponsor: "https://patreon.com/jrgarciadev",
   },
-  socialLinks: [
-    {
-      name: 'GitHub',
-      href: 'https://github.com/osuuj/nokia-city-data-analysis',
-      icon: 'fontisto:github',
-    },
-  ],
 };

@@ -1,9 +1,5 @@
-import Hero from '@/components/common/Hero';
+import TableView from "../components/TableView";
 
-export default function LandingPage() {
-  return (
-    <section className="relative flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-      <Hero />
-    </section>
-  );
+export default function Home() {
+  return <TableView />;
 }
