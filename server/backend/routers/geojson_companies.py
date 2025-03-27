@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from collections import defaultdict
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -14,45 +15,78 @@ def get_companies_geojson(
     city: str = Query(..., description="City name to filter by"),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Return business data as a GeoJSON FeatureCollection."""
+    """Return grouped business data as a GeoJSON FeatureCollection."""
     businesses = get_business_data_by_city(db, city)
 
-    features = []
+    grouped: Dict[str, List[Any]] = defaultdict(list)
     for b in businesses:
-        # Skip if location is missing
-        if not b.longitude_wgs84 or not b.latitude_wgs84:
+        grouped[b.business_id].append(b)
+
+    features = []
+
+    for business_id, entries in grouped.items():
+        address_map = {}
+        coordinates = None
+
+        # Track which address types we have
+        for entry in entries:
+            # Skip invalid coordinates
+            try:
+                lng = float(entry.longitude_wgs84)
+                lat = float(entry.latitude_wgs84)
+            except (TypeError, ValueError):
+                continue
+
+            address_type = entry.address_type or "Unknown"
+
+            address_map[address_type] = {
+                "street": entry.street,
+                "building_number": entry.building_number,
+                "entrance": entry.entrance,
+                "postal_code": entry.postal_code,
+                "city": entry.city,
+                "longitude": lng,
+                "latitude": lat,
+            }
+
+            # Prefer Visiting address for marker placement
+            if address_type == "Visiting address":
+                coordinates = [lng, lat]
+
+        # Fallback: use Postal address coords if no Visiting one
+        if not coordinates and "Postal address" in address_map:
+            coordinates = [
+                address_map["Postal address"]["longitude"],
+                address_map["Postal address"]["latitude"],
+            ]
+
+        # Still nothing? Skip
+        if not coordinates:
             continue
 
-        try:
-            longitude = float(b.longitude_wgs84)
-            latitude = float(b.latitude_wgs84)
-        except ValueError:
-            continue
+        # Use first entry to copy general info
+        base = entries[0]
 
         feature = {
             "type": "Feature",
             "properties": {
-                "business_id": b.business_id,
-                "company_name": b.company_name,
-                "company_type": b.company_type,
-                "industry_letter": b.industry_letter,
-                "industry": b.industry,
-                "industry_description": b.industry_description,
-                "street": b.street,
-                "building_number": b.ilding_number,
-                "entrance": b.entrance,
-                "address_type": b.address_type,
-                "website": b.website,
-                "city": b.city,
-                "postal_code": b.postal_code,
-                "active": b.active,
-                "registration_date": b.registration_date,
+                "business_id": business_id,
+                "company_name": base.company_name,
+                "company_type": base.company_type,
+                "industry_letter": base.industry_letter,
+                "industry": base.industry,
+                "industry_description": base.industry_description,
+                "website": base.website,
+                "active": base.active,
+                "registration_date": base.registration_date,
+                "addresses": address_map,  # 💡 All address types here
             },
             "geometry": {
                 "type": "Point",
-                "coordinates": [longitude, latitude],
+                "coordinates": coordinates,
             },
         }
+
         features.append(feature)
 
     return {

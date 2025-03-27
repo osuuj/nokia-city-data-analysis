@@ -4,7 +4,7 @@ import { useMemoizedCallback } from '@/components/hooks/useMemoizedCallback';
 import { TableToolbar } from '@/components/table/TableToolbar';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { CompanyProperties } from '@/types';
-import type { TableColumnConfig, TableViewProps } from '@/types/table';
+import type { CompanyTableKey, TableColumnConfig, TableViewProps } from '@/types/table';
 import {
   Pagination,
   Table,
@@ -18,7 +18,7 @@ import { useMemo, useState } from 'react';
 
 export function TableView({
   data,
-  allFilteredData, // <-- Make sure all filtered rows are passed
+  allFilteredData,
   currentPage,
   totalPages,
   onPageChange,
@@ -34,7 +34,7 @@ export function TableView({
   const selectedKeys = useCompanyStore((s) => s.selectedKeys);
   const setSelectedKeys = useCompanyStore((s) => s.setSelectedKeys);
 
-  const toggleSort = useMemoizedCallback((key: keyof CompanyProperties) => {
+  const toggleSort = useMemoizedCallback((key: CompanyTableKey) => {
     setSortDescriptor((prev) => ({
       column: key,
       direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
@@ -88,11 +88,10 @@ export function TableView({
         selectedKeys={selectedKeys}
         onSelectionChange={(keys) => {
           if (keys === 'all') {
-            // Select all rows across all pages (using `allFilteredData`)
             const allKeys = new Set(allFilteredData.map((item) => item.business_id));
             setSelectedKeys(allKeys);
           } else {
-            setSelectedKeys(new Set(keys as Set<string>)); // Normal selection for non-all keys
+            setSelectedKeys(new Set(keys as Set<string>));
           }
         }}
         topContent={
@@ -132,7 +131,25 @@ export function TableView({
               <TableRow key={item.business_id}>
                 {visibleColumns.map((col: TableColumnConfig) => (
                   <TableCell key={col.key}>
-                    {String(item[col.key as keyof CompanyProperties])}
+                    {(() => {
+                      const visiting = item.addresses?.['Visiting address'];
+                      switch (col.key) {
+                        case 'street':
+                          return visiting?.street ?? '-';
+                        case 'building_number':
+                          return visiting?.building_number ?? '-';
+                        case 'postal_code':
+                          return visiting?.postal_code ?? '-';
+                        case 'city':
+                          return visiting?.city ?? '-';
+                        case 'entrance':
+                          return visiting?.entrance ?? '-';
+                        case 'address_type':
+                          return 'Visiting address';
+                        default:
+                          return String(item[col.key as keyof CompanyProperties] ?? '-');
+                      }
+                    })()}
                   </TableCell>
                 ))}
               </TableRow>

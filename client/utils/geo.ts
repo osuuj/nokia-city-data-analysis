@@ -52,7 +52,8 @@ export function requestBrowserLocation(): Promise<Coordinates> {
 }
 
 /**
- * Filters a list of companies to those within the specified distance (in km) of the user.
+ * Filters a list of companies to those within the specified distance (in km)
+ * of the user's location using their Visiting address (if available).
  */
 export function filterByDistance(
   data: CompanyProperties[],
@@ -60,33 +61,14 @@ export function filterByDistance(
   maxDistanceKm: number,
 ): CompanyProperties[] {
   return data.filter((company) => {
-    // Safely extract lat/lon from known property names
-    const latRaw =
-      (company as Record<string, unknown>).latitude ??
-      (company as Record<string, unknown>).latitude_wgs84;
-    const lonRaw =
-      (company as Record<string, unknown>).longitude ??
-      (company as Record<string, unknown>).longitude_wgs84;
+    const visiting = company.addresses?.['Visiting address'];
+    if (!visiting) return false;
 
-    const lat =
-      typeof latRaw === 'string'
-        ? Number.parseFloat(latRaw)
-        : typeof latRaw === 'number'
-          ? latRaw
-          : Number.NaN;
+    const distance = getDistanceInKm(userLocation, {
+      latitude: visiting.latitude,
+      longitude: visiting.longitude,
+    });
 
-    const lon =
-      typeof lonRaw === 'string'
-        ? Number.parseFloat(lonRaw)
-        : typeof lonRaw === 'number'
-          ? lonRaw
-          : Number.NaN;
-
-    if (Number.isNaN(lat) || Number.isNaN(lon)) {
-      return false;
-    }
-
-    const distance = getDistanceInKm(userLocation, { latitude: lat, longitude: lon });
     return distance <= maxDistanceKm;
   });
 }

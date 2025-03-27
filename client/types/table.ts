@@ -4,25 +4,44 @@ import type { CompanyProperties } from './business';
 /**
  * Defines metadata for a column in the data table.
  */
+export type CompanyTableKey =
+  | keyof CompanyProperties
+  | 'street'
+  | 'building_number'
+  | 'postal_code'
+  | 'city'
+  | 'entrance'
+  | 'address_type';
+
 export interface TableColumnConfig {
-  key: keyof CompanyProperties;
+  key: CompanyTableKey;
   label: string;
   visible: boolean;
   userVisible: boolean;
 }
 
+export interface SortDescriptor {
+  column: CompanyTableKey;
+  direction: 'asc' | 'desc';
+}
+
 /**
  * Default column definitions used across the app.
+ * These refer to core fields, and some virtual ones from `addresses.Visiting address`
  */
 export const columns: TableColumnConfig[] = [
   { key: 'business_id', label: 'Business ID', visible: true, userVisible: true },
   { key: 'company_name', label: 'Company Name', visible: true, userVisible: true },
+
+  // 🏡 Derived from Visiting address
   { key: 'street', label: 'Street', visible: false, userVisible: false },
   { key: 'building_number', label: 'Building Number', visible: false, userVisible: false },
   { key: 'entrance', label: 'Entrance', visible: false, userVisible: false },
   { key: 'postal_code', label: 'Postal Code', visible: false, userVisible: false },
   { key: 'city', label: 'City', visible: false, userVisible: false },
   { key: 'address_type', label: 'Address Type', visible: false, userVisible: false },
+
+  // 🏭 From company metadata
   { key: 'company_type', label: 'Company Type', visible: false, userVisible: false },
   { key: 'industry', label: 'Industry', visible: true, userVisible: true },
   {
@@ -37,6 +56,40 @@ export const columns: TableColumnConfig[] = [
   { key: 'website', label: 'Website', visible: false, userVisible: false },
 ];
 
+/**
+ * Safely returns displayable data for table cell rendering.
+ * Handles derived fields from Visiting address.
+ */
+export function getCellValue(item: CompanyProperties, columnKey: TableColumnConfig['key']): string {
+  const visiting = item.addresses?.['Visiting address'];
+
+  switch (columnKey) {
+    case 'street':
+      return visiting?.street ?? '';
+    case 'building_number':
+      return visiting?.building_number ?? '';
+    case 'entrance':
+      return visiting?.entrance ?? '';
+    case 'postal_code':
+      return visiting?.postal_code ?? '';
+    case 'city':
+      return visiting?.city ?? '';
+    case 'address_type':
+      return 'Visiting address';
+    case 'business_id':
+    case 'company_name':
+    case 'company_type':
+    case 'industry_letter':
+    case 'industry':
+    case 'industry_description':
+    case 'website':
+    case 'active':
+    case 'registration_date':
+      return item[columnKey] ?? '';
+    default:
+      return '';
+  }
+}
 /**
  * Props for the main data table view.
  */
@@ -65,7 +118,7 @@ export interface TableHeaderProps {
  */
 export interface TableCellRendererProps {
   item: CompanyProperties;
-  columnKey: keyof CompanyProperties;
+  columnKey: TableColumnConfig['key'];
 }
 
 /**
@@ -114,7 +167,7 @@ export interface ColumnVisibilityDropdownProps {
  * Represents the current sorting state of the table.
  */
 export interface SortDescriptor {
-  column: keyof CompanyProperties;
+  column: TableColumnConfig['key'];
   direction: 'asc' | 'desc';
 }
 

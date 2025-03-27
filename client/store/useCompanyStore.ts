@@ -55,23 +55,19 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Column visibility */
   visibleColumns: columns.filter((col) => col.visible),
 
-  toggleColumnVisibility: (key: keyof CompanyProperties) =>
+  toggleColumnVisibility: (key) =>
     set((state) => {
-      // Check if column is already visible
       const isVisible = state.visibleColumns.some((col) => col.key === key);
-
-      // Find the column definition from the available columns
       const column = columns.find((col) => col.key === key);
 
       if (!column) {
         console.error(`Column with key ${key} not found!`);
-        return state; // Return unchanged state if column is not found
+        return state;
       }
 
-      // Update the columns visibility based on whether it's visible or not
       const updatedColumns = isVisible
         ? state.visibleColumns.filter((col) => col.key !== key)
-        : [...state.visibleColumns, column]; // No need to check `find` again
+        : [...state.visibleColumns, column];
 
       return { visibleColumns: updatedColumns };
     }),

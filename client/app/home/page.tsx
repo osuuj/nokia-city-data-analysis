@@ -5,7 +5,7 @@ import { usePagination } from '@/components/hooks/usePagination';
 import { ViewModeToggle, ViewSwitcher } from '@/components/views';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { CompanyProperties } from '@/types';
-import type { SortDescriptor } from '@/types/table';
+import type { CompanyTableKey, SortDescriptor } from '@/types/table';
 import { columns as allColumns } from '@/types/table';
 import type { ViewMode } from '@/types/view';
 import { filterByDistance } from '@/utils/geo';
@@ -78,7 +78,8 @@ export default function HomePage() {
     return features
       .map((f) => f.properties)
       .filter((row) => {
-        if (row.address_type !== 'Visiting address') return false;
+        const visiting = row.addresses?.['Visiting address'];
+        if (!visiting) return false;
         if (seen.has(row.business_id)) return false;
         seen.add(row.business_id);
         return true;
@@ -99,9 +100,30 @@ export default function HomePage() {
     }
 
     const { column, direction } = sortDescriptor;
+
+    const getSortableValue = (item: CompanyProperties, column: CompanyTableKey) => {
+      const visiting = item.addresses?.['Visiting address'];
+      switch (column) {
+        case 'street':
+          return visiting?.street ?? '';
+        case 'building_number':
+          return visiting?.building_number ?? '';
+        case 'postal_code':
+          return visiting?.postal_code ?? '';
+        case 'city':
+          return visiting?.city ?? '';
+        case 'entrance':
+          return visiting?.entrance ?? '';
+        case 'address_type':
+          return 'Visiting address';
+        default:
+          return item[column] ?? '';
+      }
+    };
+
     filtered.sort((a, b) => {
-      const valA = a[column] ?? '';
-      const valB = b[column] ?? '';
+      const valA = getSortableValue(a, column);
+      const valB = getSortableValue(b, column);
       const comparison = valA < valB ? -1 : valA > valB ? 1 : 0;
       return direction === 'desc' ? -comparison : comparison;
     });
@@ -123,14 +145,14 @@ export default function HomePage() {
     [filteredAndSortedRows, selectedKeys],
   );
 
-  const selectedGeoJSON = useMemo<FeatureCollection<Point, CompanyProperties>>(
-    () => ({
+  const filteredGeoJSON = useMemo<FeatureCollection<Point, CompanyProperties>>(() => {
+    const filteredSet = new Set(filteredAndSortedRows.map((r) => r.business_id));
+    return {
       type: 'FeatureCollection',
       features:
-        geojsonData?.features.filter((f) => selectedKeys.has(f.properties.business_id)) ?? [],
-    }),
-    [geojsonData, selectedKeys],
-  );
+        geojsonData?.features.filter((f) => filteredSet.has(f.properties.business_id)) ?? [],
+    };
+  }, [geojsonData, filteredAndSortedRows]);
 
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
 
@@ -166,7 +188,7 @@ export default function HomePage() {
 
       <ViewSwitcher
         data={viewMode === 'map' || viewMode === 'split' ? selectedBusinesses : paginated}
-        geojson={geojsonData} // Pass full GeoJSON
+        geojson={filteredGeoJSON}
         viewMode={viewMode}
         setViewMode={setViewMode}
         columns={visibleColumns}

@@ -21,20 +21,45 @@ export interface Business {
   website?: string;
 }
 
-export type CompanyProperties = {
+/**
+ * Represents a single address (Postal or Visiting).
+ */
+export interface BusinessAddress {
+  street: string;
+  building_number: string;
+  entrance?: string;
+  postal_code: string;
+  city: string;
+  longitude: number;
+  latitude: number;
+}
+
+/**
+ * Represents a company feature returned from GeoJSON API.
+ */
+export interface CompanyProperties {
   business_id: string;
   company_name: string;
-  industry_letter: string;
-  industry_description?: string;
   company_type?: string;
+  industry_letter: string;
   industry?: string;
-  street?: string;
-  building_number?: string;
-  entrance?: string;
-  address_type?: string;
+  industry_description?: string;
   website?: string;
-  city?: string;
-  postal_code?: string;
   active?: string;
   registration_date?: string;
-};
+
+  // 👇 Grouped addresses by type (Postal address, Visiting address, etc.)
+  addresses: Record<string, BusinessAddress>;
+}
+
+/**
+ * A full GeoJSON feature (with geometry).
+ */
+export interface CompanyFeature {
+  type: 'Feature';
+  geometry: {
+    type: 'Point';
+    coordinates: [number, number]; // [lng, lat]
+  };
+  properties: CompanyProperties;
+}
