@@ -6,7 +6,7 @@ import { SearchInput } from '@/components/ui/Input/SearchInput';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterOption, ToolbarProps } from '@/types';
 import { filters } from '@/utils';
-import { Button, Chip, Divider } from '@heroui/react';
+import { Button, Chip, Divider, Switch, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useMemo } from 'react';
 
@@ -31,6 +31,9 @@ export function TableToolbar({
   const distanceLimit = useCompanyStore((s) => s.distanceLimit);
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
+
+  const addressFilterMode = useCompanyStore((s) => s.addressFilterMode);
+  const setAddressFilterMode = useCompanyStore((s) => s.setAddressFilterMode);
 
   const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
@@ -57,6 +60,22 @@ export function TableToolbar({
               setAddress={setAddress}
             />
             <Divider className="h-5" orientation="vertical" />
+
+            {/* Address Toggle Switch */}
+            <Tooltip content="Toggle to show only companies with Visiting addresses or All companies">
+              <div className="flex items-center gap-1 text-sm text-default-600">
+                <Switch
+                  size="sm"
+                  isSelected={addressFilterMode === 'All'}
+                  onValueChange={(checked) =>
+                    setAddressFilterMode(checked ? 'All' : 'VisitingOnly')
+                  }
+                />
+                <span>{addressFilterMode === 'All' ? 'All addresses' : 'Visiting only'}</span>
+              </div>
+            </Tooltip>
+
+            <Divider className="h-5" orientation="vertical" />
             <div className="text-xs whitespace-nowrap text-default-600">
               {`${selectedKeys.size} companies selected`}
             </div>
@@ -81,7 +100,6 @@ export function TableToolbar({
 
         {/* Filter tags row */}
         <div className="flex flex-wrap gap-2 mt-2 ml-1">
-          {/* Industry tags */}
           {selectedIndustryItems.map((item: FilterOption) => (
             <Chip
               key={item.value}
@@ -92,15 +110,14 @@ export function TableToolbar({
               startContent={
                 item.icon ? <Icon icon={item.icon} className="text-default-500" width={14} /> : null
               }
-              onClose={() => {
-                setSelectedIndustries(selectedIndustries.filter((v: string) => v !== item.value));
-              }}
+              onClose={() =>
+                setSelectedIndustries(selectedIndustries.filter((v: string) => v !== item.value))
+              }
             >
               {item.title}
             </Chip>
           ))}
 
-          {/* Distance tag */}
           {useLocation && distanceLimit != null && (
             <Chip
               size="sm"
@@ -137,6 +154,8 @@ export function TableToolbar({
       setDistanceLimit,
       setUserLocation,
       setSelectedKeys,
+      addressFilterMode,
+      setAddressFilterMode,
     ],
   );
 }

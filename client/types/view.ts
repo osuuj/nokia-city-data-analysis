@@ -12,7 +12,7 @@ export type ViewMode = 'table' | 'map' | 'split';
  *
  * Props for switching between Table and Map views explicitly.
  *
- * @extends Omit<TableViewProps, 'data'>
+ * @extends TableViewProps
  *
  * @property data {CompanyProperties[]} - Current page data.
  * @property allFilteredData {CompanyProperties[]} - Complete dataset for filters/selections.
@@ -25,5 +25,6 @@ export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
   allFilteredData: CompanyProperties[];
   geojson?: FeatureCollection<Point, CompanyProperties>;
   viewMode: ViewMode;
+  selectedBusinesses: CompanyProperties[];
   setViewMode: (mode: ViewMode) => void;
 }

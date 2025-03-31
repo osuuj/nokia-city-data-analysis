@@ -21,6 +21,7 @@ export interface CompanyState {
   selectedIndustries: string[];
   userLocation: Coordinates | null;
   distanceLimit: number | null;
+  addressFilterMode: 'VisitingOnly' | 'All';
 }
 
 /**
@@ -58,6 +59,7 @@ export interface CompanyActions {
 
   setUserLocation: (coords: Coordinates | null) => void;
   setDistanceLimit: (value: number | null) => void;
+  setAddressFilterMode: (mode: 'VisitingOnly' | 'All') => void;
 }
 
 /**

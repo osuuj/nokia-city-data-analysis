@@ -15,7 +15,7 @@ interface FeatureCardListProps {
   theme?: string;
 }
 
-export function FeatureCardList({ features, theme = 'light' }: FeatureCardListProps) {
+export function FeatureCardList({ features, theme = 'light', onSelect }: FeatureCardListProps) {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
 
   const isMulti = features.length > 1;
@@ -24,9 +24,28 @@ export function FeatureCardList({ features, theme = 'light' }: FeatureCardListPr
     : features[0];
 
   const reset = () => setSelectedBusinessId(null);
-
   const showList = isMulti && !selectedBusinessId;
   const showDetails = selectedFeature != null;
+
+  const renderAddress = (label: string, address?: CompanyProperties['addresses'][string]) => {
+    console.log(`[renderAddress] ${label}:`, address);
+
+    if (!address) return <div>⚠️ Missing {label.toLowerCase()}</div>;
+
+    return (
+      <div className="mb-1">
+        <strong>{label}</strong>
+        <br />
+        Street: {address.street ?? '—'}
+        <br />
+        Number: {address.building_number ?? '—'}
+        <br />
+        Entrance: {address.entrance || '—'}
+        <br />
+        Postal: {address.postal_code ?? '—'} {address.city ?? '—'}
+      </div>
+    );
+  };
 
   return (
     <div className="absolute top-4 left-4 z-50 max-w-xs w-full">
@@ -46,7 +65,7 @@ export function FeatureCardList({ features, theme = 'light' }: FeatureCardListPr
           </div>
         </CardHeader>
 
-        <CardBody className="px-4 pb-4 pt-2">
+        <CardBody className="px-4 pb-4 pt-2 text-sm">
           {showList ? (
             <ScrollShadow className="max-h-[400px] space-y-2">
               {features.map((feature) => (
@@ -69,41 +88,80 @@ export function FeatureCardList({ features, theme = 'light' }: FeatureCardListPr
               ))}
             </ScrollShadow>
           ) : showDetails && selectedFeature ? (
-            <div className="space-y-2 text-sm">
-              <div className="font-semibold text-base">
+            <>
+              <div className="font-semibold text-base mb-1">
                 {selectedFeature.properties.company_name}
               </div>
-              {selectedFeature.properties.addresses?.['Visiting address'] && (
-                <div className="text-muted-foreground">
-                  {selectedFeature.properties.addresses['Visiting address'].street}{' '}
-                  {selectedFeature.properties.addresses['Visiting address'].building_number}
-                  <br />
-                  {selectedFeature.properties.addresses['Visiting address'].postal_code}{' '}
-                  {selectedFeature.properties.addresses['Visiting address'].city}
-                </div>
-              )}
+
+              {/* 🏢 Addresses */}
+              {(() => {
+                let rawAddresses = selectedFeature.properties.addresses;
+                if (typeof rawAddresses === 'string') {
+                  try {
+                    rawAddresses = JSON.parse(rawAddresses);
+                  } catch (e) {
+                    console.error('Failed to parse addresses JSON:', e);
+                    rawAddresses = {};
+                  }
+                }
+
+                const visiting = rawAddresses['Visiting address'];
+                const postal = rawAddresses['Postal address'];
+
+                console.log('Raw addresses:', rawAddresses);
+
+                if (!visiting && !postal) {
+                  return <div>No address available</div>;
+                }
+
+                const isSameAddress =
+                  visiting &&
+                  postal &&
+                  visiting.street === postal.street &&
+                  visiting.building_number === postal.building_number &&
+                  visiting.entrance === postal.entrance &&
+                  visiting.postal_code === postal.postal_code &&
+                  visiting.city === postal.city;
+
+                if (isSameAddress && visiting) {
+                  return renderAddress('Visiting / Postal Address:', visiting);
+                }
+
+                return (
+                  <>
+                    {renderAddress('Visiting Address:', visiting)}
+                    {renderAddress('Postal Address:', postal)}
+                  </>
+                );
+              })()}
+
+              {/* 🏭 Industry */}
               {selectedFeature.properties.industry_description && (
                 <div>
                   <strong>Industry:</strong> {selectedFeature.properties.industry_description}
                 </div>
               )}
+
+              {/* 🌐 Website */}
               {selectedFeature.properties.website && (
                 <a
                   href={selectedFeature.properties.website}
                   target="_blank"
-                  className="text-primary underline"
                   rel="noreferrer"
+                  className="text-primary underline block mt-1"
                 >
                   {selectedFeature.properties.website}
                 </a>
               )}
+
+              {/* 🔙 Back */}
               {isMulti && (
-                <Button size="sm" onPress={reset} className="mt-2 flex items-center gap-1">
+                <Button size="sm" onPress={reset} className="mt-3 flex items-center gap-1">
                   <Icon icon="solar:arrow-left-linear" width={16} />
                   Back
                 </Button>
               )}
-            </div>
+            </>
           ) : (
             <div className="text-center py-10 text-default-400">
               <Icon icon="solar:building-linear" width={36} className="mb-2" />

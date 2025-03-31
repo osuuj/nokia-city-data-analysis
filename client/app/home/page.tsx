@@ -2,10 +2,10 @@
 
 import { ViewModeToggle, ViewSwitcher } from '@/components/ui/Toggles';
 import { columns as allColumns } from '@/config';
-import { useDebounce, usePagination } from '@/hooks';
+import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
 import { useCompanyStore } from '@/store/useCompanyStore';
-import type { CompanyProperties, CompanyTableKey, SortDescriptor, ViewMode } from '@/types';
-import { filterByDistance, getVisibleColumns } from '@/utils';
+import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
+import { getVisibleColumns } from '@/utils';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -24,28 +24,27 @@ export default function HomePage() {
     setSelectedCity,
     selectedIndustries,
     selectedKeys,
+    selectedRows,
     userLocation,
     distanceLimit,
+    addressFilterMode,
   } = useCompanyStore();
 
   const query = decodeURIComponent(searchParams.get('city') || '');
 
-  const {
-    data: geojsonData,
-    error,
-    isLoading: isFetching,
-  } = useSWR<FeatureCollection<Point, CompanyProperties>>(
+  const { data: geojsonData, isLoading: isFetching } = useSWR<
+    FeatureCollection<Point, CompanyProperties>
+  >(
     selectedCity
       ? `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(selectedCity)}`
       : null,
     fetcher,
   );
 
-  const {
-    data: cities = [],
-    error: cityError,
-    isLoading: cityLoading,
-  } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher);
+  const { data: cities = [], isLoading: cityLoading } = useSWR<string[]>(
+    `${BASE_URL}/api/v1/cities`,
+    fetcher,
+  );
 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,88 +66,55 @@ export default function HomePage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const rowsPerPage = 25;
 
-  const features = useMemo(() => geojsonData?.features ?? [], [geojsonData]);
-
   const tableRows = useMemo(() => {
     const seen = new Set<string>();
-    return features
-      .map((f) => f.properties)
-      .filter((row) => {
-        const visiting = row.addresses?.['Visiting address'];
-        if (!visiting) return false;
-        if (seen.has(row.business_id)) return false;
-        seen.add(row.business_id);
-        return true;
-      });
-  }, [features]);
 
-  const filteredAndSortedRows = useMemo(() => {
-    let filtered = tableRows.filter((row) =>
-      row.company_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
+    return (
+      geojsonData?.features
+        ?.map((f) => f.properties)
+        .filter((row) => {
+          const visiting = row.addresses?.['Visiting address'];
+          const postal = row.addresses?.['Postal address'];
+
+          // ✅ Handle filter mode logic
+          const hasValidAddress =
+            addressFilterMode === 'VisitingOnly' ? !!visiting : !!visiting || !!postal;
+
+          if (!hasValidAddress) return false;
+
+          if (seen.has(row.business_id)) return false;
+          seen.add(row.business_id);
+          return true;
+        }) ?? []
     );
+  }, [geojsonData, addressFilterMode]);
 
-    if (selectedIndustries.length > 0) {
-      filtered = filtered.filter((row) => selectedIndustries.includes(row.industry_letter ?? ''));
-    }
-
-    if (userLocation && distanceLimit != null) {
-      filtered = filterByDistance(filtered, userLocation, distanceLimit);
-    }
-
-    const { column, direction } = sortDescriptor;
-
-    const getSortableValue = (item: CompanyProperties, column: CompanyTableKey) => {
-      const visiting = item.addresses?.['Visiting address'];
-      switch (column) {
-        case 'street':
-          return visiting?.street ?? '';
-        case 'building_number':
-          return visiting?.building_number ?? '';
-        case 'postal_code':
-          return visiting?.postal_code ?? '';
-        case 'city':
-          return visiting?.city ?? '';
-        case 'entrance':
-          return visiting?.entrance ?? '';
-        case 'address_type':
-          return 'Visiting address';
-        default:
-          return item[column] ?? '';
-      }
-    };
-
-    filtered.sort((a, b) => {
-      const valA = getSortableValue(a, column);
-      const valB = getSortableValue(b, column);
-      const comparison = valA < valB ? -1 : valA > valB ? 1 : 0;
-      return direction === 'desc' ? -comparison : comparison;
-    });
-
-    return filtered;
-  }, [
-    tableRows,
-    debouncedSearchTerm,
+  const filteredAndSortedRows = useFilteredBusinesses({
+    data: tableRows,
+    searchTerm: debouncedSearchTerm,
     selectedIndustries,
     userLocation,
     distanceLimit,
     sortDescriptor,
-  ]);
+    isFetching,
+  });
 
   const { paginated, totalPages } = usePagination(filteredAndSortedRows, page, rowsPerPage);
 
-  const selectedBusinesses = useMemo(
-    () => filteredAndSortedRows.filter((b) => selectedKeys.has(b.business_id)),
-    [filteredAndSortedRows, selectedKeys],
-  );
-
   const filteredGeoJSON = useMemo<FeatureCollection<Point, CompanyProperties>>(() => {
-    const filteredSet = new Set(filteredAndSortedRows.map((r) => r.business_id));
+    if (!geojsonData) return { type: 'FeatureCollection', features: [] };
+
+    const hasSelection = selectedKeys.size > 0;
+
+    const selectedSet = new Set(
+      hasSelection ? Array.from(selectedKeys) : filteredAndSortedRows.map((r) => r.business_id),
+    );
+
     return {
       type: 'FeatureCollection',
-      features:
-        geojsonData?.features.filter((f) => filteredSet.has(f.properties.business_id)) ?? [],
+      features: geojsonData.features.filter((f) => selectedSet.has(f.properties.business_id)),
     };
-  }, [geojsonData, filteredAndSortedRows]);
+  }, [geojsonData, filteredAndSortedRows, selectedKeys]);
 
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
 
@@ -183,7 +149,11 @@ export default function HomePage() {
       )}
 
       <ViewSwitcher
-        data={viewMode === 'map' || viewMode === 'split' ? selectedBusinesses : paginated}
+        data={paginated}
+        allFilteredData={filteredAndSortedRows}
+        selectedBusinesses={Array.from(selectedKeys)
+          .map((id) => selectedRows[id])
+          .filter(Boolean)}
         geojson={filteredGeoJSON}
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -196,7 +166,6 @@ export default function HomePage() {
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
-        allFilteredData={filteredAndSortedRows}
       />
     </div>
   );

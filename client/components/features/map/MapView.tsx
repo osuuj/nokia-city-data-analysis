@@ -12,6 +12,7 @@ import MapboxMap from 'react-map-gl/mapbox';
 
 export interface MapViewProps {
   geojson: FeatureCollection<Point, CompanyProperties>;
+  selectedBusinesses?: CompanyProperties[];
 }
 
 export const MapView = ({ geojson }: MapViewProps) => {

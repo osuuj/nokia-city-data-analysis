@@ -2,7 +2,7 @@
 
 import { MapView } from '@/components/features/map/MapView';
 import { TableView } from '@/components/features/table';
-import type { CompanyProperties, ViewSwitcherProps } from '@/types';
+import type { ViewSwitcherProps } from '@/types';
 
 /**
  * ViewSwitcher
@@ -22,14 +22,15 @@ export function ViewSwitcher({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
-  allFilteredData, // Add this prop
-}: ViewSwitcherProps & { allFilteredData: CompanyProperties[] }) {
+  allFilteredData,
+  selectedBusinesses,
+}: ViewSwitcherProps) {
   return (
     <div className="w-full h-full">
       {viewMode === 'table' && (
         <TableView
           data={data}
-          allFilteredData={allFilteredData} // Ensure all filtered data is passed
+          allFilteredData={allFilteredData}
           columns={columns}
           currentPage={currentPage}
           totalPages={totalPages}
@@ -48,26 +49,22 @@ export function ViewSwitcher({
         </div>
       )}
 
-      {viewMode === 'split' && geojson && (
-        <div className="flex flex-col md:flex-row gap-4 w-full h-full">
-          <div className="md:w-1/2 w-full">
-            <TableView
-              data={data}
-              allFilteredData={allFilteredData} // Ensure all filtered data is passed
-              columns={columns}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-              isLoading={isLoading}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor}
-            />
-          </div>
-          <div className="md:w-1/2 w-full h-[80vh]">
-            <MapView geojson={geojson} />
-          </div>
+      {viewMode === 'split' && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <TableView
+            data={data}
+            allFilteredData={allFilteredData}
+            columns={columns}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            isLoading={isLoading}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            sortDescriptor={sortDescriptor}
+            setSortDescriptor={setSortDescriptor}
+          />
+          {geojson && <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />}
         </div>
       )}
     </div>
