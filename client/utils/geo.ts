@@ -1,16 +1,12 @@
-import type { CompanyProperties } from '@/types/business';
+import type { CompanyProperties, Coordinates } from '@/types';
 
 /**
- * Represents a geographic coordinate pair.
- */
-export type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
-
-/**
- * Calculates the distance in kilometers between two geo-coordinates
+ * Calculates distance in kilometers between two coordinates explicitly
  * using the Haversine formula.
+ *
+ * @param {Coordinates} point1 - First coordinate.
+ * @param {Coordinates} point2 - Second coordinate.
+ * @returns {number} Distance in kilometers.
  */
 export function getDistanceInKm(point1: Coordinates, point2: Coordinates): number {
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -29,7 +25,9 @@ export function getDistanceInKm(point1: Coordinates, point2: Coordinates): numbe
 }
 
 /**
- * Prompts the user for browser location access and returns their current coordinates.
+ * Requests user's browser location explicitly.
+ *
+ * @returns {Promise<Coordinates>} Resolves with current coordinates or rejects explicitly.
  */
 export function requestBrowserLocation(): Promise<Coordinates> {
   return new Promise((resolve, reject) => {
@@ -52,8 +50,12 @@ export function requestBrowserLocation(): Promise<Coordinates> {
 }
 
 /**
- * Filters a list of companies to those within the specified distance (in km)
- * of the user's location using their Visiting address (if available).
+ * Filters companies explicitly within a specified distance from user's location.
+ *
+ * @param {CompanyProperties[]} data - List of companies explicitly.
+ * @param {Coordinates} userLocation - User's coordinates explicitly.
+ * @param {number} maxDistanceKm - Maximum distance in kilometers explicitly.
+ * @returns {CompanyProperties[]} - Filtered companies within distance explicitly.
  */
 export function filterByDistance(
   data: CompanyProperties[],

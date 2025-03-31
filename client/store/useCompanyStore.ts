@@ -1,15 +1,33 @@
-import type { CompanyProperties } from '@/types/business';
-import type { CompanyStore } from '@/types/companyStore';
-import { columns } from '@/types/table';
+import { columns } from '@/config/columns';
+import type { CompanyProperties, CompanyStore } from '@/types';
+import type { CompanyTableKey } from '@/types/table';
 import { create } from 'zustand';
 
 /**
- * Zustand global store for managing:
- * - Selected city
- * - Table row selection
- * - Column visibility
- * - Industry filters
- * - Location-based filtering
+ * @store useCompanyStore
+ *
+ * Zustand global store managing:
+ *
+ * @state selectedCity {string} - Currently selected city for filtering.
+ * @state selectedRows {Record<string, CompanyProperties>} - Selected businesses mapped by IDs.
+ * @state selectedKeys {Set<string>} - Quick-access set of selected row keys.
+ * @state visibleColumns {TableColumnConfig[]} - Currently visible columns in the table.
+ * @state selectedIndustries {string[]} - Industries currently filtered.
+ * @state userLocation {Coordinates | null} - User's geolocation for filtering.
+ * @state distanceLimit {number | null} - Current maximum distance for location-based filtering.
+ *
+ * @actions
+ * - setSelectedCity(city: string): void
+ * - setSelectedKeys(keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]): void
+ * - toggleRow(business: CompanyProperties): void
+ * - clearSelection(): void
+ * - toggleColumnVisibility(key: CompanyTableKey): void
+ * - resetColumns(): void
+ * - setSelectedIndustries(values: string[]): void
+ * - toggleIndustry(industry: string): void
+ * - clearIndustries(): void
+ * - setUserLocation(coords: Coordinates | null): void
+ * - setDistanceLimit(value: number | null): void
  */
 export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
@@ -55,7 +73,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Column visibility */
   visibleColumns: columns.filter((col) => col.visible),
 
-  toggleColumnVisibility: (key) =>
+  toggleColumnVisibility: (key: CompanyTableKey) =>
     set((state) => {
       const isVisible = state.visibleColumns.some((col) => col.key === key);
       const column = columns.find((col) => col.key === key);

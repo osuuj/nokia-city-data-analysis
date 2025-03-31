@@ -1,4 +1,4 @@
-import { Hero } from '@/components/common/Hero/Hero';
+import { Hero } from '@/components/ui/Hero/Hero';
 
 /**
  * Landing page component displaying the hero section.

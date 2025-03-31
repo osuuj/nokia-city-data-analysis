@@ -1,11 +1,11 @@
 'use client';
 
-import { Providers } from '@/app/context/Providers';
-import { ThemeSwitch } from '@/components/common/Theme/ThemeSwitch';
-import { GithubIcon } from '@/components/icons/Icons';
+import { SidebarWrapper } from '@/components/features/sidebar/SidebarWrapper';
 import { HomeFooter } from '@/components/layout/HomeFooter/HomeFooter';
-import { SidebarWrapper } from '@/components/sidebar/SidebarWrapper';
+import { ThemeSwitch } from '@/components/ui/Theme/ThemeSwitch';
 import { siteConfig } from '@/config/site';
+import { GithubIcon } from '@/icons';
+import { Providers } from '@/providers/Providers';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';

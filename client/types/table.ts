@@ -2,10 +2,16 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { CompanyProperties } from './business';
 
 /**
- * Defines metadata for a column in the data table.
+ * @typedef DirectCompanyKey
+ * @description Keys that exist directly on the CompanyProperties interface.
  */
-export type CompanyTableKey =
-  | keyof CompanyProperties
+export type DirectCompanyKey = keyof CompanyProperties;
+
+/**
+ * @typedef AddressKey
+ * @description Keys derived from nested 'Visiting' or 'Postal' addresses inside CompanyProperties.
+ */
+export type AddressKey =
   | 'street'
   | 'building_number'
   | 'postal_code'
@@ -13,6 +19,20 @@ export type CompanyTableKey =
   | 'entrance'
   | 'address_type';
 
+/**
+ * @typedef CompanyTableKey
+ * @description All possible column keys used in the UI table. Includes direct company fields and nested address fields.
+ */
+export type CompanyTableKey = DirectCompanyKey | AddressKey;
+
+/**
+ * @interface TableColumnConfig
+ * @description Metadata about a column in the table.
+ * @property key {CompanyTableKey} - Unique key for the column.
+ * @property label {string} - Display label shown in the table header.
+ * @property visible {boolean} - Is this column currently visible?
+ * @property userVisible {boolean} - Can users toggle this column’s visibility?
+ */
 export interface TableColumnConfig {
   key: CompanyTableKey;
   label: string;
@@ -20,78 +40,20 @@ export interface TableColumnConfig {
   userVisible: boolean;
 }
 
+/**
+ * @interface SortDescriptor
+ * @description Describes the column and direction used for sorting the table.
+ * @property column {CompanyTableKey} - The column key being sorted.
+ * @property direction {'asc' | 'desc'} - The sort direction.
+ */
 export interface SortDescriptor {
   column: CompanyTableKey;
   direction: 'asc' | 'desc';
 }
 
 /**
- * Default column definitions used across the app.
- * These refer to core fields, and some virtual ones from `addresses.Visiting address`
- */
-export const columns: TableColumnConfig[] = [
-  { key: 'business_id', label: 'Business ID', visible: true, userVisible: true },
-  { key: 'company_name', label: 'Company Name', visible: true, userVisible: true },
-
-  // 🏡 Derived from Visiting address
-  { key: 'street', label: 'Street', visible: false, userVisible: false },
-  { key: 'building_number', label: 'Building Number', visible: false, userVisible: false },
-  { key: 'entrance', label: 'Entrance', visible: false, userVisible: false },
-  { key: 'postal_code', label: 'Postal Code', visible: false, userVisible: false },
-  { key: 'city', label: 'City', visible: false, userVisible: false },
-  { key: 'address_type', label: 'Address Type', visible: false, userVisible: false },
-
-  // 🏭 From company metadata
-  { key: 'company_type', label: 'Company Type', visible: false, userVisible: false },
-  { key: 'industry', label: 'Industry', visible: true, userVisible: true },
-  {
-    key: 'industry_description',
-    label: 'Industry Description',
-    visible: false,
-    userVisible: false,
-  },
-  { key: 'industry_letter', label: 'Industry Letter', visible: false, userVisible: false },
-  { key: 'registration_date', label: 'Registration Date', visible: true, userVisible: true },
-  { key: 'active', label: 'Active', visible: true, userVisible: true },
-  { key: 'website', label: 'Website', visible: false, userVisible: false },
-];
-
-/**
- * Safely returns displayable data for table cell rendering.
- * Handles derived fields from Visiting address.
- */
-export function getCellValue(item: CompanyProperties, columnKey: TableColumnConfig['key']): string {
-  const visiting = item.addresses?.['Visiting address'];
-
-  switch (columnKey) {
-    case 'street':
-      return visiting?.street ?? '';
-    case 'building_number':
-      return visiting?.building_number ?? '';
-    case 'entrance':
-      return visiting?.entrance ?? '';
-    case 'postal_code':
-      return visiting?.postal_code ?? '';
-    case 'city':
-      return visiting?.city ?? '';
-    case 'address_type':
-      return 'Visiting address';
-    case 'business_id':
-    case 'company_name':
-    case 'company_type':
-    case 'industry_letter':
-    case 'industry':
-    case 'industry_description':
-    case 'website':
-    case 'active':
-    case 'registration_date':
-      return item[columnKey] ?? '';
-    default:
-      return '';
-  }
-}
-/**
- * Props for the main data table view.
+ * @interface TableViewProps
+ * @description Props for the main table view component.
  */
 export interface TableViewProps {
   data: CompanyProperties[];
@@ -107,22 +69,25 @@ export interface TableViewProps {
 }
 
 /**
- * Props for the table header component.
+ * @interface TableHeaderProps
+ * @description Props for rendering the column headers of the table.
  */
 export interface TableHeaderProps {
   columns: TableColumnConfig[];
 }
 
 /**
- * Props for rendering a single table cell.
+ * @interface TableCellRendererProps
+ * @description Props used to render an individual table cell.
  */
 export interface TableCellRendererProps {
   item: CompanyProperties;
-  columnKey: TableColumnConfig['key'];
+  columnKey: CompanyTableKey;
 }
 
 /**
- * Props for the search input in the toolbar.
+ * @interface SearchInputProps
+ * @description Props passed to the search input component.
  */
 export interface SearchInputProps {
   searchTerm: string;
@@ -130,7 +95,8 @@ export interface SearchInputProps {
 }
 
 /**
- * Props passed to the filter group (industry, distance).
+ * @interface FilterGroupProps
+ * @description Props for rendering the group of filters above the table.
  */
 export interface FilterGroupProps {
   useLocation: boolean;
@@ -140,7 +106,8 @@ export interface FilterGroupProps {
 }
 
 /**
- * Props for the top table toolbar, including search, filters, and sort.
+ * @interface ToolbarProps
+ * @description Props passed to the main table toolbar, including filtering, sorting, and selection.
  */
 export interface ToolbarProps {
   searchTerm: string;
@@ -156,7 +123,8 @@ export interface ToolbarProps {
 }
 
 /**
- * Props for the column visibility dropdown.
+ * @interface ColumnVisibilityDropdownProps
+ * @description Props for the dropdown that toggles column visibility.
  */
 export interface ColumnVisibilityDropdownProps {
   visibleColumns: Set<string>;
@@ -164,21 +132,18 @@ export interface ColumnVisibilityDropdownProps {
 }
 
 /**
- * Represents the current sorting state of the table.
- */
-export interface SortDescriptor {
-  column: TableColumnConfig['key'];
-  direction: 'asc' | 'desc';
-}
-
-/**
- * Props passed to the sort dropdown in the toolbar.
+ * @interface SortDropdownProps
+ * @description Props for the sort dropdown control.
  */
 export interface SortDropdownProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
 }
 
+/**
+ * @interface FilteredBusinessParams
+ * @description Arguments passed to hook or utils for filtering company data.
+ */
 export interface FilteredBusinessParams {
   data: CompanyProperties[] | undefined;
   searchTerm: string;

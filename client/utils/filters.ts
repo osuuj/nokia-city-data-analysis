@@ -1,9 +1,12 @@
-import type { Filter } from '@/types/filters';
-import { FilterTypeEnum } from '@/types/filters';
+import { type Filter, FilterTypeEnum } from '@/types';
 
 /**
- * List of available industry filters with icons and metadata.
- * Used for populating industry dropdowns and tagging UI.
+ * @constant filters
+ *
+ * UI filter configuration array explicitly used across the application.
+ * Provides structured metadata explicitly for filter rendering.
+ *
+ * @type {Filter[]}
  */
 export const filters: Filter[] = [
   {
@@ -151,7 +154,7 @@ export const filters: Filter[] = [
         color: '#7828c8',
       },
       {
-        title: 'International Organizations',
+        title: 'International Organizations',
         value: 'V',
         icon: 'solar:globus-bold',
         color: '#005bc4',

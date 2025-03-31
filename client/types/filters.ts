@@ -14,33 +14,33 @@ export enum FilterTypeEnum {
 }
 
 /**
- * A tuple of two numbers representing a min-max range value.
+ * A tuple representing a min-max range value.
  */
 export type RangeValue = [number, number];
 
 /**
- * Describes a slider or range-based filter (e.g. distance or rating).
+ * Describes a slider or range-based filter (e.g., distance or rating).
  */
-export type RangeFilter = {
+export interface RangeFilter {
   min: number;
   max: number;
   step: number;
   defaultValue: RangeValue;
-};
+}
 
 /**
- * Generic filter structure used to render dynamic filter UIs.
+ * Generic filter option structure used to render dynamic filter UIs.
  */
-export type FilterOption = {
+export interface FilterOption {
   title: string;
   value: string;
   description?: string;
   icon?: string;
   color?: string;
-  svgIconPath?: string; // ✅ add this line
-};
+  svgIconPath?: string;
+}
 
-export type Filter = {
+export interface Filter {
   key: string;
   type: FilterTypeEnum;
   title: string;
@@ -48,7 +48,7 @@ export type Filter = {
   range?: RangeFilter;
   defaultOpen?: boolean;
   options?: FilterOption[];
-};
+}
 
 /**
  * Props passed to the PopoverFilterWrapper component used for filters.
@@ -68,7 +68,7 @@ export type TagGroupItemProps = Omit<CheckboxProps, 'icon'> & {
 };
 
 /**
- * Props for a color option in a radio group (like selecting a color theme).
+ * Props for a color option in a radio group (e.g., selecting a color theme).
  */
 export type ColorRadioItemProps = Omit<RadioProps, 'color'> & {
   color?: string;
@@ -78,7 +78,7 @@ export type ColorRadioItemProps = Omit<RadioProps, 'color'> & {
 /**
  * Props for the DistanceSlider component.
  */
-export type DistanceSliderProps = {
+export interface DistanceSliderProps {
   value: number;
   onChange: (value: number) => void;
   minValue?: number;
@@ -86,4 +86,4 @@ export type DistanceSliderProps = {
   step?: number;
   animation?: 'opacity' | 'height';
   className?: string;
-};
+}

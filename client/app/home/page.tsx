@@ -1,15 +1,11 @@
 'use client';
 
-import { useDebounce } from '@/components/hooks/useDebounce';
-import { usePagination } from '@/components/hooks/usePagination';
-import { ViewModeToggle, ViewSwitcher } from '@/components/views';
+import { ViewModeToggle, ViewSwitcher } from '@/components/ui/Toggles';
+import { columns as allColumns } from '@/config';
+import { useDebounce, usePagination } from '@/hooks';
 import { useCompanyStore } from '@/store/useCompanyStore';
-import type { CompanyProperties } from '@/types';
-import type { CompanyTableKey, SortDescriptor } from '@/types/table';
-import { columns as allColumns } from '@/types/table';
-import type { ViewMode } from '@/types/view';
-import { filterByDistance } from '@/utils/geo';
-import { getVisibleColumns } from '@/utils/table';
+import type { CompanyProperties, CompanyTableKey, SortDescriptor, ViewMode } from '@/types';
+import { filterByDistance, getVisibleColumns } from '@/utils';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';

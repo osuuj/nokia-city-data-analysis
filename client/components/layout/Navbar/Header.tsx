@@ -16,9 +16,9 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
-import { ThemeSwitch } from '@/components/common/Theme';
-import { GithubIcon, OsuujLogo } from '@/components/icons';
-import { siteConfig } from '@/config/site';
+import { ThemeSwitch } from '@/components/ui/Theme/ThemeSwitch';
+import { siteConfig } from '@/config';
+import { GithubIcon, OsuujLogo } from '@/icons';
 
 const navbarItems = [
   { href: '/home', label: 'Home' },

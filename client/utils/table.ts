@@ -1,24 +1,55 @@
 import type { CompanyProperties } from '@/types/business';
-import type { SortDescriptor, TableColumnConfig } from '@/types/table';
+import type {
+  CompanyTableKey,
+  DirectCompanyKey,
+  SortDescriptor,
+  TableColumnConfig,
+} from '@/types/table';
 
 /**
- * Returns only the columns marked as visible.
+ * @function getVisibleColumns
  */
 export const getVisibleColumns = (columns: TableColumnConfig[]): TableColumnConfig[] => {
   return columns.filter((column) => column.visible);
 };
 
 /**
- * Sorts companies based on the provided sort descriptor.
+ * @function sortCompanies
  */
 export const sortCompanies = (
   data: CompanyProperties[],
   descriptor: SortDescriptor,
+  addressType: 'Visiting address' | 'Postal address' = 'Visiting address',
 ): CompanyProperties[] => {
   const { column, direction } = descriptor;
+
   return [...data].sort((a, b) => {
-    const aVal = a[column] ?? '';
-    const bVal = b[column] ?? '';
+    const getValue = (item: CompanyProperties) => {
+      const address = item.addresses?.[addressType];
+
+      switch (column) {
+        case 'street':
+          return address?.street ?? '';
+        case 'building_number':
+          return address?.building_number ?? '';
+        case 'entrance':
+          return address?.entrance ?? '';
+        case 'postal_code':
+          return address?.postal_code ?? '';
+        case 'city':
+          return address?.city ?? '';
+        case 'address_type':
+          return addressType;
+        case 'active':
+          return item.active ? 'Yes' : 'No';
+        default:
+          return (item[column as keyof CompanyProperties] as string | undefined) ?? '';
+      }
+    };
+
+    const aVal = getValue(a);
+    const bVal = getValue(b);
+
     if (aVal < bVal) return direction === 'asc' ? -1 : 1;
     if (aVal > bVal) return direction === 'asc' ? 1 : -1;
     return 0;
@@ -26,7 +57,7 @@ export const sortCompanies = (
 };
 
 /**
- * Filters companies by search term (company_name).
+ * @function applySearchFilter
  */
 export const applySearchFilter = (
   data: CompanyProperties[],
@@ -37,7 +68,7 @@ export const applySearchFilter = (
 };
 
 /**
- * Optionally filters companies by selected industry letters.
+ * @function applyIndustryFilter
  */
 export const applyIndustryFilter = (
   data: CompanyProperties[],
@@ -46,3 +77,33 @@ export const applyIndustryFilter = (
   if (selectedIndustries.length === 0) return data;
   return data.filter((item) => selectedIndustries.includes(item.industry_letter));
 };
+
+/**
+ * @function getCellValue
+ */
+export function getCellValue(
+  item: CompanyProperties,
+  columnKey: CompanyTableKey,
+  addressType: 'Visiting address' | 'Postal address' = 'Visiting address',
+): string {
+  const address = item.addresses?.[addressType];
+
+  switch (columnKey) {
+    case 'street':
+      return address?.street ?? '';
+    case 'building_number':
+      return address?.building_number ?? '';
+    case 'entrance':
+      return address?.entrance ?? '';
+    case 'postal_code':
+      return address?.postal_code ?? '';
+    case 'city':
+      return address?.city ?? '';
+    case 'address_type':
+      return addressType;
+    case 'active':
+      return item.active ? 'Yes' : 'No';
+    default:
+      return (item[columnKey as keyof CompanyProperties] as string | undefined) ?? '';
+  }
+}
