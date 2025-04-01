@@ -1,10 +1,12 @@
 /**
- * Restricts a number to be within a specified range.
+ * @function clampValue
  *
- * @param value - The number to clamp
- * @param min - Minimum allowed value
- * @param max - Maximum allowed value
- * @returns The clamped value
+ * Restricts a number explicitly within a specified range.
+ *
+ * @param {number} value - Number explicitly to clamp.
+ * @param {number} min - Minimum allowed value explicitly.
+ * @param {number} max - Maximum allowed value explicitly.
+ * @returns {number} Explicitly clamped number.
  *
  * @example
  * clampValue(5, 1, 10);    // 5

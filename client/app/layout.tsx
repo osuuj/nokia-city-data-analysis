@@ -1,13 +1,11 @@
 import '@/styles/globals.css';
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout/ConditionalLayout';
+import { fontSans, siteConfig } from '@/config';
+import { Providers } from '@/providers/Providers';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import type React from 'react';
-
-import { Providers } from '@/app/context/Providers';
-import { ConditionalLayout } from '@/components/layout/ConditionalLayout/ConditionalLayout';
-import { fontSans } from '@/config/fonts';
-import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
   title: {

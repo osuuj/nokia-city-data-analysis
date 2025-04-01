@@ -3,6 +3,7 @@ export * from './business';
 export * from './companyStore';
 export * from './filters';
 export * from './table';
+export * from './view';
 
 import type { SVGProps } from 'react';
 

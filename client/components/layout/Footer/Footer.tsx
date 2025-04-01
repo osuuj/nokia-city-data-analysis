@@ -1,8 +1,7 @@
 'use client';
 
+import { OsuujLogo } from '@/icons';
 import { Spacer } from '@heroui/react';
-
-import { OsuujLogo } from '@/components/icons';
 import { FooterNavLinks } from './FooterNavLinks';
 import { FooterSocialLinks } from './FooterSocialLinks';
 

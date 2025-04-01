@@ -1,72 +1,105 @@
-import type { Business, CompanyStore } from '@/types/business';
-import { columns } from '@/types/table';
+import { columns } from '@/config/columns';
+import type { CompanyProperties, CompanyStore } from '@/types';
+import type { CompanyTableKey } from '@/types/table';
 import { create } from 'zustand';
 
 /**
- * Zustand global store for managing:
- * - Selected city
- * - Table row selection
- * - Column visibility
- * - Industry filters
- * - Location-based filtering
+ * @store useCompanyStore
+ *
+ * Zustand global store managing:
+ *
+ * @state selectedCity {string} - Currently selected city for filtering.
+ * @state selectedRows {Record<string, CompanyProperties>} - Selected businesses mapped by IDs.
+ * @state selectedKeys {Set<string>} - Quick-access set of selected row keys.
+ * @state visibleColumns {TableColumnConfig[]} - Currently visible columns in the table.
+ * @state selectedIndustries {string[]} - Industries currently filtered.
+ * @state userLocation {Coordinates | null} - User's geolocation for filtering.
+ * @state distanceLimit {number | null} - Current maximum distance for location-based filtering.
+ *
+ * @actions
+ * - setSelectedCity(city: string): void
+ * - setSelectedKeys(keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]): void
+ * - toggleRow(business: CompanyProperties): void
+ * - clearSelection(): void
+ * - toggleColumnVisibility(key: CompanyTableKey): void
+ * - resetColumns(): void
+ * - setSelectedIndustries(values: string[]): void
+ * - toggleIndustry(industry: string): void
+ * - clearIndustries(): void
+ * - setUserLocation(coords: Coordinates | null): void
+ * - setDistanceLimit(value: number | null): void
  */
 export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
   selectedCity: '',
 
-  /** Set selected city */
   setSelectedCity: (city: string) => set({ selectedCity: city }),
 
   /** Currently selected rows (keyed by business_id) */
   selectedRows: {},
 
-  /**
-   * Toggle a row's selection status.
-   * Adds/removes business from selectedRows.
-   */
-  toggleRow: (business: Business) =>
+  /** Set of selected row keys (used for fast lookup in components) */
+  selectedKeys: new Set<string>(),
+
+  /** Set selected keys directly or via "all" */
+  setSelectedKeys: (keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]) =>
     set((state) => {
-      const newSelection = { ...state.selectedRows };
-      if (newSelection[business.business_id]) {
-        delete newSelection[business.business_id];
-      } else {
-        newSelection[business.business_id] = business;
+      if (keys === 'all' && allFilteredData) {
+        // Select all rows across all pages (using `allFilteredData`)
+        return { selectedKeys: new Set(allFilteredData.map((item) => item.business_id)) };
       }
-      return { selectedRows: newSelection };
+      return { selectedKeys: keys instanceof Set ? keys : new Set() };
     }),
 
-  /** Clear all selected rows */
-  clearSelection: () => set({ selectedRows: {} }),
+  /** Toggle selection of a single row */
+  toggleRow: (business: CompanyProperties) =>
+    set((state) => {
+      const newRows = { ...state.selectedRows };
+      const newKeys = new Set(state.selectedKeys);
 
-  /** Columns visible in the table (from config) */
+      if (newRows[business.business_id]) {
+        delete newRows[business.business_id];
+        newKeys.delete(business.business_id);
+      } else {
+        newRows[business.business_id] = business;
+        newKeys.add(business.business_id);
+      }
+
+      return { selectedRows: newRows, selectedKeys: newKeys };
+    }),
+
+  clearSelection: () => set({ selectedRows: {}, selectedKeys: new Set<string>() }),
+
+  /** Column visibility */
   visibleColumns: columns.filter((col) => col.visible),
 
-  /**
-   * Toggle visibility of a column by key.
-   */
-  toggleColumnVisibility: (key) =>
+  toggleColumnVisibility: (key: CompanyTableKey) =>
     set((state) => {
-      const updatedColumns = state.visibleColumns.some((col) => col.key === key)
+      const isVisible = state.visibleColumns.some((col) => col.key === key);
+      const column = columns.find((col) => col.key === key);
+
+      if (!column) {
+        console.error(`Column with key ${key} not found!`);
+        return state;
+      }
+
+      const updatedColumns = isVisible
         ? state.visibleColumns.filter((col) => col.key !== key)
-        : [
-            ...state.visibleColumns,
-            ...(columns.find((col) => col.key === key)
-              ? [columns.find((col) => col.key === key) as (typeof columns)[0]]
-              : []),
-          ];
+        : [...state.visibleColumns, column];
+
       return { visibleColumns: updatedColumns };
     }),
 
-  /** Reset visible columns to default (from config) */
-  resetColumns: () => set({ visibleColumns: columns.filter((col) => col.visible) }),
+  resetColumns: () =>
+    set({
+      visibleColumns: columns.filter((col) => col.visible),
+    }),
 
-  /** Selected industry letter filters (A-Z) */
+  /** Industry filtering */
   selectedIndustries: [],
 
-  /** Replace all selected industries */
   setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
 
-  /** Toggle individual industry selection */
   toggleIndustry: (industry: string) =>
     set((state) => {
       const exists = state.selectedIndustries.includes(industry);
@@ -76,18 +109,14 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedIndustries: updated };
     }),
 
-  /** Clear all industry filters */
   clearIndustries: () => set({ selectedIndustries: [] }),
 
-  /** Coordinates from browser geolocation (if allowed) */
+  /** Location filters */
   userLocation: null,
 
-  /** Set coordinates */
   setUserLocation: (coords) => set({ userLocation: coords }),
 
-  /** Distance limit for filtering companies (in km) */
   distanceLimit: null,
 
-  /** Set distance limit */
   setDistanceLimit: (value) => set({ distanceLimit: value }),
 }));

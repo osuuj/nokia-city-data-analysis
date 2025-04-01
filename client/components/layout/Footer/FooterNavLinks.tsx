@@ -1,6 +1,6 @@
 'use client';
 
-import { siteConfig } from '@/config/site';
+import { siteConfig } from '@/config';
 import Link from 'next/link';
 
 /**

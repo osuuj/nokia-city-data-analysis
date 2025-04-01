@@ -1,3 +1,3 @@
-export { Footer } from './Footer';
-export { FooterNavLinks } from './FooterNavLinks';
-export { FooterSocialLinks } from './FooterSocialLinks';
+export * from './Footer';
+export * from './FooterNavLinks';
+export * from './FooterSocialLinks';

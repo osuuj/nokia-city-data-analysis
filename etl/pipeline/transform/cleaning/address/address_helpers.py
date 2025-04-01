@@ -189,8 +189,10 @@ def add_columns_from_csv(df: pd.DataFrame, staging_dir: str) -> pd.DataFrame:
     output_path = f"{staging_dir}/staging_post_offices.csv"
     additional_data = pd.read_csv(output_path)
     df = df.merge(
-        additional_data[["business_id", "municipality", "city", "active"]],
-        on="business_id",
+        additional_data[
+            ["business_id", "postal_code", "municipality", "city", "active"]
+        ],
+        on=["business_id", "postal_code"],
         how="left",
     )
     return df

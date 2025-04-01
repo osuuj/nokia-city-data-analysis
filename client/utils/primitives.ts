@@ -1,9 +1,10 @@
-import { tv } from 'tailwind-variants';
+import { type VariantProps, tv } from 'tailwind-variants';
 
 /**
- * Gradient-styled heading text.
+ * @component title
  *
- * Supports multiple color variants, sizes, and full-width layout.
+ * Gradient-styled heading text explicitly.
+ * Supports explicitly defined colors, sizes, and full-width layout.
  *
  * @example
  * <h1 className={title({ size: 'lg', color: 'blue' })}>Welcome</h1>
@@ -40,22 +41,28 @@ export const title = tv({
   ],
 });
 
+export type TitleVariants = VariantProps<typeof title>;
+
 /**
- * Responsive subtitle text with muted color.
+ * @component subtitle
  *
- * Used below hero headers and in section descriptions.
+ * Responsive subtitle text explicitly with muted color.
+ * Used explicitly below hero headers or in section descriptions.
  *
  * @example
- * <p className={subtitle()}>Explore our datasets</p>
+ * <p className={subtitle({ fullWidth: false })}>Explore datasets</p>
  */
 export const subtitle = tv({
   base: 'my-2 block w-full max-w-full text-lg text-default-600 md:w-1/2 lg:text-xl',
   variants: {
     fullWidth: {
       true: '!w-full',
+      false: '',
     },
   },
   defaultVariants: {
     fullWidth: true,
   },
 });
+
+export type SubtitleVariants = VariantProps<typeof subtitle>;

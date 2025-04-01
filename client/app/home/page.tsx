@@ -1,20 +1,14 @@
 'use client';
 
-/**
- * Main page for the `/home` route.
- * Displays a searchable, sortable, paginated company list with filters.
- */
-
-import { useFetchCompanies } from '@/components/hooks/useCompaniesQuery';
-import { useDebounce } from '@/components/hooks/useDebounce';
-import { useFilteredBusinesses } from '@/components/hooks/useFilteredBusinesses';
-import { usePagination } from '@/components/hooks/usePagination';
-import { TableView } from '@/components/table/TableView';
+import { ViewModeToggle, ViewSwitcher } from '@/components/ui/Toggles';
+import { columns as allColumns } from '@/config';
+import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
 import { useCompanyStore } from '@/store/useCompanyStore';
-import type { SortDescriptor } from '@/types/table';
-import { columns as allColumns } from '@/types/table';
-import { getVisibleColumns } from '@/utils/table';
+import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
+import { getVisibleColumns } from '@/utils';
+import { transformCompanyGeoJSON } from '@/utils/geo';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -26,15 +20,40 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { selectedCity, setSelectedCity } = useCompanyStore();
-  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
-  const userLocation = useCompanyStore((s) => s.userLocation);
-  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
+  const {
+    selectedCity,
+    setSelectedCity,
+    selectedIndustries,
+    selectedKeys,
+    selectedRows,
+    userLocation,
+    distanceLimit,
+  } = useCompanyStore();
 
   const query = decodeURIComponent(searchParams.get('city') || '');
 
-  const { data, error, isFetching } = useFetchCompanies(selectedCity);
-  const { data: cities = [] } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher);
+  const { data: geojsonData, isLoading: isFetching } = useSWR<
+    FeatureCollection<Point, CompanyProperties>
+  >(
+    selectedCity
+      ? `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(selectedCity)}`
+      : null,
+    fetcher,
+  );
+
+  const { data: cities = [], isLoading: cityLoading } = useSWR<string[]>(
+    `${BASE_URL}/api/v1/cities`,
+    fetcher,
+  );
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
+    column: 'company_name',
+    direction: 'asc',
+  });
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
 
   useEffect(() => {
     if (query && query !== selectedCity) {
@@ -44,28 +63,32 @@ export default function HomePage() {
     }
   }, [query, selectedCity, setSelectedCity]);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: 'company_name',
-    direction: 'asc',
-  });
-
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const rowsPerPage = 25;
 
-  const uniqueBusinesses = useMemo(() => {
-    if (!data) return [];
-    const map = new Map<string, (typeof data)[0]>();
-    for (const business of data) {
-      map.set(business.business_id, business);
-    }
-    return Array.from(map.values());
-  }, [data]);
+  const tableRows = useMemo(() => {
+    const seen = new Set<string>();
 
-  const filteredAndSortedBusinesses = useFilteredBusinesses({
-    data: uniqueBusinesses,
+    return (
+      geojsonData?.features
+        ?.map((f) => f.properties)
+        .filter((row) => {
+          const visiting = row.addresses?.['Visiting address'];
+          const postal = row.addresses?.['Postal address'];
+          const hasValidAddress =
+            (visiting?.latitude && visiting?.longitude) || (postal?.latitude && postal?.longitude);
+
+          if (!hasValidAddress) return false;
+
+          if (seen.has(row.business_id)) return false;
+          seen.add(row.business_id);
+          return true;
+        }) ?? []
+    );
+  }, [geojsonData]);
+
+  const filteredAndSortedRows = useFilteredBusinesses({
+    data: tableRows,
     searchTerm: debouncedSearchTerm,
     selectedIndustries,
     userLocation,
@@ -74,19 +97,54 @@ export default function HomePage() {
     isFetching,
   });
 
-  const { paginated, totalPages } = usePagination(filteredAndSortedBusinesses, page, rowsPerPage);
+  const { paginated, totalPages } = usePagination(filteredAndSortedRows, page, rowsPerPage);
+
+  const filteredGeoJSON = useMemo(() => {
+    if (!geojsonData) return { type: 'FeatureCollection' as const, features: [] };
+
+    const selectedSet = new Set(
+      selectedKeys.size > 0
+        ? Array.from(selectedKeys)
+        : filteredAndSortedRows.map((r) => r.business_id),
+    );
+
+    const hasValidGeometry = geojsonData.features.filter(
+      (f) => f.geometry && selectedSet.has(f.properties.business_id),
+    );
+
+    const transformed = transformCompanyGeoJSON({
+      type: 'FeatureCollection',
+      features: geojsonData.features.filter(
+        (f) => !f.geometry && selectedSet.has(f.properties.business_id),
+      ),
+    });
+
+    return {
+      type: 'FeatureCollection' as const,
+      features: [...hasValidGeometry, ...transformed.features],
+    } as FeatureCollection<
+      Point,
+      CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
+    >;
+  }, [geojsonData, filteredAndSortedRows, selectedKeys]);
 
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
 
+  const filteredCities = useMemo(() => {
+    return cities
+      .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
+      .map((city) => ({ name: city }));
+  }, [cities, searchQuery]);
+
   return (
-    <div className="md:p-2 p-1">
-      {cities.length > 0 && (
+    <div className="md:p-2 p-1 flex flex-col gap-4">
+      <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+
+      {viewMode !== 'map' && (
         <Autocomplete
           classNames={{ base: 'md:max-w-xs max-w-[30vw] min-w-[200px]' }}
           popoverProps={{ classNames: { content: 'max-w-[40vw] md:max-w-xs' } }}
-          items={cities
-            .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
-            .map((city) => ({ name: city }))}
+          items={filteredCities}
           label="Search by city"
           variant="underlined"
           selectedKey={selectedCity}
@@ -102,16 +160,15 @@ export default function HomePage() {
         </Autocomplete>
       )}
 
-      {error && (
-        <p className="text-red-500 text-sm mt-2">❌ Error fetching data: {error.message}</p>
-      )}
-      {isFetching && <p className="text-default-500 text-sm mt-2">⏳ Loading city data...</p>}
-      {!isFetching && filteredAndSortedBusinesses.length === 0 && (
-        <p className="text-default-500 text-sm mt-2">⚠️ No matching companies found.</p>
-      )}
-
-      <TableView
+      <ViewSwitcher
         data={paginated}
+        allFilteredData={filteredAndSortedRows}
+        selectedBusinesses={Array.from(selectedKeys)
+          .map((id) => selectedRows[id])
+          .filter(Boolean)}
+        geojson={filteredGeoJSON}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
         columns={visibleColumns}
         currentPage={page}
         totalPages={totalPages}

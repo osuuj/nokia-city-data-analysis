@@ -18,7 +18,9 @@ services:
   #     - db
   #   env_file:
   #     - .env
-
+  
+  #   Uncomment the following lines of server if you want to run the ETL process and load_data.py manually.
+  #   Remember delete images and containers before running load-data.py and after that run the server.
   server:
     build:
       context: ./server

@@ -1,7 +1,7 @@
 'use client';
 
 import { Footer } from '@/components/layout/Footer';
-import { Header } from '@/components/layout/Navbar';
+import { Header } from '@/components/layout/Navbar/Header';
 import { usePathname } from 'next/navigation';
 
 /**
