@@ -23,7 +23,10 @@ export type ViewMode = 'table' | 'map' | 'split';
 export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
   data: CompanyProperties[];
   allFilteredData: CompanyProperties[];
-  geojson?: FeatureCollection<Point, CompanyProperties>;
+  geojson?: FeatureCollection<
+    Point,
+    CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
+  >;
   viewMode: ViewMode;
   selectedBusinesses: CompanyProperties[];
   setViewMode: (mode: ViewMode) => void;

@@ -8,14 +8,20 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 interface FeatureCardListProps {
-  features: Feature<Point, CompanyProperties>[];
+  features: Feature<Point, CompanyProperties>[]; // Could also be CompanyFeatureWithAddressType
   activeFeature: Feature<Point, CompanyProperties> | null;
   onSelect: (feature: Feature<Point, CompanyProperties>) => void;
   selectedColor: string;
   theme?: string;
+  flyTo?: (coords: [number, number], addressType?: string) => void;
 }
 
-export function FeatureCardList({ features, theme = 'light', onSelect }: FeatureCardListProps) {
+export function FeatureCardList({
+  features,
+  theme = 'light',
+  onSelect,
+  flyTo,
+}: FeatureCardListProps) {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
 
   const isMulti = features.length > 1;
@@ -27,22 +33,48 @@ export function FeatureCardList({ features, theme = 'light', onSelect }: Feature
   const showList = isMulti && !selectedBusinessId;
   const showDetails = selectedFeature != null;
 
-  const renderAddress = (label: string, address?: CompanyProperties['addresses'][string]) => {
-    console.log(`[renderAddress] ${label}:`, address);
+  const areCoordinatesDifferent = (
+    a?: { latitude: number; longitude: number },
+    b?: { latitude: number; longitude: number },
+  ): boolean => {
+    if (!a || !b) return false;
+    return a.latitude !== b.latitude || a.longitude !== b.longitude;
+  };
 
-    if (!address) return <div>⚠️ Missing {label.toLowerCase()}</div>;
+  const renderAddress = (
+    label: string,
+    address?: CompanyProperties['addresses'][string],
+    coords?: [number, number],
+    showZoom = false,
+  ) => {
+    if (!address) return <div className="text-danger text-sm">⚠️ Missing {label.toLowerCase()}</div>;
 
     return (
-      <div className="mb-1">
-        <strong>{label}</strong>
-        <br />
-        Street: {address.street ?? '—'}
-        <br />
-        Number: {address.building_number ?? '—'}
-        <br />
-        Entrance: {address.entrance || '—'}
-        <br />
-        Postal: {address.postal_code ?? '—'} {address.city ?? '—'}
+      <div className="mt-3">
+        <div className="flex justify-between items-center mb-1">
+          <div className="text-sm font-semibold text-default-700 uppercase">{label}</div>
+          {showZoom && coords && flyTo && (
+            <Button
+              size="sm"
+              variant="flat"
+              onPress={() => flyTo(coords)}
+              className="text-xs px-2 py-1 bg-default-100"
+            >
+              Zoom to
+            </Button>
+          )}
+        </div>
+        <div className="text-sm text-default-600 leading-snug">
+          <div className="grid grid-cols-[80px_1fr] gap-x-2">
+            <span>Street:</span> <span>{address.street ?? '—'}</span>
+            <span>Number:</span> <span>{address.building_number ?? '—'}</span>
+            <span>Entrance:</span> <span>{address.entrance || '—'}</span>
+            <span>Postal:</span>
+            <span>
+              {address.postal_code ?? '—'} {address.city ?? '—'}
+            </span>
+          </div>
+        </div>
       </div>
     );
   };
@@ -108,50 +140,63 @@ export function FeatureCardList({ features, theme = 'light', onSelect }: Feature
                 const visiting = rawAddresses['Visiting address'];
                 const postal = rawAddresses['Postal address'];
 
-                console.log('Raw addresses:', rawAddresses);
-
                 if (!visiting && !postal) {
                   return <div>No address available</div>;
                 }
 
-                const isSameAddress =
-                  visiting &&
-                  postal &&
-                  visiting.street === postal.street &&
-                  visiting.building_number === postal.building_number &&
-                  visiting.entrance === postal.entrance &&
-                  visiting.postal_code === postal.postal_code &&
-                  visiting.city === postal.city;
+                const coordsDiffer = areCoordinatesDifferent(visiting, postal);
 
-                if (isSameAddress && visiting) {
+                if (!coordsDiffer && visiting) {
                   return renderAddress('Visiting / Postal Address:', visiting);
                 }
 
                 return (
                   <>
-                    {renderAddress('Visiting Address:', visiting)}
-                    {renderAddress('Postal Address:', postal)}
+                    {visiting &&
+                      renderAddress(
+                        'Visiting Address:',
+                        visiting,
+                        [visiting.longitude, visiting.latitude],
+                        coordsDiffer,
+                      )}
+                    {postal &&
+                      renderAddress(
+                        'Postal Address:',
+                        postal,
+                        [postal.longitude, postal.latitude],
+                        coordsDiffer,
+                      )}
                   </>
                 );
               })()}
 
               {/* 🏭 Industry */}
               {selectedFeature.properties.industry_description && (
-                <div>
-                  <strong>Industry:</strong> {selectedFeature.properties.industry_description}
+                <div className="mt-4">
+                  <div className="text-sm font-semibold text-default-700 uppercase mb-1">
+                    Industry
+                  </div>
+                  <div className="text-sm text-default-600">
+                    {selectedFeature.properties.industry_description}
+                  </div>
                 </div>
               )}
 
               {/* 🌐 Website */}
               {selectedFeature.properties.website && (
-                <a
-                  href={selectedFeature.properties.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary underline block mt-1"
-                >
-                  {selectedFeature.properties.website}
-                </a>
+                <div className="mt-3">
+                  <div className="text-sm font-semibold text-default-700 uppercase mb-1">
+                    Website
+                  </div>
+                  <a
+                    href={selectedFeature.properties.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-primary underline"
+                  >
+                    {selectedFeature.properties.website}
+                  </a>
+                </div>
               )}
 
               {/* 🔙 Back */}

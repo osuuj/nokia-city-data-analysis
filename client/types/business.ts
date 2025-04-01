@@ -1,8 +1,6 @@
 /**
  * @interface Coordinates
- * @description Represents geographical coordinates.
- * @property latitude {number} - Latitude in decimal degrees.
- * @property longitude {number} - Longitude in decimal degrees.
+ * @description Represents geographical coordinates (latitude, longitude).
  */
 export interface Coordinates {
   latitude: number;
@@ -12,21 +10,13 @@ export interface Coordinates {
 /**
  * @typedef AddressType
  * @description Type of business address.
- * @example 'Postal' | 'Visiting'
+ * @example 'Postal address' | 'Visiting address'
  */
-export type AddressType = 'Postal' | 'Visiting';
+export type AddressType = 'Postal address' | 'Visiting address';
 
 /**
  * @interface BusinessAddress
  * @description Represents a single address (Postal or Visiting).
- * Extends Coordinates.
- *
- * @property street {string} - Street name.
- * @property building_number {string} - Street number.
- * @property entrance? {string} - Optional entrance detail.
- * @property postal_code {string} - Postal/ZIP code.
- * @property city {string} - City name.
- * @property address_type? {AddressType} - Type of address ('Postal' or 'Visiting').
  */
 export interface BusinessAddress extends Coordinates {
   street: string;
@@ -39,23 +29,7 @@ export interface BusinessAddress extends Coordinates {
 
 /**
  * @interface Business
- * @description Represents a single business entity in the system.
- *
- * @property business_id {string} - Unique business identifier.
- * @property company_name {string} - Name of the business.
- * @property street {string} - Street of the main address.
- * @property building_number {string} - Number of the building.
- * @property entrance? {string} - Optional entrance identifier.
- * @property postal_code {string} - ZIP/postal code.
- * @property city {string} - City where business is located.
- * @property address_type {AddressType} - Main address type.
- * @property active {boolean} - Whether business is currently active.
- * @property company_type {string} - Business legal type.
- * @property industry_description {string} - Industry description.
- * @property industry_letter? {string} - Industry sector letter (A–V).
- * @property industry? {string} - Industry sector name.
- * @property registration_date? {string} - Optional date of registration (ISO format).
- * @property website? {string} - Optional website URL.
+ * @description Represents a normalized business record.
  */
 export interface Business extends Coordinates {
   business_id: string;
@@ -77,18 +51,7 @@ export interface Business extends Coordinates {
 
 /**
  * @interface CompanyProperties
- * @description Metadata of a company used in the map and table UI.
- *
- * @property business_id {string}
- * @property company_name {string}
- * @property company_type? {string}
- * @property industry_letter {string}
- * @property industry? {string}
- * @property industry_description? {string}
- * @property website? {string}
- * @property active? {boolean}
- * @property registration_date? {string}
- * @property addresses {Record<AddressType | string, BusinessAddress>} - Addresses grouped by type.
+ * @description Rich company metadata used in UI (table, map, etc).
  */
 export interface CompanyProperties {
   business_id: string;
@@ -101,28 +64,48 @@ export interface CompanyProperties {
   active?: boolean;
   registration_date?: string;
   addresses: Record<AddressType | string, BusinessAddress>;
+
+  /**
+   * @optional Only set on transformed features (not raw from API)
+   */
+  addressType?: AddressType;
+
+  /**
+   * @optional Internal tagging for display logic
+   */
+  isActive?: boolean;
+
+  /**
+   * @optional Internal tagging for display logic
+   */
+  isOverlapping?: boolean;
 }
 
 /**
  * @interface GeoJSONGeometry
- * @description GeoJSON point geometry.
- * @property type {'Point'} - Always "Point".
- * @property coordinates {[number, number]} - Longitude, latitude.
+ * @description GeoJSON geometry with coordinates.
  */
 export interface GeoJSONGeometry {
   type: 'Point';
-  coordinates: [number, number];
+  coordinates: [number, number]; // [longitude, latitude]
 }
 
 /**
  * @interface CompanyFeature
- * @description A full GeoJSON feature with company properties and geometry.
- * @property type {'Feature'}
- * @property geometry {GeoJSONGeometry}
- * @property properties {CompanyProperties}
+ * @description A full GeoJSON Feature for a company.
  */
 export interface CompanyFeature {
   type: 'Feature';
   geometry: GeoJSONGeometry;
   properties: CompanyProperties;
+}
+
+/**
+ * @interface CompanyFeatureWithAddressType
+ * @description A transformed company feature with addressType tagged.
+ */
+export interface CompanyFeatureWithAddressType extends Omit<CompanyFeature, 'properties'> {
+  properties: CompanyProperties & {
+    addressType: AddressType;
+  };
 }

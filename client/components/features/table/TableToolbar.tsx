@@ -6,7 +6,7 @@ import { SearchInput } from '@/components/ui/Input/SearchInput';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterOption, ToolbarProps } from '@/types';
 import { filters } from '@/utils';
-import { Button, Chip, Divider, Switch, Tooltip } from '@heroui/react';
+import { Button, Chip, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useMemo } from 'react';
 
@@ -32,9 +32,6 @@ export function TableToolbar({
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
 
-  const addressFilterMode = useCompanyStore((s) => s.addressFilterMode);
-  const setAddressFilterMode = useCompanyStore((s) => s.setAddressFilterMode);
-
   const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
   const selectedIndustryItems = selectedIndustries.flatMap((val: string) => {
@@ -59,22 +56,6 @@ export function TableToolbar({
               address={address}
               setAddress={setAddress}
             />
-            <Divider className="h-5" orientation="vertical" />
-
-            {/* Address Toggle Switch */}
-            <Tooltip content="Toggle to show only companies with Visiting addresses or All companies">
-              <div className="flex items-center gap-1 text-sm text-default-600">
-                <Switch
-                  size="sm"
-                  isSelected={addressFilterMode === 'All'}
-                  onValueChange={(checked) =>
-                    setAddressFilterMode(checked ? 'All' : 'VisitingOnly')
-                  }
-                />
-                <span>{addressFilterMode === 'All' ? 'All addresses' : 'Visiting only'}</span>
-              </div>
-            </Tooltip>
-
             <Divider className="h-5" orientation="vertical" />
             <div className="text-xs whitespace-nowrap text-default-600">
               {`${selectedKeys.size} companies selected`}
@@ -154,8 +135,6 @@ export function TableToolbar({
       setDistanceLimit,
       setUserLocation,
       setSelectedKeys,
-      addressFilterMode,
-      setAddressFilterMode,
     ],
   );
 }

@@ -15,7 +15,6 @@ import { create } from 'zustand';
  * @state selectedIndustries {string[]} - Industries currently filtered.
  * @state userLocation {Coordinates | null} - User's geolocation for filtering.
  * @state distanceLimit {number | null} - Current maximum distance for location-based filtering.
- * @state addressFilterMode {'VisitingOnly' | 'All'} - Controls which address type is used for filtering and display.
  *
  * @actions
  * - setSelectedCity(city: string): void
@@ -29,7 +28,6 @@ import { create } from 'zustand';
  * - clearIndustries(): void
  * - setUserLocation(coords: Coordinates | null): void
  * - setDistanceLimit(value: number | null): void
- * - setAddressFilterMode(mode: 'VisitingOnly' | 'All'): void
  */
 export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
@@ -121,8 +119,4 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   distanceLimit: null,
 
   setDistanceLimit: (value) => set({ distanceLimit: value }),
-
-  /** Address filter toggle */
-  addressFilterMode: 'VisitingOnly',
-  setAddressFilterMode: (mode: 'VisitingOnly' | 'All') => set({ addressFilterMode: mode }),
 }));

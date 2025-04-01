@@ -17,9 +17,10 @@ export interface MapViewProps {
 
 export const MapView = ({ geojson }: MapViewProps) => {
   const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
-  const [activeFeature, setActiveFeature] = useState<Feature<Point, CompanyProperties> | null>(
-    null,
-  );
+  const [activeFeature, setActiveFeature] = useState<Feature<
+    Point,
+    CompanyProperties & { addressType?: string }
+  > | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
   const { theme } = useTheme();
@@ -31,12 +32,14 @@ export const MapView = ({ geojson }: MapViewProps) => {
       ? 'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq'
       : 'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
 
+  const activeBusinessId = activeFeature?.properties?.business_id ?? null;
+
   const selectedColor = useMemo(() => {
     const industryLetter = activeFeature?.properties?.industry_letter;
     const color = filters
       .find((filter) => filter.key === 'industries')
       ?.options?.find((option) => option.value === industryLetter)?.color;
-    return color || '#fafafa';
+    return color || '#FAFAFA'; // fallback yellow
   }, [activeFeature]);
 
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
@@ -64,8 +67,9 @@ export const MapView = ({ geojson }: MapViewProps) => {
         return;
       }
 
+      console.log('[Click] Set activeFeature:', clicked.properties.company_name);
       setSelectedFeatures(features);
-      setActiveFeature(null);
+      setActiveFeature(clicked);
     } else {
       setSelectedFeatures([]);
       setActiveFeature(null);
@@ -76,27 +80,36 @@ export const MapView = ({ geojson }: MapViewProps) => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !geojson) return;
 
-    // Generate taggedGeojson (inline, no useMemo)
     const coordMap = new Map<string, number>();
     for (const feature of geojson.features) {
       const coords = feature.geometry.coordinates.join(',');
       coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
     }
 
-    const taggedGeojson: FeatureCollection<Point, CompanyProperties & { isOverlapping: boolean }> =
-      {
-        ...geojson,
-        features: geojson.features.map((feature) => {
-          const coords = feature.geometry.coordinates.join(',');
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              isOverlapping: (coordMap.get(coords) ?? 0) > 1,
-            },
-          };
-        }),
-      };
+    const taggedGeojson: FeatureCollection<
+      Point,
+      CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+    > = {
+      ...geojson,
+      features: geojson.features.map((feature) => {
+        const coords = feature.geometry.coordinates.join(',');
+        const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+        const isActive = feature.properties.business_id === activeBusinessId;
+
+        if (isActive) {
+          console.log('[Map] Highlighting feature:', feature.properties.company_name);
+        }
+
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            isOverlapping,
+            isActive,
+          },
+        };
+      }),
+    };
 
     const sourceId = 'visiting-companies';
     const existingSource = map.getSource(sourceId);
@@ -132,7 +145,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
         filter: ['==', ['get', 'isOverlapping'], true],
         layout: {
           'icon-image': 'multi',
-          'icon-size': 1.6,
+          'icon-size': 1.4,
           'icon-allow-overlap': true,
         },
       });
@@ -148,10 +161,49 @@ export const MapView = ({ geojson }: MapViewProps) => {
           'icon-allow-overlap': true,
         },
       });
+
+      map.addLayer({
+        id: 'active-marker-highlight',
+        type: 'circle',
+        source: sourceId,
+        filter: ['==', ['get', 'isActive'], true],
+        paint: {
+          'circle-radius': 25,
+          'circle-color': selectedColor,
+          'circle-opacity': 0.25,
+          'circle-blur': 0.2,
+          'circle-stroke-color': '#333',
+          'circle-stroke-width': 1,
+        },
+      });
+
+      map.moveLayer('active-marker-highlight', 'company-icons');
     } else {
       (existingSource as GeoJSONSource).setData(taggedGeojson);
     }
-  }, [mapLoaded, geojson]);
+  }, [mapLoaded, geojson, activeBusinessId, selectedColor]);
+
+  const flyTo = (coords: [number, number], targetBusinessId?: string, addressType?: string) => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    map.flyTo({ center: coords, zoom: 14, duration: 800 });
+
+    // Attempt to find the feature that matches the coordinates and address type
+    const matching = geojson.features.find((f) => {
+      const [lng, lat] = f.geometry.coordinates;
+      const matchesCoords = lng === coords[0] && lat === coords[1];
+      const matchesId = targetBusinessId ? f.properties.business_id === targetBusinessId : true;
+      const matchesType = addressType ? f.properties.addressType === addressType : true;
+
+      return matchesCoords && matchesId && matchesType;
+    });
+
+    if (matching) {
+      setActiveFeature(matching);
+      setSelectedFeatures([matching]);
+    }
+  };
 
   return (
     <div className="relative w-full h-full">
@@ -173,6 +225,9 @@ export const MapView = ({ geojson }: MapViewProps) => {
           onSelect={setActiveFeature}
           selectedColor={selectedColor}
           theme={theme}
+          flyTo={(coords, addressType) =>
+            flyTo(coords, activeFeature?.properties.business_id, addressType)
+          }
         />
       )}
     </div>

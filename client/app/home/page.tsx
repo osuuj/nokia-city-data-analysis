@@ -6,6 +6,7 @@ import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
 import { getVisibleColumns } from '@/utils';
+import { transformCompanyGeoJSON } from '@/utils/geo';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,7 +28,6 @@ export default function HomePage() {
     selectedRows,
     userLocation,
     distanceLimit,
-    addressFilterMode,
   } = useCompanyStore();
 
   const query = decodeURIComponent(searchParams.get('city') || '');
@@ -75,10 +75,8 @@ export default function HomePage() {
         .filter((row) => {
           const visiting = row.addresses?.['Visiting address'];
           const postal = row.addresses?.['Postal address'];
-
-          // ✅ Handle filter mode logic
           const hasValidAddress =
-            addressFilterMode === 'VisitingOnly' ? !!visiting : !!visiting || !!postal;
+            (visiting?.latitude && visiting?.longitude) || (postal?.latitude && postal?.longitude);
 
           if (!hasValidAddress) return false;
 
@@ -87,7 +85,7 @@ export default function HomePage() {
           return true;
         }) ?? []
     );
-  }, [geojsonData, addressFilterMode]);
+  }, [geojsonData]);
 
   const filteredAndSortedRows = useFilteredBusinesses({
     data: tableRows,
@@ -101,19 +99,33 @@ export default function HomePage() {
 
   const { paginated, totalPages } = usePagination(filteredAndSortedRows, page, rowsPerPage);
 
-  const filteredGeoJSON = useMemo<FeatureCollection<Point, CompanyProperties>>(() => {
-    if (!geojsonData) return { type: 'FeatureCollection', features: [] };
-
-    const hasSelection = selectedKeys.size > 0;
+  const filteredGeoJSON = useMemo(() => {
+    if (!geojsonData) return { type: 'FeatureCollection' as const, features: [] };
 
     const selectedSet = new Set(
-      hasSelection ? Array.from(selectedKeys) : filteredAndSortedRows.map((r) => r.business_id),
+      selectedKeys.size > 0
+        ? Array.from(selectedKeys)
+        : filteredAndSortedRows.map((r) => r.business_id),
     );
 
-    return {
+    const hasValidGeometry = geojsonData.features.filter(
+      (f) => f.geometry && selectedSet.has(f.properties.business_id),
+    );
+
+    const transformed = transformCompanyGeoJSON({
       type: 'FeatureCollection',
-      features: geojsonData.features.filter((f) => selectedSet.has(f.properties.business_id)),
-    };
+      features: geojsonData.features.filter(
+        (f) => !f.geometry && selectedSet.has(f.properties.business_id),
+      ),
+    });
+
+    return {
+      type: 'FeatureCollection' as const,
+      features: [...hasValidGeometry, ...transformed.features],
+    } as FeatureCollection<
+      Point,
+      CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
+    >;
   }, [geojsonData, filteredAndSortedRows, selectedKeys]);
 
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
