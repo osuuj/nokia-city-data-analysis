@@ -3,22 +3,33 @@
 import { OsuujLogo } from '@/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
 import { sectionItems } from './SidebarItems';
 
-export interface SidebarWrapperProps {
-  isCollapsed: boolean;
-  onToggle: () => void;
-}
-
 /**
  * SidebarWrapper
- * A container for the Sidebar component with layout logic and responsiveness.
+ * Handles sidebar layout, collapse toggle, and responsive behavior.
  */
-export const SidebarWrapper = ({ isCollapsed, onToggle }: SidebarWrapperProps) => {
+export const SidebarWrapper = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const isCompact = isCollapsed || isMobile;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCompact, setIsCompact] = useState(isMobile);
+
+  // Explicitly determine if we should show the collapse button
+  const showCollapseButton = !isCompact && !isMobile;
+
+  // Auto-collapse on mobile
+  useEffect(() => {
+    setIsCompact(isMobile || isCollapsed);
+    // Debug log to check if isMobile is working correctly
+    console.log('isMobile:', isMobile);
+  }, [isMobile, isCollapsed]);
+
+  const handleToggle = () => {
+    setIsCollapsed((prev) => !prev);
+  };
 
   return (
     <aside
@@ -30,21 +41,41 @@ export const SidebarWrapper = ({ isCollapsed, onToggle }: SidebarWrapperProps) =
         },
       )}
     >
+      {/* Top: Logo + collapse toggle */}
       <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
         <div className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
         </div>
+
+        {showCollapseButton && (
+          <Tooltip content="Collapse sidebar" placement="right">
+            <Button
+              isIconOnly
+              variant="light"
+              className="ml-auto h-9 w-9 text-default-500"
+              onPress={handleToggle}
+            >
+              <Icon
+                icon="solar:sidebar-minimalistic-outline"
+                className="text-default-500"
+                width={18}
+              />
+            </Button>
+          </Tooltip>
+        )}
       </div>
 
       <Spacer y={2} />
 
+      {/* Middle: Sidebar */}
       <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
         <Sidebar defaultSelectedKey="home" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
       <Spacer y={2} />
 
-      <div className={cn('mt-auto flex flex-col', { 'items-center': isCompact })}>
+      {/* Bottom: Help + expand toggle */}
+      <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
           <Button
             fullWidth
@@ -70,6 +101,23 @@ export const SidebarWrapper = ({ isCollapsed, onToggle }: SidebarWrapperProps) =
             )}
           </Button>
         </Tooltip>
+
+        {isCompact && !isMobile && (
+          <Tooltip content="Expand sidebar" placement="right">
+            <Button
+              isIconOnly
+              variant="light"
+              className="mt-2 h-10 w-10 text-default-500"
+              onPress={handleToggle}
+            >
+              <Icon
+                icon="solar:sidebar-minimalistic-outline"
+                className="text-default-500"
+                width={18}
+              />
+            </Button>
+          </Tooltip>
+        )}
       </div>
     </aside>
   );

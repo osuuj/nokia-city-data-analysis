@@ -14,13 +14,13 @@ export const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps
     const { children, isSelected, getBaseProps, getLabelProps, getInputProps } = useCheckbox(props);
 
     return (
-      <label {...getBaseProps()} ref={ref} className="cursor-pointer">
+      <label {...getBaseProps()} ref={ref} className="cursor-pointer w-full">
         <VisuallyHidden>
           <input {...getInputProps()} />
         </VisuallyHidden>
         <Chip
           className={cn(
-            'transition-colors',
+            'transition-colors w-full justify-start',
             isSelected ? 'bg-primary text-white' : 'bg-default-200 text-default-600',
           )}
           radius="sm"

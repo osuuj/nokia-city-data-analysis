@@ -10,38 +10,94 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import React, { useEffect } from 'react';
+
+// Define icon configuration type
+type IconConfig = {
+  name: string;
+  width?: number;
+  color?: string;
+};
 
 /**
  * PopoverFilterWrapper
- * A generic wrapper for filter components with Apply/Cancel logic in a popover layout.
+ * A reusable popover component for filters with Apply/Cancel logic, scroll-safe and responsive.
  */
 export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
-  ({ title, children, onApply, onCancel, ...props }, ref) => {
+  (
+    { title, children, onApply, onCancel, icon = 'lucide:filter', maxWidth = '350px', ...props },
+    ref,
+  ) => {
     const { isOpen, onOpenChange, onClose } = useDisclosure();
 
+    // Close popover on window resize
+    useEffect(() => {
+      const handleResize = () => {
+        if (isOpen) {
+          onClose();
+        }
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, [isOpen, onClose]);
+
+    // Parse icon configuration
+    const iconConfig: IconConfig = typeof icon === 'string' ? { name: icon, width: 16 } : icon;
+
     return (
-      <Popover ref={ref} isOpen={isOpen} onOpenChange={onOpenChange} {...props}>
+      <Popover
+        ref={ref}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        {...props}
+        placement="bottom-start"
+        classNames={{
+          base: 'focus:outline-none focus:ring-0',
+          trigger: 'focus:outline-none focus:ring-0',
+          content: 'focus:outline-none focus:ring-0',
+        }}
+      >
         <PopoverTrigger>
           <Button
-            className="bg-default-100 text-default-800"
+            className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
             size="sm"
-            endContent={<Icon icon="solar:alt-arrow-down-linear" />}
+            startContent={
+              <Icon
+                className={`${iconConfig.color || 'text-default-400'} focus:outline-none focus:ring-0 active:outline-none active:ring-0`}
+                icon={iconConfig.name}
+                width={iconConfig.width || 16}
+              />
+            }
           >
-            {title}
+            <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">
+              {title}
+            </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="flex max-w-xs flex-col items-start gap-1 md:gap-2 px-1 pt-2 md:px-2 md:pt-4">
-          <div className="w-full px-1 md:px-2">{children}</div>
-          <Divider className="mt-1 md:mt-2 bg-default-100" />
-          <div className="flex w-full justify-end gap-2 py-2">
-            <Button size="sm" variant="flat" onPress={onCancel}>
+
+        <PopoverContent className="p-0 focus:outline-none focus:ring-0" style={{ maxWidth }}>
+          <div className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full">
+            <h3 className="mb-2 xs:mb-3 text-xs xs:text-sm sm:text-base font-medium">{title}</h3>
+            <div className="w-full">{children}</div>
+          </div>
+
+          <Divider className="bg-default-100" />
+          <div className="flex w-full justify-end gap-1 xs:gap-2 px-2 xs:px-3 py-1.5 xs:py-2">
+            <Button
+              size="sm"
+              variant="flat"
+              className="text-[10px] xs:text-xs sm:text-sm focus:outline-none focus:ring-0 h-6 xs:h-7 sm:h-8"
+              onPress={() => {
+                onCancel?.();
+                onClose();
+              }}
+            >
               Cancel
             </Button>
             <Button
-              color="primary"
               size="sm"
-              variant="flat"
+              color="primary"
+              className="text-[10px] xs:text-xs sm:text-sm focus:outline-none focus:ring-0 h-6 xs:h-7 sm:h-8"
               onPress={() => {
                 onApply?.();
                 onClose();

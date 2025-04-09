@@ -8,12 +8,8 @@ import type { FilterOption, ToolbarProps } from '@/types';
 import { filters } from '@/utils';
 import { Button, Chip, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-/**
- * TableToolbar
- * Top section of the table that includes search, sorting, column visibility, filters, and summary tags.
- */
 export function TableToolbar({
   searchTerm,
   onSearch,
@@ -32,70 +28,125 @@ export function TableToolbar({
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
 
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
+  );
+  const isMobile = windowWidth < 640;
+
+  // Update window width on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
 
-  const selectedIndustryItems = selectedIndustries.flatMap((val: string) => {
-    const match = industryOptions.find((opt: FilterOption) => opt.value === val);
-    return match ? [match] : [];
-  });
+  const selectedIndustryItems = useMemo(() => {
+    return selectedIndustries.flatMap((val: string) => {
+      const match = industryOptions.find((opt: FilterOption) => opt.value === val);
+      return match ? [match] : [];
+    });
+  }, [selectedIndustries, industryOptions]);
 
-  return useMemo(
-    () => (
-      <div className="w-full">
-        {/* Top toolbar row */}
-        <div className="flex items-center w-full min-h-14 whitespace-nowrap min-w-[240px]:overflow-x-hidden overflow-x-auto">
-          <div className="flex items-center gap-2">
-            <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
-            <Divider className="h-5" orientation="vertical" />
+  const resetAllFilters = useCallback(() => {
+    onSearch('');
+    setSelectedIndustries([]);
+    setDistanceLimit(null);
+    setUserLocation(null);
+    setUseLocation(false);
+    setAddress('');
+    setSelectedKeys(new Set());
+  }, [
+    onSearch,
+    setSelectedIndustries,
+    setDistanceLimit,
+    setUserLocation,
+    setUseLocation,
+    setAddress,
+    setSelectedKeys,
+  ]);
+
+  const handleLocationChipClose = useCallback(() => {
+    setDistanceLimit(null);
+    setUserLocation(null);
+    setUseLocation(false);
+  }, [setDistanceLimit, setUserLocation, setUseLocation]);
+
+  const handleIndustryChipClose = useCallback(
+    (value: string) => {
+      const newIndustries = selectedIndustries.filter((v: string) => v !== value);
+      setSelectedIndustries(newIndustries);
+    },
+    [selectedIndustries, setSelectedIndustries],
+  );
+
+  const hasActiveFilters = selectedKeys.size > 0 || selectedIndustries.length > 0 || useLocation;
+
+  return (
+    <div className="w-full bg-content2/50 p-1 xs:p-2 sm:p-3 rounded-lg mb-1 xs:mb-2">
+      {/* Toolbar */}
+      <div className="flex flex-col md:flex-row items-center w-full min-h-12 xs:min-h-14 whitespace-nowrap overflow-x-auto scrollbar-hide gap-1 xs:gap-2">
+        <div className="flex flex-col md:flex-row items-center gap-1 xs:gap-2 flex-wrap w-full">
+          <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
+
+          <div className="flex items-center gap-1 w-full md:w-auto">
             <SortDropdown sortDescriptor={sortDescriptor} setSortDescriptor={setSortDescriptor} />
             <ColumnVisibilityDropdown />
-            <Divider className="h-5" orientation="vertical" />
+            <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
             <FilterGroup
               useLocation={useLocation}
               setUseLocation={setUseLocation}
               address={address}
               setAddress={setAddress}
             />
-            <Divider className="h-5" orientation="vertical" />
-            <div className="text-xs whitespace-nowrap text-default-600">
+            {hasActiveFilters && (
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                className="text-[10px] xs:text-xs sm:text-sm md:text-base focus:outline-none focus:ring-0 h-6 xs:h-7 sm:h-8 md:h-9 bg-default-100 text-default-800"
+                onPress={resetAllFilters}
+              >
+                Reset Filters
+              </Button>
+            )}
+          </div>
+
+          <div className="flex md:hidden w-full justify-center mt-1">
+            <div className="font-medium text-primary-700 text-[10px] xs:text-xs sm:text-sm">
               {`${selectedKeys.size} companies selected`}
             </div>
-            <Button
-              size="sm"
-              variant="flat"
-              className="bg-default-100 text-default-800"
-              onPress={() => {
-                onSearch('');
-                setSelectedIndustries([]);
-                setDistanceLimit(null);
-                setUserLocation(null);
-                setUseLocation(false);
-                setAddress('');
-                setSelectedKeys(new Set());
-              }}
-            >
-              Reset Filters
-            </Button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <div className="font-medium text-primary-700 text-sm md:text-base">
+              {`${selectedKeys.size} companies selected`}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Filter tags row */}
-        <div className="flex flex-wrap gap-2 mt-2 ml-1">
+      {/* Filter Tags */}
+      {(selectedIndustryItems.length > 0 || (useLocation && distanceLimit != null)) && (
+        <div className="flex flex-wrap gap-1 xs:gap-2 mt-1 xs:mt-2 ml-0.5 xs:ml-1">
           {selectedIndustryItems.map((item: FilterOption) => (
             <Chip
               key={item.value}
               size="sm"
               radius="sm"
               variant="flat"
-              className="bg-default-100 text-default-800"
+              className="bg-primary-50 text-primary-700 border-primary-200 focus:outline-none focus:ring-0 text-[10px] xs:text-xs"
               startContent={
-                item.icon ? <Icon icon={item.icon} className="text-default-500" width={14} /> : null
+                item.icon ? (
+                  <Icon icon={item.icon} className="text-primary-500 shrink-0" width={12} />
+                ) : null
               }
-              onClose={() =>
-                setSelectedIndustries(selectedIndustries.filter((v: string) => v !== item.value))
-              }
+              onClose={() => handleIndustryChipClose(item.value)}
             >
-              {item.title}
+              <span className="truncate">{item.title}</span>
             </Chip>
           ))}
 
@@ -104,37 +155,15 @@ export function TableToolbar({
               size="sm"
               radius="sm"
               variant="flat"
-              className="bg-default-100 text-default-800"
-              startContent={<span className="text-sm">📍</span>}
-              onClose={() => {
-                setDistanceLimit(null);
-                setUserLocation(null);
-                setUseLocation(false);
-              }}
+              className="bg-secondary-50 text-secondary-700 border-secondary-200 focus:outline-none focus:ring-0 text-[10px] xs:text-xs"
+              startContent={<span className="text-xs">📍</span>}
+              onClose={handleLocationChipClose}
             >
               Within {distanceLimit} km
             </Chip>
           )}
         </div>
-      </div>
-    ),
-    [
-      searchTerm,
-      onSearch,
-      selectedKeys,
-      useLocation,
-      setUseLocation,
-      address,
-      setAddress,
-      sortDescriptor,
-      setSortDescriptor,
-      selectedIndustryItems,
-      selectedIndustries,
-      setSelectedIndustries,
-      distanceLimit,
-      setDistanceLimit,
-      setUserLocation,
-      setSelectedKeys,
-    ],
+      )}
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import type { CompanyProperties } from '@/types';
 import type { SortDropdownProps } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import React, { useEffect, useState } from 'react';
 
 /**
  * SortDropdown
@@ -12,16 +13,42 @@ import { Icon } from '@iconify/react';
  */
 export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdownProps) {
   const visibleColumns = columns.filter((col) => col.visible);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Close dropdown on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
 
   return (
-    <Dropdown>
+    <Dropdown
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      classNames={{
+        base: 'focus:outline-none focus:ring-0',
+        trigger: 'focus:outline-none focus:ring-0',
+        content: 'focus:outline-none focus:ring-0',
+      }}
+    >
       <DropdownTrigger>
         <Button
-          className="bg-default-100 text-default-800"
+          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
-          startContent={<Icon className="text-default-400" icon="solar:sort-linear" width={16} />}
+          startContent={
+            <Icon
+              className="text-default-400 focus:outline-none focus:ring-0 active:outline-none active:ring-0"
+              icon="solar:sort-linear"
+              width={16}
+            />
+          }
         >
-          Sort
+          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Sort</span>
         </Button>
       </DropdownTrigger>
 
@@ -29,9 +56,9 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
         aria-label="Sort"
         selectionMode="single"
         selectedKeys={[sortDescriptor.column]}
-        className="p-1"
+        className="p-1 focus:outline-none focus:ring-0"
         classNames={{
-          base: 'text-left',
+          base: 'text-left min-w-[150px] focus:outline-none focus:ring-0',
         }}
         onSelectionChange={(keys) => {
           const key = Array.from(keys)[0] as keyof CompanyProperties;
@@ -44,15 +71,17 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
         {visibleColumns.map((item) => (
           <DropdownItem
             key={item.key}
-            className="text-xs md:text-sm h-6 md:h-8"
+            className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
             textValue={item.label}
           >
-            {item.label}
-            {sortDescriptor.column === item.key && (
-              <span className="ml-2 text-default-400">
-                {sortDescriptor.direction === 'asc' ? '▲' : '▼'}
-              </span>
-            )}
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{item.label}</span>
+              {sortDescriptor.column === item.key && (
+                <span className="ml-2 text-default-400">
+                  {sortDescriptor.direction === 'asc' ? '▲' : '▼'}
+                </span>
+              )}
+            </div>
           </DropdownItem>
         ))}
       </DropdownMenu>

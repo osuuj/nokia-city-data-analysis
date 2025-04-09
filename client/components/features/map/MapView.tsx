@@ -106,6 +106,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
             ...feature.properties,
             isOverlapping,
             isActive,
+            industry_letter: feature.properties.industry_letter || 'broken',
           },
         };
       }),

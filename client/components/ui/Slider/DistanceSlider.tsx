@@ -27,8 +27,10 @@ const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange:
  */
 export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderProps>(
   ({ className, value, onChange, minValue = 0, maxValue = 100, step = 1, ...props }, ref) => {
+    // Adjust pip count based on screen size
+    const totalPips = typeof window !== 'undefined' && window.innerWidth < 640 ? 10 : 15;
+
     const rangePips = useMemo(() => {
-      const totalPips = 15;
       return Array.from({ length: totalPips }, (_, i) => {
         const pipValue = (i / (totalPips - 1)) * maxValue;
         const isInRange = pipValue <= value;
@@ -42,7 +44,7 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
           />
         );
       });
-    }, [value, maxValue]);
+    }, [value, maxValue, totalPips]);
 
     const onInputValueChange = useCallback(
       (inputValue: string) => {
@@ -55,9 +57,11 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
     );
 
     return (
-      <div className={cn('flex flex-col gap-3', className)}>
+      <div className={cn('flex flex-col gap-1 xs:gap-2 sm:gap-3', className)}>
         <div className="flex flex-col gap-1">
-          <div className="flex h-12 w-full items-end justify-between px-2">{rangePips}</div>
+          <div className="flex h-6 xs:h-7 sm:h-8 w-full items-end justify-between px-1 sm:px-2">
+            {rangePips}
+          </div>
           <Slider
             {...props}
             ref={ref}
@@ -70,15 +74,27 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
             }}
             size="sm"
             aria-label="Distance in kilometers"
+            classNames={{
+              base: 'py-1',
+              track: 'h-1',
+              thumb: 'h-3 w-3 xs:h-3 xs:w-3 sm:h-4 sm:w-4',
+            }}
           />
         </div>
-        <div className="w-24 text-sm">
+        <div className="w-16 xs:w-20 sm:w-24">
           <Input
             aria-label="Distance input"
-            label="Distance"
             labelPlacement="inside"
             type="number"
-            startContent={<p className="text-default-500 text-sm">km</p>}
+            size="sm"
+            classNames={{
+              label: 'text-[10px] xs:text-xs sm:text-sm',
+              input: 'text-[10px] xs:text-xs sm:text-sm',
+              inputWrapper: 'h-6 xs:h-7 sm:h-8',
+            }}
+            startContent={
+              <p className="text-default-500 text-[10px] xs:text-xs sm:text-sm flex-shrink-0">km</p>
+            }
             value={`${value}`}
             onValueChange={onInputValueChange}
           />

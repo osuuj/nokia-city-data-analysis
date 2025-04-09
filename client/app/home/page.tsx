@@ -137,7 +137,7 @@ export default function HomePage() {
   }, [cities, searchQuery]);
 
   return (
-    <div className="md:p-2 p-1 flex flex-col gap-4">
+    <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
       <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 
       {viewMode !== 'map' && (

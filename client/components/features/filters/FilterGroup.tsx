@@ -5,9 +5,18 @@ import { DistanceSlider } from '@/components/ui/Slider/DistanceSlider';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterGroupProps, FilterOption } from '@/types';
 import { filters, requestBrowserLocation } from '@/utils';
-import { CheckboxGroup, Input, Switch } from '@heroui/react';
+import {
+  Button,
+  CheckboxGroup,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Input,
+  Switch,
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TagGroupItem } from './TagGroupItem';
 
 /**
@@ -32,6 +41,10 @@ export const FilterGroup = ({
 
   const industryFilter = filters.find((filter) => filter.key === 'industries');
 
+  // For mobile screens, use a dropdown instead of popovers
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [showMobileMenu, setShowMobileMenu] = useState<string | null>(null);
+
   useEffect(() => {
     if (useLocation) {
       setAddress('');
@@ -42,6 +55,25 @@ export const FilterGroup = ({
     setDraftIndustries(selectedIndustries);
   }, [selectedIndustries]);
 
+  useEffect(() => {
+    setDraftDistance(distanceLimit ?? 0);
+  }, [distanceLimit]);
+
+  const handleGetLocation = async () => {
+    try {
+      const coords = await requestBrowserLocation();
+      console.log('User location:', coords);
+      setUserLocation(coords);
+      setUseLocation(true);
+    } catch (error) {
+      console.error('Location error:', error);
+      setUseLocation(false);
+      setUserLocation(null);
+      alert("We couldn't access your location. Please enable location access in your browser.");
+    }
+  };
+
+  // Unified view for both mobile and desktop
   return (
     <div className="flex gap-2 whitespace-nowrap">
       {/* Industry Filter */}
@@ -49,6 +81,8 @@ export const FilterGroup = ({
         title="Industry"
         onApply={() => setSelectedIndustries(draftIndustries)}
         onCancel={() => setDraftIndustries(selectedIndustries)}
+        icon="lucide:tag"
+        maxWidth={isMobile ? '280px' : undefined}
       >
         <div className="max-h-60 overflow-y-auto transition-all duration-300">
           <CheckboxGroup
@@ -74,34 +108,29 @@ export const FilterGroup = ({
       <PopoverFilterWrapper
         title="Distance"
         onApply={() => setDistanceLimit(draftDistance)}
-        onCancel={() => setDraftDistance(distanceLimit ?? 30)}
+        onCancel={() => setDraftDistance(distanceLimit ?? 0)}
+        icon="lucide:map-pin"
+        maxWidth={isMobile ? '280px' : undefined}
       >
         <div className="flex flex-col gap-2">
           <Switch
             isSelected={useLocation}
             onValueChange={async (value: boolean) => {
               if (value) {
-                try {
-                  const coords = await requestBrowserLocation();
-                  console.log('User location:', coords);
-                  setUserLocation(coords);
-                  setUseLocation(true);
-                } catch (error) {
-                  console.error('Location error:', error);
-                  setUseLocation(false);
-                  setUserLocation(null);
-                  alert(
-                    'We couldn’t access your location. Please enable location access in your browser.',
-                  );
-                }
+                await handleGetLocation();
               } else {
                 setUseLocation(false);
                 setUserLocation(null);
               }
             }}
-            size="sm"
+            size={isMobile ? 'sm' : 'md'}
+            classNames={{
+              base: 'h-5 xs:h-6 sm:h-7',
+              wrapper: 'h-4 xs:h-5 sm:h-6',
+              thumb: 'w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5',
+            }}
           >
-            Share location
+            <span className="text-[10px] xs:text-xs sm:text-sm">Share location</span>
           </Switch>
 
           {!useLocation && (
@@ -111,8 +140,8 @@ export const FilterGroup = ({
               value={address}
               size="sm"
               classNames={{
-                input: 'text-xs md:text-sm',
-                inputWrapper: 'h-8 md:h-10',
+                input: 'text-[10px] xs:text-xs sm:text-sm',
+                inputWrapper: 'h-6 xs:h-7 sm:h-8',
               }}
               onChange={(e) => setAddress(e.target.value)}
             />
@@ -126,12 +155,14 @@ export const FilterGroup = ({
               step={1}
               value={draftDistance}
               onChange={(val) => setDraftDistance(val as number)}
-              className="py-1 md:py-2 text-xs md:text-sm"
+              className="py-1 text-[10px] xs:text-xs sm:text-sm"
             />
           )}
 
           {useLocation && !userLocation && (
-            <p className="text-xs text-default-500">Waiting for location permission...</p>
+            <p className="text-[10px] xs:text-xs sm:text-sm text-default-500">
+              Waiting for location permission...
+            </p>
           )}
         </div>
       </PopoverFilterWrapper>

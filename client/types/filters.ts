@@ -51,6 +51,15 @@ export interface Filter {
 }
 
 /**
+ * Icon configuration for components that use icons
+ */
+export type IconConfig = {
+  name: string;
+  width?: number;
+  color?: string;
+};
+
+/**
  * Props passed to the PopoverFilterWrapper component used for filters.
  */
 export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
@@ -58,6 +67,8 @@ export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
   children: React.ReactNode;
   onApply?: () => void;
   onCancel?: () => void;
+  icon?: string | IconConfig;
+  maxWidth?: string;
 };
 
 /**
