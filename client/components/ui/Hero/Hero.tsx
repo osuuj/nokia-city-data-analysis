@@ -46,12 +46,6 @@ export const Hero = (): JSX.Element => {
     setVideoError(true);
   };
 
-  // Get the appropriate placeholder image based on theme
-  const placeholderImage =
-    mounted && resolvedTheme === 'dark'
-      ? '/hero-placeholder-dark.png'
-      : '/hero-placeholder-light.png';
-
   // Determine background color based on theme and video availability
   const bgColor = videoError ? (resolvedTheme === 'dark' ? 'bg-black' : 'bg-white') : '';
 
@@ -64,7 +58,6 @@ export const Hero = (): JSX.Element => {
           loop
           muted
           playsInline
-          poster={placeholderImage}
           className="absolute left-0 top-0 h-full w-full object-cover"
           onError={handleVideoError}
         >
@@ -72,7 +65,7 @@ export const Hero = (): JSX.Element => {
         </video>
       )}
 
-      {/* �� Background Overlay - Only show when video is present */}
+      {/* 🔹 Background Overlay - Only show when video is present */}
       {!videoError && <div className="absolute inset-0 bg-black bg-opacity-40" />}
 
       {/* 🔹 Hero Content */}
@@ -97,7 +90,7 @@ export const Hero = (): JSX.Element => {
                 <p className="mt-2 text-sm">Loading data...</p>
               </div>
             ) : (
-              <ButtonStart label="Start Exploring" href="/home" onClick={handleStartExploring} />
+              <ButtonStart label="Start Exploring" href="/home" onPress={handleStartExploring} />
             )}
           </div>
         </div>

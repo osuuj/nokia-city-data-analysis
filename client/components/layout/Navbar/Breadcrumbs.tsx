@@ -95,9 +95,14 @@ function shouldHideBreadcrumbs(pathname: string): boolean {
   }
 
   // Hide on main navigation pages (no deeper paths)
-  const mainNavPaths = ['/project', '/resources', '/about', '/contact'];
+  const mainNavPaths = ['/resources', '/about', '/contact'];
   if (mainNavPaths.includes(pathname)) {
     return true;
+  }
+
+  // Always show breadcrumbs for project detail pages
+  if (pathname.startsWith('/project/')) {
+    return false;
   }
 
   return false;

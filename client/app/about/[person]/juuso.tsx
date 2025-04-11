@@ -34,7 +34,7 @@ export default function PortfolioPage() {
   const gradientEnd = theme === 'dark' ? 'rgba(30, 30, 60, 0.3)' : 'rgba(255, 255, 255, 0.5)';
 
   return (
-    <div className="relative w-full min-h-screen">
+    <div className="relative w-full min-h-screen overflow-x-hidden">
       {/* Animated background */}
       <motion.div
         className="fixed inset-0 z-0"

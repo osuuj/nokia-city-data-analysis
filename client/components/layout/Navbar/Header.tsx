@@ -137,8 +137,8 @@ export const Header = () => {
           base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : 'lg:bg-transparent lg:backdrop-filter-none'}`,
           wrapper: 'px-4 sm:px-6 flex items-center justify-between',
           item: 'data-[active=true]:text-primary',
-          menuItem: 'data-[active=true]:text-primary',
-          menu: 'mt-2 transition-transform duration-300 ease-in-out',
+          menuItem: 'data-[active=true]:text-primary w-full',
+          menu: 'mt-2 transition-transform duration-300 ease-in-out w-full',
         }}
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
@@ -224,29 +224,53 @@ export const Header = () => {
         </NavbarContent>
 
         {/* Mobile menu */}
-        <NavbarMenu className="transition-transform duration-300 ease-in-out">
-          {navbarItems.map((item) => (
+        <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200]">
+          <div className="w-full">
+            {/* Add Home option at the top of the mobile menu */}
             <NavbarMenuItem
-              key={item.href}
-              isActive={
-                item.href === '/home' ? pathname === '/home' : pathname.startsWith(item.href)
-              }
-              className={clsx(clickedItem === item.href ? 'text-primary' : '')}
+              isActive={pathname === '/home'}
+              className={clsx(clickedItem === '/home' ? 'text-primary' : '', 'pt-1')}
             >
               <NextLink
-                className="text-inherit"
-                href={item.href}
+                className="text-inherit w-full px-4 py-2"
+                href="/home"
                 onClick={(e) => {
                   e.preventDefault();
                   setIsMenuOpen(false);
-                  handleItemClick(item.href);
+                  handleItemClick('/home');
                 }}
-                prefetch={item.href === '/home'}
+                prefetch={true}
               >
-                {item.label}
+                Home
               </NextLink>
             </NavbarMenuItem>
-          ))}
+
+            {/* Existing menu items - filter out Home to avoid duplication */}
+            {navbarItems
+              .filter((item) => item.href !== '/home')
+              .map((item) => (
+                <NavbarMenuItem
+                  key={item.href}
+                  isActive={
+                    item.href === '/home' ? pathname === '/home' : pathname.startsWith(item.href)
+                  }
+                  className={clsx(clickedItem === item.href ? 'text-primary' : '')}
+                >
+                  <NextLink
+                    className="text-inherit w-full px-4 py-2"
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      handleItemClick(item.href);
+                    }}
+                    prefetch={item.href === '/home'}
+                  >
+                    {item.label}
+                  </NextLink>
+                </NavbarMenuItem>
+              ))}
+          </div>
         </NavbarMenu>
       </Navbar>
 

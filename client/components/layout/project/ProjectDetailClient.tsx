@@ -6,12 +6,14 @@ import TeamMemberCards from '@/components/ui/ProjectPage/TeamMemberCards';
 import TechStackShowcase from '@/components/ui/ProjectPage/TechStackShowcase';
 import TimelineSection from '@/components/ui/ProjectPage/TimelineSection';
 import GalleryViewer from '@/components/ui/project/GalleryViewer';
+import { useBreadcrumb } from '@/context/BreadcrumbContext';
 import type { Project } from '@/types/project';
 import { projectsData } from '@/types/project';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { useScroll, useTransform } from 'framer-motion';
+import { useEffect } from 'react';
 
 interface ProjectDetailClientProps {
   project: Project;
@@ -21,10 +23,16 @@ export default function ProjectDetailClient({ project: { id } }: ProjectDetailCl
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+  const { setCurrentPageTitle } = useBreadcrumb();
 
   // Find the project data
   const project = projectsData.find((p: Project) => p.id === id);
   if (!project) return null;
+
+  // Set the current page title for breadcrumbs
+  useEffect(() => {
+    setCurrentPageTitle(project.title);
+  }, [project.title, setCurrentPageTitle]);
 
   // Ensure gallery is properly typed
   const gallery =
@@ -38,7 +46,7 @@ export default function ProjectDetailClient({ project: { id } }: ProjectDetailCl
 
   return (
     <main
-      className="relative min-h-screen bg-background text-foreground pb-24"
+      className="relative min-h-screen bg-background text-foreground pb-24 w-full overflow-x-hidden"
       aria-label="Project details"
     >
       {/* Animated background */}

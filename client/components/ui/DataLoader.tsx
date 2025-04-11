@@ -22,9 +22,15 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [dataReady, setDataReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state after hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Prefetch cities data
-  const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
+  const { data: cities } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/cities` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // Cache for 5 minutes
@@ -33,7 +39,7 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
 
   // Prefetch initial company data (using a default city)
   const { data: companies } = useSWR(
-    `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
+    mounted ? `${BASE_URL}/api/v1/companies.geojson?city=Helsinki` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -54,10 +60,15 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
     }
   }, [cities, companies, onDataReady]);
 
+  // During SSR or before hydration, render a placeholder with the same structure
+  if (!mounted) {
+    return <div className="hidden">{children}</div>;
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
-        <Spinner size="lg" color="primary" />
+        <Spinner size="lg" color="primary" aria-label="Loading" />
         <p className="mt-4 text-default-600">Loading data...</p>
       </div>
     );
