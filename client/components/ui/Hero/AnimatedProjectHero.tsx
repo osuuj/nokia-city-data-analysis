@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
@@ -85,20 +84,12 @@ export function AnimatedProjectHero() {
                 transition={{ duration: 0.5 }}
                 className="relative"
               >
-                <Badge
-                  color={currentCategory.color}
-                  placement="bottom-right"
-                  className="absolute bottom-1 right-1 translate-x-1/3"
-                >
-                  <div
-                    className={`flex items-center justify-center w-16 h-16 rounded-full bg-${currentCategory.color}-100 dark:bg-${currentCategory.color}-900/30 mx-auto`}
-                  >
-                    <Icon
-                      icon={currentCategory.icon}
-                      className={`text-${currentCategory.color}-500 text-2xl`}
-                    />
-                  </div>
-                </Badge>
+                <div className="flex items-center justify-center w-16 h-16 mx-auto">
+                  <Icon
+                    icon={currentCategory.icon}
+                    className={`text-${currentCategory.color}-500 text-4xl`}
+                  />
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>
