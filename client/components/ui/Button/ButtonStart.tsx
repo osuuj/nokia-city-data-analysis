@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@heroui/react';
+import { Icon } from '@iconify/react';
 import clsx from 'clsx';
 import Link from 'next/link';
 import type { FC } from 'react';
@@ -38,25 +39,44 @@ export const ButtonStart: FC<ButtonStartProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       className={clsx(
-        'inline-flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-800 to-blue-400 text-white shadow-lg focus:outline-none',
+        'group relative h-9 overflow-hidden bg-transparent text-small font-normal inline-flex items-center justify-center rounded-full',
         disabled && 'opacity-50 cursor-not-allowed',
         className,
       )}
+      style={{
+        border: 'solid 2px transparent',
+        backgroundImage:
+          'linear-gradient(hsl(var(--heroui-background)), hsl(var(--heroui-background))), linear-gradient(to right, #F871A0, #9353D3)',
+        backgroundOrigin: 'border-box',
+        backgroundClip: 'padding-box, border-box',
+      }}
     >
       {label}
+      <Icon
+        className="flex-none outline-none transition-transform group-hover:translate-x-0.5 [&>path]:stroke-[2] ml-2"
+        icon="solar:arrow-right-linear"
+        width={16}
+      />
     </a>
   ) : (
     <Link href={href}>
       <Button
         type="button"
         className={clsx(
-          'bg-gradient-to-tr from-blue-800 to-blue-400 text-white shadow-lg focus:outline-none',
+          'group relative h-9 overflow-hidden bg-transparent text-small font-normal',
           disabled && 'opacity-50 cursor-not-allowed',
           className,
         )}
         radius="full"
         disabled={disabled}
         aria-label={label}
+        style={{
+          border: 'solid 2px transparent',
+          backgroundImage:
+            'linear-gradient(hsl(var(--heroui-background)), hsl(var(--heroui-background))), linear-gradient(to right, #F871A0, #9353D3)',
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box',
+        }}
       >
         {label}
       </Button>

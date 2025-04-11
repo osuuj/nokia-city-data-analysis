@@ -44,7 +44,7 @@ const categories = [
   },
 ] as const;
 
-export default function AnimatedProjectHero() {
+export function AnimatedProjectHero() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const currentCategory = categories[currentIndex];
 

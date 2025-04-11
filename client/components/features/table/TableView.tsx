@@ -42,6 +42,12 @@ export function TableView({
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state to true after component mounts
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Use window width to detect screen size
   const isMobile = windowWidth < 640;
@@ -108,6 +114,17 @@ export function TableView({
     ),
     [currentPage, totalPages, onPageChange, isMobile, isXsScreen],
   );
+
+  // Don't render the table until the component is mounted on the client
+  if (!mounted) {
+    return (
+      <Card className="h-full w-full p-0.5 xs:p-1 sm:p-2 md:p-3 lg:p-4 shadow-md border border-default-200">
+        <div className="flex items-center justify-center h-[70vh]">
+          <Spinner size="lg" color="primary" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-full w-full p-0.5 xs:p-1 sm:p-2 md:p-3 lg:p-4 shadow-md border border-default-200">
@@ -176,7 +193,7 @@ export function TableView({
                   {col.label}
                 </span>
                 {sortDescriptor.column === col.key && (
-                  <span className="text-[8px] xs:text-[10px] sm:text-xs text-primary-700  p-0.5">
+                  <span className="text-[8px] xs:text-[10px] sm:text-xs text-primary  p-0.5">
                     {sortDescriptor.direction === 'asc' ? '▲' : '▼'}
                   </span>
                 )}
@@ -188,7 +205,7 @@ export function TableView({
         <TableBody
           isLoading={isLoading}
           loadingState={isLoading ? 'loading' : 'idle'}
-          loadingContent={<Spinner size="sm" color="primary" />}
+          loadingContent={<Spinner size="md" color="primary" />}
           emptyContent={
             <div className="text-center py-3 text-default-500 text-xs md:text-sm">
               No data available

@@ -32,7 +32,7 @@ export const OsuujLogo = ({ large = false, className = '' }: OsuujLogoProps) => 
 
   return (
     <div className={clsx('relative w-14 h-14', className)}>
-      <Image src={logoSrc} alt="Osuuj Logo" fill className="object-contain" priority={large} />
+      <Image src={logoSrc} alt="Osuuj Logo" fill className="object-contain" priority={true} />
     </div>
   );
 };

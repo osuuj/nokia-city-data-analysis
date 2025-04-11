@@ -23,8 +23,6 @@ export const SidebarWrapper = () => {
   // Auto-collapse on mobile
   useEffect(() => {
     setIsCompact(isMobile || isCollapsed);
-    // Debug log to check if isMobile is working correctly
-    console.log('isMobile:', isMobile);
   }, [isMobile, isCollapsed]);
 
   const handleToggle = () => {

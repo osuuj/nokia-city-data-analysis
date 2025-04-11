@@ -4,7 +4,11 @@ export interface Project {
   subtitle?: string; // ← Short context line
   description: string;
   image: string;
-  gallery?: string[]; // ← Multiple images/screenshots
+  gallery?: {
+    src: string;
+    alt: string;
+    caption?: string;
+  }[];
   category: string;
   tags: string[];
   goals?: string[]; // ← Bullet points
@@ -30,8 +34,16 @@ export const projectsData: Project[] = [
       'A comprehensive company search platform for discovering and analyzing organizations across regions. Built for analysts and researchers to get actionable insights from data.',
     image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=1',
     gallery: [
-      'https://img.heroui.chat/image/ai?w=800&h=500&u=3',
-      'https://img.heroui.chat/image/ai?w=800&h=500&u=4',
+      {
+        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=3',
+        alt: 'Company search interface',
+        caption: 'Main search interface with filters',
+      },
+      {
+        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=4',
+        alt: 'Company details view',
+        caption: 'Detailed company information page',
+      },
     ],
     category: 'web',
     tags: ['Python', 'Postgres', 'FastAPI', 'React', 'Next.js', 'TypeScript'],

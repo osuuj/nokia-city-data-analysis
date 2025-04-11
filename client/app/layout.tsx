@@ -28,7 +28,7 @@ export const viewport: Viewport = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Preload fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -38,8 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="theme-loader" strategy="beforeInteractive">
           {`
             (function() {
-              const theme = localStorage.getItem('theme') || 'dark';
-              document.documentElement.setAttribute('data-theme', theme);
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+              } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+              }
             })();
           `}
         </Script>

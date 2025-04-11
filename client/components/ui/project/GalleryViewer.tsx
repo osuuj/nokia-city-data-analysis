@@ -1,115 +1,133 @@
 'use client';
 
-import {
-  Button,
-  Card,
-  CardBody,
-  Modal,
-  ModalBody,
-  ModalContent,
-  useDisclosure,
-} from '@heroui/react';
+import { Card } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
+import { useState } from 'react';
 
 interface GalleryViewerProps {
-  gallery: string[];
+  gallery: {
+    src: string;
+    alt: string;
+    caption?: string;
+  }[];
   projectTitle: string;
+  'aria-labelledby'?: string;
 }
 
-export default function GalleryViewer({ gallery, projectTitle }: GalleryViewerProps) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
+export default function GalleryViewer({
+  gallery,
+  projectTitle,
+  'aria-labelledby': ariaLabelledBy,
+}: GalleryViewerProps) {
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
-  const openImageViewer = (image: string) => {
-    setSelectedImage(image);
-    onOpen();
+  const openLightbox = (index: number) => {
+    setSelectedImage(index);
   };
 
-  if (!gallery?.length) {
-    return (
-      <Card className="text-center py-12">
-        <CardBody>
-          <Icon icon="lucide:image-off" className="text-4xl mx-auto mb-4 text-default-400" />
-          <p className="text-default-600">No gallery images available for this project.</p>
-        </CardBody>
-      </Card>
-    );
-  }
+  const closeLightbox = () => {
+    setSelectedImage(null);
+  };
+
+  const navigateImage = (direction: 'prev' | 'next') => {
+    if (selectedImage === null) return;
+
+    if (direction === 'prev') {
+      setSelectedImage(selectedImage === 0 ? gallery.length - 1 : selectedImage - 1);
+    } else {
+      setSelectedImage(selectedImage === gallery.length - 1 ? 0 : selectedImage + 1);
+    }
+  };
 
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {gallery.map((image, index) => (
+    <div
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      aria-labelledby={ariaLabelledBy}
+    >
+      {gallery.map((image, index) => {
+        const imageId = image.src.substring(image.src.lastIndexOf('/') + 1);
+        return (
           <motion.div
-            key={image}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
+            key={`gallery-${imageId}`}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
             viewport={{ once: true }}
-            whileHover={{ y: -5 }}
           >
             <Card
               isPressable
-              onPress={() => openImageViewer(image)}
-              className="overflow-hidden shadow-lg h-64"
+              onPress={() => openLightbox(index)}
+              className="overflow-hidden group relative"
+              aria-label={`View ${image.alt} in full screen`}
             >
-              <CardBody className="p-0 overflow-hidden relative">
-                <img
-                  src={image}
-                  alt={`${projectTitle} screenshot ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <Button
-                    size="sm"
-                    color="default"
-                    variant="flat"
-                    startContent={<Icon icon="lucide:zoom-in" />}
-                    className="backdrop-blur-md bg-background/30"
-                  >
-                    View Larger
-                  </Button>
+              <div className="flex flex-col relative text-foreground box-border bg-content1 outline-none data-[hover=true]:bg-content2 transition-colors">
+                <div className="flex w-full items-center justify-center p-4">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50">
+                    <button
+                      type="button"
+                      className="z-10 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 cursor-pointer"
+                      onClick={() => openLightbox(index)}
+                      onKeyDown={(e) => e.key === 'Enter' && openLightbox(index)}
+                      aria-label="View image in full screen"
+                    >
+                      <Icon icon="solar:gallery-add-bold" width={24} />
+                    </button>
+                  </div>
                 </div>
-              </CardBody>
+                {image.caption && (
+                  <div className="px-4 py-2 text-sm text-default-500">{image.caption}</div>
+                )}
+              </div>
             </Card>
           </motion.div>
-        ))}
-      </div>
+        );
+      })}
 
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        size="5xl"
-        placement="center"
-        scrollBehavior="inside"
-      >
-        <ModalContent>
-          {(onClose) => (
-            <ModalBody className="p-0">
-              {selectedImage && (
-                <div className="relative">
-                  <img
-                    src={selectedImage}
-                    alt={`${projectTitle} screenshot`}
-                    className="w-full h-auto"
-                  />
-                  <Button
-                    isIconOnly
-                    color="default"
-                    variant="flat"
-                    onPress={onClose}
-                    className="absolute top-4 right-4 bg-background/30 backdrop-blur-md"
-                  >
-                    <Icon icon="lucide:x" />
-                  </Button>
-                </div>
-              )}
-            </ModalBody>
+      {/* Lightbox */}
+      {selectedImage !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+          <button
+            type="button"
+            className="absolute top-4 right-4 text-white hover:text-primary"
+            onClick={closeLightbox}
+            aria-label="Close lightbox"
+          >
+            <Icon icon="solar:close-circle-bold" width={32} />
+          </button>
+          <button
+            type="button"
+            className="absolute left-4 text-white hover:text-primary"
+            onClick={() => navigateImage('prev')}
+            aria-label="Previous image"
+          >
+            <Icon icon="solar:arrow-left-bold" width={32} />
+          </button>
+          <button
+            type="button"
+            className="absolute right-4 text-white hover:text-primary"
+            onClick={() => navigateImage('next')}
+            aria-label="Next image"
+          >
+            <Icon icon="solar:arrow-right-bold" width={32} />
+          </button>
+          <img
+            src={gallery[selectedImage].src}
+            alt={gallery[selectedImage].alt}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+          />
+          {gallery[selectedImage].caption && (
+            <div className="absolute bottom-4 left-0 right-0 text-center text-white bg-black/50 py-2">
+              {gallery[selectedImage].caption}
+            </div>
           )}
-        </ModalContent>
-      </Modal>
-    </>
+        </div>
+      )}
+    </div>
   );
 }

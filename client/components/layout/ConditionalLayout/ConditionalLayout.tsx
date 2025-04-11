@@ -14,6 +14,12 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
   const pathname = usePathname();
   const isHomePage = pathname.startsWith('/home');
 
+  // Check if current page should have black background
+  const isBlackBgPage =
+    pathname.startsWith('/resources') ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/contact');
+
   return (
     <>
       {!isHomePage && <Header />}

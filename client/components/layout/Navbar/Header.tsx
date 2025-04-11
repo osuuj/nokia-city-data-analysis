@@ -16,6 +16,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
+import Breadcrumbs from '@/components/layout/Navbar/Breadcrumbs';
 import { ThemeSwitch } from '@/components/ui/Theme/ThemeSwitch';
 import { siteConfig } from '@/config';
 import { GithubIcon, OsuujLogo } from '@/icons';
@@ -36,11 +37,24 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // Check if current page should have black background
+  const isBlackBgPage =
+    pathname.startsWith('/resources') ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/contact');
+
+  // Check if breadcrumbs should be shown
+  const shouldShowBreadcrumbs =
+    !pathname.startsWith('/home') &&
+    !['/project', '/resources', '/about', '/contact', '/'].includes(pathname);
+
   return (
-    <div className="w-full">
+    <div
+      className={`w-full sticky top-0 z-[100] ${isBlackBgPage ? 'bg-black text-white' : 'bg-background/80 backdrop-blur-md text-foreground'}`}
+    >
       <Navbar
         classNames={{
-          base: 'pt-2 pb-2 lg:pt-4 lg:pb-4 lg:bg-transparent lg:backdrop-filter-none',
+          base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : 'lg:bg-transparent lg:backdrop-filter-none'}`,
           wrapper: 'px-4 sm:px-6 flex items-center justify-between',
           item: 'data-[active=true]:text-primary',
           menuItem: 'data-[active=true]:text-primary',
@@ -56,7 +70,7 @@ export const Header = () => {
             className="mr-2 h-6 md:hidden"
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           />
-          <OsuujLogo />
+          <OsuujLogo large={true} />
         </NavbarBrand>
 
         {/* Center: Navigation links */}
@@ -128,6 +142,15 @@ export const Header = () => {
           ))}
         </NavbarMenu>
       </Navbar>
+
+      {/* Breadcrumbs section */}
+      {shouldShowBreadcrumbs && (
+        <div className="w-full py-2 border-t border-default-100">
+          <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8">
+            <Breadcrumbs />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

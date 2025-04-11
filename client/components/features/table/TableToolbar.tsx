@@ -116,13 +116,13 @@ export function TableToolbar({
           </div>
 
           <div className="flex md:hidden w-full justify-center mt-1">
-            <div className="font-medium text-primary-700 text-[10px] xs:text-xs sm:text-sm">
+            <div className="font-medium text-primary text-[10px] xs:text-xs sm:text-sm">
               {`${selectedKeys.size} companies selected`}
             </div>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <div className="font-medium text-primary-700 text-sm md:text-base">
+            <div className="font-medium text-primary text-sm md:text-base">
               {`${selectedKeys.size} companies selected`}
             </div>
           </div>

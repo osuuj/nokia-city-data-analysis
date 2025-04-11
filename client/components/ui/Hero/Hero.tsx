@@ -34,7 +34,9 @@ export const Hero = (): JSX.Element => {
         <div className="inline-block max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             {siteConfig.hero.title.before}
-            <span className="text-violet-500">{siteConfig.hero.title.highlight}</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-default-800 via-danger-400 to-secondary-500">
+              {siteConfig.hero.title.highlight}
+            </span>
             {siteConfig.hero.title.after}
           </h1>
           <p className="mt-4 text-sm sm:text-base md:text-lg">{siteConfig.hero.description}</p>

@@ -3,7 +3,7 @@
 import { Button } from '@heroui/react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { type FC, useCallback } from 'react';
+import { type FC, useCallback, useEffect, useState } from 'react';
 
 import { MoonFilledIcon, SunFilledIcon } from '@/icons/Icons';
 
@@ -25,10 +25,31 @@ export interface ThemeSwitchProps {
  */
 export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Only show the theme switch after mounting to prevent hydration errors
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setTheme(resolvedTheme === 'light' ? 'dark' : 'light');
   }, [resolvedTheme, setTheme]);
+
+  // Render a placeholder with the same dimensions during SSR
+  if (!mounted) {
+    return (
+      <Button
+        isIconOnly
+        radius="full"
+        variant="light"
+        className={clsx('cursor-pointer transition-opacity hover:opacity-80', className)}
+        aria-label="Theme switch"
+      >
+        <div className="w-[22px] h-[22px]" />
+      </Button>
+    );
+  }
 
   return (
     <Button
