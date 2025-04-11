@@ -72,10 +72,8 @@ export default function GalleryViewer({
                     <button
                       type="button"
                       className="z-10 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openLightbox(index);
-                      }}
+                      onClick={() => openLightbox(index)}
+                      onKeyDown={(e) => e.key === 'Enter' && openLightbox(index)}
                       aria-label="View image in full screen"
                     >
                       <Icon icon="solar:gallery-add-bold" width={24} />
@@ -102,7 +100,6 @@ export default function GalleryViewer({
           >
             <Icon icon="solar:close-circle-bold" width={32} />
           </button>
-
           <button
             type="button"
             className="absolute left-4 text-white hover:text-primary"
@@ -111,7 +108,6 @@ export default function GalleryViewer({
           >
             <Icon icon="solar:arrow-left-bold" width={32} />
           </button>
-
           <button
             type="button"
             className="absolute right-4 text-white hover:text-primary"
@@ -120,17 +116,16 @@ export default function GalleryViewer({
           >
             <Icon icon="solar:arrow-right-bold" width={32} />
           </button>
-
-          <div className="max-w-4xl max-h-[80vh] p-4">
-            <img
-              src={gallery[selectedImage].src}
-              alt={gallery[selectedImage].alt}
-              className="max-h-full max-w-full object-contain"
-            />
-            {gallery[selectedImage].caption && (
-              <div className="mt-4 text-center text-white">{gallery[selectedImage].caption}</div>
-            )}
-          </div>
+          <img
+            src={gallery[selectedImage].src}
+            alt={gallery[selectedImage].alt}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+          />
+          {gallery[selectedImage].caption && (
+            <div className="absolute bottom-4 left-0 right-0 text-center text-white bg-black/50 py-2">
+              {gallery[selectedImage].caption}
+            </div>
+          )}
         </div>
       )}
     </div>

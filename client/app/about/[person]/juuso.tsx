@@ -635,11 +635,7 @@ function ProjectCard({
       viewport={{ once: true }}
       transition={{ duration: 0.8, delay }}
     >
-      <Card
-        className="overflow-hidden backdrop-blur-md bg-opacity-85"
-        isPressable
-        onPress={() => window.open(link, '_blank')}
-      >
+      <Card className="overflow-hidden backdrop-blur-md bg-opacity-85">
         <CardBody className="p-0">
           <div className="relative">
             <Image src={imageUrl} alt={title} className="w-full h-48 object-cover" />
@@ -647,8 +643,16 @@ function ProjectCard({
               <button
                 type="button"
                 className="z-0 group relative inline-flex items-center justify-center box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 min-w-unit-12 w-12 h-12 px-0 cursor-pointer rounded-full bg-default-100/20 backdrop-blur-md hover:bg-default-200/30 active:bg-default-300/40"
-                onClick={() => window.open(link, '_blank')}
-                onKeyDown={(e) => e.key === 'Enter' && window.open(link, '_blank')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(link, '_blank');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    window.open(link, '_blank');
+                  }
+                }}
                 aria-label="Open project in new tab"
               >
                 <Icon icon="lucide:external-link" className="text-default-500" />
