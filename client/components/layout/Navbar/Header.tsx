@@ -73,7 +73,7 @@ export const Header = () => {
         {/* Center: Navigation links */}
         <NavbarContent className="hidden md:flex flex-1 justify-center gap-6 max-w-[500px] h-12 w-full rounded-full bg-content2 px-4 dark:bg-content1">
           {navbarItems.map((item) => (
-            <NavbarItem key={item.href} isActive={pathname === item.href}>
+            <NavbarItem key={item.href} isActive={pathname.startsWith(item.href)}>
               <NextLink className="flex gap-2 text-inherit" href={item.href}>
                 {item.label}
               </NextLink>
@@ -127,7 +127,7 @@ export const Header = () => {
         {/* Mobile menu */}
         <NavbarMenu className="transition-transform duration-300 ease-in-out">
           {navbarItems.map((item) => (
-            <NavbarMenuItem key={item.href} isActive={pathname === item.href}>
+            <NavbarMenuItem key={item.href} isActive={pathname.startsWith(item.href)}>
               <NextLink
                 className="text-inherit"
                 href={item.href}
