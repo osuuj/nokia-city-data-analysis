@@ -38,10 +38,7 @@ export const Header = () => {
   const pathname = usePathname();
 
   // Check if current page should have black background
-  const isBlackBgPage =
-    pathname.startsWith('/resources') ||
-    pathname.startsWith('/about') ||
-    pathname.startsWith('/contact');
+  const isBlackBgPage = false;
 
   // Check if breadcrumbs should be shown
   const shouldShowBreadcrumbs =

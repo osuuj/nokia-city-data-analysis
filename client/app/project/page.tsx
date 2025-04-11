@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { ProjectCard } from '@/components/ui/Card/ProjectCard';
 import { AnimatedProjectHero } from '@/components/ui/Hero/AnimatedProjectHero';
 import { projectsData } from '@/types/project';
@@ -11,6 +12,8 @@ export default function ProjectPage() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Animated background */}
+      <AnimatedBackground />
       {/* 🔥 Hero Section */}
       <AnimatedProjectHero />
 

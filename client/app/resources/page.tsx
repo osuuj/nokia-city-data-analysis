@@ -1,14 +1,11 @@
 'use client';
 
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { ResourceCard } from '@/components/ui/Card/ResourceCard';
 import SuggestResourceForm from '@/components/ui/ResourcePage/SuggestForm';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
 import resourcesData from '@/data/resources-data';
-import { Accordion, AccordionItem, Button, Card, CardBody, Divider, Link } from '@heroui/react';
+import { Accordion, AccordionItem, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
-import { useTheme } from 'next-themes';
-import React, { useEffect } from 'react';
 
 interface Resource {
   title: string;
@@ -19,19 +16,6 @@ interface Resource {
 }
 
 export default function ResourcePage() {
-  const { resolvedTheme: theme } = useTheme();
-  const { setCurrentPageTitle } = useBreadcrumb();
-
-  // Define gradient colors based on theme
-  const gradientStart = theme === 'dark' ? 'rgba(50, 50, 80, 0.5)' : 'rgba(240, 240, 255, 0.7)';
-  const gradientEnd = theme === 'dark' ? 'rgba(30, 30, 60, 0.3)' : 'rgba(255, 255, 255, 0.5)';
-
-  // Set the current page title
-  useEffect(() => {
-    document.title = 'Resources | Learning Materials';
-    setCurrentPageTitle('Resources');
-  }, [setCurrentPageTitle]);
-
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
       {/* Animated background */}
@@ -199,38 +183,5 @@ export default function ResourcePage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function ResourceCard({ title, description, icon, type, link }: Resource) {
-  return (
-    <Card className="backdrop-blur-md bg-opacity-90">
-      <CardBody>
-        <div className="flex gap-3">
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Icon icon={icon} className="text-xl" />
-            </div>
-          </div>
-          <div className="flex-grow">
-            <h3 className="font-semibold text-lg">{title}</h3>
-            <p className="text-default-500 text-sm mt-1 mb-3">{description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-xs px-2 py-1 bg-default-100 rounded-full">{type}</span>
-              <Button
-                as={Link}
-                href={link}
-                color="primary"
-                variant="light"
-                size="sm"
-                endContent={<Icon icon="lucide:arrow-right" />}
-              >
-                {type === 'PDF' || type === 'Template' ? 'Download' : 'View'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardBody>
-    </Card>
   );
 }
