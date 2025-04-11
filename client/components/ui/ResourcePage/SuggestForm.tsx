@@ -2,10 +2,12 @@
 
 import { Button, Form, Input, Select, SelectItem, Textarea } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 export default function SuggestResourceForm() {
-  const [formState, setFormState] = React.useState({
+  const [isClient, setIsClient] = useState(false);
+  const [formState, setFormState] = useState({
     name: '',
     email: '',
     resourceType: new Set<string>([]),
@@ -14,7 +16,12 @@ export default function SuggestResourceForm() {
     description: '',
   });
 
-  const [submitted, setSubmitted] = React.useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Set isClient to true after hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +61,20 @@ export default function SuggestResourceForm() {
         <p className="text-default-600">
           We'll review your recommendation and consider adding it to our resources.
         </p>
+      </div>
+    );
+  }
+
+  // Only render the form on the client side to prevent hydration mismatches
+  if (!isClient) {
+    return (
+      <div className="space-y-4">
+        <div className="h-10 bg-content2 rounded-lg animate-pulse" />
+        <div className="h-10 bg-content2 rounded-lg animate-pulse" />
+        <div className="h-10 bg-content2 rounded-lg animate-pulse" />
+        <div className="h-10 bg-content2 rounded-lg animate-pulse" />
+        <div className="h-24 bg-content2 rounded-lg animate-pulse" />
+        <div className="h-10 bg-content2 rounded-lg animate-pulse w-1/3 ml-auto" />
       </div>
     );
   }

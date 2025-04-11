@@ -29,7 +29,7 @@ export const sectionItems: SidebarItem[] = [
       },
       {
         key: 'about-us',
-        href: '#',
+        href: '/about',
         icon: 'solar:ghost-smile-bold',
         title: 'About Us',
         // type: SidebarItemType.Nest,

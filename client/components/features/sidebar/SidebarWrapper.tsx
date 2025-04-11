@@ -13,17 +13,25 @@ import { sectionItems } from './SidebarItems';
  * Handles sidebar layout, collapse toggle, and responsive behavior.
  */
 export const SidebarWrapper = () => {
+  const [mounted, setMounted] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isCompact, setIsCompact] = useState(isMobile);
+  const [isCompact, setIsCompact] = useState(false);
+
+  // Set mounted state after hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Only update isCompact after component is mounted to prevent hydration mismatch
+  useEffect(() => {
+    if (mounted) {
+      setIsCompact(isMobile || isCollapsed);
+    }
+  }, [mounted, isMobile, isCollapsed]);
 
   // Explicitly determine if we should show the collapse button
-  const showCollapseButton = !isCompact && !isMobile;
-
-  // Auto-collapse on mobile
-  useEffect(() => {
-    setIsCompact(isMobile || isCollapsed);
-  }, [isMobile, isCollapsed]);
+  const showCollapseButton = mounted && !isCompact && !isMobile;
 
   const handleToggle = () => {
     setIsCollapsed((prev) => !prev);
@@ -100,7 +108,7 @@ export const SidebarWrapper = () => {
           </Button>
         </Tooltip>
 
-        {isCompact && !isMobile && (
+        {isCompact && mounted && !isMobile && (
           <Tooltip content="Expand sidebar" placement="right">
             <Button
               isIconOnly

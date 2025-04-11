@@ -1,5 +1,6 @@
 'use client';
 
+import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { ViewModeToggle, ViewSwitcher } from '@/components/ui/Toggles';
 import { columns as allColumns } from '@/config';
 import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
@@ -8,6 +9,7 @@ import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
 import { getVisibleColumns } from '@/utils';
 import { transformCompanyGeoJSON } from '@/utils/geo';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
+import { Spinner } from '@heroui/react';
 import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -32,6 +34,7 @@ export default function HomePage() {
 
   const query = decodeURIComponent(searchParams.get('city') || '');
 
+  // Optimize initial data fetching with better caching
   const { data: geojsonData, isLoading: isFetching } = useSWR<
     FeatureCollection<Point, CompanyProperties>
   >(
@@ -39,11 +42,27 @@ export default function HomePage() {
       ? `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(selectedCity)}`
       : null,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // Cache for 1 minute
+      suspense: false, // Don't use React Suspense
+      keepPreviousData: true, // Keep previous data while fetching new data
+      fallbackData: { type: 'FeatureCollection', features: [] }, // Provide fallback data
+    },
   );
 
   const { data: cities = [], isLoading: cityLoading } = useSWR<string[]>(
     `${BASE_URL}/api/v1/cities`,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000, // Cache for 5 minutes
+      suspense: false, // Don't use React Suspense
+      keepPreviousData: true, // Keep previous data while fetching new data
+      fallbackData: [], // Provide fallback data
+    },
   );
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +73,18 @@ export default function HomePage() {
     direction: 'asc',
   });
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+
+  // Add a loading state for initial page load
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // Set initial loading to false after a very short delay
+  useEffect(() => {
+    // Start loading data immediately
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 50); // Reduced from 100ms to 50ms for faster response
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (query && query !== selectedCity) {
@@ -138,6 +169,8 @@ export default function HomePage() {
 
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
+      {isInitialLoading && <LoadingOverlay message="Loading data..." delay={300} />}
+
       <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 
       {viewMode !== 'map' && (
@@ -155,6 +188,7 @@ export default function HomePage() {
               router.replace(`/home?city=${encodeURIComponent(selected)}`);
             }
           }}
+          isLoading={cityLoading}
         >
           {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
         </Autocomplete>
@@ -173,7 +207,7 @@ export default function HomePage() {
         currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}
-        isLoading={isFetching}
+        isLoading={isFetching || cityLoading}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}

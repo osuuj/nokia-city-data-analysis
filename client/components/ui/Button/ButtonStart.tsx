@@ -15,6 +15,7 @@ export interface ButtonStartProps {
   href?: string;
   className?: string;
   disabled?: boolean;
+  onClick?: () => void;
 }
 
 /**
@@ -30,6 +31,7 @@ export const ButtonStart: FC<ButtonStartProps> = ({
   href = '/home',
   className = '',
   disabled = false,
+  onClick,
 }) => {
   const isExternal = href.startsWith('http');
 
@@ -70,6 +72,7 @@ export const ButtonStart: FC<ButtonStartProps> = ({
         radius="full"
         disabled={disabled}
         aria-label={label}
+        onClick={onClick}
         style={{
           border: 'solid 2px transparent',
           backgroundImage:

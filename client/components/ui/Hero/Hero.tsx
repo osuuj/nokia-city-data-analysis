@@ -1,7 +1,12 @@
 'use client';
 
 import { ButtonStart } from '@/components/ui/Button';
+import { DataLoader } from '@/components/ui/DataLoader';
 import { siteConfig } from '@/config';
+import { Spinner } from '@heroui/react';
+import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 /**
  * Hero Component
@@ -12,25 +17,68 @@ import { siteConfig } from '@/config';
  * @returns {JSX.Element} The rendered Hero section.
  */
 export const Hero = (): JSX.Element => {
-  return (
-    <div className="relative h-[calc(100vh-24rem)] w-full overflow-hidden">
-      {/* 🔹 Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        poster="/hero-placeholder.png"
-        className="absolute left-0 top-0 h-full w-full object-cover"
-      >
-        <source src="videos/background.mp4" type="video/mp4" />
-      </video>
+  const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const [isLoading, setIsLoading] = useState(false);
+  const [shouldNavigate, setShouldNavigate] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
-      {/* 🔹 Background Overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-40" />
+  // Use useEffect to set isClient and mounted to true after hydration
+  useEffect(() => {
+    setIsClient(true);
+    setMounted(true);
+  }, []);
+
+  const handleStartExploring = () => {
+    setIsLoading(true);
+    setShouldNavigate(true);
+  };
+
+  const handleDataReady = () => {
+    if (shouldNavigate) {
+      router.push('/home');
+    }
+  };
+
+  const handleVideoError = () => {
+    setVideoError(true);
+  };
+
+  // Get the appropriate placeholder image based on theme
+  const placeholderImage =
+    mounted && resolvedTheme === 'dark'
+      ? '/hero-placeholder-dark.png'
+      : '/hero-placeholder-light.png';
+
+  // Determine background color based on theme and video availability
+  const bgColor = videoError ? (resolvedTheme === 'dark' ? 'bg-black' : 'bg-white') : '';
+
+  return (
+    <div className={`relative h-[calc(100vh-24rem)] w-full overflow-hidden ${bgColor}`}>
+      {/* 🔹 Video Background */}
+      {!videoError && (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={placeholderImage}
+          className="absolute left-0 top-0 h-full w-full object-cover"
+          onError={handleVideoError}
+        >
+          <source src="videos/background.mp4" type="video/mp4" />
+        </video>
+      )}
+
+      {/* �� Background Overlay - Only show when video is present */}
+      {!videoError && <div className="absolute inset-0 bg-black bg-opacity-40" />}
 
       {/* 🔹 Hero Content */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4 sm:px-6 md:px-8">
+      <div
+        className={`relative z-10 flex h-full flex-col items-center justify-center text-center px-4 sm:px-6 md:px-8 ${videoError ? 'text-foreground' : 'text-white'}`}
+      >
         <div className="inline-block max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             {siteConfig.hero.title.before}
@@ -43,10 +91,26 @@ export const Hero = (): JSX.Element => {
 
           {/* 🔹 Call-to-Action Button */}
           <div className="mt-8">
-            <ButtonStart label="Start Exploring" href="/home" />
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center">
+                <Spinner size="lg" color="primary" />
+                <p className="mt-2 text-sm">Loading data...</p>
+              </div>
+            ) : (
+              <ButtonStart label="Start Exploring" href="/home" onClick={handleStartExploring} />
+            )}
           </div>
         </div>
       </div>
+
+      {/* Hidden DataLoader to prefetch data */}
+      {isClient && (
+        <div className="hidden">
+          <DataLoader onDataReady={handleDataReady}>
+            <div>Data is ready</div>
+          </DataLoader>
+        </div>
+      )}
     </div>
   );
 };
