@@ -55,12 +55,7 @@ export default function GalleryViewer({
             transition={{ duration: 0.5, delay: index * 0.1 }}
             viewport={{ once: true }}
           >
-            <Card
-              isPressable
-              onPress={() => openLightbox(index)}
-              className="overflow-hidden group relative"
-              aria-label={`View ${image.alt} in full screen`}
-            >
+            <Card className="overflow-hidden group relative">
               <div className="flex flex-col relative text-foreground box-border bg-content1 outline-none data-[hover=true]:bg-content2 transition-colors">
                 <div className="flex w-full items-center justify-center p-4">
                   <img
