@@ -32,6 +32,13 @@ class IndustryDistributionItem(BaseModel):
         orm_mode = True
 
 
+# New model for detailed response
+class IndustryDistributionDetailItem(IndustryDistributionItem):
+    others_breakdown: Optional[List[IndustryDistributionItem]] = (
+        None  # Add breakdown field
+    )
+
+
 # Based on client/... -> CityComparisonData
 class CityComparisonItem(BaseModel):
     industry: str
@@ -108,23 +115,40 @@ def get_top_n_industry_letters(db: Session, city_list: List[str] = []) -> Set[st
 
 def group_data_for_distribution(
     results: List[Any], top_letters: Set[str]
-) -> List[IndustryDistributionItem]:
-    """Groups raw industry letter counts into Top N + Other based on provided top_letters set."""
+) -> List[IndustryDistributionDetailItem]:
+    """Groups raw industry letter counts into Top N + Other, providing breakdown."""
     top_data = []
     other_value = 0
+    other_details: List[IndustryDistributionItem] = []  # Store details for breakdown
+
     for row in results:
         if row.industry_letter in top_letters:
+            # Cast to DetailItem, breakdown will be None
             top_data.append(
-                IndustryDistributionItem(name=row.industry_letter, value=row.count)
+                IndustryDistributionDetailItem(
+                    name=row.industry_letter, value=row.count
+                )
             )
         else:
             other_value += row.count
+            # Store individual item for breakdown
+            other_details.append(
+                IndustryDistributionItem(name=row.industry_letter, value=row.count)
+            )
 
     if other_value > 0:
+        # Sort the breakdown details by count descending
+        other_details.sort(key=lambda x: x.value, reverse=True)
+        # Add the aggregated "Other" item with its breakdown
         top_data.append(
-            IndustryDistributionItem(name=OTHER_CATEGORY_NAME, value=other_value)
+            IndustryDistributionDetailItem(
+                name=OTHER_CATEGORY_NAME,
+                value=other_value,
+                others_breakdown=other_details,  # Assign breakdown
+            )
         )
 
+    # Sort final list, usually putting 'Other' last if needed, but sorting by value is common
     top_data.sort(key=lambda x: x.value, reverse=True)
     return top_data
 
@@ -188,9 +212,9 @@ def pivot_and_group_data(
 
 @router.get(
     "/industry-distribution",
-    response_model=List[IndustryDistributionItem],
-    summary="Get overall industry distribution (Top 10 + Other)",
-    description="Calculates the distribution of the top 10 main industry letters, grouping others.",
+    response_model=List[IndustryDistributionDetailItem],
+    summary="Get overall industry distribution (Top 10 + Other) with breakdown",
+    description="Calculates the distribution of the top 10 main industry letters, grouping others and providing breakdown.",
 )
 async def get_industry_distribution(
     cities: Optional[str] = Query(

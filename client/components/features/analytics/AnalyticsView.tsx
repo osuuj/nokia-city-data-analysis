@@ -1,8 +1,9 @@
 'use client';
 
 import { filters } from '@/utils/filters'; // Import filters config
-import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import {
+  Autocomplete,
+  AutocompleteItem,
   Button,
   Card,
   CardBody,
@@ -49,7 +50,12 @@ const MAX_SELECTED_INDUSTRIES = 5;
 // Keys will be city names or industry letters/'Other'
 type PivotedData = Array<Record<string, string | number>>; // Allow string (for city/industry name) or number (for counts)
 // Type for data from /industry-distribution (after backend processing)
-type DistributionDataRaw = Array<{ name: string; value: number }>; // name is letter or 'Other'
+type DistributionItemRaw = {
+  name: string;
+  value: number;
+  others_breakdown?: Array<{ name: string; value: number }>; // Optional breakdown
+};
+type DistributionDataRaw = Array<DistributionItemRaw>;
 // Type for transformed data passed to charts (display names used)
 type TransformedIndustriesByCity = {
   city: string;
@@ -109,6 +115,28 @@ export const AnalyticsView: React.FC = () => {
     }
     return map;
   }, []);
+
+  // Get the correct color based on theme and industry display name
+  const getThemedIndustryColor = (industryName: string, theme: string | undefined): string => {
+    const industryKey = getIndustryKeyFromName(industryName);
+    const industryFilter = filters.find((f) => f.key === 'industries');
+    const option = industryFilter?.options?.find((opt) => opt.value === industryKey);
+
+    // Default color if not found
+    const defaultColor = theme === 'dark' ? '#A0A0A0' : '#666666';
+
+    // Check if color has the expected structure
+    const colorConfig = option?.color as { light: string; dark: string } | undefined;
+    if (colorConfig?.light && colorConfig?.dark) {
+      return theme === 'dark' ? colorConfig.dark : colorConfig.light;
+    }
+
+    // Fallback for "Others" or if color not defined/invalid
+    if (industryName === OTHER_CATEGORY_DISPLAY_NAME) {
+      return theme === 'dark' ? '#71717a' : '#a1a1aa'; // zinc-500 / zinc-400
+    }
+    return defaultColor;
+  };
 
   // Determine URL for Industry Distribution fetch
   const distributionFetchUrl = useMemo(() => {
@@ -268,17 +296,23 @@ export const AnalyticsView: React.FC = () => {
 
   // Handle adding a city from Autocomplete
   const handleCitySelectionAdd = (key: React.Key | null) => {
-    // Ensure key is a string before proceeding
+    // Clear search input only after successful add or if selection is explicitly cleared
+    // setCitySearchQuery(''); // REMOVE from here
+
     if (typeof key === 'string') {
       const cityToAdd = key;
       if (selectedCities.size < MAX_SELECTED_CITIES) {
         setSelectedCities((prev) => new Set(prev).add(cityToAdd));
         setShowMaxCityWarning(false);
-        setCitySearchQuery(''); // Clear search after selection
+        setCitySearchQuery(''); // Clear input AFTER successful addition
       } else {
         setShowMaxCityWarning(true);
         setTimeout(() => setShowMaxCityWarning(false), 3000);
+        // Don't add the city, but also don't clear input if max is reached, let user see what they typed
       }
+    } else {
+      // Key is null (e.g., user cleared selection from dropdown/input)
+      setCitySearchQuery(''); // Clear input if selection is cleared
     }
   };
 
@@ -384,28 +418,38 @@ export const AnalyticsView: React.FC = () => {
     return cityComparisonDataAll.filter((item) => selectedIndustryDisplayNames.has(item.industry));
   }, [cityComparisonDataAll, selectedIndustryDisplayNames]);
 
+  // Determine which industries are potentially grouped into "Others"
+  const potentialOthersIndustries = useMemo(() => {
+    const allKnownDisplayNames = Array.from(industryNameMap.values());
+    // Names currently displayed individually (either selected or top N default)
+    const displayedNames = selectedIndustryDisplayNames;
+    return allKnownDisplayNames.filter(
+      (name) => name !== OTHER_CATEGORY_DISPLAY_NAME && !displayedNames.has(name),
+    );
+  }, [industryNameMap, selectedIndustryDisplayNames]);
+
   return (
-    <div className="w-full p-4 flex flex-col gap-4">
+    <div className="w-full p-2 sm:p-4 flex flex-col gap-4">
       <div className="flex flex-col gap-4 mb-4">
-        <h1 className="text-2xl font-bold">Industry Analytics</h1>
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="flex flex-col items-start gap-1">
+        <h1 className="text-xl md:text-2xl font-bold">Industry Analytics</h1>
+        <div className="flex flex-col lg:flex-row flex-wrap items-start gap-4">
+          {/* City selection section - made more responsive */}
+          <div className="flex flex-col items-start gap-1 w-full sm:w-auto">
             <Tooltip
               content={`Select up to ${MAX_SELECTED_CITIES} cities to compare.`}
               placement="bottom"
             >
-              <div>
+              <div className="w-full sm:w-auto">
                 <Autocomplete
                   label="Search & Add Cities"
                   placeholder="Type to search..."
-                  className="max-w-xs md:min-w-[250px]"
+                  className="w-full sm:max-w-xs sm:min-w-[250px]"
                   isLoading={citiesLoading}
                   items={filteredCitiesForAutocomplete}
                   inputValue={citySearchQuery}
                   onInputChange={setCitySearchQuery}
                   onSelectionChange={handleCitySelectionAdd}
                   allowsCustomValue={false}
-                  aria-label="Select Cities for Analytics"
                 >
                   {(item) => (
                     <AutocompleteItem key={item.key} textValue={item.label}>
@@ -416,9 +460,14 @@ export const AnalyticsView: React.FC = () => {
               </div>
             </Tooltip>
             {selectedCities.size > 0 && (
-              <div className="flex flex-wrap items-center gap-1 pt-1 max-w-xs md:min-w-[250px]">
+              <div className="flex flex-wrap items-center gap-1 pt-1 w-full">
                 {Array.from(selectedCities).map((city) => (
-                  <Chip key={city} onClose={() => handleCitySelectionRemove(city)} variant="flat">
+                  <Chip
+                    key={city}
+                    onClose={() => handleCitySelectionRemove(city)}
+                    variant="flat"
+                    size="sm"
+                  >
                     {city}
                   </Chip>
                 ))}
@@ -439,20 +488,20 @@ export const AnalyticsView: React.FC = () => {
             )}
           </div>
 
+          {/* Industry selection section - made more responsive */}
           {selectedCities.size > 0 && (
-            <div className="flex flex-col items-start gap-1">
+            <div className="flex flex-col items-start gap-1 w-full sm:w-auto">
               <Tooltip
                 content={`Select up to ${MAX_SELECTED_INDUSTRIES} industries to display.`}
                 placement="bottom"
               >
-                <div>
+                <div className="w-full sm:w-auto">
                   <Select
                     label="Select Industries"
                     placeholder="Defaults to Top 5"
-                    aria-label="Select industries to display"
                     selectionMode="multiple"
-                    className="max-w-xs md:min-w-[250px]"
-                    selectedKeys={selectedIndustryNames} // Controlled by display names array
+                    className="w-full sm:max-w-xs sm:min-w-[250px]"
+                    selectedKeys={selectedIndustryNames}
                     onSelectionChange={handleIndustrySelectionChange}
                   >
                     {availableSortedIndustries.map((industry) => (
@@ -464,13 +513,14 @@ export const AnalyticsView: React.FC = () => {
                 </div>
               </Tooltip>
               {selectedIndustryNames.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 pt-1 max-w-xs md:min-w-[250px]">
+                <div className="flex flex-wrap items-center gap-1 pt-1 w-full">
                   {selectedIndustryNames.map((name) => (
                     <Chip
                       key={name}
                       onClose={() => handleIndustrySelectionRemove(name)}
                       variant="flat"
-                      color="primary" // Use primary color for selected industries
+                      color="primary"
+                      size="sm"
                     >
                       {name}
                     </Chip>
@@ -504,23 +554,27 @@ export const AnalyticsView: React.FC = () => {
         <p className="text-center text-default-500 py-10">{gridPlaceholderMessage}</p>
       )}
 
+      {/* Chart grid - changed to single column on mobile, two columns on md+ screens */}
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${selectedCities.size === 0 || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+        className={`grid grid-cols-1 lg:grid-cols-2 gap-4 ${selectedCities.size === 0 || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       >
+        {/* Industry Distribution Card */}
         <Card className="border border-default-200">
-          <CardHeader className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Industry Distribution</h2>
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-3 sm:px-6">
+            <h2 className="text-lg font-bold">Industry Distribution</h2>
             {selectedCities.size > 1 && (
               <Select
                 label="Focus City"
-                placeholder="Select city for detail"
-                aria-label="Select city for pie chart focus"
+                placeholder="Select city"
                 size="sm"
-                className="max-w-[180px]"
+                className="w-full sm:w-auto sm:max-w-xs sm:min-w-[250px]"
                 selectedKeys={pieChartFocusCity ? [pieChartFocusCity] : []}
                 onSelectionChange={(keys) =>
                   handlePieFocusChange(keys instanceof Set ? (Array.from(keys)[0] as string) : null)
                 }
+                popoverProps={{
+                  className: 'min-w-[200px]', // Set minimum width for the dropdown popover
+                }}
               >
                 {Array.from(selectedCities)
                   .sort()
@@ -530,14 +584,18 @@ export const AnalyticsView: React.FC = () => {
               </Select>
             )}
           </CardHeader>
-          <Divider className="my-2" />
-          <CardBody className="min-h-[400px] flex items-center justify-center">
+          <Divider className="my-1 sm:my-2" />
+          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             {!!distributionFetchUrl && loadingIndustryDistribution ? (
               <Spinner />
             ) : distributionFetchUrl && selectedIndustryDisplayNames.size > 0 ? (
               <IndustryDistribution
                 data={filteredIndustryDistributionData}
                 currentTheme={currentTheme}
+                getIndustryKeyFromName={getIndustryKeyFromName}
+                potentialOthers={potentialOthersIndustries}
+                industryNameMap={industryNameMap}
+                getThemedIndustryColor={getThemedIndustryColor}
               />
             ) : selectedCities.size > 1 && !pieChartFocusCity ? (
               <p className="text-center text-default-500">Select a city from the dropdown above.</p>
@@ -551,28 +609,36 @@ export const AnalyticsView: React.FC = () => {
           </CardBody>
         </Card>
 
+        {/* Industries by City Card */}
         <Card className={`${!canFetchMultiCity ? 'hidden' : ''} border border-default-200`}>
-          <CardHeader className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Industries by City</h2>
+          <CardHeader className="flex justify-between items-center px-3 sm:px-6">
+            <h2 className="text-lg font-bold">Industries by City</h2>
           </CardHeader>
-          <Divider className="my-2" />
-          <CardBody className="min-h-[400px] flex items-center justify-center">
+          <Divider className="my-1 sm:my-2" />
+          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             {loadingIndustriesByCity ? (
               <Spinner />
             ) : selectedIndustryDisplayNames.size > 0 ? (
-              <CityIndustryBars data={filteredIndustriesByCityData} currentTheme={currentTheme} />
+              <CityIndustryBars
+                data={filteredIndustriesByCityData}
+                currentTheme={currentTheme}
+                getIndustryKeyFromName={getIndustryKeyFromName}
+                potentialOthers={potentialOthersIndustries}
+                getThemedIndustryColor={getThemedIndustryColor}
+              />
             ) : (
               <p className="text-center text-default-500">Select industries to view details.</p>
             )}
           </CardBody>
         </Card>
 
+        {/* City Comparison Card */}
         <Card className={`${!canFetchMultiCity ? 'hidden' : ''} border border-default-200`}>
-          <CardHeader className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">City Comparison</h2>
+          <CardHeader className="flex justify-between items-center px-3 sm:px-6">
+            <h2 className="text-lg font-bold">City Comparison</h2>
           </CardHeader>
-          <Divider className="my-2" />
-          <CardBody className="min-h-[400px] flex items-center justify-center">
+          <Divider className="my-1 sm:my-2" />
+          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             {loadingCityComparison ? (
               <Spinner />
             ) : selectedIndustryDisplayNames.size > 0 ? (
@@ -583,12 +649,13 @@ export const AnalyticsView: React.FC = () => {
           </CardBody>
         </Card>
 
+        {/* Top Cities Card */}
         <Card className="border border-default-200">
-          <CardHeader className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Top Cities by Active Company Count</h2>
+          <CardHeader className="flex justify-between items-center px-3 sm:px-6">
+            <h2 className="text-lg font-bold">Top Cities by Active Company Count</h2>
           </CardHeader>
-          <Divider className="my-2" />
-          <CardBody className="min-h-[400px] flex items-center justify-center">
+          <Divider className="my-1 sm:my-2" />
+          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             {loadingTopCities ? (
               <Spinner />
             ) : topCitiesData && topCitiesData.length > 0 ? (

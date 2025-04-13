@@ -36,6 +36,7 @@ export interface FilterOption {
   value: string;
   description?: string;
   icon?: string;
+  color?: string | { light: string; dark: string };
   color?: string;
   svgIconPath?: string;
 }

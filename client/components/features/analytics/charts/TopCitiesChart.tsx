@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useMemo } from 'react';
 import {
   Bar,
   BarChart,
@@ -10,13 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 
-// Define the expected data structure for this component
-interface ChartDataItem {
-  city: string;
-  count: number;
-}
-
-// Helper function to get theme-appropriate text color
+// ADD BACK getThemedColor helper
 const getThemedColor = (
   theme: string | undefined,
   type: 'primary' | 'secondary' | 'grid' | 'tooltipBg' | 'tooltipBorder' | 'barFill',
@@ -28,25 +23,24 @@ const getThemedColor = (
       case 'secondary':
         return '#A0A0A0';
       case 'grid':
-        return '#52525b'; // Lighter grid for dark (zinc-600) - KEEP THIS
+        return '#52525b'; // Lighter grid for dark
       case 'tooltipBg':
         return '#27272a';
       case 'tooltipBorder':
         return '#3f3f46';
       case 'barFill':
-        return '#8884d8'; // Keep consistent bar color or make it theme-dependent if needed
+        return '#8884d8';
       default:
         return '#FFFFFF';
     }
   }
-  // No else needed
   switch (type) {
     case 'primary':
       return '#000000';
     case 'secondary':
       return '#666666';
     case 'grid':
-      return '#a1a1aa'; // Darker grid for light (zinc-400) - CHANGE THIS
+      return '#a1a1aa'; // Darker grid for light
     case 'tooltipBg':
       return '#FFFFFF';
     case 'tooltipBorder':
@@ -58,19 +52,32 @@ const getThemedColor = (
   }
 };
 
+// Define the expected data structure for this component
+interface ChartDataItem {
+  city: string;
+  count: number;
+}
+
 interface TopCitiesChartProps {
   data: ChartDataItem[]; // USE: Correctly defined type
   currentTheme?: 'light' | 'dark';
 }
 
 export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentTheme = 'light' }) => {
-  // Get themed colors
+  // ADD BACK themed color constants
   const textColor = getThemedColor(currentTheme, 'primary');
   const secondaryTextColor = getThemedColor(currentTheme, 'secondary');
   const gridColor = getThemedColor(currentTheme, 'grid');
   const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
   const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
-  const barFillColor = getThemedColor(currentTheme, 'barFill');
+  const barFillColor = getThemedColor(currentTheme, 'barFill'); // Keep using for bar fill
+
+  const optimizedData = useMemo(() => {
+    return data.slice(0, 10).map((item) => ({
+      ...item,
+      formattedCount: item.count > 999 ? `${(item.count / 1000).toFixed(1)}k` : item.count,
+    }));
+  }, [data]);
 
   // Check for empty data
   if (!data || data.length === 0) {
@@ -82,15 +89,15 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
   }
 
   return (
-    <div className="h-[400px] w-full">
-      <ResponsiveContainer width="100%" height={350}>
+    <div className="h-[300px] sm:h-[400px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           layout="vertical"
-          data={data}
+          data={optimizedData}
           margin={{
             top: 5,
-            right: 30,
-            left: 20,
+            right: 25,
+            left: 5,
             bottom: 5,
           }}
         >
@@ -103,26 +110,30 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
           />
           <XAxis
             type="number"
-            tick={{ fontSize: 12, fill: textColor }}
+            tick={{ fontSize: 10, fill: textColor }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             dataKey="city"
             type="category"
-            tick={{ fontSize: 12, fill: secondaryTextColor }}
+            tick={{ fontSize: 10, fill: secondaryTextColor }}
             axisLine={false}
             tickLine={false}
-            width={100}
+            width={80}
           />
           <Tooltip
-            formatter={(value, name, props) => [`${value} companies`, props.payload.city]}
+            formatter={(value: number, name: string, props) => [
+              `${props.payload.count} companies`,
+              props.payload.city,
+            ]}
             contentStyle={{
               backgroundColor: tooltipBgColor,
               borderRadius: '8px',
               border: `1px solid ${tooltipBorderColor}`,
               boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
               color: textColor,
+              fontSize: '12px',
             }}
             itemStyle={{ color: textColor }}
             labelStyle={{ color: textColor, fontWeight: 'bold' }}
@@ -135,7 +146,11 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
             radius={[4, 4, 0, 0]}
             animationDuration={1500}
           >
-            <LabelList dataKey="count" position="right" style={{ fill: textColor }} />
+            <LabelList
+              dataKey="formattedCount"
+              position="right"
+              style={{ fill: textColor, fontSize: 10 }}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
