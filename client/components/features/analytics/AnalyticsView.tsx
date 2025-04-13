@@ -1,404 +1,604 @@
 'use client';
 
-import type { ButtonProps, CardProps, RadioProps } from '@heroui/react';
-
+import { filters } from '@/utils/filters'; // Import filters config
+import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import {
   Button,
   Card,
+  CardBody,
+  CardHeader,
+  Chip,
   Divider,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  RadioGroup,
-  VisuallyHidden,
-  cn,
-  useRadio,
+  Select,
+  SelectItem,
+  Spinner,
+  Tooltip,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useTheme } from 'next-themes';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import useSWR from 'swr';
+import { CityComparison, CityIndustryBars, IndustryDistribution, TopCitiesChart } from './charts';
 
-type ChartData = {
-  weekday: string;
-  [key: string]: string | number;
-};
-
-type BarChartProps = {
-  title: string;
-  color: ButtonProps['color'];
-  categories: string[];
-  chartData: ChartData[];
-};
-
-const data: BarChartProps[] = [
-  {
-    title: 'Operating Systems',
-    categories: ['Android', 'iOS', 'Web', 'Windows'],
-    color: 'default',
-    chartData: [
-      {
-        weekday: 'Mon',
-        android: 20,
-        ios: 30,
-        web: 20,
-        windows: 10,
-      },
-      {
-        weekday: 'Tue',
-        android: 35,
-        ios: 35,
-        web: 20,
-        windows: 10,
-      },
-      {
-        weekday: 'Wed',
-        android: 15,
-        ios: 25,
-        web: 20,
-        windows: 10,
-      },
-      {
-        weekday: 'Thu',
-        android: 12,
-        ios: 35,
-        web: 10,
-        windows: 10,
-      },
-      {
-        weekday: 'Fri',
-        android: 12,
-        ios: 15,
-        web: 20,
-        windows: 10,
-      },
-      {
-        weekday: 'Sat',
-        android: 35,
-        ios: 25,
-        web: 10,
-        windows: 6,
-      },
-      {
-        weekday: 'Sun',
-        android: 40,
-        ios: 30,
-        web: 20,
-        windows: 10,
-      },
-    ],
-  },
-  {
-    title: 'Browser Usage',
-    categories: ['Chrome', 'Firefox', 'Safari', 'Edge'],
-    color: 'primary',
-    chartData: [
-      {
-        weekday: 'Mon',
-        chrome: 45,
-        firefox: 20,
-        safari: 12,
-        edge: 8,
-      },
-      {
-        weekday: 'Tue',
-        chrome: 40,
-        firefox: 10,
-        safari: 12,
-        edge: 8,
-      },
-      {
-        weekday: 'Wed',
-        chrome: 52,
-        firefox: 12,
-        safari: 15,
-        edge: 10,
-      },
-      {
-        weekday: 'Thu',
-        chrome: 28,
-        firefox: 12,
-        safari: 12,
-        edge: 8,
-      },
-      {
-        weekday: 'Fri',
-        chrome: 30,
-        firefox: 12,
-        safari: 12,
-        edge: 8,
-      },
-      {
-        weekday: 'Sat',
-        chrome: 45,
-        firefox: 32,
-        safari: 8,
-        edge: 5,
-      },
-      {
-        weekday: 'Sun',
-        chrome: 68,
-        firefox: 17,
-        safari: 10,
-        edge: 5,
-      },
-    ],
-  },
-  {
-    title: 'Device Types',
-    categories: ['Mobile', 'Tablet', 'Desktop', 'Other'],
-    color: 'secondary',
-    chartData: [
-      {
-        weekday: 'Mon',
-        mobile: 25,
-        tablet: 10,
-        desktop: 20,
-        other: 20,
-      },
-      {
-        weekday: 'Tue',
-        mobile: 40,
-        tablet: 10,
-        desktop: 30,
-        other: 20,
-      },
-      {
-        weekday: 'Wed',
-        mobile: 10,
-        tablet: 50,
-        desktop: 20,
-        other: 20,
-      },
-      {
-        weekday: 'Thu',
-        mobile: 40,
-        tablet: 20,
-        desktop: 20,
-        other: 10,
-      },
-      {
-        weekday: 'Fri',
-        mobile: 15,
-        tablet: 30,
-        desktop: 20,
-        other: 10,
-      },
-      {
-        weekday: 'Sat',
-        mobile: 50,
-        tablet: 20,
-        desktop: 10,
-        other: 20,
-      },
-      {
-        weekday: 'Sun',
-        mobile: 50,
-        tablet: 10,
-        desktop: 20,
-        other: 20,
-      },
-    ],
-  },
-];
-
-export default function AnalyticsComponent() {
-  return (
-    <dl className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
-      {data.map((item) => (
-        <BarChartCard key={item.title} {...item} />
-      ))}
-    </dl>
-  );
+export interface TopCityData {
+  city: string;
+  count: number;
 }
 
-const formatWeekday = (weekday: string) => {
-  const day =
-    {
-      Mon: 1,
-      Tue: 2,
-      Wed: 3,
-      Thu: 4,
-      Fri: 5,
-      Sat: 6,
-      Sun: 0,
-    }[weekday] ?? 0;
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-  return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date(2024, 0, day));
+// Define the name for the grouped category from backend
+const OTHER_CATEGORY_NAME_FROM_BACKEND = 'Other';
+const OTHER_CATEGORY_DISPLAY_NAME = 'Others'; // How to display it
+
+// Helper function to get industry name from letter or handle "Other"
+const getIndustryName = (key: string, map: Map<string, string>): string => {
+  if (key === OTHER_CATEGORY_NAME_FROM_BACKEND) {
+    return OTHER_CATEGORY_DISPLAY_NAME;
+  }
+  return map.get(key) || key; // Return letter if name not found (shouldn't happen for priority)
 };
 
-const BarChartCard = React.forwardRef<HTMLDivElement, Omit<CardProps, 'children'> & BarChartProps>(
-  ({ className, title, categories, color, chartData, ...props }, ref) => {
-    return (
-      <Card
-        ref={ref}
-        className={cn('h-[300px] border border-transparent dark:border-default-100', className)}
-        {...props}
-      >
-        <div className="flex flex-col gap-y-4 p-4">
-          <dt>
-            <h3 className="text-small font-medium text-default-500">{title}</h3>
-          </dt>
-          <dd className="flex w-full justify-end gap-4 text-tiny text-default-500">
-            {categories.map((category) => (
-              <div key={category} className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{
-                    backgroundColor: `hsl(var(--heroui-${color}-${(categories.indexOf(category) + 1) * 200}))`,
-                  }}
-                />
-                <span className="capitalize">{category}</span>
-              </div>
-            ))}
-          </dd>
-        </div>
-        <ResponsiveContainer
-          className="[&_.recharts-surface]:outline-none"
-          height="100%"
-          width="100%"
-        >
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              top: 20,
-              right: 14,
-              left: -8,
-              bottom: 5,
-            }}
-          >
-            <XAxis
-              dataKey="weekday"
-              strokeOpacity={0.25}
-              style={{ fontSize: 'var(--heroui-font-size-tiny)', color: 'red' }}
-              tickLine={false}
-            />
-            <YAxis
-              axisLine={false}
-              style={{ fontSize: 'var(--heroui-font-size-tiny)' }}
-              tickLine={false}
-            />
-            <Tooltip
-              content={({ label, payload }) => (
-                <div className="flex h-auto min-w-[120px] items-center gap-x-2 rounded-medium bg-background p-2 text-tiny shadow-small">
-                  <div className="flex w-full flex-col gap-y-1">
-                    <span className="font-medium text-foreground">{formatWeekday(label)}</span>
-                    {payload?.map((p, index) => {
-                      const name = p.name;
-                      const value = p.value;
-                      const category = categories.find((c) => c.toLowerCase() === name) ?? name;
+const MAX_SELECTED_CITIES = 5;
+const MAX_SELECTED_INDUSTRIES = 5;
 
-                      return (
-                        <div key={`${index}-${name}`} className="flex w-full items-center gap-x-2">
-                          <div
-                            className="h-2 w-2 flex-none rounded-full"
-                            style={{
-                              backgroundColor: `hsl(var(--heroui-${color}-${(index + 1) * 200}))`,
-                            }}
-                          />
-                          <div className="flex w-full items-center justify-between gap-x-2 pr-1 text-xs text-default-700">
-                            <span className="text-default-500">{category}</span>
-                            <span className="font-mono font-medium text-default-700">{value}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              cursor={false}
-            />
-            {categories.map((category, index) => (
-              <Bar
-                key={category}
-                animationDuration={450}
-                animationEasing="ease"
-                barSize={24}
-                dataKey={category.toLowerCase()}
-                fill={`hsl(var(--heroui-${color}-${(index + 1) * 200}))`}
-                radius={index === categories.length - 1 ? [4, 4, 0, 0] : 0}
-                stackId="bars"
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+// --- Type Definitions ---
+// Type for data coming from /industries-by-city and /city-comparison (after backend processing)
+// Keys will be city names or industry letters/'Other'
+type PivotedData = Array<Record<string, string | number>>; // Allow string (for city/industry name) or number (for counts)
+// Type for data from /industry-distribution (after backend processing)
+type DistributionDataRaw = Array<{ name: string; value: number }>; // name is letter or 'Other'
+// Type for transformed data passed to charts (display names used)
+type TransformedIndustriesByCity = {
+  city: string;
+  [key: string]: string | number; // Allow string for city, number for others
+};
+type TransformedCityComparison = {
+  industry: string;
+  [key: string]: string | number; // Allow string for industry, number for others
+};
+type TransformedDistribution = Array<{ name: string; value: number }>;
 
-        <Divider className="mx-auto w-full max-w-[calc(100%-2rem)] bg-default-100" />
+export const AnalyticsView: React.FC = () => {
+  const { theme } = useTheme();
+  const currentTheme = theme as 'light' | 'dark' | undefined;
 
-        <RadioGroup
-          aria-label="Time Range"
-          className="flex gap-x-2 p-4"
-          defaultValue="7"
-          orientation="horizontal"
-        >
-          <ButtonRadioItem value="7">7 days</ButtonRadioItem>
-          <ButtonRadioItem value="14">14 days</ButtonRadioItem>
-          <ButtonRadioItem value="30">30 days</ButtonRadioItem>
-        </RadioGroup>
+  // State for selected cities - Limit to 5
+  const [selectedCities, setSelectedCities] = useState<Set<string>>(new Set());
+  // State for pie chart focus city
+  const [pieChartFocusCity, setPieChartFocusCity] = useState<string | null>(null);
+  const [showMaxCityWarning, setShowMaxCityWarning] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState(''); // For Autocomplete input
+  // State for selected industries (store letters: 'A', 'C', etc.)
+  const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
+  const [showMaxIndustryWarning, setShowMaxIndustryWarning] = useState(false);
 
-        <Dropdown
-          classNames={{
-            content: 'min-w-[120px]',
-          }}
-          placement="bottom-end"
-        >
-          <DropdownTrigger>
-            <Button
-              isIconOnly
-              className="absolute right-2 top-2 w-auto rounded-full"
-              size="sm"
-              variant="light"
-            >
-              <Icon height={16} icon="solar:menu-dots-bold" width={16} />
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            itemClasses={{
-              title: 'text-tiny',
-            }}
-            variant="flat"
-          >
-            <DropdownItem key="view-details">View Details</DropdownItem>
-            <DropdownItem key="export-data">Export Data</DropdownItem>
-            <DropdownItem key="set-alert">Set Alert</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </Card>
+  // Fetch list of all cities
+  const { data: allCities = [], isLoading: citiesLoading } = useSWR<string[]>(
+    `${BASE_URL}/api/v1/cities`,
+    fetcher,
+    { fallbackData: [] },
+  );
+
+  // Effect to reset pie chart focus city if selection changes
+  useEffect(() => {
+    if (selectedCities.size <= 1) {
+      setPieChartFocusCity(null); // Reset if 0 or 1 city selected
+    } else if (pieChartFocusCity && !selectedCities.has(pieChartFocusCity)) {
+      setPieChartFocusCity(null); // Reset if focus city is no longer selected
+    }
+  }, [selectedCities, pieChartFocusCity]);
+
+  // Filter cities for Autocomplete based on search query
+  const filteredCitiesForAutocomplete = useMemo(() => {
+    return allCities
+      .filter((city) => city.toLowerCase().includes(citySearchQuery.toLowerCase()))
+      .map((city) => ({ key: city, label: city })); // Map to objects
+  }, [allCities, citySearchQuery]);
+
+  // Create industry letter -> name map
+  const industryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const industryFilter = filters.find((f) => f.key === 'industries');
+    if (industryFilter?.options) {
+      for (const opt of industryFilter.options) {
+        map.set(opt.value, opt.title);
+      }
+    }
+    return map;
+  }, []);
+
+  // Determine URL for Industry Distribution fetch
+  const distributionFetchUrl = useMemo(() => {
+    if (selectedCities.size === 1) {
+      const city = Array.from(selectedCities)[0];
+      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(city)}`;
+    }
+    if (selectedCities.size > 1 && pieChartFocusCity) {
+      // Fetch only for the focused city when multiple are selected
+      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(pieChartFocusCity)}`;
+    }
+    return null; // Don't fetch if 0 or >1 selected without focus
+  }, [selectedCities, pieChartFocusCity]);
+
+  // Only fetch multi-city data if 1 to MAX_SELECTED_CITIES are selected
+  const canFetchMultiCity = selectedCities.size > 0 && selectedCities.size <= MAX_SELECTED_CITIES;
+  const multiCityQueryParam = canFetchMultiCity ? Array.from(selectedCities).join(',') : null;
+
+  // --- Fetch Raw Data ---
+  const { data: rawIndustryDistributionData, isLoading: loadingIndustryDistribution } =
+    useSWR<DistributionDataRaw>(
+      distributionFetchUrl, // Use dynamic URL
+      fetcher,
+      { fallbackData: [] },
     );
-  },
-);
 
-BarChartCard.displayName = 'BarChartCard';
+  const { data: rawIndustriesByCityData, isLoading: loadingIndustriesByCity } = useSWR<PivotedData>(
+    // Use multiCityQueryParam - runs only if 1-5 cities selected
+    multiCityQueryParam
+      ? `${BASE_URL}/api/v1/analytics/industries-by-city?cities=${multiCityQueryParam}`
+      : null,
+    fetcher,
+    { fallbackData: [] },
+  );
 
-const ButtonRadioItem = React.forwardRef<
-  HTMLInputElement,
-  Omit<RadioProps, 'color'> & {
-    color?: ButtonProps['color'];
-    size?: ButtonProps['size'];
-    variant?: ButtonProps['variant'];
+  const { data: rawCityComparisonData, isLoading: loadingCityComparison } = useSWR<PivotedData>(
+    // Use multiCityQueryParam - runs only if 1-5 cities selected
+    multiCityQueryParam
+      ? `${BASE_URL}/api/v1/analytics/city-comparison?cities=${multiCityQueryParam}`
+      : null,
+    fetcher,
+    { fallbackData: [] },
+  );
+
+  // Top cities fetch remains unchanged (always fetches top N overall)
+  const { data: topCitiesData, isLoading: loadingTopCities } = useSWR<TopCityData[]>(
+    `${BASE_URL}/api/v1/analytics/top-cities?limit=10`,
+    fetcher,
+    { fallbackData: [] },
+  );
+
+  // --- Transform Data for Charts ---
+  const industryDistributionDataAll: TransformedDistribution = useMemo(() => {
+    if (!rawIndustryDistributionData) return [];
+    return rawIndustryDistributionData.map((item) => ({
+      ...item,
+      name: getIndustryName(item.name, industryNameMap),
+    }));
+  }, [rawIndustryDistributionData, industryNameMap]);
+
+  const industriesByCityDataAll: TransformedIndustriesByCity[] = useMemo(() => {
+    if (!rawIndustriesByCityData) return [];
+    return rawIndustriesByCityData.map((cityData) => {
+      // Cast initial object
+      const transformedData = { city: cityData.city as string } as TransformedIndustriesByCity;
+      for (const key of Object.keys(cityData)) {
+        if (key !== 'city') {
+          // Values associated with industry keys should be numbers
+          transformedData[getIndustryName(key, industryNameMap)] = Number(cityData[key]) || 0;
+        }
+      }
+      return transformedData;
+    });
+  }, [rawIndustriesByCityData, industryNameMap]);
+
+  const cityComparisonDataAll: TransformedCityComparison[] = useMemo(() => {
+    if (!rawCityComparisonData) return [];
+    return rawCityComparisonData.map((item) => {
+      // Cast initial object
+      const transformedData = {
+        industry: getIndustryName(item.industry as string, industryNameMap),
+      } as TransformedCityComparison;
+      for (const key of Object.keys(item)) {
+        if (key !== 'industry') {
+          // Values associated with city keys should be numbers
+          transformedData[key] = Number(item[key]) || 0;
+        }
+      }
+      return transformedData;
+    });
+  }, [rawCityComparisonData, industryNameMap]);
+
+  // Calculate available industries and sort them by total count across selected cities
+  const availableSortedIndustries = useMemo(() => {
+    if (!industriesByCityDataAll || industriesByCityDataAll.length === 0) return [];
+
+    const industryTotals: Record<string, number> = {};
+    const industryKeys = new Set<string>();
+
+    // Sum counts for each industry across all selected cities
+    for (const cityData of industriesByCityDataAll) {
+      // Use for...of
+      for (const key of Object.keys(cityData)) {
+        // Use for...of
+        if (key !== 'city') {
+          industryKeys.add(key);
+          // Ensure value is treated as number before adding
+          industryTotals[key] = (industryTotals[key] || 0) + (Number(cityData[key]) || 0);
+        }
+      }
+    }
+
+    // Convert to array and sort
+    return Array.from(industryKeys)
+      .map((name) => ({ name, total: industryTotals[name] }))
+      .sort((a, b) => b.total - a.total);
+  }, [industriesByCityDataAll]);
+
+  // Find corresponding key (letter or 'Other') for a given display name
+  const getIndustryKeyFromName = (displayName: string): string | undefined => {
+    if (displayName === OTHER_CATEGORY_DISPLAY_NAME) return OTHER_CATEGORY_NAME_FROM_BACKEND;
+    for (const [key, value] of industryNameMap.entries()) {
+      if (value === displayName) return key;
+    }
+    return undefined;
+  };
+
+  // Filter the data for the bar chart based on selected industries
+  const filteredIndustriesByCityData = useMemo(() => {
+    if (!industriesByCityDataAll || industriesByCityDataAll.length === 0) return [];
+
+    let keysToShow: Set<string>;
+    if (selectedIndustryNames.length > 0) {
+      // User has selected specific industries (use their display names)
+      keysToShow = new Set(selectedIndustryNames);
+    } else {
+      // No selection, default to top 5 available sorted industries
+      keysToShow = new Set(
+        availableSortedIndustries.slice(0, MAX_SELECTED_INDUSTRIES).map((i) => i.name),
+      );
+    }
+
+    return industriesByCityDataAll.map((cityData) => {
+      // Cast initial object
+      const filteredData = { city: cityData.city } as TransformedIndustriesByCity;
+      for (const industryName of keysToShow) {
+        // Use for...of
+        // Check using Object.hasOwn for safety
+        if (Object.hasOwn(cityData, industryName)) {
+          // Ensure value is treated as number
+          filteredData[industryName] = Number(cityData[industryName]) || 0;
+        }
+      }
+      return filteredData;
+    });
+  }, [industriesByCityDataAll, selectedIndustryNames, availableSortedIndustries]);
+
+  // Handle adding a city from Autocomplete
+  const handleCitySelectionAdd = (key: React.Key | null) => {
+    // Ensure key is a string before proceeding
+    if (typeof key === 'string') {
+      const cityToAdd = key;
+      if (selectedCities.size < MAX_SELECTED_CITIES) {
+        setSelectedCities((prev) => new Set(prev).add(cityToAdd));
+        setShowMaxCityWarning(false);
+        setCitySearchQuery(''); // Clear search after selection
+      } else {
+        setShowMaxCityWarning(true);
+        setTimeout(() => setShowMaxCityWarning(false), 3000);
+      }
+    }
+  };
+
+  // Handle removing a city via Chip close button
+  const handleCitySelectionRemove = (cityToRemove: string) => {
+    setSelectedCities((prev) => {
+      const next = new Set(prev);
+      next.delete(cityToRemove);
+      return next;
+    });
+    setShowMaxCityWarning(false); // Hide warning on removal
+  };
+
+  // Handle clearing all selections
+  const handleClearAllCities = () => {
+    setSelectedCities(new Set());
+    setSelectedIndustryNames([]); // Clear industries when cities cleared
+    setShowMaxCityWarning(false);
+  };
+
+  // Handle changing the focus city for the pie chart
+  const handlePieFocusChange = (key: React.Key | null) => {
+    if (typeof key === 'string') {
+      setPieChartFocusCity(key);
+    } else {
+      setPieChartFocusCity(null); // Handle case where selection is cleared/invalid
+    }
+  };
+
+  // Handle industry selection change from Select dropdown
+  const handleIndustrySelectionChange = (keys: unknown) => {
+    if (!(keys instanceof Set)) return;
+    const currentSelectionKeys = keys as Set<React.Key>;
+
+    const namesToStore: string[] = [];
+    for (const key of currentSelectionKeys) {
+      // Use for...of
+      if (typeof key === 'string') namesToStore.push(key);
+    }
+
+    if (namesToStore.length <= MAX_SELECTED_INDUSTRIES) {
+      setSelectedIndustryNames(namesToStore); // Store the selected display names
+      setShowMaxIndustryWarning(false);
+    } else {
+      // Revert selection or just show warning
+      // To revert: setSelectedIndustryNames(selectedIndustryNames);
+      setShowMaxIndustryWarning(true);
+      setTimeout(() => setShowMaxIndustryWarning(false), 3000);
+    }
+  };
+
+  // Handle removing an industry via its Chip close button
+  const handleIndustrySelectionRemove = (industryNameToRemove: string) => {
+    setSelectedIndustryNames((prev) => prev.filter((name) => name !== industryNameToRemove));
+    setShowMaxIndustryWarning(false);
+  };
+
+  // Handle clearing all selected industries
+  const handleClearAllIndustries = () => {
+    setSelectedIndustryNames([]);
+    setShowMaxIndustryWarning(false);
+  };
+
+  // Determine overall loading state
+  const isMultiCityLoading = loadingIndustriesByCity || loadingCityComparison;
+  const isTopCityLoading = loadingTopCities;
+  const isLoading =
+    (!!distributionFetchUrl && loadingIndustryDistribution) ||
+    (canFetchMultiCity && isMultiCityLoading) ||
+    isTopCityLoading ||
+    citiesLoading;
+
+  // Determine placeholder message for the main grid area
+  let gridPlaceholderMessage = '';
+  if (!isLoading && selectedCities.size === 0) {
+    gridPlaceholderMessage = 'Please select one or more cities to view analytics.';
   }
->(({ children, color, size = 'sm', variant, ...props }, ref) => {
-  const { Component, isSelected, getBaseProps, getInputProps } = useRadio(props);
+
+  // --- Filtering Based on Selected Industries ---
+  const selectedIndustryDisplayNames = useMemo(() => {
+    if (selectedIndustryNames.length > 0) {
+      return new Set(selectedIndustryNames);
+    }
+    if (selectedCities.size > 0 && availableSortedIndustries.length > 0) {
+      return new Set(
+        availableSortedIndustries.slice(0, MAX_SELECTED_INDUSTRIES).map((i) => i.name),
+      );
+    }
+    return new Set<string>();
+  }, [selectedIndustryNames, availableSortedIndustries, selectedCities]);
+
+  // Filter Pie Chart Data
+  const filteredIndustryDistributionData = useMemo(() => {
+    if (!industryDistributionDataAll) return [];
+    return industryDistributionDataAll.filter((item) =>
+      selectedIndustryDisplayNames.has(item.name),
+    );
+  }, [industryDistributionDataAll, selectedIndustryDisplayNames]);
+
+  // Filter Radar Chart Data
+  const filteredCityComparisonData = useMemo(() => {
+    if (!cityComparisonDataAll) return [];
+    return cityComparisonDataAll.filter((item) => selectedIndustryDisplayNames.has(item.industry));
+  }, [cityComparisonDataAll, selectedIndustryDisplayNames]);
 
   return (
-    <Component {...getBaseProps()} ref={ref}>
-      <VisuallyHidden>
-        <input {...getInputProps()} />
-      </VisuallyHidden>
-      <Button
-        disableRipple
-        className={cn('pointer-events-none text-default-500', {
-          'text-foreground': isSelected,
-        })}
-        color={color}
-        size={size}
-        variant={variant || isSelected ? 'solid' : 'flat'}
-      >
-        {children}
-      </Button>
-    </Component>
-  );
-});
+    <div className="w-full p-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-4">
+        <h1 className="text-2xl font-bold">Industry Analytics</h1>
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex flex-col items-start gap-1">
+            <Tooltip
+              content={`Select up to ${MAX_SELECTED_CITIES} cities to compare.`}
+              placement="bottom"
+            >
+              <div>
+                <Autocomplete
+                  label="Search & Add Cities"
+                  placeholder="Type to search..."
+                  className="max-w-xs md:min-w-[250px]"
+                  isLoading={citiesLoading}
+                  items={filteredCitiesForAutocomplete}
+                  inputValue={citySearchQuery}
+                  onInputChange={setCitySearchQuery}
+                  onSelectionChange={handleCitySelectionAdd}
+                  allowsCustomValue={false}
+                  aria-label="Select Cities for Analytics"
+                >
+                  {(item) => (
+                    <AutocompleteItem key={item.key} textValue={item.label}>
+                      {item.label}
+                    </AutocompleteItem>
+                  )}
+                </Autocomplete>
+              </div>
+            </Tooltip>
+            {selectedCities.size > 0 && (
+              <div className="flex flex-wrap items-center gap-1 pt-1 max-w-xs md:min-w-[250px]">
+                {Array.from(selectedCities).map((city) => (
+                  <Chip key={city} onClose={() => handleCitySelectionRemove(city)} variant="flat">
+                    {city}
+                  </Chip>
+                ))}
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  aria-label="Clear cities"
+                  onPress={handleClearAllCities}
+                  className="ml-auto"
+                >
+                  <Icon icon="lucide:x" width={16} />
+                </Button>
+              </div>
+            )}
+            {showMaxCityWarning && (
+              <p className="text-tiny text-danger">Max {MAX_SELECTED_CITIES} cities allowed.</p>
+            )}
+          </div>
 
-ButtonRadioItem.displayName = 'ButtonRadioItem';
+          {selectedCities.size > 0 && (
+            <div className="flex flex-col items-start gap-1">
+              <Tooltip
+                content={`Select up to ${MAX_SELECTED_INDUSTRIES} industries to display.`}
+                placement="bottom"
+              >
+                <div>
+                  <Select
+                    label="Select Industries"
+                    placeholder="Defaults to Top 5"
+                    aria-label="Select industries to display"
+                    selectionMode="multiple"
+                    className="max-w-xs md:min-w-[250px]"
+                    selectedKeys={selectedIndustryNames} // Controlled by display names array
+                    onSelectionChange={handleIndustrySelectionChange}
+                  >
+                    {availableSortedIndustries.map((industry) => (
+                      <SelectItem key={industry.name}>
+                        {`${industry.name} (${industry.total})`}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                </div>
+              </Tooltip>
+              {selectedIndustryNames.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 pt-1 max-w-xs md:min-w-[250px]">
+                  {selectedIndustryNames.map((name) => (
+                    <Chip
+                      key={name}
+                      onClose={() => handleIndustrySelectionRemove(name)}
+                      variant="flat"
+                      color="primary" // Use primary color for selected industries
+                    >
+                      {name}
+                    </Chip>
+                  ))}
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    aria-label="Clear selected industries"
+                    onPress={handleClearAllIndustries}
+                    className="ml-auto"
+                  >
+                    <Icon icon="lucide:x" width={16} />
+                  </Button>
+                </div>
+              )}
+              {showMaxIndustryWarning && (
+                <p className="text-tiny text-danger">
+                  Max {MAX_SELECTED_INDUSTRIES} industries allowed.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isLoading && !citiesLoading && (
+        <Spinner label="Loading analytics data..." className="mx-auto py-10" />
+      )}
+      {!isLoading && gridPlaceholderMessage && (
+        <p className="text-center text-default-500 py-10">{gridPlaceholderMessage}</p>
+      )}
+
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${selectedCities.size === 0 || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      >
+        <Card className="border border-default-200">
+          <CardHeader className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Industry Distribution</h2>
+            {selectedCities.size > 1 && (
+              <Select
+                label="Focus City"
+                placeholder="Select city for detail"
+                aria-label="Select city for pie chart focus"
+                size="sm"
+                className="max-w-[180px]"
+                selectedKeys={pieChartFocusCity ? [pieChartFocusCity] : []}
+                onSelectionChange={(keys) =>
+                  handlePieFocusChange(keys instanceof Set ? (Array.from(keys)[0] as string) : null)
+                }
+              >
+                {Array.from(selectedCities)
+                  .sort()
+                  .map((city) => (
+                    <SelectItem key={city}>{city}</SelectItem>
+                  ))}
+              </Select>
+            )}
+          </CardHeader>
+          <Divider className="my-2" />
+          <CardBody className="min-h-[400px] flex items-center justify-center">
+            {!!distributionFetchUrl && loadingIndustryDistribution ? (
+              <Spinner />
+            ) : distributionFetchUrl && selectedIndustryDisplayNames.size > 0 ? (
+              <IndustryDistribution
+                data={filteredIndustryDistributionData}
+                currentTheme={currentTheme}
+              />
+            ) : selectedCities.size > 1 && !pieChartFocusCity ? (
+              <p className="text-center text-default-500">Select a city from the dropdown above.</p>
+            ) : selectedCities.size > 0 ? (
+              <p className="text-center text-default-500">
+                Select industries to view distribution.
+              </p>
+            ) : (
+              <p className="text-center text-default-500">Select a city first.</p>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card className={`${!canFetchMultiCity ? 'hidden' : ''} border border-default-200`}>
+          <CardHeader className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Industries by City</h2>
+          </CardHeader>
+          <Divider className="my-2" />
+          <CardBody className="min-h-[400px] flex items-center justify-center">
+            {loadingIndustriesByCity ? (
+              <Spinner />
+            ) : selectedIndustryDisplayNames.size > 0 ? (
+              <CityIndustryBars data={filteredIndustriesByCityData} currentTheme={currentTheme} />
+            ) : (
+              <p className="text-center text-default-500">Select industries to view details.</p>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card className={`${!canFetchMultiCity ? 'hidden' : ''} border border-default-200`}>
+          <CardHeader className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">City Comparison</h2>
+          </CardHeader>
+          <Divider className="my-2" />
+          <CardBody className="min-h-[400px] flex items-center justify-center">
+            {loadingCityComparison ? (
+              <Spinner />
+            ) : selectedIndustryDisplayNames.size > 0 ? (
+              <CityComparison data={filteredCityComparisonData} currentTheme={currentTheme} />
+            ) : (
+              <p className="text-center text-default-500">Select industries to compare cities.</p>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card className="border border-default-200">
+          <CardHeader className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Top Cities by Active Company Count</h2>
+          </CardHeader>
+          <Divider className="my-2" />
+          <CardBody className="min-h-[400px] flex items-center justify-center">
+            {loadingTopCities ? (
+              <Spinner />
+            ) : topCitiesData && topCitiesData.length > 0 ? (
+              <TopCitiesChart data={topCitiesData} currentTheme={currentTheme} />
+            ) : (
+              <p className="text-center text-default-500">Could not load top cities data.</p>
+            )}
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+  );
+};

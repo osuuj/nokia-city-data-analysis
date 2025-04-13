@@ -14,7 +14,7 @@ export const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps
     const { children, isSelected, getBaseProps, getLabelProps, getInputProps } = useCheckbox(props);
 
     return (
-      <label {...getBaseProps()} ref={ref} className="cursor-pointer w-full">
+      <label {...getBaseProps()} ref={ref} className="cursor-pointer">
         <VisuallyHidden>
           <input {...getInputProps()} />
         </VisuallyHidden>

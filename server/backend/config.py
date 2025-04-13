@@ -2,9 +2,11 @@
 
 import os
 from pathlib import Path
+from typing import List
 
 import yaml
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 # Load .env file
 load_dotenv()
@@ -65,3 +67,45 @@ CONFIG = load_config()
 
 # Construct the database URL
 DATABASE_URL = f"postgresql://{CONFIG['db']['user']}:{CONFIG['db']['password']}@{CONFIG['db']['host']}:{CONFIG['db']['port']}/{CONFIG['db']['name']}"
+
+# Make the config available as 'settings' for import compatibility
+settings = CONFIG
+
+
+class Settings(BaseSettings):
+    # Project Settings
+    PROJECT_NAME: str = "Nokia City Data API"
+    API_V1_STR: str = "/api/v1"
+
+    # Database Configuration (loads from environment variables)
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    DB_HOST: str
+    DB_PORT: str = "5432"
+
+    # CORS Origins (example: "http://localhost:3000,http://127.0.0.1:3000")
+    # Pydantic settings automatically handles comma-separated strings into lists if typed correctly
+    BACKEND_CORS_ORIGINS: List[str] = []
+
+    # Construct Database URL
+    # Use model_computed_field in Pydantic v2 for cleaner construction
+    # Or define as a property
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construct database connection URL."""
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
+
+    class Config:
+        """Pydantic BaseSettings config."""
+
+        # Optional: Specify .env file if not using load_dotenv separately
+        # env_file = ".env"
+        case_sensitive = True
+
+
+# Instantiate the settings
+settings = Settings()
+
+# Make DATABASE_URL easily accessible if needed directly elsewhere (though prefer settings.DATABASE_URL)
+DATABASE_URL = settings.DATABASE_URL

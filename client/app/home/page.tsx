@@ -173,7 +173,7 @@ export default function HomePage() {
 
       <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 
-      {viewMode !== 'map' && (
+      {viewMode !== 'map' && viewMode !== 'analytics' && (
         <Autocomplete
           classNames={{ base: 'md:max-w-xs max-w-[30vw] min-w-[200px]' }}
           popoverProps={{ classNames: { content: 'max-w-[40vw] md:max-w-xs' } }}

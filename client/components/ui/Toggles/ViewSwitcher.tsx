@@ -1,5 +1,6 @@
 'use client';
 
+import { AnalyticsView } from '@/components/features/analytics/AnalyticsView';
 import { MapView } from '@/components/features/map/MapView';
 import { TableView } from '@/components/features/table';
 import type { ViewSwitcherProps } from '@/types';
@@ -73,6 +74,12 @@ export function ViewSwitcher({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {viewMode === 'analytics' && (
+        <div className="w-full">
+          <AnalyticsView />
         </div>
       )}
     </div>

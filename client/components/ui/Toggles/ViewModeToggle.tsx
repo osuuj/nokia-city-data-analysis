@@ -59,6 +59,15 @@ export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
               </div>
             }
           />
+          <Tab
+            key="analytics"
+            title={
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Icon icon="lucide:bar-chart-3" width={16} className="sm:w-5" />
+                <span className="hidden sm:block text-xs sm:text-sm">Analytics</span>
+              </div>
+            }
+          />
         </Tabs>
 
         {/* More menu for mobile - contains GitHub and Theme switch */}

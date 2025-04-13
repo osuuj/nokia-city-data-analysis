@@ -24,6 +24,15 @@ export const MapView = ({ geojson }: MapViewProps) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
   const { theme } = useTheme();
+  const prevThemeRef = useRef(theme);
+
+  // Reset mapLoaded when theme changes
+  useEffect(() => {
+    if (prevThemeRef.current !== theme) {
+      setMapLoaded(false);
+      prevThemeRef.current = theme;
+    }
+  }, [theme]);
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -41,6 +50,11 @@ export const MapView = ({ geojson }: MapViewProps) => {
       ?.options?.find((option) => option.value === industryLetter)?.color;
     return color || '#FAFAFA'; // fallback yellow
   }, [activeFeature]);
+
+  // Add theme-dependent text color for clusters
+  const clusterTextColor = useMemo(() => {
+    return theme === 'dark' ? '#ffffff' : '#000000';
+  }, [theme]);
 
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
     const map = mapRef.current?.getMap();
@@ -135,7 +149,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
         },
         paint: {
-          'text-color': '#ffffff',
+          'text-color': clusterTextColor,
         },
       });
 
@@ -181,8 +195,16 @@ export const MapView = ({ geojson }: MapViewProps) => {
       map.moveLayer('active-marker-highlight', 'company-icons');
     } else {
       (existingSource as GeoJSONSource).setData(taggedGeojson);
+
+      if (map.getLayer('cluster-count-layer')) {
+        map.setPaintProperty('cluster-count-layer', 'text-color', clusterTextColor);
+      }
+
+      if (map.getLayer('active-marker-highlight')) {
+        map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor);
+      }
     }
-  }, [mapLoaded, geojson, activeBusinessId, selectedColor]);
+  }, [mapLoaded, geojson, activeBusinessId, selectedColor, clusterTextColor]);
 
   const flyTo = (coords: [number, number], targetBusinessId?: string, addressType?: string) => {
     const map = mapRef.current?.getMap();
@@ -209,6 +231,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
   return (
     <div className="relative w-full h-full">
       <MapboxMap
+        key={theme}
         ref={mapRef}
         initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
         style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}

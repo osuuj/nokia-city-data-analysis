@@ -5,7 +5,7 @@ import type { TableViewProps } from './table';
 /**
  * Defines possible view modes explicitly for displaying company data.
  */
-export type ViewMode = 'table' | 'map' | 'split';
+export type ViewMode = 'table' | 'map' | 'split' | 'analytics';
 
 /**
  * @interface ViewSwitcherProps
