@@ -37,7 +37,6 @@ export interface FilterOption {
   description?: string;
   icon?: string;
   color?: string | { light: string; dark: string };
-  color?: string;
   svgIconPath?: string;
 }
 
@@ -98,4 +97,5 @@ export interface DistanceSliderProps {
   step?: number;
   animation?: 'opacity' | 'height';
   className?: string;
+  tooltipContent?: string;
 }

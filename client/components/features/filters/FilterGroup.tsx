@@ -8,15 +8,17 @@ import { filters, requestBrowserLocation } from '@/utils';
 import {
   Button,
   CheckboxGroup,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
   Input,
   Switch,
+  Tooltip,
 } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import React, { useEffect, useState } from 'react';
+import { AccessibleIconify } from '../../ui/Icon/AccessibleIconify';
 import { TagGroupItem } from './TagGroupItem';
 
 /**
@@ -66,106 +68,121 @@ export const FilterGroup = ({
       setUserLocation(coords);
       setUseLocation(true);
     } catch (error) {
-      console.error('Location error:', error);
+      // Handle the error gracefully without showing an alert
+      console.log('Location access denied by user');
       setUseLocation(false);
       setUserLocation(null);
-      alert("We couldn't access your location. Please enable location access in your browser.");
     }
   };
 
   // Unified view for both mobile and desktop
   return (
-    <div className="flex gap-2 whitespace-nowrap">
+    <div className="flex items-center gap-1 whitespace-nowrap">
       {/* Industry Filter */}
-      <PopoverFilterWrapper
-        title="Industry"
-        onApply={() => setSelectedIndustries(draftIndustries)}
-        onCancel={() => setDraftIndustries(selectedIndustries)}
-        icon="lucide:tag"
-        maxWidth={isMobile ? '280px' : undefined}
-      >
-        <div className="max-h-60 overflow-y-auto transition-all duration-300">
-          <CheckboxGroup
-            aria-label="Select industry"
-            className="gap-1"
-            orientation="vertical"
-            value={draftIndustries}
-            onChange={(vals: string[]) => setDraftIndustries(vals)}
+      <Tooltip content="Filter by industry" placement="bottom">
+        <div>
+          <PopoverFilterWrapper
+            title="Industry"
+            onApply={() => setSelectedIndustries(draftIndustries)}
+            onCancel={() => setDraftIndustries(selectedIndustries)}
+            icon="lucide:tag"
+            maxWidth={isMobile ? '280px' : undefined}
           >
-            {(industryFilter?.options ?? []).map((option: FilterOption) => (
-              <TagGroupItem key={option.value} value={option.value} className="p-6">
-                <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  {option.icon && <Icon icon={option.icon} className="text-xs md:text-sm" />}
-                  {option.title}
-                </div>
-              </TagGroupItem>
-            ))}
-          </CheckboxGroup>
+            <div className="max-h-60 overflow-y-auto transition-all duration-300">
+              <CheckboxGroup
+                aria-label="Select industry"
+                className="gap-1"
+                orientation="vertical"
+                value={draftIndustries}
+                onChange={(vals: string[]) => setDraftIndustries(vals)}
+              >
+                {(industryFilter?.options ?? []).map((option: FilterOption) => (
+                  <TagGroupItem key={option.value} value={option.value} className="p-6">
+                    <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                      {option.icon && (
+                        <AccessibleIconify
+                          icon={option.icon}
+                          width={16}
+                          className={`${option.color || 'text-default-400'}`}
+                          ariaLabel={`${option.title} industry icon`}
+                        />
+                      )}
+                      {option.title}
+                    </div>
+                  </TagGroupItem>
+                ))}
+              </CheckboxGroup>
+            </div>
+          </PopoverFilterWrapper>
         </div>
-      </PopoverFilterWrapper>
+      </Tooltip>
+
+      <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
 
       {/* Distance Filter */}
-      <PopoverFilterWrapper
-        title="Distance"
-        onApply={() => setDistanceLimit(draftDistance)}
-        onCancel={() => setDraftDistance(distanceLimit ?? 0)}
-        icon="lucide:map-pin"
-        maxWidth={isMobile ? '280px' : undefined}
-      >
-        <div className="flex flex-col gap-2">
-          <Switch
-            isSelected={useLocation}
-            onValueChange={async (value: boolean) => {
-              if (value) {
-                await handleGetLocation();
-              } else {
+      <Tooltip content="Filter by distance" placement="bottom">
+        <div>
+          <PopoverFilterWrapper
+            title="Distance"
+            onApply={() => setDistanceLimit(draftDistance)}
+            onCancel={() => {
+              setDraftDistance(distanceLimit ?? 0);
+              // If location was denied, also reset the useLocation state
+              if (!userLocation) {
                 setUseLocation(false);
-                setUserLocation(null);
               }
             }}
-            size={isMobile ? 'sm' : 'md'}
-            classNames={{
-              base: 'h-5 xs:h-6 sm:h-7',
-              wrapper: 'h-4 xs:h-5 sm:h-6',
-              thumb: 'w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5',
-            }}
+            icon="lucide:map-pin"
+            maxWidth={isMobile ? '280px' : undefined}
           >
-            <span className="text-[10px] xs:text-xs sm:text-sm">Share location</span>
-          </Switch>
+            <div className="flex flex-col gap-2">
+              <Switch
+                isSelected={useLocation}
+                onValueChange={async (value: boolean) => {
+                  if (value) {
+                    try {
+                      await handleGetLocation();
+                    } catch (error) {
+                      // If location access is denied, the popover will be closed by the onCancel handler
+                      console.log('Location access denied by user');
+                    }
+                  } else {
+                    setUseLocation(false);
+                    setUserLocation(null);
+                  }
+                }}
+                size={isMobile ? 'sm' : 'md'}
+                classNames={{
+                  base: 'h-5 xs:h-6 sm:h-7',
+                  wrapper: 'h-4 xs:h-5 sm:h-6',
+                  thumb: 'w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5',
+                }}
+              >
+                <span className="text-[10px] xs:text-xs sm:text-sm">Share location</span>
+              </Switch>
 
-          {!useLocation && (
-            <Input
-              aria-label="Enter address"
-              placeholder="Enter address..."
-              value={address}
-              size="sm"
-              classNames={{
-                input: 'text-[10px] xs:text-xs sm:text-sm',
-                inputWrapper: 'h-6 xs:h-7 sm:h-8',
-              }}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-          )}
+              {!useLocation && (
+                <p className="text-[10px] xs:text-xs sm:text-sm text-default-500">
+                  Enable location sharing to filter by distance
+                </p>
+              )}
 
-          {useLocation && userLocation && (
-            <DistanceSlider
-              aria-label="Distance Filter"
-              minValue={0}
-              maxValue={30}
-              step={1}
-              value={draftDistance}
-              onChange={(val) => setDraftDistance(val as number)}
-              className="py-1 text-[10px] xs:text-xs sm:text-sm"
-            />
-          )}
-
-          {useLocation && !userLocation && (
-            <p className="text-[10px] xs:text-xs sm:text-sm text-default-500">
-              Waiting for location permission...
-            </p>
-          )}
+              {useLocation && userLocation && (
+                <DistanceSlider
+                  aria-label="Distance Filter"
+                  minValue={0}
+                  maxValue={30}
+                  step={1}
+                  value={draftDistance}
+                  onChange={(val) => setDraftDistance(val as number)}
+                  className="py-1 text-[10px] xs:text-xs sm:text-sm"
+                  tooltipContent="Adjust distance range"
+                />
+              )}
+            </div>
+          </PopoverFilterWrapper>
         </div>
-      </PopoverFilterWrapper>
+      </Tooltip>
     </div>
   );
 };

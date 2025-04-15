@@ -3,7 +3,7 @@
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import {
   Button,
-  Input,
+  Link,
   Navbar,
   NavbarBrand,
   NavbarContent,
@@ -12,9 +12,7 @@ import {
   NavbarMenuItem,
   NavbarMenuToggle,
 } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { clsx } from 'clsx';
-import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
@@ -44,6 +42,8 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+  const [isNavigatingToHome, setIsNavigatingToHome] = useState(false);
+  const [isBlurry, setIsBlurry] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -88,13 +88,24 @@ export const Header = () => {
 
     // Special handling for Home link
     if (href === '/home') {
-      // Show loading overlay if data isn't ready
-      if (!isDataReady) {
-        setShowLoadingOverlay(true);
+      if (isLandingPage) {
+        // If we're on the landing page, find and click the Start Exploring button
+        const startButton = document.querySelector(
+          '[aria-label="Start Exploring"]',
+        ) as HTMLButtonElement;
+        if (startButton) {
+          setIsBlurry(true);
+          startButton.click();
+        }
+      } else {
+        // For other pages, show loading overlay and navigate
+        setIsNavigatingToHome(true);
+        setIsBlurry(true);
+        if (!isDataReady) {
+          setShowLoadingOverlay(true);
+        }
+        router.push('/home');
       }
-
-      // Navigate to home page
-      router.push('/home');
     } else {
       // For other links, navigate immediately
       router.push(href);
@@ -120,107 +131,106 @@ export const Header = () => {
     }
   }, [isDataReady, showLoadingOverlay]);
 
-  // Log navigation items for debugging
+  // Reset navigation states when pathname changes
   useEffect(() => {
-    console.log('Current pathname:', pathname);
-    console.log('Navigation items:', navbarItems);
-  }, [pathname]);
+    // If we're navigating to home and the pathname changes, reset the states
+    if (isNavigatingToHome && pathname === '/home') {
+      // Keep the blurry effect for a moment after navigation completes
+      setTimeout(() => {
+        setIsNavigatingToHome(false);
+        setIsBlurry(false);
+      }, 500);
+    }
+  }, [pathname, isNavigatingToHome]);
 
   return (
     <div
-      className={`w-full sticky top-0 z-[100] ${isBlackBgPage ? 'bg-black text-white' : 'bg-background/80 backdrop-blur-md text-foreground'}`}
+      className={`w-full sticky top-0 z-[100] ${
+        isBlackBgPage
+          ? 'bg-black text-white'
+          : isBlurry
+            ? 'bg-background/90 backdrop-blur-md text-foreground'
+            : 'bg-background/90 backdrop-blur-md text-foreground'
+      }`}
     >
-      {showLoadingOverlay && <LoadingOverlay message="Loading data..." delay={500} />}
+      {showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
 
       <Navbar
+        maxWidth="2xl"
         classNames={{
-          base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : 'lg:bg-transparent lg:backdrop-filter-none'}`,
-          wrapper: 'px-4 sm:px-6 flex items-center justify-between',
-          item: 'data-[active=true]:text-primary',
-          menuItem: 'data-[active=true]:text-primary w-full',
-          menu: 'mt-2 transition-transform duration-300 ease-in-out w-full',
+          base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : ''}`,
+          wrapper: 'px-4 sm:px-6 gap-4',
+          item: 'data-[active=true]:font-medium data-[active=true]:text-primary',
+          menuItem: 'data-[active=true]:font-medium data-[active=true]:text-primary',
+          menu: 'mt-2 p-4 transition-transform duration-300 ease-in-out w-full',
         }}
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
-        height="60px"
       >
         {/* Left: Logo + mobile toggle */}
-        <NavbarBrand className="flex items-center flex-auto min-w-0 md:justify-start">
-          <NavbarMenuToggle
-            className="mr-2 h-6 md:hidden"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          />
-          <OsuujLogo large={true} />
+        <NavbarMenuToggle
+          className="sm:hidden"
+          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+        />
+        <NavbarBrand className="flex-grow sm:flex-grow-0">
+          <Link href="/" color="foreground" className="flex items-center gap-2">
+            <OsuujLogo large={true} />
+          </Link>
         </NavbarBrand>
 
-        {/* Center: Navigation links - only show if not on landing page */}
-        {!isLandingPage && (
-          <NavbarContent className="hidden md:flex flex-1 justify-center gap-6 max-w-[500px] h-12 w-full rounded-full bg-content2 px-4 dark:bg-content1">
+        {/* Center: Navigation links */}
+        <NavbarContent
+          justify="center"
+          className="hidden sm:flex flex-grow gap-6 max-w-[500px] h-12 "
+        >
+          <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 dark:bg-content1 backdrop-blur-md">
             {navbarItems.map((item) => (
               <NavbarItem
                 key={item.href}
-                isActive={
-                  item.href === '/home' ? pathname === '/home' : pathname.startsWith(item.href)
-                }
-                className={clsx(clickedItem === item.href ? 'text-primary' : '')}
+                isActive={pathname.startsWith(item.href)}
+                className={`${clickedItem === item.href ? 'text-primary' : ''}`}
               >
-                <NextLink
-                  className="flex gap-2 text-inherit"
+                <Link
                   href={item.href}
-                  prefetch={item.href === '/home'}
-                  onClick={(e) => {
-                    e.preventDefault();
+                  color={pathname.startsWith(item.href) ? 'primary' : 'foreground'}
+                  className={`px-3 py-1.5 rounded-full transition-colors ${
+                    pathname.startsWith(item.href)
+                      ? 'bg-primary/10 font-medium'
+                      : 'hover:bg-content3/50'
+                  }`}
+                  onPress={() => {
                     handleItemClick(item.href);
                   }}
                 >
                   {item.label}
-                </NextLink>
+                </Link>
               </NavbarItem>
             ))}
-          </NavbarContent>
-        )}
+          </div>
+        </NavbarContent>
 
         {/* Right: Actions (search, GitHub, theme) */}
-        <NavbarContent className="flex flex-1 justify-end items-center gap-0 min-w-[150px] h-12 max-w-fit rounded-full p-0 lg:bg-content2 lg:px-1 lg:dark:bg-content1">
-          <NavbarItem className="hidden lg:flex">
-            <Input
-              aria-label="Search"
-              id="search-input"
-              name="search"
-              placeholder="Search..."
-              radius="full"
-              classNames={{
-                inputWrapper:
-                  'bg-default-100 group-data-[hover=true]:bg-default-50 group-data-[focus=true]:bg-100',
-              }}
-              startContent={
-                <Icon className="text-default-500" icon="solar:magnifer-linear" width={20} />
-              }
-            />
-          </NavbarItem>
-
-          <NavbarItem className="lg:hidden">
-            <Button isIconOnly radius="full" variant="light" aria-label="Search">
-              <Icon className="text-default-500" icon="solar:magnifer-linear" width={20} />
-            </Button>
-          </NavbarItem>
-
-          <NavbarItem className="lg:flex">
-            <Button isIconOnly radius="full" variant="light" aria-label="GitHub">
-              <a
+        <NavbarContent justify="end" className="sm:flex max-w-fit">
+          <div className="flex items-center gap-1 px-2 py-1">
+            <NavbarItem className="lg:flex">
+              <Button
+                isIconOnly
+                radius="full"
+                variant="light"
+                aria-label="GitHub"
+                as="a"
                 href={siteConfig.links.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="GitHub"
               >
-                <GithubIcon className="text-default-500" width={24} />
-              </a>
-            </Button>
-          </NavbarItem>
+                <GithubIcon className="text-default-700" />
+              </Button>
+            </NavbarItem>
 
-          <NavbarItem className="lg:flex">
-            <ThemeSwitch aria-label="Toggle theme" />
-          </NavbarItem>
+            <NavbarItem>
+              <ThemeSwitch aria-label="Toggle theme" />
+            </NavbarItem>
+          </div>
         </NavbarContent>
 
         {/* Mobile menu */}
@@ -229,20 +239,18 @@ export const Header = () => {
             {/* Add Home option at the top of the mobile menu */}
             <NavbarMenuItem
               isActive={pathname === '/home'}
-              className={clsx(clickedItem === '/home' ? 'text-primary' : '', 'pt-1')}
+              className={clsx(clickedItem === '/home' ? 'text-primary' : '')}
             >
-              <NextLink
+              <Link
                 className="text-inherit w-full px-4 py-2"
                 href="/home"
-                onClick={(e) => {
-                  e.preventDefault();
+                onPress={() => {
                   setIsMenuOpen(false);
                   handleItemClick('/home');
                 }}
-                prefetch={true}
               >
                 Home
-              </NextLink>
+              </Link>
             </NavbarMenuItem>
 
             {/* Existing menu items - filter out Home to avoid duplication */}
@@ -256,18 +264,17 @@ export const Header = () => {
                   }
                   className={clsx(clickedItem === item.href ? 'text-primary' : '')}
                 >
-                  <NextLink
+                  <Link
                     className="text-inherit w-full px-4 py-2"
+                    color="foreground"
                     href={item.href}
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onPress={() => {
                       setIsMenuOpen(false);
                       handleItemClick(item.href);
                     }}
-                    prefetch={item.href === '/home'}
                   >
                     {item.label}
-                  </NextLink>
+                  </Link>
                 </NavbarMenuItem>
               ))}
           </div>
@@ -276,8 +283,8 @@ export const Header = () => {
 
       {/* Breadcrumbs section */}
       {shouldShowBreadcrumbs && (
-        <div className="w-full py-2 border-t border-default-100">
-          <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full py-2 border-t border-divider/40">
+          <div className=" mx-auto w-full px-4 sm:px-6">
             <Breadcrumbs />
           </div>
         </div>

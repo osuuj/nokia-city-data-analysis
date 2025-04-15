@@ -81,24 +81,6 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
             }}
           />
         </div>
-        <div className="w-16 xs:w-20 sm:w-24">
-          <Input
-            aria-label="Distance input"
-            labelPlacement="inside"
-            type="number"
-            size="sm"
-            classNames={{
-              label: 'text-[10px] xs:text-xs sm:text-sm',
-              input: 'text-[10px] xs:text-xs sm:text-sm',
-              inputWrapper: 'h-6 xs:h-7 sm:h-8',
-            }}
-            startContent={
-              <p className="text-default-500 text-[10px] xs:text-xs sm:text-sm flex-shrink-0">km</p>
-            }
-            value={`${value}`}
-            onValueChange={onInputValueChange}
-          />
-        </div>
       </div>
     );
   },

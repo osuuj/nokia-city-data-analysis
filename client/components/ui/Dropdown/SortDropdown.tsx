@@ -4,8 +4,8 @@ import { columns } from '@/config/columns';
 import type { CompanyProperties } from '@/types';
 import type { SortDropdownProps } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import React, { useEffect, useState } from 'react';
+import { AccessibleIconify } from '../Icon/AccessibleIconify';
 
 /**
  * SortDropdown
@@ -41,19 +41,23 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
           className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
           startContent={
-            <Icon
-              className="text-default-400 focus:outline-none focus:ring-0 active:outline-none active:ring-0"
+            <AccessibleIconify
               icon="solar:sort-linear"
               width={16}
+              className="text-default-400"
+              ariaLabel="Sort"
             />
           }
+          aria-label="Sort columns"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
         >
           <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Sort</span>
         </Button>
       </DropdownTrigger>
 
       <DropdownMenu
-        aria-label="Sort"
+        aria-label="Sort columns"
         selectionMode="single"
         selectedKeys={[sortDescriptor.column]}
         className="p-1 focus:outline-none focus:ring-0"
@@ -73,13 +77,21 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
             key={item.key}
             className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
             textValue={item.label}
+            aria-label={`Sort by ${item.label} ${sortDescriptor.column === item.key ? (sortDescriptor.direction === 'asc' ? 'ascending' : 'descending') : ''}`}
           >
             <div className="flex items-center justify-between w-full">
               <span className="truncate">{item.label}</span>
               {sortDescriptor.column === item.key && (
-                <span className="ml-2 text-default-400">
-                  {sortDescriptor.direction === 'asc' ? '▲' : '▼'}
-                </span>
+                <AccessibleIconify
+                  icon={
+                    sortDescriptor.direction === 'asc'
+                      ? 'solar:arrow-up-linear'
+                      : 'solar:arrow-down-linear'
+                  }
+                  width={12}
+                  className="text-default-400"
+                  ariaLabel={`${sortDescriptor.direction === 'asc' ? 'Ascending' : 'Descending'} order`}
+                />
               )}
             </div>
           </DropdownItem>

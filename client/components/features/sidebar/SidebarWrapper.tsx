@@ -3,6 +3,7 @@
 import { OsuujLogo } from '@/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
@@ -49,9 +50,9 @@ export const SidebarWrapper = () => {
     >
       {/* Top: Logo + collapse toggle */}
       <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
-        <div className="flex h-10 w-10 items-center justify-center">
+        <Link href="/" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
-        </div>
+        </Link>
 
         {showCollapseButton && (
           <Tooltip content="Collapse sidebar" placement="right">
@@ -83,29 +84,35 @@ export const SidebarWrapper = () => {
       {/* Bottom: Help + expand toggle */}
       <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
-          <Button
-            fullWidth
-            className={cn('justify-start truncate text-default-500 hover:text-foreground', {
-              'justify-center': isCompact,
-            })}
-            isIconOnly={isCompact}
-            startContent={
-              isCompact ? null : (
+          <Link href="/resources" className="w-full">
+            <Button
+              fullWidth
+              className={cn('justify-start truncate text-default-500 hover:text-foreground', {
+                'justify-center': isCompact,
+              })}
+              isIconOnly={isCompact}
+              startContent={
+                isCompact ? null : (
+                  <Icon
+                    className="text-default-500"
+                    icon="solar:info-circle-line-duotone"
+                    width={24}
+                  />
+                )
+              }
+              variant="light"
+            >
+              {isCompact ? (
                 <Icon
                   className="text-default-500"
                   icon="solar:info-circle-line-duotone"
                   width={24}
                 />
-              )
-            }
-            variant="light"
-          >
-            {isCompact ? (
-              <Icon className="text-default-500" icon="solar:info-circle-line-duotone" width={24} />
-            ) : (
-              'Help & Information'
-            )}
-          </Button>
+              ) : (
+                'Help & Information'
+              )}
+            </Button>
+          </Link>
         </Tooltip>
 
         {isCompact && mounted && !isMobile && (

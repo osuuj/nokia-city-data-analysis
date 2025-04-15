@@ -4,8 +4,8 @@ import { columns } from '@/config/columns';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { TableColumnConfig } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import React, { useEffect, useState } from 'react';
+import { AccessibleIconify } from '../Icon/AccessibleIconify';
 
 /**
  * ColumnVisibilityDropdown
@@ -45,12 +45,16 @@ export function ColumnVisibilityDropdown() {
           className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
           startContent={
-            <Icon
-              className="text-default-400 focus:outline-none focus:ring-0 active:outline-none active:ring-0"
+            <AccessibleIconify
               icon="solar:sort-horizontal-linear"
               width={16}
+              className="text-default-400"
+              ariaLabel="Toggle columns"
             />
           }
+          aria-label="Toggle column visibility"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
         >
           <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Columns</span>
         </Button>
@@ -62,7 +66,7 @@ export function ColumnVisibilityDropdown() {
           list: 'max-h-[300px] overflow-y-auto',
         }}
         disallowEmptySelection
-        aria-label="Columns"
+        aria-label="Toggle column visibility"
         selectedKeys={selectedKeys}
         selectionMode="multiple"
         onSelectionChange={(keys) => {
@@ -84,6 +88,7 @@ export function ColumnVisibilityDropdown() {
             <DropdownItem
               key={item.key}
               className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+              aria-label={`${item.label} column ${selectedKeys.has(item.key) ? 'visible' : 'hidden'}`}
             >
               {item.label}
             </DropdownItem>
