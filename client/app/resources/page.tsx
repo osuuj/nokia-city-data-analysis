@@ -2,8 +2,6 @@
 
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import { ResourceCard } from '@/components/ui/Card/ResourceCard';
-import SuggestResourceForm from '@/components/ui/ResourcePage/SuggestForm';
-import resourcesData from '@/data/resources-data';
 import { Accordion, AccordionItem, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
@@ -64,122 +62,7 @@ export default function ResourcePage() {
                 />
               </div>
             </AccordionItem>
-
-            {/* City & Business Resources */}
-            <AccordionItem
-              key="city-resources"
-              title={
-                <div className="flex items-center gap-2">
-                  <Icon icon="lucide:building" className="text-xl text-primary" />
-                  <span className="text-xl">City & Business Resources</span>
-                </div>
-              }
-              textValue="City & Business Resources"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {resourcesData.cityResources.map((resource: Resource) => (
-                  <ResourceCard
-                    key={`city-${resource.title}`}
-                    title={resource.title}
-                    description={resource.description}
-                    icon={resource.icon}
-                    type={resource.type}
-                    link={resource.link}
-                  />
-                ))}
-              </div>
-            </AccordionItem>
-
-            {/* Toolkits for Users */}
-            <AccordionItem
-              key="toolkits"
-              title={
-                <div className="flex items-center gap-2">
-                  <Icon icon="lucide:tool" className="text-xl text-primary" />
-                  <span className="text-xl">Toolkits for Users</span>
-                </div>
-              }
-              textValue="Toolkits for Users"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {resourcesData.toolkits.map((resource: Resource) => (
-                  <ResourceCard
-                    key={`toolkit-${resource.title}`}
-                    title={resource.title}
-                    description={resource.description}
-                    icon={resource.icon}
-                    type={resource.type}
-                    link={resource.link}
-                  />
-                ))}
-              </div>
-            </AccordionItem>
-
-            {/* Educational Resources */}
-            <AccordionItem
-              key="educational"
-              title={
-                <div className="flex items-center gap-2">
-                  <Icon icon="lucide:graduation-cap" className="text-xl text-primary" />
-                  <span className="text-xl">Educational Resources</span>
-                </div>
-              }
-              textValue="Educational Resources"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {resourcesData.educational.map((resource: Resource) => (
-                  <ResourceCard
-                    key={`edu-${resource.title}`}
-                    title={resource.title}
-                    description={resource.description}
-                    icon={resource.icon}
-                    type={resource.type}
-                    link={resource.link}
-                  />
-                ))}
-              </div>
-            </AccordionItem>
-
-            {/* Downloadables */}
-            <AccordionItem
-              key="downloadables"
-              title={
-                <div className="flex items-center gap-2">
-                  <Icon icon="lucide:download" className="text-xl text-primary" />
-                  <span className="text-xl">Downloadables</span>
-                </div>
-              }
-              textValue="Downloadables"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {resourcesData.downloadables.map((resource: Resource) => (
-                  <ResourceCard
-                    key={`download-${resource.title}`}
-                    title={resource.title}
-                    description={resource.description}
-                    icon={resource.icon}
-                    type={resource.type}
-                    link={resource.link}
-                  />
-                ))}
-              </div>
-            </AccordionItem>
           </Accordion>
-        </div>
-
-        <Divider className="my-10" />
-
-        {/* Suggest a Resource Section */}
-        <div className="rounded-large bg-content1 p-6 shadow-small backdrop-blur-md bg-opacity-85 border border-content2">
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Icon icon="lucide:lightbulb" className="text-primary" />
-            Suggest a Resource
-          </h2>
-          <p className="mb-6 text-default-600">
-            Know a tool, guide, or resource that would benefit our community? Let us know and we'll
-            consider adding it to our library.
-          </p>
-          <SuggestResourceForm />
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ export default function ProjectDetailClient({ project: { id } }: ProjectDetailCl
       caption: item.caption,
     })) || [];
 
-  const progressValue = project.status === 'active' ? 75 : 25;
+  const progressValue = project.status === 'active' ? 95 : 25;
 
   return (
     <main

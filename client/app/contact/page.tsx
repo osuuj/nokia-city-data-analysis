@@ -61,49 +61,44 @@ export default function ContactPage() {
             {/* First person */}
             <Card className="backdrop-blur-md bg-opacity-90">
               <CardBody className="flex flex-col items-center gap-4">
-                <Avatar
-                  src="https://img.heroui.chat/image/avatar?w=200&h=200&u=1"
-                  className="w-24 h-24"
-                  isBordered
-                  color="primary"
-                />
+                <Avatar src="" className="w-24 h-24" isBordered color="primary" />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">
-                    Jane Doe
+                    Juuso Juvonen
                   </h3>
                   <p className="text-default-500 dark:text-default-400 mb-4">Lead Developer</p>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Icon icon="lucide:mail" className="text-default-600 dark:text-default-400" />
                     <a
-                      href="mailto:jane.doe@example.com"
+                      href="mailto:superjuuso@gmail.com"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      jane.doe@example.com
+                      superjuuso@gmail.com
                     </a>
                   </div>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Icon icon="logos:linkedin-icon" />
                     <a
-                      href="https://linkedin.com/in/janedoe"
+                      href="https://linkedin.com/in/jutoju"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      linkedin.com/in/janedoe
+                      linkedin.com/in/jutoju
                     </a>
                   </div>
 
                   <div className="flex items-center justify-center gap-2">
                     <Icon icon="logos:github-icon" />
                     <a
-                      href="https://github.com/janedoe"
+                      href="https://github.com/osuuj"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      github.com/janedoe
+                      github.com/osuuj
                     </a>
                   </div>
                 </div>
@@ -113,154 +108,50 @@ export default function ContactPage() {
             {/* Second person */}
             <Card className="backdrop-blur-md bg-opacity-90">
               <CardBody className="flex flex-col items-center gap-4">
-                <Avatar
-                  src="https://img.heroui.chat/image/avatar?w=200&h=200&u=2"
-                  className="w-24 h-24"
-                  isBordered
-                  color="primary"
-                />
+                <Avatar src="" className="w-24 h-24" isBordered color="primary" />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">
-                    John Smith
+                    Kasperi Rautio
                   </h3>
-                  <p className="text-default-500 dark:text-default-400 mb-4">UX Designer</p>
+                  <p className="text-default-500 dark:text-default-400 mb-4">Developer</p>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Icon icon="lucide:mail" className="text-default-600 dark:text-default-400" />
                     <a
-                      href="mailto:john.smith@example.com"
+                      href="mailto:kasperi.rautio@gmail.com"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      john.smith@example.com
+                      kasperi.rautio@gmail.com
                     </a>
                   </div>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Icon icon="logos:linkedin-icon" />
                     <a
-                      href="https://linkedin.com/in/johnsmith"
+                      href="https://linkedin.com/in/kasperi-rautio"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      linkedin.com/in/johnsmith
+                      linkedin.com/in/kasperi-rautio
                     </a>
                   </div>
 
                   <div className="flex items-center justify-center gap-2">
                     <Icon icon="logos:github-icon" />
                     <a
-                      href="https://github.com/johnsmith"
+                      href="https://github.com/kasperi-r"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      github.com/johnsmith
+                      github.com/kasperi-r
                     </a>
                   </div>
                 </div>
               </CardBody>
             </Card>
           </div>
-        </motion.div>
-
-        {/* Feedback form section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-2xl mx-auto"
-        >
-          <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-6 text-center">
-            Send Us Feedback
-          </h2>
-
-          <Card className="backdrop-blur-md bg-opacity-90">
-            <CardBody>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <Input
-                  label="Your Name"
-                  placeholder="Enter your name"
-                  variant="bordered"
-                  value={name}
-                  onValueChange={setName}
-                  required
-                  classNames={{
-                    label: 'text-default-700 dark:text-default-300',
-                    input: 'bg-default-50/50 dark:bg-default-900/50',
-                  }}
-                />
-
-                <Input
-                  label="Your Email"
-                  placeholder="Enter your email"
-                  variant="bordered"
-                  type="email"
-                  value={email}
-                  onValueChange={setEmail}
-                  required
-                  classNames={{
-                    label: 'text-default-700 dark:text-default-300',
-                    input: 'bg-default-50/50 dark:bg-default-900/50',
-                  }}
-                />
-
-                <Textarea
-                  label="Your Message"
-                  placeholder="What would you like to tell us?"
-                  variant="bordered"
-                  minRows={4}
-                  value={message}
-                  onValueChange={setMessage}
-                  required
-                  classNames={{
-                    label: 'text-default-700 dark:text-default-300',
-                    input: 'bg-default-50/50 dark:bg-default-900/50',
-                  }}
-                />
-
-                {/* Rating Card */}
-                <Card className="border border-default-200 dark:border-default-700 backdrop-blur-md bg-opacity-90">
-                  <CardBody className="p-4">
-                    <h3 className="text-lg font-medium text-default-800 dark:text-default-200 mb-3">
-                      Rate Your Experience
-                    </h3>
-                    <div className="flex justify-center space-x-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setRating(star)}
-                          className="focus:outline-none"
-                          aria-label={`Rate ${star} stars`}
-                        >
-                          <Icon
-                            icon={star <= rating ? 'lucide:star' : 'lucide:star'}
-                            className={`text-2xl ${
-                              star <= rating
-                                ? 'text-warning-400'
-                                : 'text-default-300 dark:text-default-600'
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-center mt-2 text-sm text-default-600 dark:text-default-400">
-                      {rating > 0
-                        ? `You rated us ${rating} ${rating === 1 ? 'star' : 'stars'}`
-                        : 'Select a rating'}
-                    </p>
-                  </CardBody>
-                </Card>
-
-                <div className="flex justify-end">
-                  <Button type="submit" color="primary" size="lg">
-                    Send Feedback
-                  </Button>
-                </div>
-              </form>
-            </CardBody>
-          </Card>
         </motion.div>
       </div>
     </div>

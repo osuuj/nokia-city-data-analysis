@@ -49,18 +49,18 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <TeamMemberCard
               name="Juuso"
-              jobTitle="Frontend Developer"
+              jobTitle="Lead Developer"
               bio="Specializes in creating intuitive, beautiful user interfaces with modern web technologies."
               portfolioLink="/about/juuso"
-              avatarSrc="https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso123"
+              avatarSrc=""
             />
 
             <TeamMemberCard
               name="Kassu"
-              jobTitle="Backend Developer"
+              jobTitle="Developer"
               bio="Expert in building robust server architectures and efficient database solutions."
               portfolioLink="/about/kassu"
-              avatarSrc="https://img.heroui.chat/image/avatar?w=200&h=200&u=kassu456"
+              avatarSrc=""
             />
           </div>
         </div>

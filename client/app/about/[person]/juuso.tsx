@@ -97,7 +97,7 @@ export default function PortfolioPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500"
           >
-            Juuso Developer
+            Juuso Juvonen
           </motion.h1>
 
           <motion.div

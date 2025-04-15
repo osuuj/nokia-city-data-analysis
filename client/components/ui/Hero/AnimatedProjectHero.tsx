@@ -112,8 +112,9 @@ export function AnimatedProjectHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          Explore our portfolio of innovative projects spanning various domains and technologies.
-          Each project represents our commitment to excellence and creative problem-solving.
+          Discover our diverse portfolio of cutting-edge projects, each driven by innovation,
+          collaboration, and a passion for solving real-world challenges. From concept to execution,
+          we bring ideas to life across a wide range of technologies and industries.
         </motion.p>
       </div>
     </div>
