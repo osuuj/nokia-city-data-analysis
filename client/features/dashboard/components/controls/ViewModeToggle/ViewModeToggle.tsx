@@ -6,6 +6,7 @@ import { GithubIcon } from '@/icons';
 import type { ViewMode } from '@/types';
 import { Button, Link, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import React from 'react';
 
 interface ViewModeToggleProps {
   viewMode: ViewMode;
@@ -18,7 +19,7 @@ interface ViewModeToggleProps {
  */
 export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
   return (
-    <header className="flex sm:flex-row items-center justify-between w-full transition-all duration-300 border-b border-divider p-2 sm:p-3 md:p-4 gap-2">
+    <header className="flex flex-col sm:flex-row items-center justify-between w-full transition-all duration-300 border-b border-divider p-2 sm:p-3 md:p-4 gap-2">
       <div className="flex items-center justify-between w-full sm:w-auto gap-2">
         {/* View Mode Tabs - Full labels on larger screens, icons only on small screens */}
         <Tabs
