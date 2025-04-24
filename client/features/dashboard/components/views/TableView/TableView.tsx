@@ -1,6 +1,6 @@
 'use client';
 
-import { TableToolbar } from '@/features/dashboard/components/controls/TableToolbar/TableToolbar';
+import { TableToolbar } from '@/features/dashboard/components/views/TableView/toolbar/TableToolbar';
 import { useMemoizedCallback } from '@/hooks/';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type {
