@@ -248,6 +248,10 @@ export const MapView = ({ geojson }: MapViewProps) => {
           activeFeature={activeFeature}
           onSelect={setActiveFeature}
           selectedColor={selectedColor}
+          theme={theme}
+          flyTo={(coords, addressType) =>
+            flyTo(coords, activeFeature?.properties.business_id, addressType)
+          }
         />
       )}
     </div>
