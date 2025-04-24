@@ -1,14 +1,28 @@
 'use client';
 
 import { ProjectCard } from '@/features/project/components/ProjectCard';
+import { ProjectGridSkeleton } from '@/features/project/components/ProjectSkeleton';
 import { AnimatedProjectHero } from '@/features/project/components/hero';
-import { projectsData } from '@/features/project/types';
+import { useProjects } from '@/features/project/hooks/useProjects';
+import { ErrorMessage } from '@/shared/components/ErrorMessage';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
 export default function ProjectPage() {
-  const currentProjects = projectsData;
+  const { data: projects = [], isLoading, isError, error } = useProjects();
+
+  if (isError) {
+    return (
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ErrorMessage
+          title="Error Loading Projects"
+          message="There was an error loading the projects. Please try again later."
+          error={error}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,17 +32,19 @@ export default function ProjectPage() {
       <AnimatedProjectHero />
 
       {/* 🧱 Projects Grid */}
-      {currentProjects.length > 0 ? (
+      {isLoading ? (
+        <ProjectGridSkeleton />
+      ) : projects.length > 0 ? (
         <div className="flex justify-center">
           <div
             className={`
               grid gap-6 mb-2 max-w-5xl
               grid-cols-1
-              ${currentProjects.length === 2 ? 'sm:grid-cols-2 justify-center' : ''}
-              ${currentProjects.length >= 3 ? 'lg:grid-cols-3' : ''}
+              ${projects.length === 2 ? 'sm:grid-cols-2 justify-center' : ''}
+              ${projects.length >= 3 ? 'lg:grid-cols-3' : ''}
             `}
           >
-            {currentProjects.map((project) => (
+            {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

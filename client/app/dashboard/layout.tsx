@@ -2,7 +2,9 @@
 
 import { DashboardFooter } from '@/features/layout/components/footer/DashboardFooter';
 import { SidebarWrapper } from '@/features/layout/components/sidebar/SidebarWrapper';
-import { Providers } from '@shared/providers';
+import { ErrorBoundary } from '@/shared/components/error';
+import { LoadingOverlay } from '@/shared/components/ui/loading';
+import { Suspense } from 'react';
 
 /**
  * Layout for the `/dashboard` route.
@@ -13,11 +15,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen flex-row w-full">
       <SidebarWrapper />
       <div className="flex-1 flex-grow min-w-0 h-full flex flex-col overflow-y-auto">
-        <Providers>
-          <main className="flex-1 w-full overflow-y-auto overflow-x-auto p-2 sm:p-3 md:p-4">
-            {children}
-          </main>
-        </Providers>
+        <ErrorBoundary
+          fallback={<div>Something went wrong in the dashboard. Please refresh the page.</div>}
+        >
+          <Suspense fallback={<LoadingOverlay message="Loading dashboard..." />}>
+            <main className="flex-1 w-full overflow-y-auto overflow-x-auto p-2 sm:p-3 md:p-4">
+              {children}
+            </main>
+          </Suspense>
+        </ErrorBoundary>
         <DashboardFooter />
       </div>
     </div>

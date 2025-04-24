@@ -1,12 +1,9 @@
 'use client';
 
+import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
 import { Spinner } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import useSWR from 'swr';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface DataLoaderProps {
   onDataReady?: () => void;
@@ -20,8 +17,6 @@ interface DataLoaderProps {
  */
 export function DataLoader({ onDataReady, children }: DataLoaderProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [dataReady, setDataReady] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Set mounted state after hydration
@@ -29,36 +24,19 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
     setMounted(true);
   }, []);
 
-  // Prefetch cities data
-  const { data: cities } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/cities` : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // Cache for 5 minutes
-    suspense: false,
-  });
+  // Prefetch cities and companies data using React Query
+  const { data: cities, isLoading: citiesLoading } = useFetchCities();
+  const { data: companies, isLoading: companiesLoading } = useFetchCompanies('Helsinki');
 
-  // Prefetch initial company data (using a default city)
-  const { data: companies } = useSWR(
-    mounted ? `${BASE_URL}/api/v1/companies.geojson?city=Helsinki` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-      suspense: false,
-    },
-  );
+  const isLoading = citiesLoading || companiesLoading;
+  const dataReady = !isLoading && cities && companies;
 
-  // Check if data is ready
+  // Notify parent when data is ready
   useEffect(() => {
-    if (cities && companies) {
-      setDataReady(true);
-      setIsLoading(false);
-      if (onDataReady) {
-        onDataReady();
-      }
+    if (dataReady && onDataReady) {
+      onDataReady();
     }
-  }, [cities, companies, onDataReady]);
+  }, [dataReady, onDataReady]);
 
   // During SSR or before hydration, render a placeholder with the same structure
   if (!mounted) {

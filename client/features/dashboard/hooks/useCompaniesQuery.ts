@@ -1,5 +1,6 @@
 import type { Business } from '@/features/dashboard/types';
-import { useQuery } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@shared/api';
+import { createQueryKey, useApiQuery } from '@shared/hooks/useApi';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -57,9 +58,7 @@ const fetchCities = async (): Promise<string[]> => {
  * @returns { data, error, isLoading }
  */
 export function useFetchCities() {
-  return useQuery<string[], Error>({
-    queryKey: ['cities'],
-    queryFn: fetchCities,
+  return useApiQuery<string[]>('cities', API_ENDPOINTS.CITIES.LIST, undefined, {
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
@@ -72,9 +71,14 @@ export function useFetchCities() {
  * @returns { data, error, isLoading }
  */
 export function useFetchCompanies(city: string) {
-  return useQuery<Business[], Error>({
-    queryKey: ['companies', city],
-    queryFn: () => fetchCompanies(city),
-    enabled: !!city, // only fetch if a city is selected
-  });
+  return useApiQuery<Business[]>(
+    createQueryKey('companies', city),
+    API_ENDPOINTS.COMPANIES.LIST,
+    {
+      params: { city },
+    },
+    {
+      enabled: !!city, // only fetch if a city is selected
+    },
+  );
 }

@@ -1,31 +1,45 @@
 'use client';
 
 import ProjectDetailClient from '@/features/project/components/ProjectDetailClient';
-import { projectsData } from '@/features/project/types';
-import { notFound, useRouter } from 'next/navigation';
-import React from 'react';
+import { ProjectDetailSkeleton } from '@/features/project/components/ProjectSkeleton';
+import { useProject } from '@/features/project/hooks/useProjects';
+import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { useEffect } from 'react';
 
-export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter();
-  const resolvedParams = React.use(params);
-  const { id } = resolvedParams;
+interface ProjectDetailPageProps {
+  params: {
+    id: string;
+  };
+}
 
-  const project = projectsData.find((p) => p.id === id);
+export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+  const { data: project, isLoading, isError, error } = useProject(params.id);
 
-  if (!project) {
+  // Log any errors to help with debugging
+  useEffect(() => {
+    if (isError && error instanceof Error) {
+      console.error('Project loading error:', error.message);
+    }
+  }, [isError, error]);
+
+  if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-        <h1 className="text-3xl font-bold mb-4">Project Not Found</h1>
-        <p className="text-default-600 mb-6">The project you are looking for does not exist.</p>
-        <button
-          type="button"
-          onClick={() => router.push('/project')}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
-        >
-          Back to Projects
-        </button>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ErrorMessage
+          title="Error Loading Project"
+          message={
+            error instanceof Error
+              ? error.message
+              : 'There was an error loading the project details. Please try again later.'
+          }
+          error={error}
+        />
       </div>
     );
+  }
+
+  if (isLoading || !project) {
+    return <ProjectDetailSkeleton />;
   }
 
   return (

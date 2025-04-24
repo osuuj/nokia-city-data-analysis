@@ -1,10 +1,11 @@
 'use client';
 
+import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
+import { ApiResponse } from '@/shared/api/types';
+import { createQueryKey } from '@/shared/hooks/useApi';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import useSWR from 'swr';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 /**
  * Preloader component
@@ -12,25 +13,13 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
  * This helps reduce the perceived loading time when navigating to the home page
  */
 export function Preloader() {
-  // Prefetch cities data
-  const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // Cache for 5 minutes
-    suspense: false,
-  });
+  const queryClient = useQueryClient();
 
-  // Prefetch initial company data (using a default city)
-  const { data: companies } = useSWR(
-    `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-      suspense: false,
-    },
-  );
+  // Prefetch cities and initial companies data
+  const { data: citiesResponse } = useFetchCities();
+  const { data: companies } = useFetchCompanies('Helsinki');
+
+  const cities = citiesResponse?.data;
 
   // Prefetch additional data for other cities to improve initial load
   useEffect(() => {
@@ -39,13 +28,19 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          fetch(`${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`)
-            .then((res) => res.json())
-            .catch((err) => console.error(`Failed to prefetch data for ${city}:`, err));
+          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES.LIST, { city });
+          queryClient.prefetchQuery({
+            queryKey,
+            queryFn: () =>
+              fetch(`${API_ENDPOINTS.COMPANIES.LIST}?city=${encodeURIComponent(city)}`).then(
+                (res) => res.json(),
+              ),
+            staleTime: 60000, // Cache for 1 minute
+          });
         }
       }
     }
-  }, [cities]);
+  }, [cities, queryClient]);
 
   // This component doesn't render anything visible
   return null;

@@ -7,6 +7,7 @@ import TimelineSection from '@features/project/components/TimelineSection';
 import TeamMemberGrid from '@features/team/TeamMemberGrid';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { ErrorMessage } from '@shared/components/ErrorMessage';
 import { AnimatedBackground } from '@shared/components/ui/background';
 import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -18,20 +19,27 @@ interface ProjectDetailClientProps {
   project: Project;
 }
 
-export default function ProjectDetailClient({ project: { id } }: ProjectDetailClientProps) {
+export default function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const { setCurrentPageTitle } = useBreadcrumb();
 
-  // Find the project data
-  const project = projectsData.find((p: Project) => p.id === id);
-  if (!project) return null;
-
   // Set the current page title for breadcrumbs
   useEffect(() => {
     setCurrentPageTitle(project.title);
   }, [project.title, setCurrentPageTitle]);
+
+  if (!project) {
+    return (
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ErrorMessage
+          title="Project Not Found"
+          message="The requested project could not be found. Please check the URL and try again."
+        />
+      </div>
+    );
+  }
 
   // Ensure gallery is properly typed
   const gallery =

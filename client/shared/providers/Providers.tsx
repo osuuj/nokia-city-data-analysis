@@ -3,6 +3,7 @@
 import { HeroUIProvider } from '@heroui/system';
 import { BreadcrumbProvider } from '@shared/context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import type React from 'react';
 
@@ -11,7 +12,26 @@ interface ProvidersProps {
   themeProps?: object;
 }
 
-const queryClient = new QueryClient();
+/**
+ * Create a new QueryClient instance with default configuration
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 /**
  * Wraps the application with all global providers:
@@ -28,6 +48,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
           <BreadcrumbProvider>{children}</BreadcrumbProvider>
         </NextThemesProvider>
       </HeroUIProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }
