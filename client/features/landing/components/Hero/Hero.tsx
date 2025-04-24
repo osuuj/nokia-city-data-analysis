@@ -61,7 +61,7 @@ export const Hero = (): JSX.Element => {
           className="absolute left-0 top-0 h-full w-full object-cover"
           onError={handleVideoError}
         >
-          <source src="videos/background.mp4" type="video/mp4" />
+          <source src="/videos/background.mp4" type="video/mp4" />
         </video>
       )}
 
