@@ -1,2 +1,2 @@
 export * from './FeatureCardList';
-export * from './NotificationsCard';
+export * from '../../features/notifications/NotificationsCard';

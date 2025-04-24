@@ -19,6 +19,7 @@ export interface Project {
   repoUrl?: string;
   featured?: boolean;
   status?: 'active' | 'planning';
+  demoUrl: '/dashboard';
 }
 
 export interface ProjectCardProps {
@@ -72,7 +73,7 @@ export const projectsData: Project[] = [
     timeline: 'Q4 2024 – Q2 2025',
     role: 'Lead Developer',
     team: ['Juuso Juvonen', 'Kasper Rautio'],
-    demoUrl: '/home',
+    demoUrl: '/dashboard',
     repoUrl: 'https://github.com/osuuj/nokia-city-data-analysis',
     featured: true,
     status: 'active',

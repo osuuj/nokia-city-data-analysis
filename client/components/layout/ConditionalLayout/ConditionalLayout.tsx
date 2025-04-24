@@ -6,13 +6,13 @@ import { usePathname } from 'next/navigation';
 
 /**
  * ConditionalLayout
- * A layout wrapper that hides Header/Footer on specific routes (e.g., `/home`).
+ * A layout wrapper that hides Header/Footer on specific routes (e.g., `/dashboard`).
  *
  * @param children - React children to be wrapped in the layout
  */
 export const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
-  const isHomePage = pathname.startsWith('/home');
+  const isDashboardPage = pathname.startsWith('/dashboard');
 
   // Check if current page should have black background
   const isBlackBgPage =
@@ -22,9 +22,9 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
 
   return (
     <>
-      {!isHomePage && <Header />}
+      {!isDashboardPage && <Header />}
       {children}
-      {!isHomePage && <Footer />}
+      {!isDashboardPage && <Footer />}
     </>
   );
 };

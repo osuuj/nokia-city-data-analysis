@@ -24,11 +24,11 @@ export interface ButtonStartProps {
  * A versatile button that supports both internal (Next.js) and external links.
  *
  * @example
- * <ButtonStart label="Start Exploring" href="/home" />
+ * <ButtonStart label="Start Exploring" href="/dashboard" />
  */
 export const ButtonStart: FC<ButtonStartProps> = ({
   label = 'Start Exploring',
-  href = '/home',
+  href = '/dashboard',
   className = '',
   disabled = false,
   onPress,

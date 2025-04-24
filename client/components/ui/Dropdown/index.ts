@@ -1,2 +1,2 @@
-export * from './ColumnVisibilityDropdown';
-export * from './SortDropdown';
+export * from '../../features/tabletoolbar/ColumnVisibilityDropdown';
+export * from '../../features/tabletoolbar/SortDropdown';

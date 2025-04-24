@@ -27,7 +27,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
   // If no items provided, generate them based on pathname
   const breadcrumbItems = items || getDefaultBreadcrumbItems(pathname, currentPageTitle);
 
-  // Don't show breadcrumbs on home page or main navigation pages
+  // Don't show breadcrumbs on dashboard page or main navigation pages
   if (shouldHideBreadcrumbs(pathname)) {
     return null;
   }
@@ -89,8 +89,8 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
 
 // Helper function to determine if breadcrumbs should be hidden
 function shouldHideBreadcrumbs(pathname: string): boolean {
-  // Hide on home page
-  if (pathname === '/home' || pathname === '/') {
+  // Hide on dashboard page
+  if (pathname === '/dashboard' || pathname === '/') {
     return true;
   }
 
@@ -110,7 +110,7 @@ function shouldHideBreadcrumbs(pathname: string): boolean {
 
 // Helper function to generate breadcrumb items based on pathname
 function getDefaultBreadcrumbItems(pathname: string, currentPageTitle?: string): BreadcrumbItem[] {
-  const items: BreadcrumbItem[] = [{ label: 'Home', href: '/home' }];
+  const items: BreadcrumbItem[] = [{ label: 'Dashboard', href: '/dashboard' }];
 
   // Split pathname into segments
   const segments = pathname.split('/').filter(Boolean);

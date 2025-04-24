@@ -24,7 +24,7 @@ import { siteConfig } from '@/config';
 import { GithubIcon, OsuujLogo } from '@/icons';
 
 const navbarItems = [
-  { href: '/home', label: 'Home' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/project', label: 'Project' },
   { href: '/resources', label: 'Resources' },
   { href: '/about', label: 'About Us' },
@@ -42,7 +42,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
-  const [isNavigatingToHome, setIsNavigatingToHome] = useState(false);
+  const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
   const [isBlurry, setIsBlurry] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -87,29 +87,14 @@ export const Header = () => {
     setClickedItem(href);
 
     // Special handling for Home link
-    if (href === '/home') {
-      if (isLandingPage) {
-        // If we're on the landing page, find and click the Start Exploring button
-        const startButton = document.querySelector(
-          '[aria-label="Start Exploring"]',
-        ) as HTMLButtonElement;
-        if (startButton) {
-          setIsBlurry(true);
-          startButton.click();
-        }
-      } else {
-        // For other pages, show loading overlay and navigate
-        setIsNavigatingToHome(true);
-        setIsBlurry(true);
-        if (!isDataReady) {
-          setShowLoadingOverlay(true);
-        }
-        router.push('/home');
-      }
-    } else {
-      // For other links, navigate immediately
-      router.push(href);
+    if (href === '/dashboard') {
+      setShowLoadingOverlay(true);
+      setIsNavigatingToDashboard(true);
+      router.push('/dashboard');
+      return;
     }
+    // For other links, navigate immediately
+    router.push(href);
 
     // Reset clicked item after a short delay
     setTimeout(() => {
@@ -133,15 +118,12 @@ export const Header = () => {
 
   // Reset navigation states when pathname changes
   useEffect(() => {
-    // If we're navigating to home and the pathname changes, reset the states
-    if (isNavigatingToHome && pathname === '/home') {
-      // Keep the blurry effect for a moment after navigation completes
-      setTimeout(() => {
-        setIsNavigatingToHome(false);
-        setIsBlurry(false);
-      }, 500);
+    // If we're navigating to dashboard and the pathname changes, reset the states
+    if (isNavigatingToDashboard && pathname === '/dashboard') {
+      setShowLoadingOverlay(false);
+      setIsNavigatingToDashboard(false);
     }
-  }, [pathname, isNavigatingToHome]);
+  }, [pathname, isNavigatingToDashboard]);
 
   return (
     <div
@@ -236,31 +218,31 @@ export const Header = () => {
         {/* Mobile menu */}
         <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200]">
           <div className="w-full">
-            {/* Add Home option at the top of the mobile menu */}
+            {/* Add Dashboard option at the top of the mobile menu */}
             <NavbarMenuItem
-              isActive={pathname === '/home'}
-              className={clsx(clickedItem === '/home' ? 'text-primary' : '')}
+              isActive={pathname === '/dashboard'}
+              className={clsx(clickedItem === '/dashboard' ? 'text-primary' : '')}
             >
               <Link
-                className="text-inherit w-full px-4 py-2"
-                href="/home"
+                href="/dashboard"
                 onPress={() => {
-                  setIsMenuOpen(false);
-                  handleItemClick('/home');
+                  handleItemClick('/dashboard');
                 }}
               >
-                Home
+                Dashboard
               </Link>
             </NavbarMenuItem>
 
             {/* Existing menu items - filter out Home to avoid duplication */}
             {navbarItems
-              .filter((item) => item.href !== '/home')
+              .filter((item) => item.href !== '/dashboard')
               .map((item) => (
                 <NavbarMenuItem
                   key={item.href}
                   isActive={
-                    item.href === '/home' ? pathname === '/home' : pathname.startsWith(item.href)
+                    item.href === '/dashboard'
+                      ? pathname === '/dashboard'
+                      : pathname.startsWith(item.href)
                   }
                   className={clsx(clickedItem === item.href ? 'text-primary' : '')}
                 >

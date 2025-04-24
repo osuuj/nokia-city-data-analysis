@@ -21,7 +21,7 @@ export const siteConfig = {
   ],
 
   footerNav: [
-    { name: 'Home', href: '/home' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Project', href: '/project' },
     { name: 'Resources', href: '/resources' },
     { name: 'About Us', href: '/about' },

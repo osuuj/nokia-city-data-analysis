@@ -38,7 +38,7 @@ export const Hero = (): JSX.Element => {
 
   const handleDataReady = () => {
     if (shouldNavigate) {
-      router.push('/home');
+      router.push('/dashboard');
     }
   };
 
@@ -90,7 +90,11 @@ export const Hero = (): JSX.Element => {
                 <p className="mt-2 text-sm">Loading data...</p>
               </div>
             ) : (
-              <ButtonStart label="Start Exploring" href="/home" onPress={handleStartExploring} />
+              <ButtonStart
+                label="Start Exploring"
+                href="/dashboard"
+                onPress={handleStartExploring}
+              />
             )}
           </div>
         </div>
