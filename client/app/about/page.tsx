@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import TeamMemberCard from '@/components/ui/TeamMemberCard';
+import TeamMemberCard from '@/features/team/TeamMemberCard';
 import { Avatar, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';

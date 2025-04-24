@@ -1,6 +1,6 @@
 'use client';
 
-import { FeatureCardList } from '@/components/ui/Card';
+import { FeatureCardList } from '@/features/dashboard/components/controls/FeatureCardList';
 import type { CompanyProperties } from '@/types';
 import { filters } from '@/utils';
 import type { Feature, FeatureCollection, Point } from 'geojson';
