@@ -75,8 +75,8 @@ export const SidebarWrapper = () => {
       <Spacer y={2} />
 
       {/* Middle: Sidebar */}
-      <ScrollShadow className="mr-6 h-full max-h-full py-6 pr-6">
-        <Sidebar defaultSelectedKey="dashboard" isCompact={isCompact} items={sectionItems} />
+      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
+        <Sidebar defaultSelectedKey="home" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
       <Spacer y={2} />
