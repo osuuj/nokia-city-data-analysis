@@ -1,7 +1,7 @@
 'use client';
 
-import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { Avatar, Button, Card, CardBody, Input, Textarea } from '@heroui/react';
+import { AnimatedBackground } from '@/shared/components/ui/background';
+import { Avatar, Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';

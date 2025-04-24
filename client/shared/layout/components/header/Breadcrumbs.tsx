@@ -1,6 +1,6 @@
 'use client';
 
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useBreadcrumb } from '@/shared/context';
 import {
   BreadcrumbItem as HeroBreadcrumbItem,
   Breadcrumbs as HeroBreadcrumbs,

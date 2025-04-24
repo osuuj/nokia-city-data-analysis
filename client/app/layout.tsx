@@ -1,7 +1,7 @@
-import '@/styles/globals.css';
-import { ConditionalLayout } from '@/components/layout/ConditionalLayout/ConditionalLayout';
 import { fontSans, siteConfig } from '@/config';
 import { Providers } from '@/providers/Providers';
+import { ConditionalLayout } from '@/shared/layout/components/conditional/ConditionalLayout';
+import '@/styles/globals.css';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';

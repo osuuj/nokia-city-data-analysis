@@ -1,12 +1,8 @@
 'use client';
 
-import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import TeamMemberCard from '@/features/team/TeamMemberCard';
-import { Avatar, Card, CardBody, Link } from '@heroui/react';
-import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
+import { AnimatedBackground } from '@/shared/components/ui/background';
 import { useTheme } from 'next-themes';
-import React from 'react';
 
 /**
  * About page component with tabs for Juuso and Kassu.

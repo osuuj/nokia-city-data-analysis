@@ -1,7 +1,7 @@
 'use client';
 
-import { Footer } from '@/components/layout/Footer';
-import { Header } from '@/components/layout/Navbar/Header';
+import { Footer } from '@/shared/layout/components/footer/Footer';
+import { Header } from '@/shared/layout/components/header/Header';
 import { usePathname } from 'next/navigation';
 
 /**

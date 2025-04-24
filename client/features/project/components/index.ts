@@ -1,0 +1,1 @@
+export { AnimatedProjectHero } from './hero';

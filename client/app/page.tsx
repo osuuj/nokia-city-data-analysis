@@ -1,5 +1,5 @@
-import { Preloader } from '@/components/ui/Preloader';
 import { Hero } from '@/features/landing/components/Hero/Hero';
+import { Preloader } from '@/shared/components/data';
 
 /**
  * Landing page component displaying the hero section.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useBreadcrumb } from '@/shared/context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import React from 'react';

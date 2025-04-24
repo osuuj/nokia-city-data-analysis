@@ -1,8 +1,9 @@
 'use client';
 
-import { DataLoader } from '@/components/ui/DataLoader';
 import { siteConfig } from '@/config';
 import { ButtonStart } from '@/features/landing/components/Button/ButtonStart';
+import backgroundVideo from '@/public/videos/background.mp4';
+import { DataLoader } from '@/shared/components/data';
 import { Spinner } from '@heroui/react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';

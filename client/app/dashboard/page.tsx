@@ -1,16 +1,15 @@
 'use client';
 
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { columns as allColumns } from '@/config';
 import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle/ViewModeToggle';
 import { ViewSwitcher } from '@/features/dashboard/components/views/ViewSwitcher';
 import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
+import { LoadingOverlay } from '@/shared/components/ui/loading';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
 import { getVisibleColumns } from '@/utils';
 import { transformCompanyGeoJSON } from '@/utils/geo';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
-import { Spinner } from '@heroui/react';
 import type { FeatureCollection, Point } from 'geojson';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';

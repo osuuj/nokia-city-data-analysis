@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { LoadingOverlay } from '@/shared/components/ui/loading';
 import {
   Button,
   Link,
@@ -17,11 +17,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
-import Breadcrumbs from '@/components/layout/Navbar/Breadcrumbs';
-import { DataLoader } from '@/components/ui/DataLoader';
-import { ThemeSwitch } from '@/components/ui/Theme/ThemeSwitch';
 import { siteConfig } from '@/config';
 import { GithubIcon, OsuujLogo } from '@/icons';
+import { DataLoader } from '@/shared/components/data';
+import { ThemeSwitch } from '@/shared/components/ui/theme';
+import Breadcrumbs from '@/shared/layout/components/header/Breadcrumbs';
 
 const navbarItems = [
   { href: '/dashboard', label: 'Dashboard' },

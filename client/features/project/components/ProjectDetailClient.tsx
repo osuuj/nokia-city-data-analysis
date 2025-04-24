@@ -2,17 +2,16 @@
 'use client';
 
 import TimelineSection from '@/components/features/project/TimelineSection';
-import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 import TeamMemberGrid from '@/components/ui/TeamMemberGrid';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
 import GalleryViewer from '@/features/project/components/GalleryViewer';
 import TechStackShowcase from '@/features/project/components/TechStackShowcase';
+import { AnimatedBackground } from '@/shared/components/ui/background';
+import { useBreadcrumb } from '@/shared/context';
 import type { Project } from '@/types/project';
 import { projectsData } from '@/types/project';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
-import { useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect } from 'react';
 
 interface ProjectDetailClientProps {
