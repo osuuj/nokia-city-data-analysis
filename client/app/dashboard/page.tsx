@@ -2,11 +2,12 @@
 
 import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle/ViewModeToggle';
 import { ViewSwitcher } from '@/features/dashboard/components/views/ViewSwitcher';
-import { useDebounce, useFilteredBusinesses, usePagination } from '@/hooks';
+import { useFilteredBusinesses } from '@/features/dashboard/hooks';
+import type { CompanyProperties, SortDescriptor, ViewMode } from '@/features/dashboard/types';
+import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
+import { getVisibleColumns } from '@/features/dashboard/utils/table';
 import { LoadingOverlay } from '@/shared/components/ui/loading';
-import type { CompanyProperties, SortDescriptor, ViewMode } from '@/types';
-import { getVisibleColumns } from '@/utils';
-import { transformCompanyGeoJSON } from '@/utils/geo';
+import { useDebounce, usePagination } from '@/shared/hooks';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import { columns as allColumns } from '@shared/config';

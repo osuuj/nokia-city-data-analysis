@@ -1,9 +1,9 @@
 'use client';
 
-import type { ProjectCardProps } from '@/types/project';
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
+import type { ProjectCardProps } from '../types';
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   const router = useRouter();

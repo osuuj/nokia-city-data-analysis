@@ -1,7 +1,7 @@
 'use client';
 
-import type { DistanceSliderProps } from '@/types/filters';
-import { clampValue } from '@/utils/number';
+import type { DistanceSliderProps } from '@/features/dashboard/types';
+import { clampValue } from '@/features/dashboard/utils/number';
 import { Input, Slider, cn } from '@heroui/react';
 import React, { useCallback, useMemo } from 'react';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { filters } from '@/utils/filters'; // Import filters config
+import { filters } from '@/features/dashboard/data/filters'; // Import filters config from new location
 import {
   Autocomplete,
   AutocompleteItem,

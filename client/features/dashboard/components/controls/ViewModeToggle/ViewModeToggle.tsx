@@ -1,7 +1,7 @@
 'use client';
 
+import type { ViewMode } from '@/features/dashboard/types';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
-import type { ViewMode } from '@/types';
 import { Button, Link, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';

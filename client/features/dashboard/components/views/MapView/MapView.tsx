@@ -1,8 +1,8 @@
 'use client';
 
 import { FeatureCardList } from '@/features/dashboard/components/controls/FeatureCardList';
-import type { CompanyProperties } from '@/types';
-import { filters } from '@/utils';
+import { filters } from '@/features/dashboard/data/filters';
+import type { CompanyProperties } from '@/features/dashboard/types';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { useTheme } from 'next-themes';
@@ -48,8 +48,14 @@ export const MapView = ({ geojson }: MapViewProps) => {
     const color = filters
       .find((filter) => filter.key === 'industries')
       ?.options?.find((option) => option.value === industryLetter)?.color;
-    return color || '#FAFAFA'; // fallback yellow
-  }, [activeFeature]);
+
+    // Handle the case where color is an object with light and dark properties
+    if (color && typeof color === 'object') {
+      return theme === 'dark' ? color.dark : color.light;
+    }
+
+    return color || '#FAFAFA'; // fallback color
+  }, [activeFeature, theme]);
 
   // Add theme-dependent text color for clusters
   const clusterTextColor = useMemo(() => {

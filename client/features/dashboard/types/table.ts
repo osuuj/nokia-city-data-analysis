@@ -31,7 +31,7 @@ export type CompanyTableKey = DirectCompanyKey | AddressKey;
  * @property key {CompanyTableKey} - Unique key for the column.
  * @property label {string} - Display label shown in the table header.
  * @property visible {boolean} - Is this column currently visible?
- * @property userVisible {boolean} - Can users toggle this column’s visibility?
+ * @property userVisible {boolean} - Can users toggle this column's visibility?
  */
 export interface TableColumnConfig {
   key: CompanyTableKey;

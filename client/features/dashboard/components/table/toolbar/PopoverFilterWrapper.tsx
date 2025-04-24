@@ -1,6 +1,6 @@
 'use client';
 
-import type { PopoverFilterWrapperProps } from '@/types';
+import type { PopoverFilterWrapperProps } from '@/features/dashboard/types';
 import {
   Button,
   Divider,

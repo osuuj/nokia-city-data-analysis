@@ -1,6 +1,6 @@
 'use client';
 
-import type { TableColumnConfig } from '@/types/table';
+import type { TableColumnConfig } from '@/features/dashboard/types';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { columns } from '@shared/config/columns';

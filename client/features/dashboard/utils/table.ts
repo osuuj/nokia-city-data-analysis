@@ -1,10 +1,10 @@
-import type { CompanyProperties } from '@/types/business';
+import type { CompanyProperties } from '../types';
 import type {
   CompanyTableKey,
   DirectCompanyKey,
   SortDescriptor,
   TableColumnConfig,
-} from '@/types/table';
+} from '../types/table';
 
 /**
  * @function getVisibleColumns

@@ -6,8 +6,8 @@ import {
   SortDropdown,
 } from '@/features/dashboard/components/table/toolbar';
 import { SearchInput } from '@/features/dashboard/components/table/toolbar';
-import type { FilterOption, ToolbarProps } from '@/types';
-import { filters } from '@/utils';
+import { filters } from '@/features/dashboard/data/filters';
+import type { FilterOption, ToolbarProps } from '@/features/dashboard/types';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Chip, Divider, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';

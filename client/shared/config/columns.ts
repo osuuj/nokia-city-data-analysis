@@ -1,4 +1,4 @@
-import type { TableColumnConfig } from '@/types';
+import type { TableColumnConfig } from '@/features/dashboard/types';
 
 export const columns: TableColumnConfig[] = [
   { key: 'business_id', label: 'Business ID', visible: true, userVisible: true },

@@ -1,4 +1,4 @@
-import type { Business } from '@/types/business';
+import type { Business } from '@/features/dashboard/types';
 import { useQuery } from '@tanstack/react-query';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;

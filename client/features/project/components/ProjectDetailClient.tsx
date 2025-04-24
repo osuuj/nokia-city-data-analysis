@@ -11,8 +11,8 @@ import { AnimatedBackground } from '@shared/components/ui/background';
 import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect } from 'react';
-import type { Project } from '../../../types/project';
-import { projectsData } from '../../../types/project';
+import type { Project } from '../types';
+import { projectsData } from '../types';
 
 interface ProjectDetailClientProps {
   project: Project;

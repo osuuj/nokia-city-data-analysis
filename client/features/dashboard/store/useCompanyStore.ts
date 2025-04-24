@@ -1,5 +1,5 @@
-import type { CompanyProperties, CompanyStore } from '@/types';
-import type { CompanyTableKey } from '@/types/table';
+import type { CompanyProperties, CompanyStore } from '@/features/dashboard/types';
+import type { CompanyTableKey } from '@/features/dashboard/types';
 import { columns } from '@shared/config/columns';
 import { create } from 'zustand';
 

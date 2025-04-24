@@ -1,3 +1,18 @@
+export enum ProjectCategory {
+  Web = 'web',
+  AI = 'ai',
+  Mobile = 'mobile',
+  Desktop = 'desktop',
+  Other = 'other',
+}
+
+export enum ProjectStatus {
+  Active = 'active',
+  Planning = 'planning',
+  Completed = 'completed',
+  OnHold = 'on_hold',
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -9,17 +24,16 @@ export interface Project {
     alt: string;
     caption?: string;
   }[];
-  category: string;
+  category: ProjectCategory;
   tags: string[];
   goals?: string[]; // ← Bullet points
   timeline?: string; // ← e.g. "Q1 2025 – Q3 2025"
   role?: string; // ← e.g. "Full-stack Developer"
   team?: string[]; // ← List of team members
-  demoUrl?: string;
+  demoUrl: string;
   repoUrl?: string;
   featured?: boolean;
-  status?: 'active' | 'planning';
-  demoUrl: '/dashboard';
+  status?: ProjectStatus;
 }
 
 export interface ProjectCardProps {
@@ -46,7 +60,7 @@ export const projectsData: Project[] = [
         caption: 'Detailed company information page',
       },
     ],
-    category: 'web',
+    category: ProjectCategory.Web,
     tags: [
       'Python',
       'Pandas',
@@ -76,15 +90,16 @@ export const projectsData: Project[] = [
     demoUrl: '/dashboard',
     repoUrl: 'https://github.com/osuuj/nokia-city-data-analysis',
     featured: true,
-    status: 'active',
+    status: ProjectStatus.Active,
   },
   {
     id: '2',
     title: 'Osuuj AI Chat',
     description: 'In Progress ...',
     image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=2',
-    category: 'ai',
+    category: ProjectCategory.AI,
     tags: ['Next.js', 'TypeScript'],
-    status: 'planning',
+    demoUrl: '/dashboard',
+    status: ProjectStatus.Planning,
   },
 ];

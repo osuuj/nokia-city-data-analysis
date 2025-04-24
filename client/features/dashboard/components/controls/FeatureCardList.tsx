@@ -1,6 +1,6 @@
 'use client';
 
-import type { CompanyProperties } from '@/types';
+import type { CompanyProperties } from '@/features/dashboard/types';
 import { Button, Card, CardBody, CardHeader, Chip, Divider, ScrollShadow } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import type { Feature, Point } from 'geojson';

@@ -1,6 +1,6 @@
 'use client';
 
-import type { SearchInputProps } from '@/types/table';
+import type { SearchInputProps } from '@/features/dashboard/types';
 import { Input } from '@heroui/react';
 import { SearchIcon } from '@heroui/shared-icons';
 

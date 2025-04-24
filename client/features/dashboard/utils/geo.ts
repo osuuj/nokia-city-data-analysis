@@ -1,10 +1,5 @@
-import type {
-  AddressType,
-  CompanyFeatureWithAddressType,
-  CompanyProperties,
-  Coordinates,
-} from '@/types';
 import type { Feature, FeatureCollection, Point } from 'geojson';
+import type { CompanyProperties, Coordinates } from '../types';
 
 /**
  * Calculates distance in kilometers between two coordinates explicitly
@@ -82,49 +77,6 @@ export function filterByDistance(
 }
 
 /**
- * Transforms a company-based GeoJSON into a marker-per-address format.
- * Generates separate features for each address type (visiting/postal) with coordinates.
- *
- * @param original - Original GeoJSON from API.
- * @returns Expanded GeoJSON with one feature per address type.
- */
-export function transformCompanyGeoJSON(
-  original: FeatureCollection<Point, CompanyProperties>,
-): FeatureCollection<Point, CompanyFeatureWithAddressType['properties']> {
-  const transformedFeatures: Feature<Point, CompanyFeatureWithAddressType['properties']>[] = [];
-
-  for (const feature of original.features) {
-    const props = feature.properties;
-    const addresses = props.addresses;
-
-    const addressTypes: AddressType[] = ['Visiting address', 'Postal address'];
-
-    for (const type of addressTypes) {
-      const address = addresses[type];
-      if (!address?.latitude || !address?.longitude) continue;
-
-      transformedFeatures.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [address.longitude, address.latitude],
-        },
-        properties: {
-          ...props,
-          addressType: type,
-        },
-        id: `${props.business_id}-${type}`, // ✅ Add unique ID for feature-state control
-      } as Feature<Point, CompanyProperties & { addressType: AddressType }> & { id: string });
-    }
-  }
-
-  return {
-    type: 'FeatureCollection',
-    features: transformedFeatures,
-  };
-}
-
-/**
  * Compares two coordinates exactly (lat/lng).
  *
  * @param a - First coordinate.
@@ -133,4 +85,69 @@ export function transformCompanyGeoJSON(
  */
 export function coordinatesEqual(a: Coordinates, b: Coordinates): boolean {
   return a.latitude === b.latitude && a.longitude === b.longitude;
+}
+
+/**
+ * Transforms company data into GeoJSON format, handling both visiting and postal addresses.
+ *
+ * @param data - FeatureCollection of company data.
+ * @returns Transformed GeoJSON FeatureCollection with Point geometries.
+ */
+export function transformCompanyGeoJSON(
+  data: FeatureCollection<Point, CompanyProperties>,
+): FeatureCollection<
+  Point,
+  CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
+> {
+  const features: Feature<
+    Point,
+    CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
+  >[] = [];
+
+  for (const feature of data.features) {
+    const visiting = feature.properties.addresses?.['Visiting address'];
+    const postal = feature.properties.addresses?.['Postal address'];
+
+    if (visiting?.latitude && visiting?.longitude) {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [visiting.longitude, visiting.latitude],
+        },
+        properties: {
+          ...feature.properties,
+          addressType: 'Visiting address',
+        },
+      });
+    }
+
+    // Only add postal address if it's different from visiting address
+    if (
+      postal?.latitude &&
+      postal?.longitude &&
+      (!visiting ||
+        !coordinatesEqual(
+          { latitude: postal.latitude, longitude: postal.longitude },
+          { latitude: visiting.latitude, longitude: visiting.longitude },
+        ))
+    ) {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [postal.longitude, postal.latitude],
+        },
+        properties: {
+          ...feature.properties,
+          addressType: 'Postal address',
+        },
+      });
+    }
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
 }

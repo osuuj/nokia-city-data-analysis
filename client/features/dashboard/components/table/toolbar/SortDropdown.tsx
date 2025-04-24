@@ -1,7 +1,7 @@
 'use client';
 
-import type { CompanyProperties } from '@/types';
-import type { SortDropdownProps } from '@/types/table';
+import type { CompanyProperties } from '@/features/dashboard/types';
+import type { SortDropdownProps } from '@/features/dashboard/types';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { columns } from '@shared/config/columns';
 import { AccessibleIconify } from '@shared/icons';

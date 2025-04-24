@@ -2,8 +2,8 @@
 
 import { ProjectCard } from '@/features/project/components/ProjectCard';
 import { AnimatedProjectHero } from '@/features/project/components/hero';
+import { projectsData } from '@/features/project/types';
 import { AnimatedBackground } from '@/shared/components/ui/background';
-import { projectsData } from '@/types/project';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 

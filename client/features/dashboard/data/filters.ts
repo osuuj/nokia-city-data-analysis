@@ -1,9 +1,9 @@
-import { type Filter, FilterTypeEnum } from '@/types';
+import { type Filter, FilterTypeEnum } from '../types';
 
 /**
  * @constant filters
  *
- * UI filter configuration array explicitly used across the application.
+ * UI filter configuration array explicitly used across the dashboard.
  * Provides structured metadata explicitly for filter rendering.
  *
  * @type {Filter[]}

@@ -1,6 +1,6 @@
 import type * as React from 'react';
 
-import type { IconSvgProps } from '@/types';
+import type { IconSvgProps } from '@/shared/types';
 
 /**
  * GithubIcon

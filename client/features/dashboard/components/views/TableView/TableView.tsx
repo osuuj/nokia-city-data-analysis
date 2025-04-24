@@ -1,13 +1,15 @@
 'use client';
 
 import { TableToolbar } from '@/features/dashboard/components/views/TableView/toolbar/TableToolbar';
-import { useMemoizedCallback } from '@/hooks/';
 import type {
   CompanyProperties,
   CompanyTableKey,
+  SortDescriptor,
+  TableCellRendererProps,
   TableColumnConfig,
   TableViewProps,
-} from '@/types';
+} from '@/features/dashboard/types';
+import { useMemoizedCallback } from '@/shared/hooks';
 import { useCompanyStore } from '@features/dashboard/store';
 import {
   Card,

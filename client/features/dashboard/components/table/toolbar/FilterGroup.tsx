@@ -1,7 +1,8 @@
 'use client';
 
-import type { FilterGroupProps, FilterOption } from '@/types';
-import { filters, requestBrowserLocation } from '@/utils';
+import { filters } from '@/features/dashboard/data/filters';
+import type { FilterGroupProps, FilterOption } from '@/features/dashboard/types';
+import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
 import { useCompanyStore } from '@features/dashboard/store';
 import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
 import { AccessibleIconify } from '@shared/icons';

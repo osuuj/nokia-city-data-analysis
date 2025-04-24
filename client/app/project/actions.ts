@@ -1,6 +1,6 @@
 'use server';
 
-import { projectsData } from '@/types/project';
+import { projectsData } from '@/features/project/types';
 
 export async function getProjectById(id: string) {
   // Simulate a database call with artificial delay
