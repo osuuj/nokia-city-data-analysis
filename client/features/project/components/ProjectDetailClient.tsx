@@ -1,18 +1,18 @@
 // ProjectDetailClient.tsx
 'use client';
 
-import TimelineSection from '@/components/features/project/TimelineSection';
-import TeamMemberGrid from '@/components/ui/TeamMemberGrid';
-import GalleryViewer from '@/features/project/components/GalleryViewer';
-import TechStackShowcase from '@/features/project/components/TechStackShowcase';
-import { AnimatedBackground } from '@/shared/components/ui/background';
-import { useBreadcrumb } from '@/shared/context';
-import type { Project } from '@/types/project';
-import { projectsData } from '@/types/project';
+import GalleryViewer from '@features/project/components/GalleryViewer';
+import TechStackShowcase from '@features/project/components/TechStackShowcase';
+import TimelineSection from '@features/project/components/TimelineSection';
+import TeamMemberGrid from '@features/team/TeamMemberGrid';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { AnimatedBackground } from '@shared/components/ui/background';
+import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect } from 'react';
+import type { Project } from '../../../types/project';
+import { projectsData } from '../../../types/project';
 
 interface ProjectDetailClientProps {
   project: Project;

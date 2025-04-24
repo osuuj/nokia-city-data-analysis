@@ -1,6 +1,6 @@
-import { fontSans, siteConfig } from '@/config';
-import { Providers } from '@/providers/Providers';
-import { ConditionalLayout } from '@/shared/layout/components/conditional/ConditionalLayout';
+import { fontSans, siteConfig } from '@shared/config';
+import { ConditionalLayout } from '@shared/layout/components/conditional/ConditionalLayout';
+import { Providers } from '@shared/providers';
 import '@/styles/globals.css';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';

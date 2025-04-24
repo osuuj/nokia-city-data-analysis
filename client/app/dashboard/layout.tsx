@@ -2,7 +2,7 @@
 
 import { DashboardFooter } from '@/features/layout/components/footer/DashboardFooter';
 import { SidebarWrapper } from '@/features/layout/components/sidebar/SidebarWrapper';
-import { Providers } from '@/providers/Providers';
+import { Providers } from '@shared/providers';
 
 /**
  * Layout for the `/dashboard` route.

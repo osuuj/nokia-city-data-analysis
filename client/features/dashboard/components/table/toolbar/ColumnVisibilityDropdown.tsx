@@ -1,10 +1,10 @@
 'use client';
 
-import { columns } from '@/config/columns';
-import { AccessibleIconify } from '@/icons/AccessibleIconify';
-import { useCompanyStore } from '@/store/useCompanyStore';
 import type { TableColumnConfig } from '@/types/table';
+import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import { columns } from '@shared/config/columns';
+import { AccessibleIconify } from '@shared/icons';
 import { useEffect, useState } from 'react';
 
 /**

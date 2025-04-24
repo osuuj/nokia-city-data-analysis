@@ -1,6 +1,5 @@
 'use client';
 
-import { AccessibleIconify } from '@/icons/AccessibleIconify';
 import type { PopoverFilterWrapperProps } from '@/types';
 import {
   Button,
@@ -10,6 +9,7 @@ import {
   PopoverTrigger,
   useDisclosure,
 } from '@heroui/react';
+import { AccessibleIconify } from '@shared/icons';
 import React, { useEffect } from 'react';
 
 // Define icon configuration type

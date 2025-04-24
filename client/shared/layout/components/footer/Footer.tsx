@@ -1,7 +1,7 @@
 'use client';
 
-import { OsuujLogo } from '@/icons';
 import { Spacer } from '@heroui/react';
+import { OsuujLogo } from '@shared/icons';
 import { usePathname } from 'next/navigation';
 
 /**

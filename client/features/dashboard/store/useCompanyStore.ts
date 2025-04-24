@@ -1,6 +1,6 @@
-import { columns } from '@/config/columns';
 import type { CompanyProperties, CompanyStore } from '@/types';
 import type { CompanyTableKey } from '@/types/table';
+import { columns } from '@shared/config/columns';
 import { create } from 'zustand';
 
 /**

@@ -1,10 +1,10 @@
 'use client';
 
-import { AccessibleIconify } from '@/icons/AccessibleIconify';
-import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterGroupProps, FilterOption } from '@/types';
 import { filters, requestBrowserLocation } from '@/utils';
+import { useCompanyStore } from '@features/dashboard/store';
 import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
+import { AccessibleIconify } from '@shared/icons';
 import { useEffect, useState } from 'react';
 import { DistanceSlider } from './DistanceSlider';
 import { PopoverFilterWrapper } from './PopoverFilterWrapper';

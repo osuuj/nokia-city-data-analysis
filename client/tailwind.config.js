@@ -3,8 +3,9 @@ import { heroui } from '@heroui/theme';
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './features/**/*.{js,ts,jsx,tsx,mdx}', // ✅ Required for feature-based styling
+    './shared/**/*.{js,ts,jsx,tsx,mdx}', // ✅ Shared components/styles
     './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
@@ -15,8 +16,7 @@ const config = {
       },
     },
   },
-
-  darkMode: ['class', '[data-theme="dark"]'], // ✅ Support both class and data-theme for dark mode
+  darkMode: ['class', '[data-theme="dark"]'],
   plugins: [heroui()],
 };
 

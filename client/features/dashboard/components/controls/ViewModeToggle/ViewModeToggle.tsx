@@ -1,11 +1,11 @@
 'use client';
 
-import { siteConfig } from '@/config/site';
-import { GithubIcon } from '@/icons';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
 import type { ViewMode } from '@/types';
 import { Button, Link, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { siteConfig } from '@shared/config/site';
+import { GithubIcon } from '@shared/icons';
 
 interface ViewModeToggleProps {
   viewMode: ViewMode;

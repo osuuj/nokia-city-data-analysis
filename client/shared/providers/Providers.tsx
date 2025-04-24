@@ -1,7 +1,7 @@
 'use client';
 
-import { BreadcrumbProvider } from '@/shared/context';
 import { HeroUIProvider } from '@heroui/system';
+import { BreadcrumbProvider } from '@shared/context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import type React from 'react';

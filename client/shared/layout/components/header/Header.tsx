@@ -17,11 +17,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
-import { siteConfig } from '@/config';
-import { GithubIcon, OsuujLogo } from '@/icons';
 import { DataLoader } from '@/shared/components/data';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
 import Breadcrumbs from '@/shared/layout/components/header/Breadcrumbs';
+import { siteConfig } from '@shared/config';
+import { GithubIcon, OsuujLogo } from '@shared/icons';
 
 const navbarItems = [
   { href: '/dashboard', label: 'Dashboard' },

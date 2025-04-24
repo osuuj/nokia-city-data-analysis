@@ -2,13 +2,13 @@
 
 import { TableToolbar } from '@/features/dashboard/components/views/TableView/toolbar/TableToolbar';
 import { useMemoizedCallback } from '@/hooks/';
-import { useCompanyStore } from '@/store/useCompanyStore';
 import type {
   CompanyProperties,
   CompanyTableKey,
   TableColumnConfig,
   TableViewProps,
 } from '@/types';
+import { useCompanyStore } from '@features/dashboard/store';
 import {
   Card,
   Pagination,

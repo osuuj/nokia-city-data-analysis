@@ -14,13 +14,25 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".", // ✅ Required for path aliasing
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@app/*": ["app/*"],
+      "@features/*": ["features/*"],
+      "@shared/*": ["shared/*"],
+      "@components/*": ["shared/components/*"],
+      "@hooks/*": ["shared/hooks/*"],
+      "@layout/*": ["shared/layout/*"],
+      "@config/*": ["shared/config/*"],
+      "@store/*": ["store/*"],
+      "@icons/*": ["shared/icons/*"],
+      "@types/*": ["types/*"],
+      "@utils/*": ["utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/error.tsx"],
