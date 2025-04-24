@@ -1,6 +1,6 @@
 'use client';
 
-import { AccessibleIconify } from '@/components/ui/Icon/AccessibleIconify';
+import { AccessibleIconify } from '@/icons/AccessibleIconify';
 import type { PopoverFilterWrapperProps } from '@/types';
 import {
   Button,

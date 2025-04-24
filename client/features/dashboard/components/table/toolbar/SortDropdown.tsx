@@ -1,7 +1,7 @@
 'use client';
 
-import { AccessibleIconify } from '@/components/ui/Icon/AccessibleIconify';
 import { columns } from '@/config/columns';
+import { AccessibleIconify } from '@/icons/AccessibleIconify';
 import type { CompanyProperties } from '@/types';
 import type { SortDropdownProps } from '@/types/table';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';

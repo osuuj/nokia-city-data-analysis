@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { ResourceCard } from '@/components/ui/Card/ResourceCard';
+import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { Accordion, AccordionItem, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 

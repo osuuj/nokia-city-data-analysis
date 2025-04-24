@@ -1,6 +1,6 @@
 'use client';
 
-import ProjectDetailClient from '@/components/layout/project/ProjectDetailClient';
+import ProjectDetailClient from '@/features/project/components/ProjectDetailClient';
 import { projectsData } from '@/types/project';
 import { notFound, useRouter } from 'next/navigation';
 import React from 'react';

@@ -1,12 +1,12 @@
 // ProjectDetailClient.tsx
 'use client';
 
+import TimelineSection from '@/components/features/project/TimelineSection';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import TeamMemberCards from '@/components/ui/ProjectPage/TeamMemberCards';
-import TechStackShowcase from '@/components/ui/ProjectPage/TechStackShowcase';
-import TimelineSection from '@/components/ui/ProjectPage/TimelineSection';
-import GalleryViewer from '@/components/ui/project/GalleryViewer';
+import TeamMemberGrid from '@/components/ui/TeamMemberGrid';
 import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import GalleryViewer from '@/features/project/components/GalleryViewer';
+import TechStackShowcase from '@/features/project/components/TechStackShowcase';
 import type { Project } from '@/types/project';
 import { projectsData } from '@/types/project';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
@@ -212,7 +212,16 @@ export default function ProjectDetailClient({ project: { id } }: ProjectDetailCl
             <h2 className="text-2xl font-bold mb-6 text-center" id="team-heading">
               Team Members
             </h2>
-            <TeamMemberCards team={project.team} aria-labelledby="team-heading" />
+            <TeamMemberGrid
+              team={project.team.map((member) => ({
+                name: member,
+                jobTitle: 'Team Member',
+                bio: '',
+                portfolioLink: '#',
+                avatarSrc: `https://img.heroui.chat/image/avatar?w=200&h=200&u=${member}`,
+              }))}
+              aria-labelledby="team-heading"
+            />
           </motion.section>
         )}
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
@@ -8,6 +10,7 @@ interface Resource {
   type: string;
   link: string;
 }
+
 export function ResourceCard({ title, description, icon, type, link }: Resource) {
   return (
     <Card className="backdrop-blur-md bg-opacity-90">

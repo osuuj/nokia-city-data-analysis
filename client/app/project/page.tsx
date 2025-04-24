@@ -1,8 +1,8 @@
 'use client';
 
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
-import { ProjectCard } from '@/components/ui/Card/ProjectCard';
 import { AnimatedProjectHero } from '@/components/ui/Hero/AnimatedProjectHero';
+import { ProjectCard } from '@/features/project/components/ProjectCard';
 import { projectsData } from '@/types/project';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';

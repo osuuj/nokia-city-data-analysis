@@ -1,6 +1,6 @@
 'use client';
 
-import { AccessibleIconify } from '@/components/ui/Icon/AccessibleIconify';
+import { AccessibleIconify } from '@/icons/AccessibleIconify';
 import { useCompanyStore } from '@/store/useCompanyStore';
 import type { FilterGroupProps, FilterOption } from '@/types';
 import { filters, requestBrowserLocation } from '@/utils';
