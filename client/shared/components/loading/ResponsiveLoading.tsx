@@ -1,6 +1,6 @@
 'use client';
 
-import { useLoading } from '@/shared/context/LoadingContext';
+import { useLoading } from '@/shared/context/loading';
 import { cn } from '@/shared/utils/cn';
 import { Spinner } from '@heroui/react';
 import { LoadingOverlay } from '../LoadingOverlay';

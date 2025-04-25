@@ -1,8 +1,6 @@
 'use client';
 
-import TeamMemberCard from '@/features/team/TeamMemberCard';
-import TeamMemberCardSkeleton from '@/features/team/components/TeamMemberCardSkeleton';
-import { useTeamMembers } from '@/features/team/hooks/useTeamMember';
+import { TeamMemberCard, TeamMemberCardSkeleton, useTeamMembers } from '@/shared/components/team';
 import { AnimatedBackground } from '@/shared/components/ui/background/AnimatedBackground';
 import { Card, CardBody } from '@heroui/react';
 import { useTheme } from 'next-themes';

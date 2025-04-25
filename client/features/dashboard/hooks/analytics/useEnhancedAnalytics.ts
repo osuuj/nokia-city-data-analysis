@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@shared/api';
-import { useEnhancedQuery } from '@shared/hooks/useEnhancedQuery';
+import { useEnhancedQuery } from '@shared/hooks/data/useEnhancedQuery';
 import type { TopCityData } from './useAnalytics';
 
 /**

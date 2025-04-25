@@ -1,7 +1,7 @@
 import type { Business } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@shared/api';
 import apiClient from '@shared/api';
-import { createQueryKey, useApiQuery } from '@shared/hooks/useApi';
+import { createQueryKey, useApiQuery } from '@shared/hooks/api';
 
 /**
  * fetchCompanies

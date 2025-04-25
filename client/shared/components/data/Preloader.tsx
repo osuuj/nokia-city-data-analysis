@@ -6,7 +6,7 @@ import {
 } from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { ApiResponse } from '@/shared/api/types';
-import { createQueryKey } from '@/shared/hooks/useApi';
+import { createQueryKey } from '@/shared/hooks/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 

@@ -1,7 +1,7 @@
 import type { ApiError, ApiRequestConfig, ApiResponse } from '@shared/api/types';
 import { useQuery, type useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
-import { createQueryKey, useApiQuery } from './useApi';
+import { createQueryKey, useApiQuery } from '../api';
 
 /**
  * Enhanced query hook with improved caching, error handling, and retry logic

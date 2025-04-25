@@ -1,7 +1,7 @@
 // ProjectDetailClient.tsx
 'use client';
 
-import TeamMemberGrid from '@/features/team/TeamMemberGrid';
+import { TeamMemberGrid } from '@/shared/components/team';
 import GalleryViewer from '@features/project/components/GalleryViewer';
 import TechStackShowcase from '@features/project/components/TechStackShowcase';
 import TimelineSection from '@features/project/components/TimelineSection';

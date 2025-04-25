@@ -7,6 +7,7 @@
 // Components
 export { default as TeamMemberCard } from './TeamMemberCard';
 export { default as TeamMemberGrid } from './TeamMemberGrid';
+export { default as TeamMemberCardSkeleton } from './TeamMemberCardSkeleton';
 
 // Types
 export * from './types';

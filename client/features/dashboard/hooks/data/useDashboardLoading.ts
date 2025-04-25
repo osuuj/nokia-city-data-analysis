@@ -1,6 +1,6 @@
 'use client';
 
-import { useLoading } from '@/shared/context/LoadingContext';
+import { useLoading } from '@/shared/context/loading';
 import { useCallback, useEffect, useState } from 'react';
 
 export type DashboardLoadingSection = 'header' | 'map' | 'table' | 'filters' | 'stats' | 'all';
