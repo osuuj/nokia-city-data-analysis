@@ -1,4 +1,10 @@
 /**
+ * Resources Types
+ *
+ * This file exports all types for the resources feature.
+ */
+
+/**
  * Resource types for the application
  */
 
@@ -51,3 +57,5 @@ export interface ResourceCategoryData {
 export interface ResourceData {
   categories: ResourceCategoryData[];
 }
+
+// Add types here as they are created

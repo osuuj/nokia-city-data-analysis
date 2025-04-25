@@ -1,3 +1,7 @@
+/**
+ * API client and configuration exports
+ */
+
 import { ApiClientImpl } from './client';
 import { API_BASE_URL, API_RETRY_COUNT, API_RETRY_DELAY, API_TIMEOUT } from './endpoints';
 
@@ -19,7 +23,7 @@ export default apiClient;
 /**
  * Export API endpoints
  */
-export { API_ENDPOINTS } from './endpoints';
+export * from './endpoints';
 
 /**
  * Export API types
@@ -30,3 +34,8 @@ export * from './types';
  * Export API errors
  */
 export * from './errors';
+
+/**
+ * Export API client
+ */
+export * from './client';

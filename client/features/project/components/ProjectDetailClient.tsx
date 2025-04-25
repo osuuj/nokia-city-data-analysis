@@ -1,10 +1,10 @@
 // ProjectDetailClient.tsx
 'use client';
 
+import TeamMemberGrid from '@/features/team/TeamMemberGrid';
 import GalleryViewer from '@features/project/components/GalleryViewer';
 import TechStackShowcase from '@features/project/components/TechStackShowcase';
 import TimelineSection from '@features/project/components/TimelineSection';
-import TeamMemberGrid from '@features/team/TeamMemberGrid';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ErrorMessage } from '@shared/components/ErrorMessage';
@@ -89,11 +89,10 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 mt-8">
         {/* Overview */}
-        <motion.div
+        <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          role="region"
           aria-labelledby="overview-heading"
         >
           <Card shadow="lg">
@@ -149,7 +148,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
               </section>
             </CardBody>
           </Card>
-        </motion.div>
+        </motion.section>
 
         {/* Gallery */}
         <motion.section
@@ -158,7 +157,6 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="mb-12"
-          role="region"
           aria-labelledby="gallery-heading"
         >
           <h2 className="text-2xl font-bold mb-6" id="gallery-heading">
@@ -178,7 +176,6 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
-          role="region"
           aria-labelledby="tech-heading"
         >
           <h2 className="text-2xl font-bold mb-6 text-center" id="tech-heading">
@@ -195,7 +192,6 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            role="region"
             aria-labelledby="timeline-heading"
           >
             <h2 className="text-2xl font-bold mb-6 text-center" id="timeline-heading">
@@ -213,7 +209,6 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            role="region"
             aria-labelledby="team-heading"
           >
             <h2 className="text-2xl font-bold mb-6 text-center" id="team-heading">

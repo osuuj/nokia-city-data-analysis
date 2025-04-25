@@ -1,3 +1,9 @@
+/**
+ * Project Types
+ *
+ * This file exports all types for the project feature.
+ */
+
 export enum ProjectCategory {
   Web = 'web',
   AI = 'ai',
