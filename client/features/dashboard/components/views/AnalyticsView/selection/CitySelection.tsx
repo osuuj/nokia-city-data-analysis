@@ -37,10 +37,7 @@ export const CitySelection: React.FC<CitySelectionProps> = ({
   const handleCitySelectionAdd = (key: React.Key | null) => {
     if (typeof key === 'string') {
       onCityAdd(key);
-      onSearchChange(''); // Clear input AFTER successful addition
-    } else {
-      // Key is null (e.g., user cleared selection from dropdown/input)
-      onSearchChange(''); // Clear input if selection is cleared
+      // Don't clear the search input here to prevent unexpected behavior
     }
   };
 

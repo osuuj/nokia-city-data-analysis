@@ -102,6 +102,9 @@ export const MapView = ({ geojson }: MapViewProps) => {
 
     const coordMap = new Map<string, number>();
     for (const feature of geojson.features) {
+      // Skip features with null geometry
+      if (!feature.geometry) continue;
+
       const coords = feature.geometry.coordinates.join(',');
       coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
     }
@@ -111,25 +114,27 @@ export const MapView = ({ geojson }: MapViewProps) => {
       CompanyProperties & { isOverlapping: boolean; isActive: boolean }
     > = {
       ...geojson,
-      features: geojson.features.map((feature) => {
-        const coords = feature.geometry.coordinates.join(',');
-        const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
-        const isActive = feature.properties.business_id === activeBusinessId;
+      features: geojson.features
+        .filter((feature) => feature.geometry !== null) // Filter out features with null geometry
+        .map((feature) => {
+          const coords = feature.geometry.coordinates.join(',');
+          const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+          const isActive = feature.properties.business_id === activeBusinessId;
 
-        if (isActive) {
-          console.log('[Map] Highlighting feature:', feature.properties.company_name);
-        }
+          if (isActive) {
+            console.log('[Map] Highlighting feature:', feature.properties.company_name);
+          }
 
-        return {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            isOverlapping,
-            isActive,
-            industry_letter: feature.properties.industry_letter || 'broken',
-          },
-        };
-      }),
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              isOverlapping,
+              isActive,
+              industry_letter: feature.properties.industry_letter || 'broken',
+            },
+          };
+        }),
     };
 
     const sourceId = 'visiting-companies';
@@ -220,6 +225,9 @@ export const MapView = ({ geojson }: MapViewProps) => {
 
     // Attempt to find the feature that matches the coordinates and address type
     const matching = geojson.features.find((f) => {
+      // Skip features with null geometry
+      if (!f.geometry) return false;
+
       const [lng, lat] = f.geometry.coordinates;
       const matchesCoords = lng === coords[0] && lat === coords[1];
       const matchesId = targetBusinessId ? f.properties.business_id === targetBusinessId : true;

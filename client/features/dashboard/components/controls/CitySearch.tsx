@@ -7,22 +7,30 @@ interface CitySearchProps {
   selectedCity: string;
   onCityChange: (city: string) => void;
   isLoading: boolean;
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
 }
 
 /**
  * CitySearch component for searching and selecting cities
  * Extracted from the dashboard page for better separation of concerns
  */
-export function CitySearch({ cities, selectedCity, onCityChange, isLoading }: CitySearchProps) {
+export function CitySearch({
+  cities,
+  selectedCity,
+  onCityChange,
+  isLoading,
+  searchTerm,
+  onSearchChange,
+}: CitySearchProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Filter cities based on search query
   const filteredCities = useMemo(() => {
     return cities
-      .filter((city) => city.toLowerCase().includes(searchQuery.toLowerCase()))
+      .filter((city) => city.toLowerCase().includes(searchTerm.toLowerCase()))
       .map((city) => ({ name: city }));
-  }, [cities, searchQuery]);
+  }, [cities, searchTerm]);
 
   return (
     <Autocomplete
@@ -32,7 +40,7 @@ export function CitySearch({ cities, selectedCity, onCityChange, isLoading }: Ci
       label="Search by city"
       variant="underlined"
       selectedKey={selectedCity}
-      onInputChange={setSearchQuery}
+      onInputChange={onSearchChange}
       onSelectionChange={(selected) => {
         if (typeof selected === 'string') {
           onCityChange(selected);

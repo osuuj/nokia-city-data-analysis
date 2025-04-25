@@ -44,11 +44,11 @@ export const Header = () => {
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
   const [isBlurry, setIsBlurry] = useState(false);
-  const pathname = usePathname();
+  const currentPathname = usePathname() || '';
   const router = useRouter();
 
   // Check if we're on the landing page
-  const isLandingPage = pathname === '/';
+  const isLandingPage = currentPathname === '/';
 
   // Prefetch cities data
   const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
@@ -78,8 +78,8 @@ export const Header = () => {
 
   // Check if breadcrumbs should be shown
   const shouldShowBreadcrumbs =
-    !pathname.startsWith('/home') &&
-    !['/project', '/resources', '/about', '/contact', '/'].includes(pathname);
+    !currentPathname.startsWith('/home') &&
+    !['/project', '/resources', '/about', '/contact', '/'].includes(currentPathname);
 
   // Handle item click for immediate visual feedback
   const handleItemClick = (href: string) => {
@@ -119,11 +119,24 @@ export const Header = () => {
   // Reset navigation states when pathname changes
   useEffect(() => {
     // If we're navigating to dashboard and the pathname changes, reset the states
-    if (isNavigatingToDashboard && pathname === '/dashboard') {
+    if (isNavigatingToDashboard && currentPathname === '/dashboard') {
       setShowLoadingOverlay(false);
       setIsNavigatingToDashboard(false);
     }
-  }, [pathname, isNavigatingToDashboard]);
+  }, [currentPathname, isNavigatingToDashboard]);
+
+  // Add effect to handle body overflow when menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
 
   return (
     <div
@@ -169,14 +182,14 @@ export const Header = () => {
             {navbarItems.map((item) => (
               <NavbarItem
                 key={item.href}
-                isActive={pathname.startsWith(item.href)}
+                isActive={currentPathname.startsWith(item.href)}
                 className={`${clickedItem === item.href ? 'text-primary' : ''}`}
               >
                 <Link
                   href={item.href}
-                  color={pathname.startsWith(item.href) ? 'primary' : 'foreground'}
+                  color={currentPathname.startsWith(item.href) ? 'primary' : 'foreground'}
                   className={`px-3 py-1.5 rounded-full transition-colors ${
-                    pathname.startsWith(item.href)
+                    currentPathname.startsWith(item.href)
                       ? 'bg-primary/10 font-medium'
                       : 'hover:bg-content3/50'
                   }`}
@@ -216,11 +229,11 @@ export const Header = () => {
         </NavbarContent>
 
         {/* Mobile menu */}
-        <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200]">
+        <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200] bg-background">
           <div className="w-full">
             {/* Add Dashboard option at the top of the mobile menu */}
             <NavbarMenuItem
-              isActive={pathname === '/dashboard'}
+              isActive={currentPathname === '/dashboard'}
               className={clsx(clickedItem === '/dashboard' ? 'text-primary' : '')}
             >
               <Link
@@ -241,8 +254,8 @@ export const Header = () => {
                   key={item.href}
                   isActive={
                     item.href === '/dashboard'
-                      ? pathname === '/dashboard'
-                      : pathname.startsWith(item.href)
+                      ? currentPathname === '/dashboard'
+                      : currentPathname.startsWith(item.href)
                   }
                   className={clsx(clickedItem === item.href ? 'text-primary' : '')}
                 >

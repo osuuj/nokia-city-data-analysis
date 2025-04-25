@@ -9,12 +9,16 @@ import {
 } from '@/features/dashboard/hooks/useAnalytics';
 import type { Filter as DashboardFilter, FilterOption } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import type { ApiError } from '@/shared/api/types';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { LoadingSpinner } from '@/shared/components/loading';
 import { useApiQuery } from '@/shared/hooks/useApi';
 import { createQueryKey } from '@/shared/hooks/useApi';
 import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import type { TopCityData as HookTopCityData } from '../../hooks/useAnalytics';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
@@ -27,6 +31,7 @@ import type {
   DistributionItemRaw,
   TopCityData,
   TransformedCityComparison,
+  TransformedDistribution,
   TransformedIndustriesByCity,
 } from './types';
 import {
@@ -79,12 +84,6 @@ interface IndustryDistributionResponse extends ApiResponse<DistributionDataRaw> 
 interface IndustriesByCityResponse extends ApiResponse<TransformedIndustriesByCity[]> {}
 interface CityComparisonResponse extends ApiResponse<TransformedCityComparison[]> {}
 interface TopCitiesResponse extends ApiResponse<TopCityData[]> {}
-
-interface TransformedDistribution {
-  name: string;
-  value: number;
-  percentage: number;
-}
 
 interface IndustryDistributionCardProps {
   data: TransformedDistribution[];
@@ -143,42 +142,48 @@ const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCa
   </ErrorBoundary>
 );
 
-const IndustriesByCityCardWithErrorBoundary = (props: IndustriesByCityCardProps) => (
+const IndustriesByCityCardWithErrorBoundary = ({
+  data,
+  error,
+  ...props
+}: IndustriesByCityCardProps & { error: ApiError | null }) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
-        title="Error Loading Industries by City"
-        message="Failed to load industries by city data. Please try again."
+        title="Error loading industries by city data"
+        error={error as unknown as Error}
       />
     }
   >
-    <IndustriesByCityCard {...props} />
+    <IndustriesByCityCard data={data} {...props} />
   </ErrorBoundary>
 );
 
-const CityComparisonCardWithErrorBoundary = (props: CityComparisonCardProps) => (
+const CityComparisonCardWithErrorBoundary = ({
+  data,
+  error,
+  ...props
+}: CityComparisonCardProps & { error: ApiError | null }) => (
   <ErrorBoundary
     fallback={
-      <ErrorMessage
-        title="Error Loading City Comparison"
-        message="Failed to load city comparison data. Please try again."
-      />
+      <ErrorMessage title="Error loading city comparison data" error={error as unknown as Error} />
     }
   >
-    <CityComparisonCard {...props} />
+    <CityComparisonCard data={data} {...props} />
   </ErrorBoundary>
 );
 
-const TopCitiesCardWithErrorBoundary = (props: TopCitiesCardProps) => (
+const TopCitiesCardWithErrorBoundary = ({
+  data,
+  error,
+  ...props
+}: TopCitiesCardProps & { error: ApiError | null }) => (
   <ErrorBoundary
     fallback={
-      <ErrorMessage
-        title="Error Loading Top Cities"
-        message="Failed to load top cities data. Please try again."
-      />
+      <ErrorMessage title="Error loading top cities data" error={error as unknown as Error} />
     }
   >
-    <TopCitiesCard {...props} />
+    <TopCitiesCard data={data as unknown as TopCityData[]} {...props} />
   </ErrorBoundary>
 );
 
@@ -198,26 +203,39 @@ export const AnalyticsView: React.FC = () => {
   );
 
   // Fetch top cities data
-  const { data: topCitiesData, isLoading: isTopCitiesLoading } = useTopCities();
+  const {
+    data: topCitiesData,
+    isLoading: isTopCitiesLoading,
+    error: topCitiesError,
+  } = useTopCities();
 
   // Fetch industry distribution data
-  const { data: industryDistributionData, isLoading: isIndustryDistributionLoading } =
-    useIndustryDistribution(Array.from(selectedCities));
+  const {
+    data: industryDistributionData,
+    isLoading: isIndustryDistributionLoading,
+    error: industryDistributionError,
+  } = useIndustryDistribution(Array.from(selectedCities));
 
   // Fetch industries by city data
-  const { data: industriesByCityData, isLoading: isIndustriesByCityLoading } = useIndustriesByCity(
-    Array.from(selectedCities),
-  );
+  const {
+    data: industriesByCityData,
+    isLoading: isIndustriesByCityLoading,
+    error: industriesByCityError,
+  } = useIndustriesByCity(Array.from(selectedCities));
 
   // Fetch city comparison data
-  const { data: cityComparisonData, isLoading: isCityComparisonLoading } = useCityComparison(
-    Array.from(selectedCities),
-  );
+  const {
+    data: cityComparisonData,
+    isLoading: isCityComparisonLoading,
+    error: cityComparisonError,
+  } = useCityComparison(Array.from(selectedCities));
 
   // Memoize the list of cities
   const cities = useMemo(() => {
-    if (!citiesData?.data) return [];
-    return (citiesData.data as City[]).map((city) => city.name);
+    if (!citiesData?.data || !Array.isArray(citiesData.data)) {
+      return [];
+    }
+    return citiesData.data.map((city: City) => city.name);
   }, [citiesData]);
 
   // Memoize the industry name map
@@ -261,6 +279,21 @@ export const AnalyticsView: React.FC = () => {
     return transformCityComparison(cityComparisonData?.data);
   }, [cityComparisonData]);
 
+  // Memoize the transformed industry distribution data
+  const transformedIndustryDistribution = useMemo(() => {
+    if (!industryDistributionData?.data) return [];
+
+    // Calculate total for percentage
+    const total = industryDistributionData.data.reduce((sum, item) => sum + item.value, 0);
+
+    // Transform the data
+    return industryDistributionData.data.map((item) => ({
+      industry: getIndustryName(item.name, industryNameMap),
+      count: item.value,
+      percentage: total > 0 ? (item.value / total) * 100 : 0,
+    }));
+  }, [industryDistributionData, industryNameMap]);
+
   // Handle city selection
   const handleCityAdd = (city: string) => {
     if (selectedCities.size >= MAX_SELECTED_CITIES) {
@@ -269,7 +302,7 @@ export const AnalyticsView: React.FC = () => {
       return;
     }
     setSelectedCities((prev) => new Set([...prev, city]));
-    setSearchQuery('');
+    // Don't clear the search input here to prevent unexpected behavior
   };
 
   const handleCityRemove = (city: string) => {
@@ -340,7 +373,7 @@ export const AnalyticsView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <IndustryDistributionCardWithErrorBoundary
-          data={industryDistributionData?.data || []}
+          data={transformedIndustryDistribution}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           getIndustryKeyFromName={(displayName: string) =>
             getIndustryKeyFromName(displayName, filters)
@@ -354,6 +387,7 @@ export const AnalyticsView: React.FC = () => {
           pieChartFocusCity={pieChartFocusCity}
           onPieFocusChange={handlePieFocusChange}
           isLoading={isIndustryDistributionLoading}
+          error={industryDistributionError as unknown as Error}
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
         />
 
@@ -368,6 +402,7 @@ export const AnalyticsView: React.FC = () => {
             getThemedIndustryColor(industryName, currentTheme, filters)
           }
           isLoading={isIndustriesByCityLoading}
+          error={industriesByCityError as unknown as Error}
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
           canFetchMultiCity={selectedCities.size > 1}
         />
@@ -376,6 +411,7 @@ export const AnalyticsView: React.FC = () => {
           data={transformedCityComparison}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           isLoading={isCityComparisonLoading}
+          error={cityComparisonError as unknown as Error}
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
           canFetchMultiCity={selectedCities.size > 1}
         />
@@ -384,6 +420,7 @@ export const AnalyticsView: React.FC = () => {
           data={topCitiesData?.data || []}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           isLoading={isTopCitiesLoading}
+          error={topCitiesError as unknown as Error}
         />
       </div>
     </div>

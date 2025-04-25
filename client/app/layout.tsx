@@ -4,6 +4,9 @@ import { fontSans, siteConfig } from '@shared/config';
 import { ConditionalLayout } from '@shared/layout/components/conditional/ConditionalLayout';
 import { Providers } from '@shared/providers';
 import '@/shared/styles/globals.css';
+import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
+import { BreadcrumbProvider } from '@/shared/context';
+import { LoadingProvider } from '@/shared/context/LoadingContext';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
@@ -80,9 +83,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <ErrorBoundary fallback={<ErrorFallback />}>
-          <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </Providers>
+          <LoadingProvider>
+            <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
+              <BreadcrumbProvider>
+                <ConditionalLayout>
+                  <ResponsiveLoading />
+                  {children}
+                </ConditionalLayout>
+              </BreadcrumbProvider>
+            </Providers>
+          </LoadingProvider>
         </ErrorBoundary>
       </body>
     </html>

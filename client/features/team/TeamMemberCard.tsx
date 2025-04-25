@@ -1,15 +1,49 @@
 'use client';
 
-import { Avatar, Button, Card, CardBody, Chip, Tooltip } from '@heroui/react';
+import {
+  Avatar,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Chip,
+  Tooltip,
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import type { TeamMemberCardProps } from './types';
+import type { TeamMember } from './types';
 
-export default function TeamMemberCard({ member }: TeamMemberCardProps) {
-  const { name, jobTitle, bio, shortBio, portfolioLink, avatarSrc, skills, socialLinks } = member;
+interface TeamMemberCardProps {
+  member?: Partial<TeamMember> & { name: string }; // Make member optional
+  name?: string;
+  jobTitle?: string;
+  bio?: string;
+  shortBio?: string;
+  portfolioLink?: string;
+  avatarSrc?: string;
+  skills?: string[];
+  socialLinks?: Record<string, string>;
+}
+
+export default function TeamMemberCard(props: TeamMemberCardProps) {
+  // Handle both direct props and member object
+  const member = props.member || props;
+
+  // Provide default values for all properties
+  const {
+    name = 'Team Member',
+    jobTitle = 'Team Member',
+    bio = '',
+    shortBio = bio,
+    portfolioLink = '#',
+    avatarSrc = `https://img.heroui.chat/image/avatar?w=200&h=200&u=${name.toLowerCase()}`,
+    skills = [],
+    socialLinks = {},
+  } = member;
 
   return (
     <motion.div
@@ -19,94 +53,52 @@ export default function TeamMemberCard({ member }: TeamMemberCardProps) {
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
     >
-      <Card className="shadow-md h-full">
-        <CardBody className="p-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="relative w-24 h-24 mb-4">
-              <Image
-                src={avatarSrc}
-                alt={name}
-                fill
-                className="rounded-full object-cover"
-                sizes="96px"
-                priority
-              />
-            </div>
-            <h3 className="text-xl font-bold">{name}</h3>
-            <p className="text-default-500 mb-2">{jobTitle}</p>
-            <p className="text-sm mb-4">{shortBio || bio}</p>
-
-            {/* Skills */}
-            {skills && skills.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-center mb-4">
-                {skills.slice(0, 5).map((skill) => (
-                  <Chip key={skill} size="sm" variant="flat" color="primary" className="text-xs">
-                    {skill}
-                  </Chip>
-                ))}
-                {skills.length > 5 && (
-                  <Tooltip content={skills.slice(5).join(', ')}>
-                    <Chip size="sm" variant="flat" color="default" className="text-xs">
-                      +{skills.length - 5} more
-                    </Chip>
-                  </Tooltip>
-                )}
-              </div>
-            )}
-
-            {/* Social Links */}
-            {socialLinks && (
-              <div className="flex gap-2 mb-4">
-                {socialLinks.github && (
-                  <Tooltip content="GitHub">
-                    <Link
-                      href={socialLinks.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-default-500 hover:text-primary"
-                    >
-                      <Icon icon="lucide:github" width={20} height={20} />
-                    </Link>
-                  </Tooltip>
-                )}
-                {socialLinks.linkedin && (
-                  <Tooltip content="LinkedIn">
-                    <Link
-                      href={socialLinks.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-default-500 hover:text-primary"
-                    >
-                      <Icon icon="lucide:linkedin" width={20} height={20} />
-                    </Link>
-                  </Tooltip>
-                )}
-                {socialLinks.website && (
-                  <Tooltip content="Personal Website">
-                    <Link
-                      href={socialLinks.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-default-500 hover:text-primary"
-                    >
-                      <Icon icon="lucide:globe" width={20} height={20} />
-                    </Link>
-                  </Tooltip>
-                )}
-              </div>
-            )}
-
-            <Link href={portfolioLink}>
-              <Button
-                color="primary"
-                variant="flat"
-                endContent={<Icon icon="lucide:arrow-right" />}
-              >
-                View Profile
-              </Button>
-            </Link>
+      <Card className="shadow-md h-full backdrop-blur-md bg-opacity-85 border border-content2">
+        <CardHeader className="flex flex-col items-center gap-2 p-4">
+          <div className="relative w-24 h-24">
+            <Image
+              src={avatarSrc}
+              alt={name}
+              fill
+              className="rounded-full object-cover"
+              sizes="(max-width: 96px) 100vw, 96px"
+            />
           </div>
+          <h3 className="text-xl font-semibold text-center">{name}</h3>
+          <p className="text-default-500 text-center">{jobTitle}</p>
+        </CardHeader>
+        <CardBody className="p-4">
+          <p className="text-default-600 text-center mb-4">{shortBio}</p>
+          {skills.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {skills.map((skill) => (
+                <Chip key={skill} size="sm" variant="flat">
+                  {skill}
+                </Chip>
+              ))}
+            </div>
+          )}
         </CardBody>
+        <CardFooter className="flex justify-center gap-2 p-4">
+          <Link href={portfolioLink}>
+            <Button
+              color="primary"
+              variant="flat"
+              endContent={<Icon icon="mdi:arrow-right" className="text-lg" />}
+            >
+              View Portfolio
+            </Button>
+          </Link>
+          {Object.entries(socialLinks).map(([platform, url]) => (
+            <Tooltip key={platform} content={platform}>
+              <Link href={url} target="_blank" rel="noopener noreferrer">
+                <Button isIconOnly variant="light" size="sm">
+                  <Icon icon={`mdi:${platform.toLowerCase()}`} className="text-lg" />
+                </Button>
+              </Link>
+            </Tooltip>
+          ))}
+        </CardFooter>
       </Card>
     </motion.div>
   );

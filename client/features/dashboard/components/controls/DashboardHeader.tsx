@@ -9,6 +9,8 @@ interface DashboardHeaderProps {
   selectedCity: string;
   onCityChange: (city: string) => void;
   cityLoading: boolean;
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
 }
 
 /**
@@ -22,6 +24,8 @@ export function DashboardHeader({
   selectedCity,
   onCityChange,
   cityLoading,
+  searchTerm,
+  onSearchChange,
 }: DashboardHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 items-start sm:items-center">
@@ -33,6 +37,8 @@ export function DashboardHeader({
           selectedCity={selectedCity}
           onCityChange={onCityChange}
           isLoading={cityLoading}
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
         />
       )}
     </div>

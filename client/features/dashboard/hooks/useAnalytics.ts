@@ -6,6 +6,9 @@ import { createQueryKey, useApiQuery } from '@/shared/hooks/useApi';
 export interface TopCityData {
   city: string;
   count: number;
+  companyCount: number;
+  industryCount: number;
+  averageCompaniesPerIndustry: number;
 }
 
 export type PivotedData = Array<Record<string, string | number>>;

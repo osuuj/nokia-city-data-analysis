@@ -1,46 +1,104 @@
 'use client';
 
-import { ResourceAccordion } from '@/features/resources/components/ResourceAccordion';
+import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { useResourceCategories } from '@/features/resources/hooks/useResources';
-import type { ResourceCategoryData } from '@/features/resources/types';
-import { ErrorMessage } from '@/shared/components/error';
-import { Spinner } from '@heroui/react';
+import { AnimatedBackground } from '@/shared/components/ui/background/AnimatedBackground';
+import { Accordion, AccordionItem } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
+import { Icon } from '@iconify/react';
 
-export default function ResourcesPage() {
+export default function ResourcePage() {
   const { data: categories, isLoading, error } = useResourceCategories();
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <Spinner size="lg" />
+      <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+        <AnimatedBackground />
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <Skeleton className="h-10 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-full max-w-2xl mx-auto" />
+          </div>
+          <div className="mb-12">
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (error || !categories) {
+  if (error) {
     return (
-      <div className="container mx-auto px-4">
-        <ErrorMessage
-          title="Failed to Load Resources"
-          message="We couldn't load the resources at this time. Please try again later."
-          error={error}
-        />
+      <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+        <AnimatedBackground />
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold text-primary mb-4">Error Loading Resources</h1>
+            <p className="text-lg text-default-600 max-w-2xl mx-auto">
+              There was an error loading the resources. Please try again later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If categories is undefined, show a message
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+        <AnimatedBackground />
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold text-primary mb-4">No Resources Available</h1>
+            <p className="text-lg text-default-600 max-w-2xl mx-auto">
+              There are no resources available at the moment. Please check back later.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="py-8">
-        <h1 className="text-4xl font-bold mb-2">Resources</h1>
-        <p className="text-gray-600 mb-8">
-          Explore our collection of resources to help you get started with the project.
-        </p>
+    <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+      {/* Animated background */}
+      <AnimatedBackground />
 
-        <div className="space-y-6">
-          {categories.map((category: ResourceCategoryData) => (
-            <ResourceAccordion key={category.id} category={category} />
-          ))}
+      <div className="relative z-10 max-w-5xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-primary mb-4">Resource Center</h1>
+          <p className="text-lg text-default-600 max-w-2xl mx-auto">
+            Find all the tools, guides, and resources you need to help your business thrive in our
+            community.
+          </p>
+        </div>
+
+        <div className="mb-12">
+          <Accordion
+            variant="splitted"
+            selectionMode="multiple"
+            defaultSelectedKeys={['getting-started']}
+          >
+            {categories.map((category) => (
+              <AccordionItem
+                key={category.id}
+                title={
+                  <div className="flex items-center gap-2">
+                    <Icon icon={category.icon} className="text-xl text-primary" />
+                    <span className="text-xl">{category.title}</span>
+                  </div>
+                }
+                textValue={category.title}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {category.resources.map((resource) => (
+                    <ResourceCard key={resource.id} resource={resource} />
+                  ))}
+                </div>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </div>

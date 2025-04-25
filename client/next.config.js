@@ -2,6 +2,9 @@ const path = require('node:path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ['img.heroui.chat'],
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),

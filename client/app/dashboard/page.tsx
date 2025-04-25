@@ -2,12 +2,13 @@
 
 import { DashboardContent } from '@/features/dashboard/components/DashboardContent';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
+import { SectionLoader } from '@/features/dashboard/components/loading/SectionLoader';
 import { useDashboardData } from '@/features/dashboard/hooks/useDashboardData';
+import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
 import { useCompanyStore } from '@/features/dashboard/store';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
-import { LoadingOverlay } from '@/shared/components/ui/loading';
 import { useDebounce } from '@/shared/hooks';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,7 +19,6 @@ export default function DashboardPage() {
   const cityParam = searchParams?.get('city') || '';
 
   // State management
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -41,6 +41,9 @@ export default function DashboardPage() {
   // Debounce search term for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  // Use the dashboard loading hook
+  const { sectionStates, startSectionLoading, stopSectionLoading } = useDashboardLoading();
+
   // Use the centralized data fetching hook
   const { geojsonData, cities, isLoading, cityLoading, tableRows, visibleColumns } =
     useDashboardData({
@@ -57,67 +60,84 @@ export default function DashboardPage() {
     features: [],
   };
 
-  // Handle city selection from URL
+  // Start loading sections when data is being fetched
   useEffect(() => {
-    if (cityParam && cityParam !== selectedCity) {
-      setSelectedCity(cityParam);
+    if (isLoading) {
+      startSectionLoading('all', 'Loading dashboard data...');
+    } else {
+      stopSectionLoading('all');
     }
-  }, [cityParam, selectedCity, setSelectedCity]);
+  }, [isLoading, startSectionLoading, stopSectionLoading]);
 
-  // Set initial loading state
-  useEffect(() => {
-    if (tableRows.length > 0 || isLoading === false) {
-      setIsInitialLoading(false);
-    }
-  }, [tableRows, isLoading]);
+  // Handle city selection
+  const handleCityChange = useCallback(
+    (city: string) => {
+      startSectionLoading('map', 'Loading city data...');
+      setSelectedCity(city);
+    },
+    [setSelectedCity, startSectionLoading],
+  );
 
-  // Handle page changes
-  const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-  }, []);
+  // Handle industry selection
+  const handleIndustryChange = useCallback(
+    (industries: string[]) => {
+      startSectionLoading('table', 'Filtering by industries...');
+      // Implementation details...
+    },
+    [startSectionLoading],
+  );
 
-  // Calculate pagination
-  const rowsPerPage = 10;
-  const totalPages = Math.ceil(tableRows.length / rowsPerPage);
-  const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentPageData = tableRows.slice(startIndex, endIndex);
-
-  // Get selected businesses
-  const selectedBusinesses = Array.from(selectedKeys)
-    .map((id) => tableRows.find((b) => b.business_id === id))
-    .filter((b): b is CompanyProperties => b !== undefined);
+  // Handle search
+  const handleSearch = useCallback(
+    (term: string) => {
+      startSectionLoading('table', 'Searching...');
+      setSearchTerm(term);
+    },
+    [startSectionLoading],
+  );
 
   return (
-    <div className="relative min-h-screen">
-      {isInitialLoading && <LoadingOverlay />}
-
-      <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 w-full">
+      {/* Header section with loading state */}
+      <div className="relative">
+        <SectionLoader section="header" isLoading={sectionStates.header} />
         <DashboardHeader
+          cities={cities || []}
+          selectedCity={selectedCity}
+          onCityChange={handleCityChange}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          cities={cities}
-          selectedCity={selectedCity}
-          onCityChange={setSelectedCity}
           cityLoading={cityLoading}
         />
+      </div>
 
+      {/* Map section with loading state */}
+      <div className="relative">
+        <SectionLoader section="map" isLoading={sectionStates.map} />
+        {/* Map component would go here */}
+      </div>
+
+      {/* Table section with loading state */}
+      <div className="relative">
+        <SectionLoader section="table" isLoading={sectionStates.table} />
         <DashboardContent
-          data={currentPageData}
-          allFilteredData={tableRows}
-          selectedBusinesses={selectedBusinesses}
-          columns={visibleColumns}
+          data={tableRows || []}
+          allFilteredData={tableRows || []}
+          selectedBusinesses={[]}
+          geojson={geojsonData || defaultGeoJSON}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          columns={visibleColumns || []}
           currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
+          totalPages={Math.ceil((tableRows?.length || 0) / 10)} // Assuming 10 items per page
+          onPageChange={setPage}
           isLoading={isLoading}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           sortDescriptor={sortDescriptor}
           setSortDescriptor={setSortDescriptor}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          geojson={geojsonData || defaultGeoJSON}
         />
       </div>
     </div>

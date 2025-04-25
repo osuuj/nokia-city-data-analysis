@@ -5,15 +5,18 @@ import { ProjectDetailSkeleton } from '@/features/project/components/ProjectSkel
 import { useProject } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/ErrorMessage';
 import { useEffect } from 'react';
+import { use } from 'react';
 
 interface ProjectDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
-  const { data: project, isLoading, isError, error } = useProject(params.id);
+  // Unwrap params using React.use()
+  const unwrappedParams = use(params);
+  const { data: project, isLoading, isError, error } = useProject(unwrappedParams.id);
 
   // Log any errors to help with debugging
   useEffect(() => {

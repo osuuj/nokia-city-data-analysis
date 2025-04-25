@@ -3,7 +3,7 @@
 import { DashboardFooter } from '@/features/layout/components/footer/DashboardFooter';
 import { SidebarWrapper } from '@/features/layout/components/sidebar/SidebarWrapper';
 import { ErrorBoundary } from '@/shared/components/error';
-import { LoadingOverlay } from '@/shared/components/ui/loading';
+import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
 import { Suspense } from 'react';
 
 /**
@@ -18,7 +18,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <ErrorBoundary
           fallback={<div>Something went wrong in the dashboard. Please refresh the page.</div>}
         >
-          <Suspense fallback={<LoadingOverlay message="Loading dashboard..." />}>
+          <Suspense
+            fallback={
+              <ResponsiveLoading type="skeleton" priority="high" message="Loading dashboard..." />
+            }
+          >
             <main className="flex-1 w-full overflow-y-auto overflow-x-auto p-2 sm:p-3 md:p-4">
               {children}
             </main>

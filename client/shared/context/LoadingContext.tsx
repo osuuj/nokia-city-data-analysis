@@ -2,24 +2,41 @@
 
 import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
 
+export type LoadingType = 'overlay' | 'inline' | 'skeleton';
+export type LoadingPriority = 'high' | 'medium' | 'low';
+
+interface LoadingState {
+  isLoading: boolean;
+  message: string;
+  type: LoadingType;
+  priority: LoadingPriority;
+}
+
 interface LoadingContextType {
   /**
-   * Whether the global loading state is active
+   * The current loading state
    */
-  isLoading: boolean;
+  loadingState: LoadingState;
   /**
-   * The current loading message
+   * Start the loading state with configuration
    */
-  loadingMessage: string;
-  /**
-   * Start the loading state with an optional message
-   */
-  startLoading: (message?: string) => void;
+  startLoading: (config?: Partial<LoadingState>) => void;
   /**
    * Stop the loading state
    */
   stopLoading: () => void;
+  /**
+   * Update the loading message
+   */
+  updateLoadingMessage: (message: string) => void;
 }
+
+const defaultLoadingState: LoadingState = {
+  isLoading: false,
+  message: 'Loading...',
+  type: 'overlay',
+  priority: 'medium',
+};
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
@@ -32,28 +49,40 @@ interface LoadingProviderProps {
 
 /**
  * LoadingProvider component
- * Provides loading state management to the application
+ * Provides responsive loading state management to the application
  */
 export function LoadingProvider({ children }: LoadingProviderProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Loading...');
+  const [loadingState, setLoadingState] = useState<LoadingState>(defaultLoadingState);
 
-  const startLoading = useCallback((message = 'Loading...') => {
-    setLoadingMessage(message);
-    setIsLoading(true);
+  const startLoading = useCallback((config?: Partial<LoadingState>) => {
+    setLoadingState((prev) => ({
+      ...prev,
+      isLoading: true,
+      ...config,
+    }));
   }, []);
 
   const stopLoading = useCallback(() => {
-    setIsLoading(false);
+    setLoadingState((prev) => ({
+      ...prev,
+      isLoading: false,
+    }));
+  }, []);
+
+  const updateLoadingMessage = useCallback((message: string) => {
+    setLoadingState((prev) => ({
+      ...prev,
+      message,
+    }));
   }, []);
 
   return (
     <LoadingContext.Provider
       value={{
-        isLoading,
-        loadingMessage,
+        loadingState,
         startLoading,
         stopLoading,
+        updateLoadingMessage,
       }}
     >
       {children}

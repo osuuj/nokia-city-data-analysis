@@ -12,13 +12,7 @@ import { usePathname } from 'next/navigation';
  */
 export const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
-  const isDashboardPage = pathname.startsWith('/dashboard');
-
-  // Check if current page should have black background
-  const isBlackBgPage =
-    pathname.startsWith('/resources') ||
-    pathname.startsWith('/about') ||
-    pathname.startsWith('/contact');
+  const isDashboardPage = pathname?.startsWith('/dashboard') ?? false;
 
   return (
     <>

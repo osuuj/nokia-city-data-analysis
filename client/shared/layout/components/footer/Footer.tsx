@@ -2,23 +2,17 @@
 
 import { Spacer } from '@heroui/react';
 import { OsuujLogo } from '@shared/icons';
-import { usePathname } from 'next/navigation';
 
 /**
  * Footer
  * Renders the main site footer including logo, nav links, social links, and copyright.
  */
 export const Footer = () => {
-  const pathname = usePathname();
-
-  // Check if current page should have black background
-  const isBlackBgPage =
-    pathname.startsWith('/resources') ||
-    pathname.startsWith('/about') ||
-    pathname.startsWith('/contact');
+  // Use global theme classes for light/dark mode
+  const footerClassName = 'flex w-full flex-col bg-background text-foreground';
 
   return (
-    <footer className={`flex w-full flex-col ${isBlackBgPage ? 'bg-black' : ''}`}>
+    <footer className={footerClassName}>
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-6 py-6 lg:px-8">
         <div className="flex items-center justify-center">
           <OsuujLogo />

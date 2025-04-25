@@ -6,16 +6,17 @@ import { IndustryDistribution } from '../charts';
 import type { TransformedDistribution } from '../types';
 
 interface IndustryDistributionCardProps {
-  data: TransformedDistribution;
+  data: TransformedDistribution[];
   currentTheme: 'light' | 'dark' | undefined;
   getIndustryKeyFromName: (name: string) => string | undefined;
   potentialOthers: string[];
   industryNameMap: Map<string, string>;
-  getThemedIndustryColor: (name: string, theme: string | undefined) => string;
-  selectedCities: Set<string>;
+  getThemedIndustryColor: (name: string) => string;
+  selectedCities: string[];
   pieChartFocusCity: string | null;
   onPieFocusChange: (city: string | null) => void;
   isLoading: boolean;
+  error: Error | null;
   selectedIndustryDisplayNames: Set<string>;
 }
 
@@ -30,13 +31,20 @@ export const IndustryDistributionCard: React.FC<IndustryDistributionCardProps> =
   pieChartFocusCity,
   onPieFocusChange,
   isLoading,
+  error,
   selectedIndustryDisplayNames,
 }) => {
+  // Transform data for the chart
+  const chartData = data.map((item) => ({
+    name: item.industry,
+    value: item.count,
+  }));
+
   return (
     <Card className="border border-default-200">
       <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-3 sm:px-6">
         <h2 className="text-lg font-bold">Industry Distribution</h2>
-        {selectedCities.size > 1 && (
+        {selectedCities.length > 1 && (
           <Select
             label="Focus City"
             placeholder="Select city"
@@ -50,11 +58,9 @@ export const IndustryDistributionCard: React.FC<IndustryDistributionCardProps> =
               className: 'min-w-[200px]', // Set minimum width for the dropdown popover
             }}
           >
-            {Array.from(selectedCities)
-              .sort()
-              .map((city) => (
-                <SelectItem key={city}>{city}</SelectItem>
-              ))}
+            {selectedCities.map((city) => (
+              <SelectItem key={city}>{city}</SelectItem>
+            ))}
           </Select>
         )}
       </CardHeader>
@@ -64,16 +70,16 @@ export const IndustryDistributionCard: React.FC<IndustryDistributionCardProps> =
           <Spinner />
         ) : selectedIndustryDisplayNames.size > 0 ? (
           <IndustryDistribution
-            data={data}
+            data={chartData}
             currentTheme={currentTheme}
             getIndustryKeyFromName={getIndustryKeyFromName}
             potentialOthers={potentialOthers}
             industryNameMap={industryNameMap}
             getThemedIndustryColor={getThemedIndustryColor}
           />
-        ) : selectedCities.size > 1 && !pieChartFocusCity ? (
+        ) : selectedCities.length > 1 && !pieChartFocusCity ? (
           <p className="text-center text-default-500">Select a city from the dropdown above.</p>
-        ) : selectedCities.size > 0 ? (
+        ) : selectedCities.length > 0 ? (
           <p className="text-center text-default-500">Select industries to view distribution.</p>
         ) : (
           <p className="text-center text-default-500">Select a city first.</p>
