@@ -1,1 +1,1 @@
-export { useCompanyStore } from './useCompanyStore';
+export * from './useCompanyStore';

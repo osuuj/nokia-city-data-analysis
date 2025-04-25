@@ -3,8 +3,8 @@
 import { DashboardContent } from '@/features/dashboard/components/DashboardContent';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { SectionLoader } from '@/features/dashboard/components/loading/SectionLoader';
-import { useDashboardData } from '@/features/dashboard/hooks/useDashboardData';
-import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
+import { useDashboardData } from '@/features/dashboard/hooks/data/useDashboardData';
+import { useDashboardLoading } from '@/features/dashboard/hooks/data/useDashboardLoading';
 import { useCompanyStore } from '@/features/dashboard/store';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor } from '@/features/dashboard/types/table';

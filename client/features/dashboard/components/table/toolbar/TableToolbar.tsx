@@ -1,17 +1,15 @@
 'use client';
 
-import { FilterGroup } from '@/features/dashboard/components/table/toolbar';
-import {
-  ColumnVisibilityDropdown,
-  SortDropdown,
-} from '@/features/dashboard/components/table/toolbar';
-import { SearchInput } from '@/features/dashboard/components/table/toolbar';
 import { filters } from '@/features/dashboard/data/filters';
 import type { FilterOption, ToolbarProps } from '@/features/dashboard/types';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Chip, Divider, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ColumnVisibilityDropdown } from './ColumnVisibilityDropdown';
+import { FilterGroup } from './FilterGroup';
+import { SearchInput } from './SearchInput';
+import { SortDropdown } from './SortDropdown';
 
 export function TableToolbar({
   searchTerm,

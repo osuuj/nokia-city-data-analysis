@@ -1,4 +1,3 @@
-import { useFilteredBusinesses } from '@/features/dashboard/hooks';
 import type { CompanyProperties, SortDescriptor } from '@/features/dashboard/types';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { getVisibleColumns } from '@/features/dashboard/utils/table';
@@ -6,6 +5,7 @@ import { columns as allColumns } from '@shared/config';
 import type { FeatureCollection, Point } from 'geojson';
 import { useMemo } from 'react';
 import useSWR from 'swr';
+import { useFilteredBusinesses } from './useFilteredBusinesses';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

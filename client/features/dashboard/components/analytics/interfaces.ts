@@ -1,10 +1,16 @@
+import type { DistributionItemRaw } from '@/features/dashboard/hooks/analytics/useAnalytics';
 import type { Filter } from '@/shared/api/types';
+import type { ApiResponse } from '@/shared/api/types';
 import type {
-  CityComparisonResponse,
-  DistributionItemRaw,
-  IndustriesByCityResponse,
   TopCityData,
-} from './types';
+  TransformedCityComparison,
+  TransformedIndustriesByCity,
+} from './utils/types';
+
+// Define the response types
+export interface CityComparisonResponse extends ApiResponse<TransformedCityComparison[]> {}
+export interface IndustriesByCityResponse extends ApiResponse<TransformedIndustriesByCity[]> {}
+export interface DistributionDataRaw extends Array<DistributionItemRaw> {}
 
 export interface CitySelectionProps {
   cities: Filter[];

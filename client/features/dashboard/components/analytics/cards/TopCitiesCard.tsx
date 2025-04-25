@@ -1,6 +1,6 @@
 'use client';
 
-import type { TopCityData } from '@/features/dashboard/hooks/useAnalytics';
+import type { TopCityData } from '@/features/dashboard/hooks/analytics/useAnalytics';
 import { Card, CardBody, CardHeader, Divider, Spinner } from '@heroui/react';
 import type React from 'react';
 import { TopCitiesChart } from '../charts';

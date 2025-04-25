@@ -1,5 +1,6 @@
 import { Tooltip } from '@heroui/react';
-import React, { useEffect, useState, useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -63,6 +64,8 @@ interface CityIndustryBarsProps {
   getIndustryKeyFromName: (displayName: string) => string | undefined;
   potentialOthers: string[];
   getThemedIndustryColor: (name: string, theme?: 'light' | 'dark') => string;
+  selectedIndustryDisplayNames: Set<string>;
+  canFetchMultiCity: boolean;
 }
 
 interface CustomLegendProps {
@@ -144,8 +147,18 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
                   opacity: isInactive ? 0.5 : 1,
                   transition: 'opacity 0.2s ease-in-out',
                 }}
-                onMouseEnter={(e) => onMouseEnter?.(e.currentTarget.dataset.value as Payload)}
-                onMouseLeave={(e) => onMouseLeave?.(e.currentTarget.dataset.value as Payload)}
+                onMouseEnter={(e) => {
+                  const value = e.currentTarget.dataset.value;
+                  if (value) {
+                    onMouseEnter?.({ value } as unknown as Payload);
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const value = e.currentTarget.dataset.value;
+                  if (value) {
+                    onMouseLeave?.({ value } as unknown as Payload);
+                  }
+                }}
               >
                 <img
                   src={iconPath}
@@ -173,8 +186,18 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
               opacity: isInactive ? 0.5 : 1,
               transition: 'opacity 0.2s ease-in-out',
             }}
-            onMouseEnter={(e) => onMouseEnter?.(e.currentTarget.dataset.value as Payload)}
-            onMouseLeave={(e) => onMouseLeave?.(e.currentTarget.dataset.value as Payload)}
+            onMouseEnter={(e) => {
+              const value = e.currentTarget.dataset.value;
+              if (value) {
+                onMouseEnter?.({ value } as unknown as Payload);
+              }
+            }}
+            onMouseLeave={(e) => {
+              const value = e.currentTarget.dataset.value;
+              if (value) {
+                onMouseLeave?.({ value } as unknown as Payload);
+              }
+            }}
           >
             <img
               src={iconPath}
@@ -200,123 +223,76 @@ export const CityIndustryBars: React.FC<CityIndustryBarsProps> = ({
   getIndustryKeyFromName,
   potentialOthers,
   getThemedIndustryColor,
+  selectedIndustryDisplayNames,
+  canFetchMultiCity,
 }) => {
-  const industries = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'city') : [];
-  const [activeIndustry, setActiveIndustry] = React.useState<string | null>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [activeIndustry, setActiveIndustry] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+  // Filter industries based on selectedIndustryDisplayNames
+  const industries = useMemo(() => {
+    if (!data.length) return [];
+    const allIndustries = Object.keys(data[0]).filter((key) => key !== 'city');
+    return allIndustries.filter((industry) => selectedIndustryDisplayNames.has(industry));
+  }, [data, selectedIndustryDisplayNames]);
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0]) {
-        setContainerWidth(entries[0].contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  const handleIndustryHover = useCallback((entry: Payload) => {
-    setActiveIndustry(entry?.payload?.value as string);
-  }, []);
-
-  const handleIndustryLeave = useCallback(() => {
-    setActiveIndustry(null);
-  }, []);
+  // Only show data if we can fetch multiple cities
+  if (!canFetchMultiCity || !data.length) {
+    return (
+      <div className="flex items-center justify-center h-full text-default-500">
+        No data available for comparison.
+      </div>
+    );
+  }
 
   const textColor = getThemedColor(currentTheme, 'primary');
   const secondaryTextColor = getThemedColor(currentTheme, 'secondary');
+  const gridColor = getThemedColor(currentTheme, 'grid');
   const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
   const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
-  const gridStrokeColor = getThemedColor(currentTheme, 'grid');
-  const cursorFillColor = getThemedColor(currentTheme, 'cursorFill');
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-default-500">
-        No data selected.
-      </div>
-    );
-  }
-  if (industries.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-default-500">
-        No industry data found for selected city/cities.
-      </div>
-    );
-  }
-
-  const chartMargin =
-    containerWidth < 400
-      ? { top: 5, right: 5, left: 0, bottom: 40 }
-      : { top: 10, right: 10, left: 0, bottom: 50 };
-
-  const fontSize = containerWidth < 400 ? 8 : 10;
 
   return (
-    <div className="h-[300px] sm:h-[400px] w-full" ref={containerRef}>
+    <div className="h-[300px] sm:h-[400px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={chartMargin} barGap={1} barCategoryGap="15%">
-          <CartesianGrid
-            strokeDasharray="3 3"
-            opacity={0.3}
-            vertical={false}
-            stroke={gridStrokeColor}
-          />
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis
             dataKey="city"
+            tick={{ fill: textColor, fontSize: 12 }}
+            interval={0}
             angle={-45}
             textAnchor="end"
-            tick={{ fontSize: fontSize, fill: textColor }}
             height={60}
-            tickLine={false}
-            axisLine={false}
           />
-          <YAxis
-            name="Count"
-            tick={{ fontSize: fontSize, fill: secondaryTextColor }}
-            axisLine={false}
-            tickLine={false}
-          />
+          <YAxis tick={{ fill: secondaryTextColor, fontSize: 12 }} />
           <RechartsTooltip
+            cursor={{ fill: getThemedColor(currentTheme, 'cursorFill') }}
             contentStyle={{
               backgroundColor: tooltipBgColor,
+              borderColor: tooltipBorderColor,
               borderRadius: '8px',
-              border: `1px solid ${tooltipBorderColor}`,
-              boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
               color: textColor,
-              fontSize: '12px',
             }}
-            itemStyle={{ color: textColor }}
-            labelStyle={{ color: textColor, fontWeight: 'bold', marginBottom: '4px' }}
-            cursor={{ fill: cursorFillColor }}
           />
           <Legend
-            content={(legendProps) => (
+            wrapperStyle={{ paddingTop: '20px' }}
+            content={
               <RenderCustomLegend
-                payload={legendProps.payload}
                 theme={currentTheme}
                 getIndustryKeyFromName={getIndustryKeyFromName}
-                onMouseEnter={handleIndustryHover}
-                onMouseLeave={handleIndustryLeave}
+                onMouseEnter={(entry) => setActiveIndustry(entry.value as string)}
+                onMouseLeave={() => setActiveIndustry(null)}
                 activeIndustry={activeIndustry}
                 potentialOthers={potentialOthers}
               />
-            )}
+            }
           />
-          {industries.map((industry, index) => (
+          {industries.map((industry) => (
             <Bar
               key={industry}
               dataKey={industry}
               fill={getThemedIndustryColor(industry, currentTheme)}
-              name={industry}
-              radius={[4, 4, 0, 0]}
-              opacity={activeIndustry === null || activeIndustry === industry ? 1 : 0.5}
+              opacity={activeIndustry === null || activeIndustry === industry ? 1 : 0.3}
               animationDuration={1500}
-              animationEasing="ease-out"
             />
           ))}
         </BarChart>

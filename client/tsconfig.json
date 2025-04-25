@@ -32,7 +32,12 @@
       "@store/*": ["store/*"],
       "@icons/*": ["shared/icons/*"],
       "@types/*": ["types/*"],
-      "@utils/*": ["utils/*"]
+      "@utils/*": ["utils/*"],
+      "@dashboard/*": ["features/dashboard/*"],
+      "@dashboard-components/*": ["features/dashboard/components/*"],
+      "@dashboard-hooks/*": ["features/dashboard/hooks/*"],
+      "@dashboard-types/*": ["features/dashboard/types/*"],
+      "@dashboard-utils/*": ["features/dashboard/utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/error.tsx"],

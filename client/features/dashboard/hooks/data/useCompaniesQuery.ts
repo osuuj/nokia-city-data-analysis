@@ -1,8 +1,7 @@
 import type { Business } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@shared/api';
+import apiClient from '@shared/api';
 import { createQueryKey, useApiQuery } from '@shared/hooks/useApi';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 /**
  * fetchCompanies
@@ -18,18 +17,16 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
   }
 
   console.log('📡 Fetching companies from:', city);
-  const response = await fetch(
-    `${BASE_URL}/api/v1/businesses_by_city?city=${encodeURIComponent(city)}`,
-  );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch businesses');
+  try {
+    const response = await apiClient.get<Business[]>(API_ENDPOINTS.COMPANIES.LIST, {
+      params: { city },
+    });
+    console.log('✅ Companies fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch businesses:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  console.log('✅ Companies fetched:', data);
-
-  return Array.isArray(data) ? data : [];
 };
 
 /**
@@ -40,15 +37,14 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
  */
 const fetchCities = async (): Promise<string[]> => {
   console.log('📡 Fetching cities...');
-  const response = await fetch(`${BASE_URL}/api/v1/cities`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch cities');
+  try {
+    const response = await apiClient.get<string[]>(API_ENDPOINTS.CITIES.LIST);
+    console.log('✅ Cities fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch cities:', error);
+    throw error;
   }
-
-  const cities = await response.json();
-  console.log('✅ Cities fetched:', cities);
-  return cities;
 };
 
 /**

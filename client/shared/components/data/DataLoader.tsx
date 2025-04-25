@@ -1,6 +1,9 @@
 'use client';
 
-import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import {
+  useFetchCities,
+  useFetchCompanies,
+} from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { Spinner } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

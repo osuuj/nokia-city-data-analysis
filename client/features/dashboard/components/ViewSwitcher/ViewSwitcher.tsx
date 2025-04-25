@@ -1,8 +1,8 @@
 'use client';
 
-import { AnalyticsView } from '@/features/dashboard/components/views/AnalyticsView/AnalyticsView';
-import { MapView } from '@/features/dashboard/components/views/MapView/MapView';
-import { TableView } from '@/features/dashboard/components/views/TableView/TableView';
+import { AnalyticsView } from '@/features/dashboard/components/analytics/AnalyticsView';
+import { MapView } from '@/features/dashboard/components/map/MapView';
+import { TableView } from '@/features/dashboard/components/table/TableView';
 import type { ViewSwitcherProps } from '@/features/dashboard/types';
 
 /**

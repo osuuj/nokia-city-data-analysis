@@ -1,26 +1,35 @@
 'use client';
 
 import { Card, CardBody, CardHeader, Divider, Spinner } from '@heroui/react';
+import { useMemo } from 'react';
 import type React from 'react';
-import { CityComparison } from '../charts';
-import type { TransformedCityComparison } from '../types';
+import { CityComparison } from '../charts/CityComparison';
+import type { ChartDataItem } from '../charts/CityComparison';
+import type { TransformedCityComparison } from '../utils/types';
 
 interface CityComparisonCardProps {
   data: TransformedCityComparison[];
   currentTheme: 'light' | 'dark' | undefined;
   isLoading: boolean;
-  selectedIndustryDisplayNames: Set<string>;
-  canFetchMultiCity: boolean;
 }
 
 export const CityComparisonCard: React.FC<CityComparisonCardProps> = ({
   data,
   currentTheme,
   isLoading,
-  selectedIndustryDisplayNames,
-  canFetchMultiCity,
 }) => {
-  if (!canFetchMultiCity) return null;
+  const chartData = useMemo(() => {
+    return data.map((item) => {
+      const result: ChartDataItem = {
+        industry: item.industry,
+      };
+      // Add each city's count as a property
+      for (const city of item.cities) {
+        result[city.name] = city.count;
+      }
+      return result;
+    });
+  }, [data]);
 
   return (
     <Card className="border border-default-200">
@@ -31,10 +40,10 @@ export const CityComparisonCard: React.FC<CityComparisonCardProps> = ({
       <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
         {isLoading ? (
           <Spinner />
-        ) : selectedIndustryDisplayNames.size > 0 ? (
-          <CityComparison data={data} currentTheme={currentTheme} />
+        ) : data && data.length > 0 ? (
+          <CityComparison data={chartData} currentTheme={currentTheme} />
         ) : (
-          <p className="text-center text-default-500">Select industries to compare cities.</p>
+          <p className="text-center text-default-500">No city comparison data available.</p>
         )}
       </CardBody>
     </Card>

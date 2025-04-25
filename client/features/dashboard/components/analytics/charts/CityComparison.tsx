@@ -18,37 +18,37 @@ const getThemedColor = (
   if (theme === 'dark') {
     switch (type) {
       case 'primary':
-        return '#FFFFFF';
+        return '#3B82F6'; // blue-500
       case 'secondary':
-        return '#A0A0A0';
+        return '#10B981'; // emerald-500
       case 'grid':
-        return '#52525b'; // Lighter grid for dark
+        return '#4B5563'; // gray-600
       case 'tooltipBg':
-        return '#27272a';
+        return '#1F2937'; // gray-800
       case 'tooltipBorder':
-        return '#3f3f46';
+        return '#374151'; // gray-700
       default:
-        return '#FFFFFF';
+        return '#3B82F6'; // blue-500
     }
   }
+
   switch (type) {
     case 'primary':
-      return '#000000';
+      return '#3B82F6'; // blue-500
     case 'secondary':
-      return '#666666';
+      return '#10B981'; // emerald-500
     case 'grid':
-      return '#a1a1aa'; // Darker grid for light
+      return '#E5E7EB'; // gray-200
     case 'tooltipBg':
-      return '#FFFFFF';
+      return '#F9FAFB'; // gray-50
     case 'tooltipBorder':
-      return '#e4e4e7';
+      return '#E5E7EB'; // gray-200
     default:
-      return '#000000';
+      return '#3B82F6'; // blue-500
   }
 };
 
-// Define the expected data structure for this component
-interface ChartDataItem {
+export interface ChartDataItem {
   industry: string; // Industry display name (or 'Others')
   [cityName: string]: number | string; // City names as keys, values are counts
 }

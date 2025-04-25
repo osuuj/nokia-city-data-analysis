@@ -1,9 +1,10 @@
 'use client';
 
 import { Card, CardBody, CardHeader, Divider, Select, SelectItem, Spinner } from '@heroui/react';
+import { useMemo } from 'react';
 import type React from 'react';
-import { IndustryDistribution } from '../charts';
-import type { TransformedDistribution } from '../types';
+import { IndustryDistribution } from '../charts/IndustryDistribution';
+import type { TransformedDistribution } from '../utils/types';
 
 interface IndustryDistributionCardProps {
   data: TransformedDistribution[];
@@ -34,11 +35,12 @@ export const IndustryDistributionCard: React.FC<IndustryDistributionCardProps> =
   error,
   selectedIndustryDisplayNames,
 }) => {
-  // Transform data for the chart
-  const chartData = data.map((item) => ({
-    name: item.industry,
-    value: item.count,
-  }));
+  const chartData = useMemo(() => {
+    return data.map((item) => ({
+      name: item.industry,
+      value: item.count,
+    }));
+  }, [data]);
 
   return (
     <Card className="border border-default-200">

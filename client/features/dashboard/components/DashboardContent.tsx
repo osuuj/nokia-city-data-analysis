@@ -1,9 +1,13 @@
-import { ViewSwitcher } from '@/features/dashboard/components/views/ViewSwitcher';
+import { ViewSwitcher } from '@/features/dashboard/components/ViewSwitcher';
 import { useFilteredBusinesses } from '@/features/dashboard/hooks';
-import type { CompanyProperties, SortDescriptor, ViewMode } from '@/features/dashboard/types';
+import type {
+  CompanyProperties,
+  SortDescriptor,
+  TableColumnConfig,
+  ViewMode,
+} from '@/features/dashboard/types';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { usePagination } from '@/shared/hooks';
-import type { Column } from '@/shared/types';
 import type { FeatureCollection, Point } from 'geojson';
 import { useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
@@ -15,7 +19,7 @@ interface DashboardContentProps {
   geojson: FeatureCollection<Point, CompanyProperties>;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  columns: Column[];
+  columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;

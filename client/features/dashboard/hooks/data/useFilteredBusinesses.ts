@@ -1,6 +1,6 @@
 import type { CompanyTableKey, FilteredBusinessParams } from '@/features/dashboard/types';
+import { getDistanceInKm } from '@/features/dashboard/utils/geo';
 import { useMemo } from 'react';
-import { getDistanceInKm } from '../utils/geo';
 
 /**
  * useFilteredBusinesses

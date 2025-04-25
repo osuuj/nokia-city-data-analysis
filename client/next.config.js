@@ -20,6 +20,11 @@ const nextConfig = {
       '@icons': path.resolve(__dirname, 'shared/icons'),
       '@types': path.resolve(__dirname, 'types'),
       '@utils': path.resolve(__dirname, 'utils'),
+      '@dashboard': path.resolve(__dirname, 'features/dashboard'),
+      '@dashboard-components': path.resolve(__dirname, 'features/dashboard/components'),
+      '@dashboard-hooks': path.resolve(__dirname, 'features/dashboard/hooks'),
+      '@dashboard-types': path.resolve(__dirname, 'features/dashboard/types'),
+      '@dashboard-utils': path.resolve(__dirname, 'features/dashboard/utils'),
     };
     return config;
   },

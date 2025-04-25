@@ -3,15 +3,16 @@
 import { Card, CardBody, CardHeader, Divider, Spinner } from '@heroui/react';
 import type React from 'react';
 import { CityIndustryBars } from '../charts';
-import type { TransformedIndustriesByCity } from '../types';
+import type { TransformedIndustriesByCity } from '../utils/types';
 
 interface IndustriesByCityCardProps {
   data: TransformedIndustriesByCity[];
   currentTheme: 'light' | 'dark' | undefined;
-  getIndustryKeyFromName: (name: string) => string | undefined;
+  getIndustryKeyFromName: (displayName: string) => string | undefined;
   potentialOthers: string[];
-  getThemedIndustryColor: (name: string, theme: string | undefined) => string;
+  getThemedIndustryColor: (industry: string) => string;
   isLoading: boolean;
+  error: Error | null;
   selectedIndustryDisplayNames: Set<string>;
   canFetchMultiCity: boolean;
 }
@@ -23,6 +24,7 @@ export const IndustriesByCityCard: React.FC<IndustriesByCityCardProps> = ({
   potentialOthers,
   getThemedIndustryColor,
   isLoading,
+  error,
   selectedIndustryDisplayNames,
   canFetchMultiCity,
 }) => {
@@ -44,6 +46,8 @@ export const IndustriesByCityCard: React.FC<IndustriesByCityCardProps> = ({
             getIndustryKeyFromName={getIndustryKeyFromName}
             potentialOthers={potentialOthers}
             getThemedIndustryColor={getThemedIndustryColor}
+            selectedIndustryDisplayNames={selectedIndustryDisplayNames}
+            canFetchMultiCity={canFetchMultiCity}
           />
         ) : (
           <p className="text-center text-default-500">Select industries to view details.</p>

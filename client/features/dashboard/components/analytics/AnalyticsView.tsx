@@ -6,7 +6,8 @@ import {
   useIndustriesByCity,
   useIndustryDistribution,
   useTopCities,
-} from '@/features/dashboard/hooks/useAnalytics';
+} from '@/features/dashboard/hooks/analytics/useAnalytics';
+import type { DistributionItemRaw } from '@/features/dashboard/hooks/analytics/useAnalytics';
 import type { Filter as DashboardFilter, FilterOption } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import type { ApiError } from '@/shared/api/types';
@@ -18,7 +19,7 @@ import { createQueryKey } from '@/shared/hooks/useApi';
 import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import type { TopCityData as HookTopCityData } from '../../hooks/useAnalytics';
+import type { TopCityData } from '../../hooks/analytics/useAnalytics';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
@@ -28,12 +29,10 @@ import {
 import { CitySelection, IndustrySelection } from './selection';
 import type {
   DistributionDataRaw,
-  DistributionItemRaw,
-  TopCityData,
   TransformedCityComparison,
   TransformedDistribution,
   TransformedIndustriesByCity,
-} from './types';
+} from './utils/types';
 import {
   OTHER_CATEGORY_DISPLAY_NAME,
   OTHER_CATEGORY_NAME_FROM_BACKEND,
@@ -43,7 +42,7 @@ import {
   getThemedIndustryColor,
   transformCityComparison,
   transformIndustriesByCity,
-} from './utils';
+} from './utils/utils';
 
 const MAX_SELECTED_CITIES = 5;
 const MAX_SELECTED_INDUSTRIES = 5;
@@ -128,6 +127,25 @@ interface TopCitiesCardProps {
   error: Error | null;
 }
 
+// Define a type that combines Error and ApiError properties
+type ErrorWithApi = {
+  name: string;
+  message: string;
+  status: number;
+  code?: string;
+};
+
+// Helper function to convert ApiError to ErrorWithApi
+const convertToErrorWithApi = (error: ApiError | null): ErrorWithApi | null => {
+  if (!error) return null;
+  return {
+    name: 'ApiError',
+    message: error.message || 'An error occurred',
+    status: error.status,
+    code: error.code,
+  };
+};
+
 // Wrap each card component with error boundary
 const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCardProps) => (
   <ErrorBoundary
@@ -146,16 +164,16 @@ const IndustriesByCityCardWithErrorBoundary = ({
   data,
   error,
   ...props
-}: IndustriesByCityCardProps & { error: ApiError | null }) => (
+}: IndustriesByCityCardProps & { error: ErrorWithApi | null }) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
         title="Error loading industries by city data"
-        error={error as unknown as Error}
+        error={convertToErrorWithApi(error)}
       />
     }
   >
-    <IndustriesByCityCard data={data} {...props} />
+    <IndustriesByCityCard data={data} error={error} {...props} />
   </ErrorBoundary>
 );
 
@@ -163,11 +181,9 @@ const CityComparisonCardWithErrorBoundary = ({
   data,
   error,
   ...props
-}: CityComparisonCardProps & { error: ApiError | null }) => (
+}: CityComparisonCardProps & { error: ErrorWithApi | null }) => (
   <ErrorBoundary
-    fallback={
-      <ErrorMessage title="Error loading city comparison data" error={error as unknown as Error} />
-    }
+    fallback={<ErrorMessage title="Error loading city comparison data" error={error as Error} />}
   >
     <CityComparisonCard data={data} {...props} />
   </ErrorBoundary>
@@ -177,13 +193,16 @@ const TopCitiesCardWithErrorBoundary = ({
   data,
   error,
   ...props
-}: TopCitiesCardProps & { error: ApiError | null }) => (
+}: TopCitiesCardProps & { error: ErrorWithApi | null }) => (
   <ErrorBoundary
     fallback={
-      <ErrorMessage title="Error loading top cities data" error={error as unknown as Error} />
+      <ErrorMessage
+        title="Error Loading Top Cities"
+        message="Failed to load top cities data. Please try again."
+      />
     }
   >
-    <TopCitiesCard data={data as unknown as TopCityData[]} {...props} />
+    <TopCitiesCard data={data} {...props} />
   </ErrorBoundary>
 );
 
@@ -195,6 +214,7 @@ export const AnalyticsView: React.FC = () => {
   const [showMaxCitiesWarning, setShowMaxCitiesWarning] = useState(false);
   const [showMaxIndustriesWarning, setShowMaxIndustriesWarning] = useState(false);
   const [pieChartFocusCity, setPieChartFocusCity] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   // Fetch cities data
   const { data: citiesData, isLoading: isCitiesLoading } = useApiQuery(
@@ -347,6 +367,16 @@ export const AnalyticsView: React.FC = () => {
     }
   }, [selectedCities, pieChartFocusCity]);
 
+  const handleError = (error: ApiError | null) => {
+    if (!error) return;
+    const convertedError = {
+      name: 'ApiError',
+      message: error.message || 'An error occurred',
+      stack: new Error().stack,
+    };
+    setError(convertedError);
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -387,7 +417,9 @@ export const AnalyticsView: React.FC = () => {
           pieChartFocusCity={pieChartFocusCity}
           onPieFocusChange={handlePieFocusChange}
           isLoading={isIndustryDistributionLoading}
-          error={industryDistributionError as unknown as Error}
+          error={
+            industryDistributionError ? convertToErrorWithApi(industryDistributionError) : null
+          }
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
         />
 
@@ -402,7 +434,7 @@ export const AnalyticsView: React.FC = () => {
             getThemedIndustryColor(industryName, currentTheme, filters)
           }
           isLoading={isIndustriesByCityLoading}
-          error={industriesByCityError as unknown as Error}
+          error={convertToErrorWithApi(industriesByCityError)}
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
           canFetchMultiCity={selectedCities.size > 1}
         />
@@ -411,7 +443,7 @@ export const AnalyticsView: React.FC = () => {
           data={transformedCityComparison}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           isLoading={isCityComparisonLoading}
-          error={cityComparisonError as unknown as Error}
+          error={convertToErrorWithApi(cityComparisonError)}
           selectedIndustryDisplayNames={selectedIndustryDisplayNames}
           canFetchMultiCity={selectedCities.size > 1}
         />
@@ -420,7 +452,7 @@ export const AnalyticsView: React.FC = () => {
           data={topCitiesData?.data || []}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           isLoading={isTopCitiesLoading}
-          error={topCitiesError as unknown as Error}
+          error={convertToErrorWithApi(topCitiesError)}
         />
       </div>
     </div>

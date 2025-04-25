@@ -1,4 +1,7 @@
-import type { DistributionItemRaw, PivotedData } from '@/features/dashboard/hooks/useAnalytics';
+import type {
+  DistributionItemRaw,
+  PivotedData,
+} from '@/features/dashboard/hooks/analytics/useAnalytics';
 import type { TransformedCityComparison, TransformedIndustriesByCity } from './types';
 
 // Define the name for the grouped category from backend

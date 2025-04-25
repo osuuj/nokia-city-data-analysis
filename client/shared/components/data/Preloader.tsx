@@ -1,6 +1,9 @@
 'use client';
 
-import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import {
+  useFetchCities,
+  useFetchCompanies,
+} from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { ApiResponse } from '@/shared/api/types';
 import { createQueryKey } from '@/shared/hooks/useApi';

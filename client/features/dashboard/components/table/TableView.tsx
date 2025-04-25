@@ -1,6 +1,6 @@
 'use client';
 
-import { TableToolbar } from '@/features/dashboard/components/views/TableView/toolbar/TableToolbar';
+import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
 import type {
   CompanyProperties,
   CompanyTableKey,

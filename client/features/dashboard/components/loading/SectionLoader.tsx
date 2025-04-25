@@ -1,6 +1,6 @@
 'use client';
 
-import type { DashboardLoadingSection } from '@/features/dashboard/hooks/useDashboardLoading';
+import type { DashboardLoadingSection } from '@/features/dashboard/hooks/data/useDashboardLoading';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { SkeletonLoader } from '@/shared/components/SkeletonLoader';
 import { cn } from '@/shared/utils/cn';
