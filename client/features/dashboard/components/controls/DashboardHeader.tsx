@@ -28,18 +28,24 @@ export function DashboardHeader({
   onSearchChange,
 }: DashboardHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 items-start sm:items-center">
-      <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+    <div className="flex flex-col gap-4">
+      {/* Top row with view mode toggle */}
+      <div className="flex items-center justify-between">
+        <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+      </div>
 
+      {/* Bottom row with city search */}
       {viewMode !== 'map' && viewMode !== 'analytics' && (
-        <CitySearch
-          cities={cities}
-          selectedCity={selectedCity}
-          onCityChange={onCityChange}
-          isLoading={cityLoading}
-          searchTerm={searchTerm}
-          onSearchChange={onSearchChange}
-        />
+        <div className="flex items-center">
+          <CitySearch
+            cities={cities}
+            selectedCity={selectedCity}
+            onCityChange={onCityChange}
+            isLoading={cityLoading}
+            searchTerm={searchTerm}
+            onSearchChange={onSearchChange}
+          />
+        </div>
       )}
     </div>
   );

@@ -41,15 +41,15 @@ export const SidebarWrapper = () => {
   return (
     <aside
       className={cn(
-        'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
+        'relative flex h-full flex-col border-r border-divider transition-all duration-300',
         {
-          'w-72 md:w-52 sm:w-5 px-4': !isCompact,
-          'w-16 items-center px-2 py-6': isCompact,
+          'w-72 md:w-64 sm:w-20 p-6': !isCompact,
+          'w-20 p-4': isCompact,
         },
       )}
     >
       {/* Top: Logo + collapse toggle */}
-      <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
+      <div className={cn('flex items-center', { 'justify-center': isCompact })}>
         <Link href="/" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
         </Link>
@@ -72,14 +72,14 @@ export const SidebarWrapper = () => {
         )}
       </div>
 
-      <Spacer y={2} />
+      <Spacer y={4} />
 
       {/* Middle: Sidebar */}
-      <ScrollShadow className="mr-6 h-full max-h-full py-6 pr-6">
+      <ScrollShadow className="h-full max-h-full">
         <Sidebar defaultSelectedKey="dashboard" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
-      <Spacer y={2} />
+      <Spacer y={4} />
 
       {/* Bottom: Help + expand toggle */}
       <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>

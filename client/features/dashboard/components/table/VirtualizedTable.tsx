@@ -3,10 +3,10 @@
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import type React from 'react';
 import { useRef, useState } from 'react';
-import type { Business } from '../../types';
+import type { CompanyProperties } from '../../types';
 
 interface VirtualizedTableProps {
-  data: Business[];
+  data: CompanyProperties[];
   visibleColumns: Array<{
     key: string;
     label: string;
@@ -79,38 +79,56 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
         selectionMode="multiple"
         selectedKeys={selectedKeys}
         onSelectionChange={handleSelectionChange}
+        classNames={{
+          base: 'min-w-full',
+          table: 'min-w-full',
+          thead: 'bg-default-50',
+          th: 'text-default-600 text-xs font-medium uppercase tracking-wider',
+          td: 'text-default-700 text-sm',
+          tr: 'data-[selected=true]:bg-primary-50',
+        }}
       >
         <TableHeader>
           {visibleColumns.map((column) => (
-            <TableColumn key={`header-${column.key}`}>{column.label}</TableColumn>
+            <TableColumn key={`header-${column.key}`} className="whitespace-nowrap">
+              {column.label}
+            </TableColumn>
           ))}
         </TableHeader>
         <TableBody>
-          {visibleRows.map((item) => {
-            const isSelected = selectedKeys.has(item.business_id);
-            return (
-              <TableRow
-                key={`row-${item.business_id}`}
-                style={{ height: ROW_HEIGHT }}
-                aria-selected={isSelected}
-                onClick={() => {
-                  const newSelectedKeys = new Set(selectedKeys);
-                  if (isSelected) {
-                    newSelectedKeys.delete(item.business_id);
-                  } else {
-                    newSelectedKeys.add(item.business_id);
-                  }
-                  onSelectionChange(newSelectedKeys);
-                }}
-              >
-                {visibleColumns.map((column) => (
-                  <TableCell key={`cell-${item.business_id}-${column.key}`}>
-                    {renderCellValue(item[column.key as keyof Business])}
-                  </TableCell>
-                ))}
-              </TableRow>
-            );
-          })}
+          {visibleRows.length > 0 ? (
+            visibleRows.map((item) => {
+              const isSelected = selectedKeys.has(item.business_id);
+              return (
+                <TableRow
+                  key={`row-${item.business_id}`}
+                  style={{ height: ROW_HEIGHT }}
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    const newSelectedKeys = new Set(selectedKeys);
+                    if (isSelected) {
+                      newSelectedKeys.delete(item.business_id);
+                    } else {
+                      newSelectedKeys.add(item.business_id);
+                    }
+                    onSelectionChange(newSelectedKeys);
+                  }}
+                >
+                  {visibleColumns.map((column) => (
+                    <TableCell key={`cell-${item.business_id}-${column.key}`}>
+                      {renderCellValue(item[column.key as keyof CompanyProperties])}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={visibleColumns.length} className="text-center py-4">
+                No data available
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
       <div style={{ height: (data.length - endIndex) * ROW_HEIGHT }} />
