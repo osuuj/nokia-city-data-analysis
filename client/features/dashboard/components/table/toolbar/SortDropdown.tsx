@@ -8,14 +8,16 @@ import { AccessibleIconify } from '@shared/icons';
 import { useEffect, useState } from 'react';
 
 /**
- * SortDropdown
- * A dropdown menu to apply column sorting logic in the table.
+ * SortDropdown component
+ * A dropdown menu for applying column sorting in the table view.
+ * Provides options to sort by any visible column in ascending or descending order.
  */
 export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdownProps) {
+  // Get only visible columns for sorting options
   const visibleColumns = columns.filter((col) => col.visible);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Close dropdown on window resize
+  // Close dropdown on window resize to prevent layout issues
   useEffect(() => {
     const handleResize = () => {
       if (isOpen) {
@@ -26,76 +28,79 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
+  // Get the current sort direction icon
+  const getSortIcon = (columnKey: string) => {
+    if (sortDescriptor.column !== columnKey) return 'lucide:arrow-up-down';
+    return sortDescriptor.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down';
+  };
+
+  // Get the current sort label
+  const getSortLabel = (columnKey: string) => {
+    if (sortDescriptor.column !== columnKey) return 'Sort by';
+    return `Sorted ${sortDescriptor.direction === 'asc' ? 'ascending' : 'descending'}`;
+  };
+
   return (
-    <Dropdown
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      classNames={{
-        base: 'focus:outline-none focus:ring-0',
-        trigger: 'focus:outline-none focus:ring-0',
-        content: 'focus:outline-none focus:ring-0',
-      }}
-    >
+    <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
       <DropdownTrigger>
         <Button
-          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
+          variant="flat"
+          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           startContent={
             <AccessibleIconify
-              icon="solar:sort-linear"
+              icon={getSortIcon(sortDescriptor.column)}
               width={16}
               className="text-default-400"
-              ariaLabel="Sort"
+              ariaLabel={getSortLabel(sortDescriptor.column)}
             />
           }
-          aria-label="Sort columns"
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
+          aria-label={getSortLabel(sortDescriptor.column)}
         >
-          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Sort</span>
+          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">
+            {getSortLabel(sortDescriptor.column)}
+          </span>
         </Button>
       </DropdownTrigger>
-
       <DropdownMenu
-        aria-label="Sort columns"
-        selectionMode="single"
-        selectedKeys={[sortDescriptor.column]}
-        className="p-1 focus:outline-none focus:ring-0"
-        classNames={{
-          base: 'text-left min-w-[150px] focus:outline-none focus:ring-0',
-        }}
-        onSelectionChange={(keys) => {
-          const key = Array.from(keys)[0] as keyof CompanyProperties;
-          setSortDescriptor((prev) => ({
-            column: key,
-            direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
-          }));
+        aria-label="Sort options"
+        onAction={(key) => {
+          const [column, direction] = String(key).split('-');
+          setSortDescriptor({
+            column: column as keyof CompanyProperties,
+            direction: direction === 'ascending' ? 'asc' : 'desc',
+          });
+          setIsOpen(false);
         }}
       >
-        {visibleColumns.map((item) => (
+        {visibleColumns.flatMap((column) => [
           <DropdownItem
-            key={item.key}
-            className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
-            textValue={item.label}
-            aria-label={`Sort by ${item.label} ${sortDescriptor.column === item.key ? (sortDescriptor.direction === 'asc' ? 'ascending' : 'descending') : ''}`}
+            key={`${column.key}-ascending`}
+            startContent={
+              <AccessibleIconify
+                icon="lucide:arrow-up"
+                width={16}
+                className="text-default-400"
+                ariaLabel="Sort ascending"
+              />
+            }
           >
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{item.label}</span>
-              {sortDescriptor.column === item.key && (
-                <AccessibleIconify
-                  icon={
-                    sortDescriptor.direction === 'asc'
-                      ? 'solar:arrow-up-linear'
-                      : 'solar:arrow-down-linear'
-                  }
-                  width={12}
-                  className="text-default-400"
-                  ariaLabel={`${sortDescriptor.direction === 'asc' ? 'Ascending' : 'Descending'} order`}
-                />
-              )}
-            </div>
-          </DropdownItem>
-        ))}
+            Sort {column.label} ascending
+          </DropdownItem>,
+          <DropdownItem
+            key={`${column.key}-descending`}
+            startContent={
+              <AccessibleIconify
+                icon="lucide:arrow-down"
+                width={16}
+                className="text-default-400"
+                ariaLabel="Sort descending"
+              />
+            }
+          >
+            Sort {column.label} descending
+          </DropdownItem>,
+        ])}
       </DropdownMenu>
     </Dropdown>
   );

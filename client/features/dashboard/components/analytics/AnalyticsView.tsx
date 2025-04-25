@@ -20,6 +20,13 @@ import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import type { TopCityData } from '../../hooks/analytics/useAnalytics';
+import type { PivotedData } from '../../hooks/analytics/useAnalytics';
+import {
+  useCityComparisonEnhanced,
+  useIndustriesByCityEnhanced,
+  useIndustryDistributionEnhanced,
+  useTopCitiesEnhanced,
+} from '../../hooks/analytics/useEnhancedAnalytics';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
@@ -83,6 +90,14 @@ interface IndustryDistributionResponse extends ApiResponse<DistributionDataRaw> 
 interface IndustriesByCityResponse extends ApiResponse<TransformedIndustriesByCity[]> {}
 interface CityComparisonResponse extends ApiResponse<TransformedCityComparison[]> {}
 interface TopCitiesResponse extends ApiResponse<TopCityData[]> {}
+
+interface AnalyticsData {
+  id: string;
+  name: string;
+  value: number;
+  timestamp: string;
+  // Add other properties as needed
+}
 
 interface IndustryDistributionCardProps {
   data: TransformedDistribution[];
@@ -183,9 +198,14 @@ const CityComparisonCardWithErrorBoundary = ({
   ...props
 }: CityComparisonCardProps & { error: ErrorWithApi | null }) => (
   <ErrorBoundary
-    fallback={<ErrorMessage title="Error loading city comparison data" error={error as Error} />}
+    fallback={
+      <ErrorMessage
+        title="Error Loading City Comparison"
+        message="Failed to load city comparison data. Please try again."
+      />
+    }
   >
-    <CityComparisonCard data={data} {...props} />
+    <CityComparisonCard data={data} error={error} {...props} />
   </ErrorBoundary>
 );
 
@@ -222,33 +242,36 @@ export const AnalyticsView: React.FC = () => {
     API_ENDPOINTS.CITIES.LIST,
   );
 
-  // Fetch top cities data
+  // Convert selectedCities Set to Array for the hooks
+  const selectedCitiesArray = useMemo(() => Array.from(selectedCities), [selectedCities]);
+
+  // Fetch top cities data with enhanced hook
   const {
     data: topCitiesData,
     isLoading: isTopCitiesLoading,
     error: topCitiesError,
-  } = useTopCities();
+  } = useTopCitiesEnhanced(selectedCitiesArray, selectedIndustries);
 
-  // Fetch industry distribution data
+  // Fetch industry distribution data with enhanced hook
   const {
     data: industryDistributionData,
     isLoading: isIndustryDistributionLoading,
     error: industryDistributionError,
-  } = useIndustryDistribution(Array.from(selectedCities));
+  } = useIndustryDistributionEnhanced(selectedCitiesArray, selectedIndustries);
 
-  // Fetch industries by city data
+  // Fetch industries by city data with enhanced hook
   const {
     data: industriesByCityData,
     isLoading: isIndustriesByCityLoading,
     error: industriesByCityError,
-  } = useIndustriesByCity(Array.from(selectedCities));
+  } = useIndustriesByCityEnhanced(selectedCitiesArray, selectedIndustries);
 
-  // Fetch city comparison data
+  // Fetch city comparison data with enhanced hook
   const {
     data: cityComparisonData,
     isLoading: isCityComparisonLoading,
     error: cityComparisonError,
-  } = useCityComparison(Array.from(selectedCities));
+  } = useCityComparisonEnhanced(selectedCitiesArray, selectedIndustries);
 
   // Memoize the list of cities
   const cities = useMemo(() => {
@@ -270,10 +293,42 @@ export const AnalyticsView: React.FC = () => {
     return map;
   }, []);
 
+  // Memoize the transformed industry distribution data with combined calculations
+  const { chartData, total } = useMemo(() => {
+    const data = industryDistributionData?.data;
+    if (!Array.isArray(data)) return { chartData: [], total: 0 };
+
+    const items = data as DistributionItemRaw[];
+    const currentTotal = items.reduce((sum, item) => sum + item.value, 0);
+
+    const transformedData = items.map(
+      (item): TransformedDistribution => ({
+        industry: getIndustryName(item.name, industryNameMap),
+        count: item.value,
+        percentage: currentTotal > 0 ? (item.value / currentTotal) * 100 : 0,
+      }),
+    );
+
+    return { chartData: transformedData, total: currentTotal };
+  }, [industryDistributionData, industryNameMap]);
+
+  // Memoize the transformed industries by city data with type assertion
+  const transformedIndustriesByCity = useMemo(() => {
+    if (!industriesByCityData?.data) return [];
+    return transformIndustriesByCity(industriesByCityData.data as PivotedData);
+  }, [industriesByCityData]);
+
+  // Memoize the transformed city comparison data with type assertion
+  const transformedCityComparison = useMemo(() => {
+    if (!cityComparisonData?.data) return [];
+    return transformCityComparison(cityComparisonData.data as PivotedData);
+  }, [cityComparisonData]);
+
   // Memoize the list of available industries with their counts
   const availableIndustries = useMemo(() => {
     if (!industryDistributionData?.data) return [];
-    return industryDistributionData.data.map((item: DistributionItemRaw) => ({
+    const data = industryDistributionData.data as DistributionItemRaw[];
+    return data.map((item) => ({
       name: getIndustryName(item.name, industryNameMap),
       total: item.value,
     }));
@@ -286,33 +341,9 @@ export const AnalyticsView: React.FC = () => {
 
   // Memoize the potential "Others" category
   const potentialOthers = useMemo(() => {
-    return getPotentialOthers(industryDistributionData?.data);
-  }, [industryDistributionData]);
-
-  // Memoize the transformed industries by city data
-  const transformedIndustriesByCity = useMemo(() => {
-    return transformIndustriesByCity(industriesByCityData?.data);
-  }, [industriesByCityData]);
-
-  // Memoize the transformed city comparison data
-  const transformedCityComparison = useMemo(() => {
-    return transformCityComparison(cityComparisonData?.data);
-  }, [cityComparisonData]);
-
-  // Memoize the transformed industry distribution data
-  const transformedIndustryDistribution = useMemo(() => {
     if (!industryDistributionData?.data) return [];
-
-    // Calculate total for percentage
-    const total = industryDistributionData.data.reduce((sum, item) => sum + item.value, 0);
-
-    // Transform the data
-    return industryDistributionData.data.map((item) => ({
-      industry: getIndustryName(item.name, industryNameMap),
-      count: item.value,
-      percentage: total > 0 ? (item.value / total) * 100 : 0,
-    }));
-  }, [industryDistributionData, industryNameMap]);
+    return getPotentialOthers(industryDistributionData.data as DistributionItemRaw[]);
+  }, [industryDistributionData]);
 
   // Handle city selection
   const handleCityAdd = (city: string) => {
@@ -377,6 +408,10 @@ export const AnalyticsView: React.FC = () => {
     setError(convertedError);
   };
 
+  const handleDataChange = (data: AnalyticsData[]) => {
+    // ... existing code ...
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -403,7 +438,7 @@ export const AnalyticsView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <IndustryDistributionCardWithErrorBoundary
-          data={transformedIndustryDistribution}
+          data={chartData}
           currentTheme={currentTheme as 'light' | 'dark' | undefined}
           getIndustryKeyFromName={(displayName: string) =>
             getIndustryKeyFromName(displayName, filters)

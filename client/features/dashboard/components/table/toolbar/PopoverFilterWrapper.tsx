@@ -91,15 +91,14 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
           className="p-0 focus:outline-none focus:ring-0"
           style={{ maxWidth }}
           id={`${title.toLowerCase()}-filter-content`}
-          role="dialog"
           aria-modal="true"
           aria-label={`${title} filter options`}
           aria-hidden={false}
         >
-          <div className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full">
+          <dialog className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full">
             <h3 className="mb-2 xs:mb-3 text-xs xs:text-sm sm:text-base font-medium">{title}</h3>
             <div className="w-full">{children}</div>
-          </div>
+          </dialog>
 
           <Divider className="bg-default-100" />
           <div className="flex w-full justify-end gap-1 xs:gap-2 px-2 xs:px-3 py-1.5 xs:py-2">

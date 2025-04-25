@@ -7,31 +7,60 @@ import type { Feature, Point } from 'geojson';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+/**
+ * Props for the FeatureCardList component
+ */
 interface FeatureCardListProps {
+  /** Array of GeoJSON features representing companies */
   features: Feature<Point, CompanyProperties>[];
+  /** Currently active feature (if any) */
   activeFeature: Feature<Point, CompanyProperties> | null;
+  /** Callback when a feature is selected */
   onSelect: (feature: Feature<Point, CompanyProperties>) => void;
+  /** Color to use for selected items */
   selectedColor: string;
+  /** Theme to use for styling */
   theme?: string;
+  /** Optional callback to fly to coordinates */
   flyTo?: (coords: [number, number], addressType?: string) => void;
 }
 
+/**
+ * Helper function to check if two coordinate sets are different
+ */
+const areCoordinatesDifferent = (
+  a?: { latitude: number; longitude: number },
+  b?: { latitude: number; longitude: number },
+): boolean => {
+  if (!a || !b) return false;
+  return a.latitude !== b.latitude || a.longitude !== b.longitude;
+};
+
+/**
+ * FeatureCardList component
+ * Displays a list of company features in a card format with collapsible behavior
+ * and responsive design for different screen sizes.
+ */
 export function FeatureCardList({
   features,
   theme = 'light',
   onSelect,
   flyTo,
 }: FeatureCardListProps) {
+  // State management
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+
+  // Track current feature IDs for resetting selection
   const currentIds = features
     .map((f) => f.properties.business_id)
     .sort()
     .join(',');
   const previousIdsRef = useRef('');
 
+  // Handle responsive behavior
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -45,6 +74,7 @@ export function FeatureCardList({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Reset selection when features change
   useEffect(() => {
     if (previousIdsRef.current !== currentIds) {
       previousIdsRef.current = currentIds;
@@ -52,6 +82,7 @@ export function FeatureCardList({
     }
   }, [currentIds]);
 
+  // Feature selection logic
   const isMulti = features.length > 1;
   const selectedFeature = isMulti
     ? (features.find((f) => f.properties.business_id === selectedBusinessId) ?? null)
@@ -61,6 +92,7 @@ export function FeatureCardList({
   const showList = isMulti && !selectedBusinessId;
   const showDetails = selectedFeature != null;
 
+  // Get industry letter for icon
   const letter = selectedFeature
     ? (selectedFeature.properties.industry_letter || 'broken').trim().toUpperCase()
     : features.length > 0
@@ -70,14 +102,7 @@ export function FeatureCardList({
   // Determine if we should use the multi icon
   const useMultiIcon = isMulti && !selectedBusinessId;
 
-  const areCoordinatesDifferent = (
-    a?: { latitude: number; longitude: number },
-    b?: { latitude: number; longitude: number },
-  ) => {
-    if (!a || !b) return false;
-    return a.latitude !== b.latitude || a.longitude !== b.longitude;
-  };
-
+  // Render address section
   const renderAddress = (
     label: string,
     address?: CompanyProperties['addresses'][string],
@@ -128,6 +153,7 @@ export function FeatureCardList({
 
   return (
     <>
+      {/* Collapsed state button */}
       <div className={`absolute z-[100] top-4 left-4 ${isCollapsed ? 'block' : 'hidden'}`}>
         <Button
           size="sm"
@@ -146,6 +172,7 @@ export function FeatureCardList({
         </Button>
       </div>
 
+      {/* Main card container */}
       <div
         className={`z-50 ${isCollapsed ? 'hidden' : 'block'} ${
           isMobile
@@ -229,7 +256,7 @@ export function FeatureCardList({
                   );
                 })}
               </ScrollShadow>
-            ) : showDetails && selectedFeature ? (
+            ) : showDetails ? (
               <div className="space-y-1.5">
                 <div className="flex items-start gap-2">
                   <div className="bg-default-100 p-1.5 rounded-md flex items-center justify-center mt-1">
@@ -249,102 +276,64 @@ export function FeatureCardList({
 
                 {!isCompact && <Divider className="my-1" />}
 
-                <ScrollShadow
-                  isEnabled={false}
-                  className={isMobile ? (isCompact ? 'max-h-[80px]' : 'max-h-[120px]') : ''}
-                >
-                  {(() => {
-                    let rawAddresses = selectedFeature.properties.addresses;
-                    if (typeof rawAddresses === 'string') {
-                      try {
-                        rawAddresses = JSON.parse(rawAddresses);
-                      } catch {
-                        rawAddresses = {};
-                      }
-                    }
+                {(() => {
+                  const addresses = selectedFeature.properties.addresses;
+                  const visiting = addresses?.visiting;
+                  const postal = addresses?.postal;
+                  const coordsDiffer = areCoordinatesDifferent(visiting, postal);
 
-                    const visiting = rawAddresses['Visiting address'];
-                    const postal = rawAddresses['Postal address'];
-                    const coordsDiffer = areCoordinatesDifferent(visiting, postal);
-
-                    if (!visiting && !postal) {
-                      return (
-                        <div className="text-center py-2 text-default-400 bg-default-50 rounded-lg border border-default-200">
-                          <Icon icon="lucide:map-off" width={18} className="mb-1" />
-                          <div className="text-xs">No address available</div>
-                        </div>
-                      );
-                    }
-
-                    if (!coordsDiffer && visiting) {
-                      return renderAddress('Visiting / Postal Address:', visiting);
-                    }
-
-                    return (
-                      <>
-                        {visiting &&
-                          renderAddress(
-                            'Visiting Address:',
-                            visiting,
-                            [visiting.longitude, visiting.latitude],
-                            coordsDiffer,
-                          )}
-                        {postal &&
-                          renderAddress(
-                            'Postal Address:',
-                            postal,
-                            [postal.longitude, postal.latitude],
-                            coordsDiffer,
-                          )}
-                      </>
-                    );
-                  })()}
-
-                  {(!isCompact || !isMobile) && (
+                  return (
                     <>
-                      {selectedFeature.properties.industry_description && (
-                        <div className="mt-2">
-                          <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
-                            Industry
-                          </div>
-                          <div className="text-xs md:text-sm text-default-600 p-2 bg-default-50 rounded-lg border border-default-200">
-                            {selectedFeature.properties.industry_description}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedFeature.properties.website && (
-                        <div className="mt-2">
-                          <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
-                            Website
-                          </div>
-                          <div className="p-2 bg-default-50 rounded-lg border border-default-200">
-                            <a
-                              href={selectedFeature.properties.website}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs md:text-sm text-primary flex items-center gap-1"
-                            >
-                              <Icon icon="lucide:external-link" width={12} />
-                              <span className="truncate">{selectedFeature.properties.website}</span>
-                            </a>
-                          </div>
-                        </div>
-                      )}
+                      {visiting &&
+                        renderAddress(
+                          'Visiting Address:',
+                          visiting,
+                          [visiting.longitude, visiting.latitude],
+                          coordsDiffer,
+                        )}
+                      {postal &&
+                        renderAddress(
+                          'Postal Address:',
+                          postal,
+                          [postal.longitude, postal.latitude],
+                          coordsDiffer,
+                        )}
                     </>
-                  )}
-                </ScrollShadow>
+                  );
+                })()}
 
-                {isMulti && (
-                  <Button
-                    size="sm"
-                    variant="flat"
-                    onPress={reset}
-                    className={`w-full mt-3 ${isMobile ? 'h-8 text-xs' : 'h-10 text-sm'} flex items-center justify-center gap-1 bg-default-100 text-default-800 hover:bg-default-200 active:bg-default-300 transition-colors`}
-                    startContent={<Icon icon="lucide:chevron-left" width={isMobile ? 12 : 14} />}
-                  >
-                    Back to list
-                  </Button>
+                {(!isCompact || !isMobile) && (
+                  <>
+                    {selectedFeature.properties.industry_description && (
+                      <div className="mt-2">
+                        <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
+                          Industry
+                        </div>
+                        <div className="text-xs md:text-sm text-default-600 p-2 bg-default-50 rounded-lg border border-default-200">
+                          {selectedFeature.properties.industry_description}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedFeature.properties.website && (
+                      <div className="mt-2">
+                        <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
+                          Website
+                        </div>
+                        <div className="p-2 bg-default-50 rounded-lg border border-default-200">
+                          <a
+                            href={selectedFeature.properties.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs md:text-sm text-primary flex items-center gap-1"
+                          >
+                            <Icon icon="lucide:external-link" width={12} />
+                            <span className="truncate">{selectedFeature.properties.website}</span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
@@ -352,6 +341,18 @@ export function FeatureCardList({
                 <Icon icon="lucide:building" width={24} className="mb-2" />
                 <div className="text-sm">No company selected.</div>
               </div>
+            )}
+
+            {isMulti && (
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={reset}
+                className={`w-full mt-3 ${isMobile ? 'h-8 text-xs' : 'h-10 text-sm'} flex items-center justify-center gap-1 bg-default-100 text-default-800 hover:bg-default-200 active:bg-default-300 transition-colors`}
+                startContent={<Icon icon="lucide:chevron-left" width={isMobile ? 12 : 14} />}
+              >
+                Back to list
+              </Button>
             )}
           </CardBody>
         </Card>

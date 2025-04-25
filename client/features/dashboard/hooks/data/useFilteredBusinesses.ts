@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 /**
  * useFilteredBusinesses
  * Filters and sorts a list of businesses based on name, industry, distance, and sort descriptor.
+ * Optimized to use a single pass through the data for filtering.
  */
 export function useFilteredBusinesses({
   data,
@@ -18,22 +19,27 @@ export function useFilteredBusinesses({
   return useMemo(() => {
     if (!data || isFetching) return [];
 
-    let filtered = [...data];
+    // Prepare search term once
+    const searchTermLower = searchTerm.toLowerCase();
+    const hasSearchTerm = searchTermLower.length > 0;
+    const hasIndustryFilter = selectedIndustries.length > 0;
+    const hasDistanceFilter = userLocation && distanceLimit != null;
+    const { column, direction } = sortDescriptor;
 
-    // 🔍 Filter by company name
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter((item) => item.company_name.toLowerCase().includes(term));
-    }
+    // Single pass through data for filtering
+    const filtered = data.filter((item) => {
+      // Search term filter
+      if (hasSearchTerm && !item.company_name.toLowerCase().includes(searchTermLower)) {
+        return false;
+      }
 
-    // 🏭 Filter by industry
-    if (selectedIndustries.length > 0) {
-      filtered = filtered.filter((item) => selectedIndustries.includes(item.industry_letter ?? ''));
-    }
+      // Industry filter
+      if (hasIndustryFilter && !selectedIndustries.includes(item.industry_letter ?? '')) {
+        return false;
+      }
 
-    // 📍 Filter by geo distance (Visiting address only)
-    if (userLocation && distanceLimit != null) {
-      filtered = filtered.filter((item) => {
+      // Distance filter
+      if (hasDistanceFilter) {
         const visiting = item.addresses?.['Visiting address'];
         if (!visiting) return false;
 
@@ -42,17 +48,16 @@ export function useFilteredBusinesses({
           longitude: visiting.longitude,
         });
 
-        return distance <= distanceLimit;
-      });
-    }
+        if (distance > distanceLimit) return false;
+      }
 
-    // 🔀 Sort by table key (excluding derived address keys)
-    const { column, direction } = sortDescriptor;
+      return true;
+    });
 
+    // Sort the filtered data
     return filtered.sort((a, b) => {
       const aVal = column in a ? String(a[column as keyof typeof a] ?? '') : '';
       const bVal = column in b ? String(b[column as keyof typeof b] ?? '') : '';
-
       const comparison = aVal.localeCompare(bVal);
       return direction === 'desc' ? -comparison : comparison;
     });

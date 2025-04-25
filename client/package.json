@@ -8,9 +8,9 @@
     "start": "next start",
     "biome:check": "biome check .",
     "biome:fix": "biome check --fix .",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest --config ./config/jest.config.js",
+    "test:watch": "jest --config ./config/jest.config.js --watch",
+    "test:coverage": "jest --config ./config/jest.config.js --coverage"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

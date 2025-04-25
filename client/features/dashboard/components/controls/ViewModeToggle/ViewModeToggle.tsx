@@ -7,105 +7,92 @@ import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';
 
+/**
+ * Props for the ViewModeToggle component
+ */
 interface ViewModeToggleProps {
+  /** Current view mode */
   viewMode: ViewMode;
+  /** Callback to change the view mode */
   setViewMode: (mode: ViewMode) => void;
 }
 
 /**
- * ViewModeToggle
- * Tabbed switcher between Table, Map, and Split views using HeroUI Tabs.
+ * ViewModeToggle component
+ * Provides controls for switching between different view modes (table, map, analytics)
+ * and includes theme switching and GitHub link.
  */
 export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
   return (
-    <header className="flex flex-col sm:flex-row items-center justify-between w-full transition-all duration-300 border-b border-divider p-2 sm:p-3 md:p-4 gap-2">
-      <div className="flex items-center justify-between w-full sm:w-auto gap-2">
-        {/* View Mode Tabs - Full labels on larger screens, icons only on small screens */}
-        <Tabs
-          selectedKey={viewMode}
-          onSelectionChange={(key) => setViewMode(key as ViewMode)}
-          aria-label="View mode switcher"
-          variant="underlined"
-          classNames={{
-            base: 'w-auto',
-            tabList: 'gap-1 sm:gap-4',
-          }}
-        >
-          <Tab
-            key="table"
-            title={
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Icon icon="lucide:table" width={16} className="sm:w-5" />
-                <span className="hidden sm:block text-xs sm:text-sm">Table</span>
-              </div>
-            }
-          />
-          <Tab
-            key="map"
-            title={
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Icon icon="lucide:map" width={16} className="sm:w-5" />
-                <span className="hidden sm:block text-xs sm:text-sm">Map</span>
-              </div>
-            }
-          />
-          <Tab
-            key="split"
-            title={
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Icon icon="lucide:layout-panel-left" width={16} className="sm:w-5" />
-                <span className="hidden sm:block text-xs sm:text-sm">Split</span>
-              </div>
-            }
-          />
-          <Tab
-            key="analytics"
-            title={
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Icon icon="lucide:bar-chart-3" width={16} className="sm:w-5" />
-                <span className="hidden sm:block text-xs sm:text-sm">Analytics</span>
-              </div>
-            }
-          />
-        </Tabs>
+    <div className="flex items-center gap-2">
+      <Tabs
+        aria-label="View mode options"
+        selectedKey={viewMode}
+        onSelectionChange={(key) => setViewMode(key as ViewMode)}
+        classNames={{
+          tabList: 'gap-2',
+          cursor: 'w-full bg-primary',
+          tab: 'max-w-fit px-0 h-8',
+          tabContent: 'group-data-[selected=true]:text-primary',
+        }}
+      >
+        <Tab
+          key="table"
+          title={
+            <div className="flex items-center gap-1">
+              <Icon icon="lucide:table" width={16} />
+              <span className="text-xs sm:text-sm">Table</span>
+            </div>
+          }
+        />
+        <Tab
+          key="map"
+          title={
+            <div className="flex items-center gap-1">
+              <Icon icon="lucide:map" width={16} />
+              <span className="text-xs sm:text-sm">Map</span>
+            </div>
+          }
+        />
+        <Tab
+          key="analytics"
+          title={
+            <div className="flex items-center gap-1">
+              <Icon icon="lucide:bar-chart-2" width={16} />
+              <span className="text-xs sm:text-sm">Analytics</span>
+            </div>
+          }
+        />
+      </Tabs>
 
-        {/* More menu for mobile - contains GitHub and Theme switch */}
-        <div className="block sm:hidden">
-          <Popover placement="bottom-end">
-            <PopoverTrigger>
-              <Button isIconOnly radius="full" variant="light" size="sm" aria-label="More options">
-                <Icon icon="lucide:more-vertical" width={16} />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent>
-              <div className="p-2">
-                <div className="flex flex-col gap-2">
-                  <Link
-                    isExternal
-                    href={siteConfig.links.github}
-                    className="flex items-center justify-center"
-                  >
-                    <GithubIcon className="text-default-500" width={16} />
-                  </Link>
-                  <div className="flex items-center justify-center">
-                    <ThemeSwitch aria-label="Toggle theme" />
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+      <div className="flex items-center gap-2">
+        <ThemeSwitch />
+        <Popover placement="bottom-end">
+          <PopoverTrigger>
+            <Button
+              isIconOnly
+              variant="light"
+              className="text-default-500 hover:text-default-700"
+              aria-label="More options"
+            >
+              <Icon icon="lucide:more-horizontal" width={20} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div className="flex flex-col gap-2 p-2">
+              <Link
+                href={siteConfig.links.github}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-default-600 hover:text-default-900"
+              >
+                <GithubIcon className="w-4 h-4" />
+                <span className="text-sm">View on GitHub</span>
+              </Link>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
-
-      {/* Controls for desktop - GitHub and Theme switch */}
-      <div className="hidden sm:flex items-center gap-2">
-        <Button isIconOnly radius="full" variant="light" size="sm" aria-label="GitHub">
-          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-            <GithubIcon className="text-default-500" width={16} />
-          </Link>
-        </Button>
-        <ThemeSwitch aria-label="Toggle theme" />
-      </div>
-    </header>
+    </div>
   );
 }
