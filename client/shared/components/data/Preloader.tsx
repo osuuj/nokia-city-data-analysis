@@ -31,7 +31,9 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES.LIST, { city });
+          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES.LIST, {
+            city,
+          });
           queryClient.prefetchQuery({
             queryKey,
             queryFn: () =>

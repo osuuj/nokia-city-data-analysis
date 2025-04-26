@@ -5,11 +5,11 @@ import { clampValue } from '@/features/dashboard/utils/number';
 import { Input, Slider, cn } from '@heroui/react';
 import React, { useCallback, useMemo } from 'react';
 
-const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange: boolean }> = ({
-  index,
-  totalPips,
-  isInRange,
-}) => {
+const DistanceSliderPip: React.FC<{
+  index: number;
+  totalPips: number;
+  isInRange: boolean;
+}> = ({ index, totalPips, isInRange }) => {
   const height = `${clampValue((index / totalPips) * 100, 0, 100)}%`;
 
   return (

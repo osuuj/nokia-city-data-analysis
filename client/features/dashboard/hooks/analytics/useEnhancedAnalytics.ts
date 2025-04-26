@@ -1,105 +1,137 @@
-import { API_ENDPOINTS } from '@shared/api';
-import { useEnhancedQuery } from '@shared/hooks/data/useEnhancedQuery';
-import type { TopCityData } from './useAnalytics';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
+import type { ApiError, ApiResponse } from '@/shared/api/types';
+import { useApiQuery } from '@/shared/hooks/api/useApi';
+import type { UseQueryOptions } from '@tanstack/react-query';
 
-/**
- * Hook to fetch top cities data with enhanced caching and error handling
- *
- * @param selectedCities - Array of selected city names
- * @param selectedIndustries - Array of selected industry codes
- * @returns Query result with top cities data
- */
-export function useTopCitiesEnhanced(selectedCities: string[], selectedIndustries: string[]) {
-  return useEnhancedQuery<TopCityData[]>(
-    ['top-cities', selectedCities, selectedIndustries],
-    API_ENDPOINTS.ANALYTICS.TOP_CITIES,
-    {
-      params: {
-        cities: selectedCities.join(','),
-        industries: selectedIndustries.join(','),
-      },
-    },
-    {
-      enabled: selectedCities.length > 0,
-      staleTime: 1000 * 60 * 10, // 10 minutes
-    },
-  );
+// Types for analytics responses
+interface TopCity {
+  id: string;
+  name: string;
+  score: number;
+  rank: number;
 }
 
+interface IndustryDistribution {
+  industryId: string;
+  industryName: string;
+  percentage: number;
+  count: number;
+}
+
+interface IndustryByCity {
+  cityId: string;
+  cityName: string;
+  industries: {
+    industryId: string;
+    industryName: string;
+    count: number;
+  }[];
+}
+
+interface CityComparison {
+  cityId: string;
+  cityName: string;
+  metrics: {
+    name: string;
+    value: number;
+  }[];
+}
+
+// Cache time constants
+const STALE_TIME = 1000 * 60 * 10; // 10 minutes
+const GC_TIME = 1000 * 60 * 30; // 30 minutes
+
+// Common query options type
+type QueryOptions<TData> = Omit<
+  UseQueryOptions<ApiResponse<TData>, ApiError, ApiResponse<TData>>,
+  'queryKey' | 'queryFn'
+>;
+
 /**
- * Hook to fetch industry distribution data with enhanced caching and error handling
- *
- * @param selectedCities - Array of selected city names
- * @param selectedIndustries - Array of selected industry codes
- * @returns Query result with industry distribution data
+ * Hook for fetching top cities data with enhanced error handling and caching
  */
-export function useIndustryDistributionEnhanced(
-  selectedCities: string[],
-  selectedIndustries: string[],
-) {
-  return useEnhancedQuery(
-    ['industry-distribution', selectedCities, selectedIndustries],
+export const useTopCitiesEnhanced = (enabled = true) => {
+  return useApiQuery<TopCity[]>(
+    ['analytics', 'topCities'],
+    API_ENDPOINTS.ANALYTICS.TOP_CITIES,
+    undefined,
+    {
+      enabled,
+      staleTime: STALE_TIME,
+      gcTime: GC_TIME,
+      onError: (error: ApiError) => {
+        console.error('Failed to fetch top cities:', error);
+        // Here you can add custom error handling like showing a toast notification
+      },
+    } as QueryOptions<TopCity[]>,
+  );
+};
+
+/**
+ * Hook for fetching industry distribution data with enhanced error handling and caching
+ */
+export const useIndustryDistributionEnhanced = (selectedCities: string[], enabled = true) => {
+  return useApiQuery<IndustryDistribution[]>(
+    ['analytics', 'industryDistribution', selectedCities],
     API_ENDPOINTS.ANALYTICS.INDUSTRY_DISTRIBUTION,
     {
       params: {
         cities: selectedCities.join(','),
-        industries: selectedIndustries.join(','),
       },
     },
     {
-      enabled: selectedCities.length > 0,
-      staleTime: 1000 * 60 * 10, // 10 minutes
-    },
+      enabled: enabled && selectedCities.length > 0,
+      staleTime: STALE_TIME,
+      gcTime: GC_TIME,
+      onError: (error: ApiError) => {
+        console.error('Failed to fetch industry distribution:', error);
+      },
+    } as QueryOptions<IndustryDistribution[]>,
   );
-}
+};
 
 /**
- * Hook to fetch industries by city data with enhanced caching and error handling
- *
- * @param selectedCities - Array of selected city names
- * @param selectedIndustries - Array of selected industry codes
- * @returns Query result with industries by city data
+ * Hook for fetching industries by city data with enhanced error handling and caching
  */
-export function useIndustriesByCityEnhanced(
-  selectedCities: string[],
-  selectedIndustries: string[],
-) {
-  return useEnhancedQuery(
-    ['industries-by-city', selectedCities, selectedIndustries],
+export const useIndustriesByCityEnhanced = (selectedCities: string[], enabled = true) => {
+  return useApiQuery<IndustryByCity[]>(
+    ['analytics', 'industriesByCity', selectedCities],
     API_ENDPOINTS.ANALYTICS.INDUSTRIES_BY_CITY,
     {
       params: {
         cities: selectedCities.join(','),
-        industries: selectedIndustries.join(','),
       },
     },
     {
-      enabled: selectedCities.length > 0,
-      staleTime: 1000 * 60 * 10, // 10 minutes
-    },
+      enabled: enabled && selectedCities.length > 0,
+      staleTime: STALE_TIME,
+      gcTime: GC_TIME,
+      onError: (error: ApiError) => {
+        console.error('Failed to fetch industries by city:', error);
+      },
+    } as QueryOptions<IndustryByCity[]>,
   );
-}
+};
 
 /**
- * Hook to fetch city comparison data with enhanced caching and error handling
- *
- * @param selectedCities - Array of selected city names
- * @param selectedIndustries - Array of selected industry codes
- * @returns Query result with city comparison data
+ * Hook for fetching city comparison data with enhanced error handling and caching
  */
-export function useCityComparisonEnhanced(selectedCities: string[], selectedIndustries: string[]) {
-  return useEnhancedQuery(
-    ['city-comparison', selectedCities, selectedIndustries],
+export const useCityComparisonEnhanced = (selectedCities: string[], enabled = true) => {
+  return useApiQuery<CityComparison[]>(
+    ['analytics', 'cityComparison', selectedCities],
     API_ENDPOINTS.ANALYTICS.CITY_COMPARISON,
     {
       params: {
         cities: selectedCities.join(','),
-        industries: selectedIndustries.join(','),
       },
     },
     {
-      enabled: selectedCities.length > 0,
-      staleTime: 1000 * 60 * 10, // 10 minutes
-    },
+      enabled: enabled && selectedCities.length >= 2,
+      staleTime: STALE_TIME,
+      gcTime: GC_TIME,
+      onError: (error: ApiError) => {
+        console.error('Failed to fetch city comparison:', error);
+      },
+    } as QueryOptions<CityComparison[]>,
   );
-}
+};

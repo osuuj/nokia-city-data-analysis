@@ -47,7 +47,12 @@ export const transformCityComparison = (
 ): TransformedCityComparison[] => {
   if (!data) return [];
 
-  return (data as unknown as Array<{ industry: string; [key: string]: string | number }>)
+  return (
+    data as unknown as Array<{
+      industry: string;
+      [key: string]: string | number;
+    }>
+  )
     .map((item) => {
       const industry = item.industry;
       if (!industry) return null;
@@ -78,7 +83,10 @@ export const getPotentialOthers = (data: Array<DistributionItemRaw> | undefined)
 // Get industry key from display name
 export const getIndustryKeyFromName = (
   displayName: string,
-  filters: Array<{ key: string; options?: Array<{ value: string; title: string }> }>,
+  filters: Array<{
+    key: string;
+    options?: Array<{ value: string; title: string }>;
+  }>,
 ): string | undefined => {
   if (displayName === OTHER_CATEGORY_DISPLAY_NAME) {
     return OTHER_CATEGORY_NAME_FROM_BACKEND;

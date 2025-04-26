@@ -1,8 +1,8 @@
 'use client';
 
+import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { cn } from '@/shared/utils/cn';
 import { Chip } from '@heroui/react';
-import { Icon } from '@iconify/react';
 
 export interface FilterTagProps {
   label: string;
@@ -23,11 +23,11 @@ export function FilterTag({ label, icon, color = 'text-primary-500', onRemove }:
       )}
       startContent={
         icon ? (
-          <Icon
+          <AccessibleIconify
             icon={icon}
             className={cn('text-primary-500 shrink-0', color)}
             width={12}
-            aria-hidden="true"
+            ariaLabel={`${label} icon`}
           />
         ) : null
       }

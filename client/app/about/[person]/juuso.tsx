@@ -703,7 +703,7 @@ function TestimonialCard({
           </div>
           <p className="text-default-600 mb-6 italic">{content}</p>
           <div className="flex items-center gap-3">
-            <Image src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover" />
+            <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover" />
             <div>
               <p className="font-semibold">{name}</p>
               <p className="text-default-500 text-sm">{position}</p>

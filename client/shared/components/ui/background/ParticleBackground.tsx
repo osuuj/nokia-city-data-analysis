@@ -34,7 +34,13 @@ const ParticleBackground: React.FC = () => {
     const particleColor = 'rgba(255, 255, 255, 0.6)';
     const particleCount = Math.min(Math.floor(dimensions.width * 0.04), 80); // Slightly fewer particles
 
-    let particles: { x: number; y: number; size: number; speedX: number; speedY: number }[] = [];
+    let particles: {
+      x: number;
+      y: number;
+      size: number;
+      speedX: number;
+      speedY: number;
+    }[] = [];
 
     const createParticles = () => {
       particles = [];

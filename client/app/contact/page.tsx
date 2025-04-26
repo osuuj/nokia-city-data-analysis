@@ -61,7 +61,11 @@ export default function ContactPage() {
             {/* First person */}
             <Card className="backdrop-blur-md bg-opacity-90">
               <CardBody className="flex flex-col items-center gap-4">
-                <Avatar src="" className="w-24 h-24" isBordered color="primary" />
+                <img
+                  src={`/api/avatar?seed=${encodeURIComponent('Juuso Juvonen')}`}
+                  alt="Juuso Juvonen"
+                  className="w-24 h-24 rounded-full border-2 border-primary"
+                />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">
                     Juuso Juvonen
@@ -108,7 +112,11 @@ export default function ContactPage() {
             {/* Second person */}
             <Card className="backdrop-blur-md bg-opacity-90">
               <CardBody className="flex flex-col items-center gap-4">
-                <Avatar src="" className="w-24 h-24" isBordered color="primary" />
+                <img
+                  src={`/api/avatar?seed=${encodeURIComponent('Kasperi Rautio')}`}
+                  alt="Kasperi Rautio"
+                  className="w-24 h-24 rounded-full border-2 border-primary"
+                />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">
                     Kasperi Rautio

@@ -46,7 +46,9 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
     set((state) => {
       if (keys === 'all' && allFilteredData) {
         // Select all rows across all pages (using `allFilteredData`)
-        return { selectedKeys: new Set(allFilteredData.map((item) => item.business_id)) };
+        return {
+          selectedKeys: new Set(allFilteredData.map((item) => item.business_id)),
+        };
       }
       return { selectedKeys: keys instanceof Set ? keys : new Set() };
     }),

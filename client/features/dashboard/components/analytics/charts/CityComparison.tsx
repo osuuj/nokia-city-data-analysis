@@ -93,7 +93,11 @@ export const CityComparison: React.FC<CityComparisonProps> = ({ data, currentThe
               color: textColor,
             }}
             itemStyle={{ color: textColor }}
-            labelStyle={{ color: textColor, fontWeight: 'bold', marginBottom: '4px' }}
+            labelStyle={{
+              color: textColor,
+              fontWeight: 'bold',
+              marginBottom: '4px',
+            }}
           />
           <Legend
             wrapperStyle={{

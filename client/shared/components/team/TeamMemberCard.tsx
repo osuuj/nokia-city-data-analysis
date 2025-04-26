@@ -12,7 +12,6 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import type { TeamMemberCardProps } from './types';
@@ -44,13 +43,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
       <Card className="shadow-md h-full backdrop-blur-md bg-opacity-85 border border-content2">
         <CardHeader className="flex flex-col items-center gap-2 p-4">
           <div className="relative w-24 h-24">
-            <Image
-              src={avatarSrc}
-              alt={name}
-              fill
-              className="rounded-full object-cover"
-              sizes="(max-width: 96px) 100vw, 96px"
-            />
+            <img src={avatarSrc} alt={name} className="w-24 h-24 rounded-full object-cover" />
           </div>
           <h3 className="text-xl font-semibold text-center">{name}</h3>
           <p className="text-default-500 text-center">{jobTitle}</p>

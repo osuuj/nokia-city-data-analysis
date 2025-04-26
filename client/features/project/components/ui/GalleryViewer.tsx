@@ -82,14 +82,14 @@ const GalleryViewer = memo(function GalleryViewer({ items, className = '' }: Gal
       {items.length > 1 && (
         <>
           <Button
-            onClick={handlePrevious}
+            onPress={handlePrevious}
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
             aria-label="Previous image"
           >
             <Icon icon="solar:arrow-left-bold" className="text-xl" />
           </Button>
           <Button
-            onClick={handleNext}
+            onPress={handleNext}
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
             aria-label="Next image"
           >

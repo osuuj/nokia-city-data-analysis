@@ -5,7 +5,12 @@
  */
 
 // Sidebar components
-export { Sidebar, SidebarItemType, type SidebarItem, type SidebarProps } from './sidebar/Sidebar';
+export {
+  Sidebar,
+  SidebarItemType,
+  type SidebarItem,
+  type SidebarProps,
+} from './sidebar/Sidebar';
 export { SidebarWrapper } from './sidebar/SidebarWrapper';
 export { sectionItems } from './sidebar/SidebarItems';
 

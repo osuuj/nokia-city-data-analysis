@@ -62,12 +62,20 @@ export function AnimatedProjectHero() {
         <motion.div
           className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary-100 dark:bg-primary-900/30 opacity-30 blur-3xl"
           animate={{ scale: [1, 1.2, 1], x: [0, 20, 0], y: [0, -20, 0] }}
-          transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY, repeatType: 'reverse' }}
+          transition={{
+            duration: 8,
+            repeat: Number.POSITIVE_INFINITY,
+            repeatType: 'reverse',
+          }}
         />
         <motion.div
           className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary-100 dark:bg-secondary-900/30 opacity-30 blur-3xl"
           animate={{ scale: [1, 1.3, 1], x: [0, -20, 0], y: [0, 20, 0] }}
-          transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, repeatType: 'reverse' }}
+          transition={{
+            duration: 10,
+            repeat: Number.POSITIVE_INFINITY,
+            repeatType: 'reverse',
+          }}
         />
       </div>
 

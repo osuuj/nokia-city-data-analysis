@@ -37,7 +37,7 @@ repos:
         files: ^server/.*\.py$
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.11.5
+    rev: v0.11.7
     hooks:
       - id: ruff
         args: ["--config", "etl/ruff.toml"]
@@ -57,7 +57,7 @@ repos:
         files: ^server/.*\.py$
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.399
+    rev: v1.1.400
     hooks:
       - id: pyright
         args: ["--project", "etl/pyrightconfig.json"]

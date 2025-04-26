@@ -1,31 +1,16 @@
-import type { DistributionItemRaw } from '@/features/dashboard/hooks/analytics/useAnalytics';
+import type {
+  DistributionDataRaw,
+  TopCityData,
+  TransformedCityComparison,
+  TransformedDistribution,
+  TransformedIndustriesByCity,
+} from '../../../hooks/analytics/types';
 
-export interface TransformedDistribution {
-  industry: string;
-  count: number;
-  percentage: number;
-}
-
-export interface TransformedIndustriesByCity {
-  city: string;
-  [key: string]: string | number;
-}
-
-export interface TransformedCityComparison {
-  industry: string;
-  cities: Array<{
-    name: string;
-    count: number;
-  }>;
-  [key: string]: string | number | Array<{ name: string; count: number }>;
-}
-
-export interface TopCityData {
-  city: string;
-  count: number;
-  companyCount: number;
-  industryCount: number;
-  averageCompaniesPerIndustry: number;
-}
-
-export type DistributionDataRaw = DistributionItemRaw[];
+// Re-export all types from the hooks/analytics/types.ts file
+export type {
+  TransformedDistribution,
+  TransformedIndustriesByCity,
+  TransformedCityComparison,
+  TopCityData,
+  DistributionDataRaw,
+};

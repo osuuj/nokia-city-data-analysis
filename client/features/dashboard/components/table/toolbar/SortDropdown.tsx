@@ -5,10 +5,10 @@ import type {
   CompanyTableKey,
   SortDescriptor,
 } from '@/features/dashboard/types';
+import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { useCallback, useMemo, useState } from 'react';
 
 interface SortDropdownProps {
@@ -75,7 +75,12 @@ export function SortDropdown({
             'transition-colors duration-200',
           )}
           startContent={
-            <Icon icon={sortIcon} width={16} className="text-default-500" aria-hidden="true" />
+            <AccessibleIconify
+              icon={sortIcon}
+              className="text-default-500"
+              width={16}
+              ariaLabel={`${sortLabel} icon`}
+            />
           }
           aria-label={ariaLabel || `Sort: ${sortLabel}`}
         >
@@ -98,11 +103,11 @@ export function SortDropdown({
           <DropdownItem
             key={`${column.key}-ascending`}
             startContent={
-              <Icon
+              <AccessibleIconify
                 icon="lucide:arrow-up"
-                width={16}
                 className="text-default-500"
-                aria-hidden="true"
+                width={16}
+                ariaLabel={`Sort ${column.label} ascending icon`}
               />
             }
             className="text-xs py-1"
@@ -113,11 +118,11 @@ export function SortDropdown({
           <DropdownItem
             key={`${column.key}-descending`}
             startContent={
-              <Icon
+              <AccessibleIconify
                 icon="lucide:arrow-down"
-                width={16}
                 className="text-default-500"
-                aria-hidden="true"
+                width={16}
+                ariaLabel={`Sort ${column.label} descending icon`}
               />
             }
             className="text-xs py-1"

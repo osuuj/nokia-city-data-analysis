@@ -4,7 +4,11 @@ import { Button, Card, CardBody, CardFooter, CardHeader, Chip } from '@heroui/re
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback, useMemo } from 'react';
-import type { ProjectCardProps } from '../types';
+import type { Project } from '../types';
+
+interface ProjectCardProps {
+  project: Project;
+}
 
 export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
@@ -31,7 +35,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
       design: 'warning',
       etl: 'warning',
       api: 'secondary',
-      map: 'secondary', // Changed from 'info' to 'secondary' to match allowed types
+      map: 'secondary',
       analytics: 'danger',
     }),
     [],
@@ -41,12 +45,12 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
     router.push(`/project/${project.id}`);
   }, [router, project.id]);
 
-  const handleDemoClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDemoClick = useCallback(() => {
+    // No need to prevent default or stop propagation as the Button component handles this
   }, []);
 
-  const handleRepoClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRepoClick = useCallback(() => {
+    // No need to prevent default or stop propagation as the Button component handles this
   }, []);
 
   return (
@@ -96,25 +100,27 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
       <CardBody className="pb-0">
         <div className="flex items-center gap-2 mb-2">
           <Chip
-            color={categoryColors[project.category] || 'default'}
+            color={categoryColors[project.category || ''] || 'default'}
             variant="flat"
             size="sm"
             startContent={
               <Icon
-                icon={categoryIcons[project.category] || 'lucide:folder'}
+                icon={categoryIcons[project.category || ''] || 'lucide:folder'}
                 width={16}
                 height={16}
               />
             }
           >
-            {project.category.charAt(0).toUpperCase() + project.category.slice(1)}
+            {project.category
+              ? project.category.charAt(0).toUpperCase() + project.category.slice(1)
+              : 'Other'}
           </Chip>
         </div>
         <h3 className="text-xl font-bold mb-2">{project.title}</h3>
         <p className="text-default-500">{project.description}</p>
 
         <div className="flex flex-wrap gap-1 mt-4">
-          {project.tags.map((tag) => (
+          {project.tags?.map((tag: string) => (
             <Chip key={tag} size="sm" variant="flat" color="default">
               {tag}
             </Chip>
@@ -132,7 +138,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
               as="a"
               href={project.demoUrl}
               rel="noopener noreferrer"
-              onClick={handleDemoClick}
+              onPress={handleDemoClick}
             >
               Live Demo
             </Button>
@@ -146,7 +152,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
               href={project.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={handleRepoClick}
+              onPress={handleRepoClick}
             >
               View Code
             </Button>

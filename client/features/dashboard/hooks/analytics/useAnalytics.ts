@@ -1,27 +1,14 @@
 import { ApiResponse } from '@/shared/api/types';
-import { createQueryKey, useApiQuery } from '@/shared/hooks/useApi';
+import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
 import { API_ENDPOINTS } from '@shared/api';
+import type { DistributionDataRaw, PivotedData, TopCityData } from './types';
 
-// Types
-export interface TopCityData {
-  city: string;
-  count: number;
-  companyCount: number;
-  industryCount: number;
-  averageCompaniesPerIndustry: number;
-}
-
-export type PivotedData = Array<Record<string, string | number>>;
-
-export type DistributionItemRaw = {
-  name: string;
-  value: number;
-  others_breakdown?: Array<{ name: string; value: number }>;
-};
-
-export type DistributionDataRaw = Array<DistributionItemRaw>;
-
-// Hooks
+/**
+ * Hook to fetch top cities data
+ *
+ * @param limit - The maximum number of cities to return (default: 10)
+ * @returns Query result with top cities data
+ */
 export const useTopCities = (limit = 10) => {
   return useApiQuery<TopCityData[]>(
     createQueryKey('top-cities', { limit }),
@@ -29,6 +16,12 @@ export const useTopCities = (limit = 10) => {
   );
 };
 
+/**
+ * Hook to fetch industry distribution data for selected cities
+ *
+ * @param cities - Array of city names to fetch data for
+ * @returns Query result with industry distribution data
+ */
 export const useIndustryDistribution = (cities: string[]) => {
   const citiesParam = cities.join(',');
   return useApiQuery<DistributionDataRaw>(
@@ -41,6 +34,12 @@ export const useIndustryDistribution = (cities: string[]) => {
   );
 };
 
+/**
+ * Hook to fetch industries by city data
+ *
+ * @param cities - Array of city names to fetch data for (max 5 cities)
+ * @returns Query result with industries by city data
+ */
 export const useIndustriesByCity = (cities: string[]) => {
   const citiesParam = cities.join(',');
   return useApiQuery<PivotedData>(
@@ -53,6 +52,12 @@ export const useIndustriesByCity = (cities: string[]) => {
   );
 };
 
+/**
+ * Hook to fetch city comparison data
+ *
+ * @param cities - Array of city names to compare (max 5 cities)
+ * @returns Query result with city comparison data
+ */
 export const useCityComparison = (cities: string[]) => {
   const citiesParam = cities.join(',');
   return useApiQuery<PivotedData>(

@@ -1,5 +1,6 @@
 'use client';
 
+import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
 import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
 import type {
   CompanyProperties,
@@ -22,9 +23,15 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { VirtualizedTable } from './VirtualizedTable';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { TableSkeleton } from './skeletons/TableSkeleton';
+
+// Lazy load VirtualizedTable component for code splitting
+const VirtualizedTable = lazy(() =>
+  import('./VirtualizedTable').then((module) => ({
+    default: module.VirtualizedTable,
+  })),
+);
 
 interface TableViewComponentProps extends TableViewProps {
   allFilteredData: CompanyProperties[];
@@ -50,10 +57,11 @@ const arePropsEqual = (
   );
 };
 
-export const TableView = React.memo<TableViewComponentProps>(
+export const TableView: React.FC<TableViewComponentProps> = React.memo(
   ({
     data,
     allFilteredData,
+    columns,
     currentPage,
     totalPages,
     onPageChange,
@@ -64,178 +72,93 @@ export const TableView = React.memo<TableViewComponentProps>(
     setSortDescriptor,
   }) => {
     const { visibleColumns } = useCompanyStore();
+    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [useLocation, setUseLocation] = useState(false);
     const [address, setAddress] = useState('');
-    const selectedKeys = useCompanyStore((s) => s.selectedKeys);
-    const setSelectedKeys = useCompanyStore((s) => s.setSelectedKeys);
     const [windowWidth, setWindowWidth] = useState(
       typeof window !== 'undefined' ? window.innerWidth : 1024,
     );
-    const [mounted, setMounted] = useState(false);
 
-    // Set mounted state to true after component mounts
-    useEffect(() => {
-      setMounted(true);
-    }, []);
-
-    // Use window width to detect screen size
-    const isMobile = windowWidth < 640;
-    const isXsScreen = windowWidth < 400;
-
-    // Update window width on resize
-    useEffect(() => {
-      const handleResize = () => setWindowWidth(window.innerWidth);
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    // Memoize event handlers
     const handleSearchChange = useCallback(
-      (term: string) => {
-        setSearchTerm(term);
+      (value: string) => {
+        setSearchTerm(value);
       },
       [setSearchTerm],
     );
 
-    const handleSortChange = useCallback(
-      (key: CompanyTableKey) => {
-        setSortDescriptor((prev) => ({
-          column: key,
-          direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
-        }));
-      },
-      [setSortDescriptor],
-    );
+    const handleSelectionChange = useCallback((keys: Set<string>) => {
+      setSelectedKeys(keys);
+    }, []);
 
-    const handleSelectionChange = useCallback(
-      (keys: Set<string> | 'all') => {
-        if (keys === 'all') {
-          const allKeys = new Set(allFilteredData.map((item) => item.business_id));
-          setSelectedKeys(allKeys);
-        } else {
-          setSelectedKeys(new Set(Array.from(keys).map(String)));
-        }
-      },
-      [allFilteredData, setSelectedKeys],
-    );
+    useEffect(() => {
+      const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+      };
 
-    // Use the data directly since filtering is already handled by useFilteredBusinesses
-    const filteredData = data ?? [];
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-    const bottomContent = useMemo(
-      () => (
-        <div className="flex w-full flex-col items-center justify-center gap-1 px-1 py-1 sm:gap-1 sm:px-2 sm:py-2 md:gap-2 md:px-3 md:py-3">
-          {data.length > 0 && (
+    // Transform columns to match VirtualizedTable props
+    const transformedColumns = useMemo(() => {
+      return columns.map((col) => ({
+        key: col.key,
+        label: col.label,
+        visible: true,
+        userVisible: true,
+      }));
+    }, [columns]);
+
+    return (
+      <ScaleIn>
+        <Card className="w-full">
+          <FadeIn>
+            <TableToolbar
+              searchTerm={searchTerm}
+              onSearch={handleSearchChange}
+              selectedKeys={selectedKeys}
+              useLocation={useLocation}
+              setUseLocation={setUseLocation}
+              address={address}
+              setAddress={setAddress}
+              sortDescriptor={sortDescriptor}
+              setSortDescriptor={setSortDescriptor}
+              setSelectedKeys={setSelectedKeys}
+            />
+          </FadeIn>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Spinner size="lg" />
+            </div>
+          ) : (
             <>
-              <div className="flex w-full justify-center">
-                <Pagination
-                  disableCursorAnimation
-                  classNames={{
-                    base: 'text-xs gap-0.5 sm:text-sm sm:gap-1 md:text-sm md:gap-1',
-                    item: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                    cursor:
-                      'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary-500',
-                    next: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                    prev: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                    ellipsis: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                    wrapper: 'w-full flex justify-center max-w-full overflow-x-auto px-0',
-                  }}
-                  siblings={1}
-                  boundaries={1}
-                  showControls={true}
-                  isCompact={isMobile}
-                  showShadow={!isXsScreen}
-                  dotsJump={1}
-                  color="primary"
-                  page={currentPage}
-                  total={totalPages}
-                  onChange={onPageChange}
-                  size={isMobile ? 'sm' : 'md'}
-                  aria-label="Table pagination"
+              <Suspense fallback={<TableSkeleton />}>
+                <VirtualizedTable
+                  data={data}
+                  visibleColumns={transformedColumns}
+                  selectedKeys={selectedKeys}
+                  onSelectionChange={handleSelectionChange}
+                  height={600}
+                  width={windowWidth - 96} // Adjust for padding and margins
                 />
-              </div>
-
-              {/* Only show page info on larger screens */}
-              {!isMobile && (
-                <div className="text-xs text-default-500 mt-0.5 sm:mt-1">
-                  Page {currentPage} of {totalPages}
+              </Suspense>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-4">
+                  <Pagination
+                    total={totalPages}
+                    page={currentPage}
+                    onChange={onPageChange}
+                    showControls
+                  />
                 </div>
               )}
             </>
           )}
-        </div>
-      ),
-      [currentPage, totalPages, onPageChange, isMobile, isXsScreen, data.length],
-    );
-
-    // Don't render the table until the component is mounted on the client
-    if (!mounted) {
-      return (
-        <Card className="h-full w-full p-0.5 xs:p-1 sm:p-2 md:p-3 lg:p-4 shadow-md border border-default-200">
-          <TableSkeleton rows={10} columns={visibleColumns.length} />
         </Card>
-      );
-    }
-
-    if (isLoading) {
-      return (
-        <Card className="h-full w-full p-0.5 xs:p-1 sm:p-2 md:p-3 lg:p-4 shadow-md border border-default-200">
-          <TableSkeleton rows={10} columns={visibleColumns.length} />
-        </Card>
-      );
-    }
-
-    return (
-      <Card className="h-full w-full p-0.5 xs:p-1 sm:p-2 md:p-3 lg:p-4 shadow-md border border-default-200">
-        <div className="flex flex-col gap-4">
-          <TableToolbar
-            searchTerm={searchTerm}
-            onSearch={handleSearchChange}
-            selectedKeys={selectedKeys}
-            useLocation={useLocation}
-            setUseLocation={setUseLocation}
-            address={address}
-            setAddress={setAddress}
-            sortDescriptor={sortDescriptor}
-            setSortDescriptor={setSortDescriptor}
-            setSelectedKeys={setSelectedKeys}
-          />
-
-          <div className="w-full overflow-x-auto">
-            <VirtualizedTable
-              data={filteredData}
-              visibleColumns={visibleColumns.map((col) => {
-                // Add suggested widths for columns based on content type
-                let width: number | undefined;
-                switch (col.key) {
-                  case 'business_id':
-                    width = 80;
-                    break;
-                  case 'company_name':
-                    width = 200;
-                    break;
-                  case 'street':
-                  case 'city':
-                    width = 150;
-                    break;
-                  default:
-                    width = 120; // Default column width
-                }
-                return { ...col, width };
-              })}
-              selectedKeys={selectedKeys}
-              onSelectionChange={handleSelectionChange}
-              height={600}
-              width={windowWidth - 96} // Adjust for padding and margins
-            />
-          </div>
-
-          {bottomContent}
-        </div>
-      </Card>
+      </ScaleIn>
     );
   },
   arePropsEqual,
 );
 
-TableView.displayName = 'TableView';
+export default TableView;

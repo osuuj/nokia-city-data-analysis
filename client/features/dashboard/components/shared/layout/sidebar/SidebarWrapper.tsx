@@ -82,7 +82,11 @@ export const SidebarWrapper = () => {
       <Spacer y={4} />
 
       {/* Bottom: Help + expand toggle */}
-      <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>
+      <div
+        className={cn('mt-auto flex flex-col gap-2', {
+          'items-center': isCompact,
+        })}
+      >
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
           <Link href="/resources" className="w-full">
             <Button

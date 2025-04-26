@@ -237,7 +237,10 @@ export function FeatureCardList({
                       <div className="flex items-center gap-2 w-full">
                         <div
                           className="flex-shrink-0 flex items-center justify-center bg-default-100 rounded-md"
-                          style={{ width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}
+                          style={{
+                            width: isMobile ? 20 : 24,
+                            height: isMobile ? 20 : 24,
+                          }}
                         >
                           <Image
                             src={`/industries-${theme}/${letter}.svg`}

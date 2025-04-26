@@ -204,7 +204,13 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
               placement="top"
               closeDelay={0}
             >
-              <li style={{ display: 'flex', alignItems: 'center', color: textColor }}>
+              <li
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: textColor,
+                }}
+              >
                 <img
                   src={iconPath}
                   alt={`${industryName} icon`}
