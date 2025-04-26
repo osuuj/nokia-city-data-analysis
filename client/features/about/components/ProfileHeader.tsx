@@ -29,7 +29,7 @@ const socialButtonVariants = {
   },
 };
 
-export default function ProfileHeader({ member }: ProfileHeaderProps) {
+export function ProfileHeader({ member }: ProfileHeaderProps) {
   return (
     <motion.div variants={headerVariants} initial="hidden" animate="visible">
       <Card className="p-6">

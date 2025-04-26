@@ -2,6 +2,25 @@ import { type Project, ProjectCategory, ProjectStatus } from '../types';
 
 /**
  * Sample project data for development and testing
+ *
+ * This file contains mock project data that is used during development
+ * and testing phases. The data follows the Project interface structure
+ * and includes examples of all possible project properties.
+ *
+ * @remarks
+ * - Each project has a unique ID and required fields (title, description)
+ * - Optional fields demonstrate different use cases and data structures
+ * - Images use placeholder URLs from HeroUI's image service
+ * - Tags and categories follow the defined enums
+ *
+ * @example
+ * ```ts
+ * // Access a specific project
+ * const project = projectsData.find(p => p.id === '1');
+ *
+ * // Filter projects by category
+ * const webProjects = projectsData.filter(p => p.category === ProjectCategory.Web);
+ * ```
  */
 export const projectsData: Project[] = [
   {

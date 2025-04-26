@@ -4,11 +4,13 @@
  * This file exports all components for the about feature.
  */
 
-export { default as AboutErrorBoundary } from './AboutErrorBoundary';
-export { default as EducationSection } from './EducationSection';
-export { default as ExperienceSection } from './ExperienceSection';
-export { default as ProfileHeader } from './ProfileHeader';
-export { default as ProfilePage } from './ProfilePage';
-export { default as ProfileSkeleton } from './ProfileSkeleton';
-export { default as ProjectsSection } from './ProjectsSection';
-export { default as SkillsSection } from './SkillsSection';
+export * from './AboutErrorBoundary';
+export * from './AboutStory';
+export * from './AboutTeam';
+export * from './ProfilePage';
+export * from './ProfileHeader';
+export * from './ProfileSkeleton';
+export * from './EducationSection';
+export * from './ExperienceSection';
+export * from './ProjectsSection';
+export * from './SkillsSection';

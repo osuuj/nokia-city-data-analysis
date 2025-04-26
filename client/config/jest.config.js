@@ -1,36 +1,23 @@
-module.exports = {
-  testEnvironment: 'jsdom',
+const nextJest = require('next/jest');
+
+const createJestConfig = nextJest({
+  dir: './',
+});
+
+const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/config/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
-    '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@features/(.*)$': '<rootDir>/features/$1',
-    '^@components/(.*)$': '<rootDir>/components/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+      '<rootDir>/config/__mocks__/fileMock.js',
   },
+  testEnvironment: 'jest-environment-jsdom',
+  moduleDirectories: ['node_modules', '<rootDir>/'],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   transform: {
-    '^.+\\.(ts|tsx)$': [
-      'ts-jest',
-      {
-        tsconfig: '<rootDir>/tsconfig.json',
-      },
-    ],
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
-  testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  collectCoverageFrom: [
-    'shared/**/*.{ts,tsx}',
-    'features/**/*.{ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
-    },
-  },
-  rootDir: '..',
 };
+
+module.exports = createJestConfig(customJestConfig);

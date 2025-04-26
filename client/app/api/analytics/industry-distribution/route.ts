@@ -1,4 +1,11 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import {
+  HttpStatus,
+  createErrorResponse,
+  createSuccessResponse,
+  validateNumericParam,
+} from '@/features/api';
+import { withCache } from '@/shared/middleware/cache';
+import type { NextRequest } from 'next/server';
 
 /**
  * GET /api/analytics/industry-distribution
@@ -7,12 +14,23 @@ import { type NextRequest, NextResponse } from 'next/server';
  *
  * Query parameters:
  * - limit: number (default: 10) - Maximum number of industries to return
+ *
+ * @param request The incoming request
+ * @returns A response with the industry distribution data
  */
-export async function GET(request: NextRequest) {
+async function getIndustryDistribution(request: NextRequest) {
   try {
     // Get the limit from the query parameters
     const searchParams = request.nextUrl.searchParams;
-    const limit = Number.parseInt(searchParams.get('limit') || '10', 10);
+    const limitParam = searchParams.get('limit');
+
+    // Set default limit if not provided
+    const limit = limitParam ? Number(limitParam) : 10;
+
+    // Validate limit parameter if provided
+    if (limitParam) {
+      validateNumericParam(limit, 'limit', 1, 100);
+    }
 
     // Mock data for industry distribution
     // In a real implementation, this would come from a database
@@ -30,15 +48,17 @@ export async function GET(request: NextRequest) {
     ];
 
     // Return the mock data
-    return NextResponse.json({
-      data: mockIndustryDistribution.slice(0, limit),
-      status: 'success',
-    });
-  } catch (error) {
-    console.error('Error in industry-distribution API:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch industry distribution data', status: 500 },
-      { status: 500 },
+    return createSuccessResponse(
+      mockIndustryDistribution.slice(0, limit),
+      'Industry distribution data retrieved successfully',
     );
+  } catch (error) {
+    return createErrorResponse(error as Error);
   }
 }
+
+// Export the cached version of the handler
+export const GET = withCache(getIndustryDistribution, {
+  ttl: 3600, // Cache for 1 hour
+  keyPrefix: 'analytics:industry-distribution:',
+});

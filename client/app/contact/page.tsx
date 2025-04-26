@@ -1,37 +1,28 @@
 'use client';
 
+import { ContactErrorBoundary } from '@/features/contact/components/ContactErrorBoundary';
+import { ContactForm } from '@/features/contact/components/ContactForm';
+import { ContactFormSkeleton } from '@/features/contact/components/ContactFormSkeleton';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Avatar, Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import React from 'react';
+import { Suspense } from 'react';
 
 /**
  * Contact page component.
- * Displays contact information for two people and a feedback form.
+ * Displays contact information for team members and a feedback form.
+ *
+ * @returns {JSX.Element} The rendered contact page component
  */
-export default function ContactPage() {
+export default function ContactPage(): JSX.Element {
   const { resolvedTheme: theme } = useTheme();
-  const [name, setName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [message, setMessage] = React.useState('');
-  const [rating, setRating] = React.useState<number>(0);
 
   // Define gradient colors based on theme
   const gradientStart = theme === 'dark' ? 'rgba(50, 50, 80, 0.5)' : 'rgba(240, 240, 255, 0.7)';
   const gradientEnd = theme === 'dark' ? 'rgba(30, 30, 60, 0.3)' : 'rgba(255, 255, 255, 0.5)';
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Feedback submitted:', { name, email, message, rating });
-    // Reset form fields
-    setName('');
-    setEmail('');
-    setMessage('');
-    setRating(0);
-    // Here you would typically send this data to a server
-  };
 
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
@@ -161,6 +152,13 @@ export default function ContactPage() {
             </Card>
           </div>
         </motion.div>
+
+        {/* Contact Form Section */}
+        <ContactErrorBoundary>
+          <Suspense fallback={<ContactFormSkeleton />}>
+            <ContactForm />
+          </Suspense>
+        </ContactErrorBoundary>
       </div>
     </div>
   );

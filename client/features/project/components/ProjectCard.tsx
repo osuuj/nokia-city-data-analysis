@@ -2,18 +2,46 @@
 
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { memo, useCallback, useMemo } from 'react';
 import type { Project } from '../types';
 
+/**
+ * Props for the ProjectCard component
+ */
 interface ProjectCardProps {
+  /**
+   * The project data to display in the card
+   */
   project: Project;
 }
 
+/**
+ * ProjectCard component
+ *
+ * A card component that displays project information in a visually appealing way.
+ * Features:
+ * - Project image with hover effect
+ * - Category badge with icon
+ * - Featured project indicator
+ * - Planning status indicator
+ * - Project tags
+ * - Demo and repository links
+ *
+ * @example
+ * ```tsx
+ * <ProjectCard project={projectData} />
+ * ```
+ */
 export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
   const isPlanning = project.status === 'planning';
+  const imageSrc = project.image || '/images/placeholder-project.jpg';
 
+  /**
+   * Mapping of project categories to their corresponding icons
+   */
   const categoryIcons: Record<string, string> = useMemo(
     () => ({
       web: 'lucide:globe',
@@ -24,6 +52,9 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
     [],
   );
 
+  /**
+   * Mapping of project categories to their corresponding colors
+   */
   const categoryColors: Record<
     string,
     'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'default'
@@ -41,14 +72,23 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
     [],
   );
 
+  /**
+   * Handles navigation to the project detail page
+   */
   const handleCardPress = useCallback(() => {
     router.push(`/project/${project.id}`);
   }, [router, project.id]);
 
+  /**
+   * Handles the demo button click
+   */
   const handleDemoClick = useCallback(() => {
     // No need to prevent default or stop propagation as the Button component handles this
   }, []);
 
+  /**
+   * Handles the repository button click
+   */
   const handleRepoClick = useCallback(() => {
     // No need to prevent default or stop propagation as the Button component handles this
   }, []);
@@ -64,14 +104,20 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
       disableRipple
     >
       <CardHeader className="p-0 overflow-hidden h-48 relative">
-        <img
-          src={project.image}
-          alt={project.title}
-          className="w-full h-full object-cover transform transition-transform hover:scale-105"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            src={imageSrc}
+            alt={project.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transform transition-transform hover:scale-105"
+            priority={project.featured}
+            loading={project.featured ? 'eager' : 'lazy'}
+          />
+        </div>
 
         {project.featured && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 z-10">
             <Chip
               color="warning"
               variant="solid"
@@ -84,7 +130,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
         )}
 
         {isPlanning && (
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 z-10">
             <Chip
               color="default"
               variant="flat"

@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server';
+import { HttpStatus, createErrorResponse, createSuccessResponse } from '@/features/api';
+import { withCache } from '@/shared/middleware/cache';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Mock data for cities
 const mockCities = [
@@ -57,21 +59,21 @@ const mockCities = [
 /**
  * GET handler for /api/cities
  * Returns a list of cities
+ *
+ * @param request The incoming request
+ * @returns A response with the list of cities
  */
-export async function GET() {
+async function getCities(request: NextRequest) {
   try {
-    return NextResponse.json({
-      success: true,
-      data: mockCities,
-    });
+    // In a real implementation, this would fetch from a database
+    return createSuccessResponse(mockCities, 'Cities retrieved successfully');
   } catch (error) {
-    console.error('Error in cities API:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch cities',
-      },
-      { status: 500 },
-    );
+    return createErrorResponse(error as Error);
   }
 }
+
+// Export the cached version of the handler
+export const GET = withCache(getCities, {
+  ttl: 3600, // Cache for 1 hour
+  keyPrefix: 'cities:',
+});

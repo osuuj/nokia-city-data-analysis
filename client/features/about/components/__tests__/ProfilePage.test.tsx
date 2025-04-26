@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { useProfileData } from '../../hooks/useProfileData';
-import ProfilePage from '../ProfilePage';
+import { ProfilePage } from '../ProfilePage';
 
 // Mock the useProfileData hook
 jest.mock('../../hooks/useProfileData');

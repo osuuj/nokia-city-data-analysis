@@ -4,6 +4,13 @@ import { Icon } from '@iconify/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
+/**
+ * Project categories with their associated icons and colors
+ *
+ * @remarks
+ * Each category has a unique ID, display name, icon, and color theme.
+ * The icons are from the Lucide icon set.
+ */
 const categories = [
   {
     id: 'web',
@@ -43,6 +50,20 @@ const categories = [
   },
 ] as const;
 
+/**
+ * Animated hero section for the projects page
+ *
+ * Features:
+ * - Rotating category icons with smooth animations
+ * - Animated background blobs
+ * - Gradient text effects
+ * - Responsive design
+ *
+ * @example
+ * ```tsx
+ * <AnimatedProjectHero />
+ * ```
+ */
 export function AnimatedProjectHero() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const currentCategory = categories[currentIndex];

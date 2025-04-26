@@ -1,18 +1,18 @@
 import type { CompanyProperties, SortDescriptor } from '@/features/dashboard/types';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { getVisibleColumns } from '@/features/dashboard/utils/table';
+import { useOptimizedFetch } from '@/shared/hooks/useOptimizedFetch';
 import { columns as allColumns } from '@shared/config';
 import type { FeatureCollection, Point } from 'geojson';
 import { useMemo } from 'react';
-import useSWR from 'swr';
 import { useFilteredBusinesses } from './useFilteredBusinesses';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 /**
  * Custom hook for fetching and processing dashboard data
  * Centralizes data fetching, filtering, and transformation logic
+ * Uses optimized fetching with debouncing and caching
  */
 export function useDashboardData({
   selectedCity,
@@ -27,37 +27,35 @@ export function useDashboardData({
   distanceLimit: number | null;
   query: string;
 }) {
-  // Fetch GeoJSON data for the selected city
-  const { data: geojsonData, isLoading: isFetching } = useSWR<
-    FeatureCollection<Point, CompanyProperties>
-  >(
+  // Fetch GeoJSON data for the selected city with optimized fetching
+  const {
+    data: geojsonData,
+    isLoading: isFetching,
+    error: geojsonError,
+    refetch: refetchGeojson,
+  } = useOptimizedFetch<FeatureCollection<Point, CompanyProperties>>(
     selectedCity
       ? `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(selectedCity)}`
       : null,
-    fetcher,
     {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-      suspense: false, // Don't use React Suspense
-      keepPreviousData: true, // Keep previous data while fetching new data
-      fallbackData: { type: 'FeatureCollection', features: [] }, // Provide fallback data
+      debounceDelay: 300,
+      maxWait: 1000,
+      cacheTime: 60000, // Cache for 1 minute
+      deps: [selectedCity],
     },
   );
 
-  // Fetch cities list
-  const { data: cities = [], isLoading: cityLoading } = useSWR<string[]>(
-    `${BASE_URL}/api/v1/cities`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 300000, // Cache for 5 minutes
-      suspense: false, // Don't use React Suspense
-      keepPreviousData: true, // Keep previous data while fetching new data
-      fallbackData: [], // Provide fallback data
-    },
-  );
+  // Fetch cities list with optimized fetching and longer cache time
+  const {
+    data: cities = [],
+    isLoading: cityLoading,
+    error: citiesError,
+    refetch: refetchCities,
+  } = useOptimizedFetch<string[]>(`${BASE_URL}/api/v1/cities`, {
+    debounceDelay: 500,
+    maxWait: 2000,
+    cacheTime: 300000, // Cache for 5 minutes
+  });
 
   // Process table rows from GeoJSON data
   const tableRows = useMemo(() => {
@@ -98,5 +96,13 @@ export function useDashboardData({
     tableRows,
     visibleColumns,
     handleCityChange,
+    errors: {
+      geojson: geojsonError,
+      cities: citiesError,
+    },
+    refetch: {
+      geojson: refetchGeojson,
+      cities: refetchCities,
+    },
   };
 }

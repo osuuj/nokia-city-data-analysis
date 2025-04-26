@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import React, { Suspense, lazy } from 'react';
 import { useProfileData } from '../hooks/useProfileData';
 import type { ProfilePageProps } from '../types';
-import AboutErrorBoundary from './AboutErrorBoundary';
-import ProfileHeader from './ProfileHeader';
-import ProfileSkeleton from './ProfileSkeleton';
+import { AboutErrorBoundary } from './AboutErrorBoundary';
+import { ProfileHeader } from './ProfileHeader';
+import { ProfileSkeleton } from './ProfileSkeleton';
 
 // Lazy load section components
 const LazySkillsSection = lazy(() => import('./lazy/LazySkillsSection'));
@@ -45,7 +45,7 @@ const itemVariants = {
   },
 };
 
-export default function ProfilePage({ id }: ProfilePageProps) {
+export function ProfilePage({ id }: ProfilePageProps) {
   const { data: profile, isLoading, error } = useProfileData(id);
 
   if (isLoading) {
