@@ -44,3 +44,14 @@ export interface ErrorWithStatus extends Error {
   code?: string;
   details?: Record<string, unknown>;
 }
+
+/**
+ * Dashboard error type for consistent error handling
+ */
+export interface DashboardError {
+  message: string;
+  code?: string;
+  status?: number;
+}
+
+export type DashboardView = 'overview' | 'analytics' | 'reports' | 'settings';

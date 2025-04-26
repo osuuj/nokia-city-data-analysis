@@ -4,4 +4,4 @@ export { useCities, useCity, useCityStatistics } from './useCities';
 export { useCompanies, useCompany, useCompanyStatistics } from './useCompanies';
 export { useFetchCities, useFetchCompanies } from './useCompaniesQuery';
 export { useFilteredBusinesses } from './useFilteredBusinesses';
-export { usePrefetchData } from './usePrefetchData';
+export { useData } from './useData';

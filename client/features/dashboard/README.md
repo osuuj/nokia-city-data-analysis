@@ -28,9 +28,13 @@ client/features/dashboard/
 │   │   ├── ViewModeToggle/
 │   │   ├── CitySearch/
 │   │   └── index.ts
-│   └── ViewSwitcher/
-│       ├── ViewSwitcher.tsx
-│       └── index.ts
+│   ├── ViewSwitcher/
+│   │   ├── ViewSwitcher.tsx
+│   │   └── index.ts
+│   ├── DashboardError.tsx
+│   ├── DashboardFooter.tsx
+│   ├── DashboardHeader.tsx
+│   └── DashboardSidebar.tsx
 ├── hooks/
 │   ├── analytics/
 │   │   ├── useAnalytics.ts
@@ -38,6 +42,7 @@ client/features/dashboard/
 │   ├── data/
 │   │   ├── useDashboardData.ts
 │   │   └── index.ts
+│   ├── useDashboard.ts
 │   └── index.ts
 ├── store/
 │   ├── companyStore.ts
@@ -45,18 +50,28 @@ client/features/dashboard/
 ├── types/
 │   ├── analytics.ts
 │   ├── business.ts
+│   ├── common.ts
 │   ├── filters.ts
 │   ├── table.ts
 │   ├── view.ts
 │   └── index.ts
 ├── utils/
 │   ├── geo.ts
+│   ├── lazyLoading.ts
 │   ├── table.ts
 │   └── index.ts
+├── views/
+│   └── DashboardView.tsx
 └── index.ts
 ```
 
 ## Components
+
+### Core Dashboard Components
+- `DashboardError.tsx`: Component for displaying error messages
+- `DashboardFooter.tsx`: Footer component for the dashboard
+- `DashboardHeader.tsx`: Header component with navigation
+- `DashboardSidebar.tsx`: Sidebar component for navigation
 
 ### Analytics
 - `AnalyticsView.tsx`: Main component for the analytics view
@@ -81,6 +96,9 @@ client/features/dashboard/
 
 ## Hooks
 
+### Core Dashboard Hooks
+- `useDashboard.ts`: Hook for managing dashboard state and actions
+
 ### Analytics
 - `useAnalytics.ts`: Hook for fetching and managing analytics data
 - `useChartTheme.ts`: Hook for managing chart themes
@@ -100,10 +118,15 @@ client/features/dashboard/
 ## Types
 - `analytics.ts`: Types for analytics data and components
 - `business.ts`: Types for business data
+- `common.ts`: Common types used across the dashboard
 - `filters.ts`: Types for filtering options
 - `table.ts`: Types for table data and configuration
 - `view.ts`: Types for view modes and configuration
 
 ## Utils
 - `geo.ts`: Utility functions for geographic data
-- `table.ts`: Utility functions for table data 
+- `lazyLoading.ts`: Utility functions for lazy loading components
+- `table.ts`: Utility functions for table data
+
+## Views
+- `DashboardView.tsx`: Main view component that orchestrates the dashboard layout 

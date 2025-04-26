@@ -19,6 +19,8 @@ export enum ProjectStatus {
   OnHold = 'on_hold',
 }
 
+export type { ProjectsData } from './schemas';
+
 /**
  * Represents a gallery item with image source, alt text, and optional caption
  */

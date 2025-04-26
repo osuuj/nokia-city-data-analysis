@@ -1,7 +1,8 @@
 'use client';
 
-import type { TopCityData } from '@/features/dashboard/hooks/analytics/useAnalytics';
+import type { TopCityData } from '@/features/dashboard/hooks/analytics/types';
 import type React from 'react';
+import { useMemo } from 'react';
 import { BaseCard } from '../../shared/BaseCard';
 import { TopCitiesChart } from '../charts';
 
@@ -25,6 +26,14 @@ export const TopCitiesCard: React.FC<TopCitiesCardProps> = ({
   isLoading,
   error,
 }) => {
+  // Transform TopCityData to the format expected by TopCitiesChart
+  const chartData = useMemo(() => {
+    return data.map((item) => ({
+      city: item.city,
+      count: item.count,
+    }));
+  }, [data]);
+
   return (
     <BaseCard
       title="Top Cities by Active Company Count"
@@ -32,7 +41,7 @@ export const TopCitiesCard: React.FC<TopCitiesCardProps> = ({
       error={error}
       emptyMessage="Could not load top cities data."
     >
-      {data && data.length > 0 && <TopCitiesChart data={data} currentTheme={currentTheme} />}
+      {data && data.length > 0 && <TopCitiesChart data={chartData} currentTheme={currentTheme} />}
     </BaseCard>
   );
 };

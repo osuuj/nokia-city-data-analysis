@@ -1,18 +1,18 @@
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import type { ErrorWithApi } from '../../hooks/analytics/types';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
   IndustryDistributionCard,
   TopCitiesCard,
 } from './cards';
-import type { ErrorWithApi } from './interfaces';
 import type {
   CityComparisonCardProps,
   IndustriesByCityCardProps,
   IndustryDistributionCardProps,
   TopCitiesCardProps,
-} from './interfaces';
+} from './types';
 
 // Error boundary wrapper for IndustryDistributionCard
 export const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCardProps) => (

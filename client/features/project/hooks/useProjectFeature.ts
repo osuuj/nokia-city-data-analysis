@@ -82,7 +82,7 @@ export function useProjectFeature(options: UseProjectFeatureOptions = {}): UsePr
         return (
           project.title.toLowerCase().includes(term) ||
           project.description.toLowerCase().includes(term) ||
-          project.tags.some((tag) => tag.toLowerCase().includes(term))
+          (project.tags?.some((tag) => tag.toLowerCase().includes(term)) ?? false)
         );
       }
 

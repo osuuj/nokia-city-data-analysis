@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import { teamMemberProfiles } from '../data/aboutContent';
+import { teamMemberProfiles } from '../data';
 import { profilesListResponseSchema } from '../schemas';
 import type { ProfilesListResponse, TeamMemberProfile } from '../schemas';
 
 const fetchProfilesList = async (): Promise<ProfilesListResponse> => {
   try {
     // Simulate API call with mock data
-    const profiles = Object.values(teamMemberProfiles);
+    const profiles = teamMemberProfiles;
 
     // Validate the data with Zod schema
     const validatedData = profilesListResponseSchema.parse({

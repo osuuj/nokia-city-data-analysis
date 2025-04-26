@@ -5,9 +5,18 @@ import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types
 import type { FilterOption } from '@/features/dashboard/types';
 import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';
-import { Button, Divider, Tooltip } from '@heroui/react';
+import { Button } from '@heroui/button';
+import { Divider } from '@heroui/divider';
+import { Tooltip } from '@heroui/tooltip';
 import { Icon } from '@iconify/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type React from 'react';
 import { ColumnVisibilityDropdown } from './ColumnVisibilityDropdown';
 import { FilterGroup } from './FilterGroup';
@@ -20,9 +29,9 @@ export interface ToolbarProps {
   onSearch: (value: string) => void;
   selectedKeys: Set<string>;
   useLocation: boolean;
-  setUseLocation: (value: boolean) => void;
+  setUseLocation: Dispatch<SetStateAction<boolean>>;
   address: string;
-  setAddress: (value: string) => void;
+  setAddress: Dispatch<SetStateAction<string>>;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: (value: SortDescriptor) => void;
   setSelectedKeys: (value: Set<string>) => void;
@@ -200,7 +209,7 @@ export function TableToolbar({
               key={item.value}
               label={item.title}
               icon={item.icon}
-              color={item.color}
+              color={typeof item.color === 'string' ? item.color : undefined}
               onRemove={() => {
                 const newSelected = selectedIndustries.filter((i: string) => i !== item.value);
                 setSelectedIndustries(newSelected);

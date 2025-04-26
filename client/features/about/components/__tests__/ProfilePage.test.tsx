@@ -1,6 +1,8 @@
+import type { QueryObserverResult } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { useProfileData } from '../../hooks/useProfileData';
+import type { TeamMemberProfile } from '../../schemas';
 import { ProfilePage } from '../ProfilePage';
 
 // Mock the useProfileData hook
@@ -8,63 +10,91 @@ jest.mock('../../hooks/useProfileData');
 const mockUseProfileData = useProfileData as jest.MockedFunction<typeof useProfileData>;
 
 // Mock the profile data
-const mockProfile = {
+const mockProfile: TeamMemberProfile = {
   member: {
     id: 'juuso',
     name: 'Juuso',
-    jobTitle: 'Lead Developer',
+    role: 'Lead Developer',
     bio: 'Specializes in creating intuitive, beautiful user interfaces with modern web technologies.',
-    shortBio: 'Full-stack developer with a passion for UI/UX design.',
-    portfolioLink: '/about/juuso',
-    avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso',
-    skills: ['React', 'TypeScript', 'Next.js', 'Node.js', 'Python', 'UI/UX Design', 'AWS'],
-    socialLinks: {
+    avatar: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso',
+    email: 'juuso@example.com',
+    social: {
       github: 'https://github.com/osuuj',
       linkedin: 'https://linkedin.com/in/juuso',
     },
+    skills: ['React', 'TypeScript', 'Next.js', 'Node.js', 'UI/UX Design'],
     projects: ['1', '2'],
-    achievements: [
+    experience: [
       {
-        title: 'Lead Developer',
-        description: 'Led the development of the Osuuj Company Search Platform',
-        date: '2024',
+        company: 'Osuuj',
+        position: 'Lead Developer',
+        startDate: '2022-01-01',
+        description: 'Leading the development of the Osuuj Company Search Platform.',
+      },
+    ],
+    education: [
+      {
+        institution: 'University of Technology',
+        degree: 'Bachelor of Science',
+        field: 'Computer Science',
+        startDate: '2016-09-01',
+        endDate: '2020-06-30',
+        description: 'Focus on software engineering and web development',
       },
     ],
   },
   skills: [
-    { name: 'React', level: 95 },
-    { name: 'TypeScript', level: 90 },
-    { name: 'Next.js', level: 85 },
-    { name: 'Node.js', level: 80 },
-    { name: 'Python', level: 75 },
+    { name: 'React', level: 95, category: 'frontend' },
+    { name: 'TypeScript', level: 90, category: 'frontend' },
+    { name: 'Next.js', level: 85, category: 'frontend' },
+    { name: 'Node.js', level: 80, category: 'backend' },
+    { name: 'Python', level: 75, category: 'backend' },
   ],
   projects: [
     {
+      id: '1',
       title: 'Company Search Platform',
       description: 'A platform for searching and discovering companies.',
-      tech: ['React', 'TypeScript', 'Next.js', 'Node.js'],
-      link: 'https://example.com/project1',
+      technologies: ['React', 'TypeScript', 'Next.js', 'Node.js'],
+      image: '/images/project1.jpg',
+      url: 'https://example.com/project1',
+      github: 'https://github.com/example/project1',
+      startDate: '2023-01',
+      endDate: '2024-01',
     },
     {
+      id: '2',
       title: 'Data Visualization Dashboard',
       description: 'A dashboard for visualizing data.',
-      tech: ['React', 'D3.js', 'TypeScript'],
-      link: 'https://example.com/project2',
+      technologies: ['React', 'D3.js', 'TypeScript'],
+      image: '/images/project2.jpg',
+      url: 'https://example.com/project2',
+      github: 'https://github.com/example/project2',
+      startDate: '2022-06',
+      endDate: '2022-12',
     },
   ],
   experience: [
     {
+      id: '1',
       title: 'Lead Developer',
       company: 'Osuuj',
-      period: '2022 - Present',
+      period: '2022-01 - Present',
       description: 'Leading the development of the Osuuj Company Search Platform.',
+      technologies: ['React', 'TypeScript', 'Next.js', 'Node.js'],
+      achievements: ['Led team of 5 developers', 'Improved performance by 50%'],
     },
   ],
   education: [
     {
-      degree: 'Bachelor of Science in Computer Science',
+      id: '1',
       institution: 'University of Technology',
-      year: '2020',
+      degree: 'Bachelor of Science',
+      field: 'Computer Science',
+      startDate: '2016-09-01',
+      endDate: '2020-06-30',
+      description: 'Focus on software engineering and web development',
+      gpa: 3.8,
     },
   ],
 };
@@ -75,11 +105,35 @@ describe('ProfilePage', () => {
   });
 
   it('renders loading skeleton when data is loading', () => {
-    (useProfileData as jest.Mock).mockReturnValue({
-      profile: null,
+    const loadingResult: QueryObserverResult<TeamMemberProfile> = {
+      data: undefined,
       isLoading: true,
+      isError: false,
+      isSuccess: false,
+      status: 'pending',
+      fetchStatus: 'fetching',
+      dataUpdatedAt: 0,
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: false,
+      isFetchedAfterMount: false,
+      isPlaceholderData: false,
+      isPaused: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: jest.fn(),
       error: null,
-    } as ReturnType<typeof useProfileData>);
+      isPending: true,
+      isLoadingError: false,
+      isFetching: true,
+      isInitialLoading: true,
+      promise: Promise.resolve(mockProfile),
+    };
+
+    mockUseProfileData.mockReturnValue(loadingResult);
 
     render(<ProfilePage id="juuso" />);
 
@@ -88,11 +142,35 @@ describe('ProfilePage', () => {
   });
 
   it('renders error message when there is an error', () => {
-    (useProfileData as jest.Mock).mockReturnValue({
-      profile: null,
+    const errorResult: QueryObserverResult<TeamMemberProfile> = {
+      data: undefined,
       isLoading: false,
+      isError: true,
+      isSuccess: false,
+      status: 'error',
+      fetchStatus: 'idle',
+      dataUpdatedAt: 0,
+      errorUpdatedAt: 0,
+      failureCount: 1,
+      failureReason: new Error('Failed to load profile'),
+      errorUpdateCount: 1,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isPlaceholderData: false,
+      isPaused: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: jest.fn(),
       error: new Error('Failed to load profile'),
-    } as ReturnType<typeof useProfileData>);
+      isPending: false,
+      isLoadingError: true,
+      isFetching: false,
+      isInitialLoading: false,
+      promise: Promise.resolve(mockProfile),
+    };
+
+    mockUseProfileData.mockReturnValue(errorResult);
 
     render(<ProfilePage id="juuso" />);
 
@@ -104,11 +182,35 @@ describe('ProfilePage', () => {
   });
 
   it('renders profile data when loaded successfully', async () => {
-    (useProfileData as jest.Mock).mockReturnValue({
-      profile: mockProfile,
+    const successResult: QueryObserverResult<TeamMemberProfile> = {
+      data: mockProfile,
       isLoading: false,
+      isError: false,
+      isSuccess: true,
+      status: 'success',
+      fetchStatus: 'idle',
+      dataUpdatedAt: Date.now(),
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      errorUpdateCount: 0,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isPlaceholderData: false,
+      isPaused: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isStale: false,
+      refetch: jest.fn(),
       error: null,
-    } as ReturnType<typeof useProfileData>);
+      isPending: false,
+      isLoadingError: false,
+      isFetching: false,
+      isInitialLoading: false,
+      promise: Promise.resolve(mockProfile),
+    };
+
+    mockUseProfileData.mockReturnValue(successResult);
 
     render(<ProfilePage id="juuso" />);
 
@@ -137,7 +239,7 @@ describe('ProfilePage', () => {
     expect(screen.getByText('Osuuj')).toBeInTheDocument();
 
     // Check if the education section is rendered
-    expect(screen.getByText('Bachelor of Science in Computer Science')).toBeInTheDocument();
+    expect(screen.getByText('Bachelor of Science')).toBeInTheDocument();
     expect(screen.getByText('University of Technology')).toBeInTheDocument();
   });
 });

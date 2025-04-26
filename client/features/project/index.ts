@@ -13,11 +13,5 @@ export * from './hooks';
 // Types
 export * from './types';
 
-// Utils
-export * from './utils';
-
-// Data
-export * from './data';
-
-// Store
-export * from './store';
+// Config
+export * from './config';

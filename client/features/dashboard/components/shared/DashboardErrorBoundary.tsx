@@ -3,7 +3,7 @@
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
-import { logError } from '../../utils/errorLogger';
+import { logError } from '../../utils/errorHandling';
 
 /**
  * Props for the DashboardErrorBoundary component

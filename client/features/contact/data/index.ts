@@ -5,3 +5,5 @@
  */
 
 // Add data fetching functions here as they are created
+
+export * from './contactApi';

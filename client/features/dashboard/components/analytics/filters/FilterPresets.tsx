@@ -107,11 +107,11 @@ export const FilterPresets: React.FC<FilterPresetsProps> = ({
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu aria-label="Preset actions">
-                    <DropdownItem key="load" onPress={() => onLoadPreset(preset.id)}>
+                    <DropdownItem key="load" onClick={() => onLoadPreset(preset.id)}>
                       <Icon icon="mdi:play" className="mr-2" />
                       Load
                     </DropdownItem>
-                    <DropdownItem key="edit" onPress={() => handleEditPreset(preset)}>
+                    <DropdownItem key="edit" onClick={() => handleEditPreset(preset)}>
                       <Icon icon="mdi:pencil" className="mr-2" />
                       Edit
                     </DropdownItem>
@@ -119,7 +119,7 @@ export const FilterPresets: React.FC<FilterPresetsProps> = ({
                       key="delete"
                       className="text-danger"
                       color="danger"
-                      onPress={() => handleDeletePreset(preset.id)}
+                      onClick={() => handleDeletePreset(preset.id)}
                     >
                       <Icon icon="mdi:delete" className="mr-2" />
                       Delete
@@ -133,7 +133,7 @@ export const FilterPresets: React.FC<FilterPresetsProps> = ({
                     if (!value || (Array.isArray(value) && value.length === 0)) return null;
                     return (
                       <span key={key} className="text-sm text-default-500">
-                        {key}: {Array.isArray(value) ? value.join(', ') : value}
+                        {key}: {Array.isArray(value) ? value.join(', ') : String(value)}
                       </span>
                     );
                   })}
@@ -144,7 +144,7 @@ export const FilterPresets: React.FC<FilterPresetsProps> = ({
                   size="sm"
                   color="primary"
                   variant="flat"
-                  onPress={() => onLoadPreset(preset.id)}
+                  onClick={() => onLoadPreset(preset.id)}
                   className="w-full"
                 >
                   Load Preset
@@ -163,14 +163,16 @@ export const FilterPresets: React.FC<FilterPresetsProps> = ({
               label="Preset Name"
               placeholder="Enter a name for your preset"
               value={newPresetName}
-              onChange={(e) => setNewPresetName(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setNewPresetName(e.target.value)
+              }
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onClose}>
+            <Button variant="light" onClick={onClose}>
               Cancel
             </Button>
-            <Button color="primary" onPress={handleSavePreset} isDisabled={!newPresetName.trim()}>
+            <Button color="primary" onClick={handleSavePreset} isDisabled={!newPresetName.trim()}>
               {editingPreset ? 'Save Changes' : 'Create Preset'}
             </Button>
           </ModalFooter>

@@ -1,4 +1,5 @@
 import { Skeleton } from '@heroui/skeleton';
+import { motion } from 'framer-motion';
 import React from 'react';
 
 /**
@@ -28,34 +29,38 @@ import React from 'react';
  */
 const ContactFormSkeletonComponent: React.FC = () => {
   return (
-    <div className="w-full max-w-2xl space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-full max-w-2xl space-y-6"
+    >
       {/* Name field skeleton */}
-      <div>
-        <Skeleton className="h-4 w-20 mb-2 bg-gray-200 dark:bg-gray-700" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20 bg-gray-200 dark:bg-gray-700" />
         <Skeleton className="h-10 w-full bg-gray-200 dark:bg-gray-700" />
       </div>
 
       {/* Email field skeleton */}
-      <div>
-        <Skeleton className="h-4 w-20 mb-2 bg-gray-200 dark:bg-gray-700" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20 bg-gray-200 dark:bg-gray-700" />
         <Skeleton className="h-10 w-full bg-gray-200 dark:bg-gray-700" />
       </div>
 
       {/* Subject field skeleton */}
-      <div>
-        <Skeleton className="h-4 w-20 mb-2 bg-gray-200 dark:bg-gray-700" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20 bg-gray-200 dark:bg-gray-700" />
         <Skeleton className="h-10 w-full bg-gray-200 dark:bg-gray-700" />
       </div>
 
       {/* Message field skeleton */}
-      <div>
-        <Skeleton className="h-4 w-20 mb-2 bg-gray-200 dark:bg-gray-700" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-20 bg-gray-200 dark:bg-gray-700" />
         <Skeleton className="h-32 w-full bg-gray-200 dark:bg-gray-700" />
       </div>
 
       {/* Submit button skeleton */}
       <Skeleton className="h-10 w-full bg-gray-200 dark:bg-gray-700" />
-    </div>
+    </motion.div>
   );
 };
 

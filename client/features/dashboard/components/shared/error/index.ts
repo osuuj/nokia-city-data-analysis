@@ -6,4 +6,4 @@ export {
   logError,
   logWarning,
   withErrorLogging,
-} from '../../../utils/errorLogger';
+} from '../../../utils/errorHandling';

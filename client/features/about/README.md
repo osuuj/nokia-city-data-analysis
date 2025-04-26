@@ -14,10 +14,14 @@ This feature contains components and functionality for the about page of the app
   - `ProjectsSection.tsx` - Projects section component
   - `SkillsSection.tsx` - Skills section component
 - `hooks/` - Custom React hooks
+  - `useProfileData.ts` - Hook for fetching profile data
+  - `useProfilesList.ts` - Hook for fetching profiles list
+  - `useTeamMember.ts` - Hook for fetching team member data
 - `types/` - TypeScript type definitions
-- `utils/` - Utility functions
-- `data/` - Data fetching functions
-- `store/` - State management
+- `utils/` - Utility functions (placeholder for future use)
+- `data/` - Data and mock data
+  - `mockData.ts` - Mock data for development
+  - `aboutContent.ts` - Content configuration
 
 ## Components
 
@@ -29,7 +33,7 @@ The main component for the about page.
 import { ProfilePage } from '@/features/about';
 
 function AboutPage() {
-  return <ProfilePage />;
+  return <ProfilePage id="juuso" />; // id is required
 }
 ```
 
@@ -41,7 +45,19 @@ The header component for the profile page.
 import { ProfileHeader } from '@/features/about';
 
 function MyComponent() {
-  return <ProfileHeader name="John Doe" title="Software Engineer" />;
+  return (
+    <ProfileHeader
+      name="John Doe"
+      role="Senior Full Stack Developer"
+      bio="Passionate about building scalable web applications"
+      avatar="/images/avatars/john-doe.jpg"
+      email="john.doe@example.com"
+      social={{
+        github: 'https://github.com/johndoe',
+        linkedin: 'https://linkedin.com/in/johndoe'
+      }}
+    />
+  );
 }
 ```
 
@@ -50,13 +66,23 @@ function MyComponent() {
 Import components and utilities from the about feature:
 
 ```tsx
-import { ProfilePage, ProfileHeader, SkillsSection } from '@/features/about';
+import { 
+  ProfilePage, 
+  ProfileHeader, 
+  SkillsSection,
+  useProfileData,
+  useProfilesList,
+  useTeamMember 
+} from '@/features/about';
 ```
 
 ## Best Practices
 
-1. Keep components focused on a single responsibility.
-2. Use TypeScript for type safety.
-3. Follow the established directory structure.
-4. Document components with JSDoc comments.
-5. Test components thoroughly. 
+1. Keep components focused on a single responsibility
+2. Use TypeScript for type safety
+3. Follow the established directory structure
+4. Document components with JSDoc comments
+5. Test components thoroughly
+6. Use React Query for data fetching and caching
+7. Validate data with Zod schemas
+8. Keep mock data in the data directory 

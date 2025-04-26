@@ -55,7 +55,7 @@ export interface Project {
 }
 
 export interface Experience {
-  id?: string;
+  id: string;
   title: string;
   company: string;
   period: string;

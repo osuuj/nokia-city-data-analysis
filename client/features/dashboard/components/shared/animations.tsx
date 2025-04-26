@@ -158,3 +158,28 @@ export const Pulse: React.FC<{
     </motion.div>
   );
 };
+
+/**
+ * ErrorShake animation component
+ * Provides a shake animation for error states
+ */
+export const ErrorShake: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className = '' }) => {
+  return (
+    <motion.div
+      initial={{ x: 0 }}
+      animate={{
+        x: [0, -10, 10, -10, 10, -5, 5, 0],
+      }}
+      transition={{
+        duration: 0.5,
+        ease: 'easeInOut',
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};

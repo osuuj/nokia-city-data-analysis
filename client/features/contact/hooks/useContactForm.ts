@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
 import { contactApi } from '../data/contactApi';
 import type { ContactFormData, ContactFormErrors, ContactFormState } from '../types';
+
+const contactFormSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  subject: z.string().min(5, 'Subject must be at least 5 characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
 
 const INITIAL_FORM_DATA: ContactFormData = {
   name: '',
@@ -9,12 +17,13 @@ const INITIAL_FORM_DATA: ContactFormData = {
   message: '',
 };
 
-const INITIAL_FORM_STATE: ContactFormState = {
+const INITIAL_STATE: ContactFormState = {
   data: INITIAL_FORM_DATA,
   errors: {},
   isSubmitting: false,
   isSubmitted: false,
   submitError: undefined,
+  isSuccess: false,
 };
 
 // Validation rules for each field
@@ -51,7 +60,7 @@ const VALIDATION_RULES = {
  * @returns {Object} Form state and handlers
  */
 export const useContactForm = () => {
-  const [formState, setFormState] = useState<ContactFormState>(INITIAL_FORM_STATE);
+  const [formState, setFormState] = useState<ContactFormState>(INITIAL_STATE);
   const validationTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
 
   /**
@@ -70,20 +79,32 @@ export const useContactForm = () => {
    * @param data - The form data to validate
    * @returns Object containing validation errors
    */
-  const validateForm = useCallback((data: ContactFormData): ContactFormErrors => {
-    const errors: ContactFormErrors = {};
-
-    // Validate each field
-    for (const field of Object.keys(data)) {
-      const fieldKey = field as keyof ContactFormData;
-      const value = data[fieldKey];
-      if (!value || value.trim() === '') {
-        errors[fieldKey] = `${field} is required`;
+  const validateForm = useCallback((): boolean => {
+    try {
+      contactFormSchema.parse(formState.data);
+      setFormState((prev) => ({
+        ...prev,
+        errors: {},
+      }));
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: ContactFormErrors = {};
+        for (const err of error.errors) {
+          if (err.path[0]) {
+            errors[err.path[0] as keyof ContactFormData] = err.message;
+          }
+        }
+        setFormState((prev) => ({
+          ...prev,
+          errors,
+          isSubmitting: false,
+        }));
+        return false;
       }
+      return false;
     }
-
-    return errors;
-  }, []);
+  }, [formState.data]);
 
   /**
    * Debounced validation for a single field
@@ -125,6 +146,11 @@ export const useContactForm = () => {
           ...prev.data,
           [name]: value,
         },
+        errors: {
+          ...prev.errors,
+          [name]: undefined,
+        },
+        submitError: undefined,
       }));
 
       // Trigger debounced validation
@@ -137,14 +163,8 @@ export const useContactForm = () => {
    * Handles form submission
    * @returns Promise resolving to boolean indicating success
    */
-  const handleSubmit = useCallback(async () => {
-    const errors = validateForm(formState.data);
-
-    if (Object.keys(errors).length > 0) {
-      setFormState((prev) => ({
-        ...prev,
-        errors,
-      }));
+  const handleSubmit = useCallback(async (): Promise<boolean> => {
+    if (!validateForm()) {
       return false;
     }
 
@@ -152,16 +172,17 @@ export const useContactForm = () => {
       ...prev,
       isSubmitting: true,
       submitError: undefined,
+      isSuccess: false,
     }));
 
     try {
-      const response = await contactApi.submitContactForm(formState.data);
+      const response = await contactApi.sendMessage(formState.data);
 
       if (response.success) {
         setFormState((prev) => ({
           ...prev,
           isSubmitting: false,
-          isSubmitted: true,
+          isSuccess: true,
           submitError: undefined,
         }));
         return true;
@@ -169,7 +190,8 @@ export const useContactForm = () => {
       setFormState((prev) => ({
         ...prev,
         isSubmitting: false,
-        submitError: response.error || 'Failed to send message',
+        isSuccess: false,
+        submitError: response.error || 'An error occurred while submitting the form',
       }));
       return false;
     } catch (error) {
@@ -177,16 +199,17 @@ export const useContactForm = () => {
         ...prev,
         isSubmitting: false,
         submitError: 'An unexpected error occurred. Please try again.',
+        isSuccess: false,
       }));
       return false;
     }
-  }, [formState.data, validateForm]);
+  }, [validateForm, formState.data]);
 
   /**
    * Resets form state
    */
   const resetForm = useCallback(() => {
-    setFormState(INITIAL_FORM_STATE);
+    setFormState(INITIAL_STATE);
   }, []);
 
   // Clean up validation timeouts on unmount

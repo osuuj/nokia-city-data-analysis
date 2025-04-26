@@ -1,6 +1,7 @@
 import { Autocomplete, AutocompleteItem } from '@heroui/autocomplete';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, type Key } from 'react';
+import { debounce } from '../../utils/debounce';
 
 interface CitySearchProps {
   cities: string[];
@@ -15,7 +16,7 @@ interface CitySearchProps {
  * CitySearch component for searching and selecting cities
  * Extracted from the dashboard page for better separation of concerns
  */
-export function CitySearch({
+export const CitySearch = React.memo(function CitySearch({
   cities,
   selectedCity,
   onCityChange,
@@ -24,32 +25,82 @@ export function CitySearch({
   onSearchChange,
 }: CitySearchProps) {
   const router = useRouter();
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+  // Create a debounced version of onSearchChange
+  const debouncedSearchChange = useMemo(
+    () =>
+      debounce((term: string) => {
+        onSearchChange(term);
+      }, 300),
+    [onSearchChange],
+  );
+
+  // Update local search term when prop changes
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
+
+  // Handle local search term changes
+  const handleLocalSearchChange = useCallback(
+    (term: string) => {
+      setLocalSearchTerm(term);
+      debouncedSearchChange(term);
+    },
+    [debouncedSearchChange],
+  );
 
   // Filter cities based on search query
   const filteredCities = useMemo(() => {
     return cities
-      .filter((city) => city.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter((city) => city.toLowerCase().includes(localSearchTerm.toLowerCase()))
       .map((city) => ({ name: city }));
-  }, [cities, searchTerm]);
+  }, [cities, localSearchTerm]);
+
+  // Memoize the selection change handler
+  const handleSelectionChange = useCallback(
+    (key: Key | null) => {
+      if (typeof key === 'string') {
+        onCityChange(key);
+        router.replace(`/dashboard?city=${encodeURIComponent(key)}`);
+      }
+    },
+    [onCityChange, router],
+  );
+
+  // Memoize the render item function
+  const renderItem = useCallback(
+    (item: { name: string }) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>,
+    [],
+  );
+
+  // Memoize the class names
+  const classNames = useMemo(
+    () => ({
+      base: 'md:max-w-xs max-w-[30vw] min-w-[200px]',
+      listbox: '',
+      listboxWrapper: '',
+      popoverContent: 'max-w-[40vw] md:max-w-xs',
+      endContentWrapper: '',
+      clearButton: '',
+      selectorButton: '',
+    }),
+    [],
+  );
 
   return (
     <Autocomplete
-      classNames={{ base: 'md:max-w-xs max-w-[30vw] min-w-[200px]' }}
-      popoverProps={{ classNames: { content: 'max-w-[40vw] md:max-w-xs' } }}
+      classNames={classNames}
       items={filteredCities}
       label="Search by city"
       variant="underlined"
       selectedKey={selectedCity}
-      onInputChange={onSearchChange}
-      onSelectionChange={(selected) => {
-        if (typeof selected === 'string') {
-          onCityChange(selected);
-          router.replace(`/dashboard?city=${encodeURIComponent(selected)}`);
-        }
-      }}
+      inputValue={localSearchTerm}
+      onInputChange={handleLocalSearchChange}
+      onSelectionChange={handleSelectionChange}
       isLoading={isLoading}
     >
-      {(item) => <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>}
+      {renderItem}
     </Autocomplete>
   );
-}
+});

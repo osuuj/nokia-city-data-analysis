@@ -1,22 +1,14 @@
 import {
-  type PerformanceMetrics,
   PerformanceMonitor,
-  withProfiler,
+  type PerformanceMonitoringOptions,
+  withPerformanceTracking,
 } from '@shared/utils/performance';
 import type React from 'react';
 
 /**
  * Dashboard-specific performance monitoring options
  */
-export interface DashboardPerformanceOptions {
-  /** Whether to log metrics to console */
-  logToConsole?: boolean;
-  /** Whether to track component renders */
-  trackRenders?: boolean;
-  /** Whether to track interactions */
-  trackInteractions?: boolean;
-  /** Custom callback for performance data */
-  onMetrics?: (metrics: PerformanceMetrics) => void;
+export interface DashboardPerformanceOptions extends PerformanceMonitoringOptions {
   /** Whether to track analytics components */
   trackAnalytics?: boolean;
   /** Whether to track table components */
@@ -76,7 +68,7 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackAnalytics) {
       return Component;
     }
-    return withProfiler(Component, `Analytics:${componentName}`);
+    return withPerformanceTracking(Component, `Analytics:${componentName}`);
   }
 
   /**
@@ -89,7 +81,7 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackTable) {
       return Component;
     }
-    return withProfiler(Component, `Table:${componentName}`);
+    return withPerformanceTracking(Component, `Table:${componentName}`);
   }
 
   /**
@@ -102,34 +94,34 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackMap) {
       return Component;
     }
-    return withProfiler(Component, `Map:${componentName}`);
+    return withPerformanceTracking(Component, `Map:${componentName}`);
   }
 
   /**
    * Get metrics for an analytics component
    */
-  public getAnalyticsMetrics(componentName: string): PerformanceMetrics[] {
+  public getAnalyticsMetrics(componentName: string) {
     return this.monitor.getMetrics(`Analytics:${componentName}`);
   }
 
   /**
    * Get metrics for a table component
    */
-  public getTableMetrics(componentName: string): PerformanceMetrics[] {
+  public getTableMetrics(componentName: string) {
     return this.monitor.getMetrics(`Table:${componentName}`);
   }
 
   /**
    * Get metrics for a map component
    */
-  public getMapMetrics(componentName: string): PerformanceMetrics[] {
+  public getMapMetrics(componentName: string) {
     return this.monitor.getMetrics(`Map:${componentName}`);
   }
 
   /**
    * Get a performance report for all dashboard components
    */
-  public getDashboardReport(): Record<string, PerformanceMetrics[]> {
+  public getDashboardReport() {
     return this.monitor.getReport();
   }
 

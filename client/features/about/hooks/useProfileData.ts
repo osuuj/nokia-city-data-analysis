@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
-import { teamMemberProfiles } from '../data/aboutContent';
+import { teamMemberProfiles } from '../data';
 import { profileResponseSchema } from '../schemas';
 import type { ProfileResponse, TeamMemberProfile } from '../schemas';
 
 const fetchProfileData = async (id: string): Promise<ProfileResponse> => {
   try {
     // Simulate API call with mock data
-    const profile = teamMemberProfiles[id];
+    const profile = teamMemberProfiles.find((p) => p.member.id === id);
 
     if (!profile) {
       throw new Error('Profile not found');

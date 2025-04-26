@@ -1,1 +1,1 @@
-export * from './ButtonStart';
+export { ButtonStart } from './ButtonStart';

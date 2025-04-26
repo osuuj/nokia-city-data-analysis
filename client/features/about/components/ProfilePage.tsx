@@ -4,7 +4,15 @@ import { Card } from '@heroui/card';
 import { motion } from 'framer-motion';
 import React, { Suspense, lazy } from 'react';
 import { useProfileData } from '../hooks/useProfileData';
-import type { ProfilePageProps } from '../types';
+import type {
+  Education,
+  Experience,
+  ProfilePageProps,
+  Project,
+  Skill,
+  TeamMember,
+  TeamMemberProfile,
+} from '../types';
 import { AboutErrorBoundary } from './AboutErrorBoundary';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileSkeleton } from './ProfileSkeleton';
@@ -17,11 +25,8 @@ const LazyEducationSection = lazy(() => import('./lazy/LazyEducationSection'));
 
 // Section loading skeletons
 const SkillsSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />;
-
 const ProjectsSkeleton = () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />;
-
 const ExperienceSkeleton = () => <div className="h-48 bg-gray-100 animate-pulse rounded-lg" />;
-
 const EducationSkeleton = () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg" />;
 
 const containerVariants = {
@@ -45,6 +50,10 @@ const itemVariants = {
   },
 };
 
+function transformToTeamMember(data: TeamMemberProfile): TeamMember {
+  return data.member;
+}
+
 export function ProfilePage({ id }: ProfilePageProps) {
   const { data: profile, isLoading, error } = useProfileData(id);
 
@@ -61,17 +70,19 @@ export function ProfilePage({ id }: ProfilePageProps) {
     );
   }
 
+  const teamMember = transformToTeamMember(profile);
+
   return (
     <AboutErrorBoundary>
       <motion.main
         className="space-y-8 max-w-4xl mx-auto px-4 py-8"
-        aria-label={`${profile.member.name}'s profile`}
+        aria-label={`${teamMember.name}'s profile`}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={itemVariants}>
-          <ProfileHeader member={profile.member} />
+          <ProfileHeader member={teamMember} />
         </motion.div>
 
         <Suspense fallback={<SkillsSkeleton />}>

@@ -31,3 +31,29 @@ export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
   selectedBusinesses: CompanyProperties[];
   setViewMode: (mode: ViewMode) => void;
 }
+
+/**
+ * Dashboard view configuration
+ */
+export interface ViewConfig {
+  id: string;
+  title: string;
+  icon: string;
+  component: React.LazyExoticComponent<React.ComponentType<Record<string, unknown>>>;
+}
+
+/**
+ * Dashboard configuration
+ */
+export interface DashboardConfig {
+  defaultView: string;
+  views: ViewConfig[];
+  theme: {
+    default: 'light' | 'dark';
+    storageKey: string;
+  };
+  sidebar: {
+    defaultCollapsed: boolean;
+    storageKey: string;
+  };
+}

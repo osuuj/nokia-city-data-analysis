@@ -3,7 +3,7 @@
 import { cn } from '@/shared/utils/cn';
 import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
 import React from 'react';
-import { AnalyticsCardSkeleton } from '../skeletons';
+import { AnalyticsCardSkeleton } from '../analytics/skeletons/AnalyticsCardSkeleton';
 
 export interface BaseCardProps {
   /** Title of the card */

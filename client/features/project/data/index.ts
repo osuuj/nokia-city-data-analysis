@@ -1,9 +1,10 @@
 /**
- * Project Data
+ * Project Data Exports
  *
- * This file exports all data fetching functions for the project feature.
+ * This file exports all data-related functionality for the project feature.
  */
 
-export { projectApi, useProjects, useProject } from './projectApi';
+export { projectApi } from './projectApi';
+export { useProjects, useProject } from './useProjects';
 
 // Add data fetching functions here as they are created

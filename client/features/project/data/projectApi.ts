@@ -5,7 +5,6 @@
  * It uses Zod for runtime validation of API responses.
  */
 
-import { useQuery } from '@tanstack/react-query';
 import type { Project, ProjectsData } from '../types';
 import { validateProject, validateProjects } from '../types/schemas';
 
@@ -71,19 +70,3 @@ export class ProjectApiClient {
 
 // Create a singleton instance
 export const projectApi = new ProjectApiClient();
-
-// React Query hooks
-export const useProjects = () => {
-  return useQuery<ProjectsData, Error>({
-    queryKey: ['projects'],
-    queryFn: () => projectApi.fetchProjects(),
-  });
-};
-
-export const useProject = (id: string) => {
-  return useQuery<Project, Error>({
-    queryKey: ['project', id],
-    queryFn: () => projectApi.fetchProjectById(id),
-    enabled: !!id,
-  });
-};

@@ -1,6 +1,7 @@
 import { CitySearch } from '@/features/dashboard/components/controls/CitySearch';
-import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle/ViewModeToggle';
-import type { ViewMode } from '@/features/dashboard/types';
+import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle';
+import type { ViewMode } from '@/features/dashboard/types/view';
+import React, { useCallback, useMemo } from 'react';
 
 interface DashboardHeaderProps {
   viewMode: ViewMode;
@@ -11,13 +12,14 @@ interface DashboardHeaderProps {
   cityLoading: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;
+  fetchViewData?: (view: ViewMode) => Promise<void>;
 }
 
 /**
  * DashboardHeader component for the top controls of the dashboard
  * Extracted from the dashboard page for better separation of concerns
  */
-export function DashboardHeader({
+export const DashboardHeader = React.memo(function DashboardHeader({
   viewMode,
   setViewMode,
   cities,
@@ -26,27 +28,46 @@ export function DashboardHeader({
   cityLoading,
   searchTerm,
   onSearchChange,
+  fetchViewData,
 }: DashboardHeaderProps) {
+  // Memoize the view mode toggle section
+  const viewModeToggleSection = useMemo(
+    () => (
+      <div className="flex items-center justify-between">
+        <ViewModeToggle
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          fetchViewData={fetchViewData}
+        />
+      </div>
+    ),
+    [viewMode, setViewMode, fetchViewData],
+  );
+
+  // Memoize the city search section
+  const citySearchSection = useMemo(() => {
+    if (viewMode === 'map' || viewMode === 'analytics') {
+      return null;
+    }
+
+    return (
+      <div className="flex items-center">
+        <CitySearch
+          cities={cities}
+          selectedCity={selectedCity}
+          onCityChange={onCityChange}
+          isLoading={cityLoading}
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
+        />
+      </div>
+    );
+  }, [viewMode, cities, selectedCity, onCityChange, cityLoading, searchTerm, onSearchChange]);
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Top row with view mode toggle */}
-      <div className="flex items-center justify-between">
-        <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
-      </div>
-
-      {/* Bottom row with city search */}
-      {viewMode !== 'map' && viewMode !== 'analytics' && (
-        <div className="flex items-center">
-          <CitySearch
-            cities={cities}
-            selectedCity={selectedCity}
-            onCityChange={onCityChange}
-            isLoading={cityLoading}
-            searchTerm={searchTerm}
-            onSearchChange={onSearchChange}
-          />
-        </div>
-      )}
+      {viewModeToggleSection}
+      {citySearchSection}
     </div>
   );
-}
+});

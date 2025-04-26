@@ -32,14 +32,9 @@ export interface ContactFormState {
   errors: ContactFormErrors;
   isSubmitting: boolean;
   isSubmitted: boolean;
-  submitError?: string;
+  submitError: string | undefined;
+  isSuccess: boolean;
 }
 
-/**
- * Contact API response interface
- */
-export interface ContactApiResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
+// Re-export API types
+export type { ContactApiResponse } from '../data/contactApi';

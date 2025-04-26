@@ -10,25 +10,27 @@ const socialSchema = z.object({
 const skillSchema = z.object({
   name: z.string(),
   level: z.number().min(0).max(100),
-  category: z.string(),
+  category: z.enum(['frontend', 'backend', 'devops', 'design', 'other']).optional(),
+  yearsOfExperience: z.number().optional(),
 });
 
 const projectSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  title: z.string(),
   description: z.string(),
   technologies: z.array(z.string()),
+  image: z.string(),
   url: z.string().url().optional(),
-  githubUrl: z.string().url().optional(),
-  image: z.string().optional(),
+  github: z.string().url().optional(),
+  startDate: z.string(),
+  endDate: z.string().optional(),
 });
 
 const experienceSchema = z.object({
   id: z.string(),
+  title: z.string(),
   company: z.string(),
-  position: z.string(),
-  startDate: z.string(),
-  endDate: z.string().optional(),
+  period: z.string(),
   description: z.string(),
   technologies: z.array(z.string()).optional(),
   achievements: z.array(z.string()).optional(),
@@ -42,11 +44,11 @@ const educationSchema = z.object({
   startDate: z.string(),
   endDate: z.string().optional(),
   description: z.string().optional(),
-  achievements: z.array(z.string()).optional(),
+  gpa: z.number().optional(),
 });
 
-// Main profile schema
-export const profileSchema = z.object({
+// TeamMember schema
+const teamMemberSchema = z.object({
   id: z.string(),
   name: z.string(),
   role: z.string(),
@@ -54,24 +56,50 @@ export const profileSchema = z.object({
   avatar: z.string(),
   email: z.string().email(),
   social: socialSchema.optional(),
+  skills: z.array(z.string()),
+  projects: z.array(z.string()),
+  experience: z.array(
+    z.object({
+      company: z.string(),
+      position: z.string(),
+      startDate: z.string(),
+      endDate: z.string().optional(),
+      description: z.string(),
+    }),
+  ),
+  education: z.array(
+    z.object({
+      institution: z.string(),
+      degree: z.string(),
+      field: z.string(),
+      startDate: z.string(),
+      endDate: z.string().optional(),
+      description: z.string().optional(),
+    }),
+  ),
+});
+
+// TeamMemberProfile schema
+const teamMemberProfileSchema = z.object({
+  member: teamMemberSchema,
   skills: z.array(skillSchema),
   projects: z.array(projectSchema),
-  experience: z.array(experienceSchema),
-  education: z.array(educationSchema),
+  experience: z.array(experienceSchema).optional(),
+  education: z.array(educationSchema).optional(),
 });
 
 // API response schemas
 export const profileResponseSchema = z.object({
   success: z.boolean(),
-  data: profileSchema,
+  data: teamMemberProfileSchema,
 });
 
 export const profilesListResponseSchema = z.object({
   success: z.boolean(),
-  data: z.array(profileSchema),
+  data: z.array(teamMemberProfileSchema),
 });
 
 // TypeScript types derived from Zod schemas
-export type TeamMemberProfile = z.infer<typeof profileSchema>;
+export type TeamMemberProfile = z.infer<typeof teamMemberProfileSchema>;
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
 export type ProfilesListResponse = z.infer<typeof profilesListResponseSchema>;

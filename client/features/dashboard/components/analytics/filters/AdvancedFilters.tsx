@@ -107,7 +107,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           <Input
             id={option.id}
             value={String(activeFilters[option.id] || '')}
-            onChange={(e) => handleFilterChange(option.id, e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleFilterChange(option.id, e.target.value)
+            }
             placeholder={`Filter by ${option.name.toLowerCase()}`}
             className="w-full"
           />
@@ -119,7 +121,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             id={option.id}
             type="number"
             value={String(activeFilters[option.id] || '')}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               handleFilterChange(option.id, e.target.value ? Number(e.target.value) : '')
             }
             placeholder={`Filter by ${option.name.toLowerCase()}`}
@@ -134,15 +136,16 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         return (
           <Select
             id={option.id}
-            value={String(activeFilters[option.id] || '')}
-            onChange={(value) => handleFilterChange(option.id, value)}
+            selectedKeys={[String(activeFilters[option.id] || '')]}
+            onSelectionChange={(keys) => {
+              const selectedKey = keys instanceof Set ? (Array.from(keys)[0] as string) : null;
+              handleFilterChange(option.id, selectedKey || '');
+            }}
             placeholder={`Select ${option.name.toLowerCase()}`}
             className="w-full"
           >
-            {option.options?.map((opt) => (
-              <SelectItem key={opt} value={opt}>
-                {opt}
-              </SelectItem>
+            {(option.options || []).map((opt) => (
+              <SelectItem key={opt}>{opt}</SelectItem>
             ))}
           </Select>
         );
@@ -153,7 +156,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             id={option.id}
             type="date"
             value={String(activeFilters[option.id] || '')}
-            onChange={(e) => handleFilterChange(option.id, e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              handleFilterChange(option.id, e.target.value)
+            }
             className="w-full"
           />
         );
@@ -163,7 +168,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           <Checkbox
             id={option.id}
             isSelected={Boolean(activeFilters[option.id])}
-            onValueChange={(value) => handleFilterChange(option.id, value)}
+            onValueChange={(value: boolean) => handleFilterChange(option.id, value)}
           >
             {option.name}
           </Checkbox>
@@ -216,7 +221,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <Input
                     placeholder="Preset name"
                     value={newPresetName}
-                    onChange={(e) => setNewPresetName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewPresetName(e.target.value)
+                    }
                   />
                   <Button
                     color="primary"
@@ -248,17 +255,15 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               displayValue = value.join(', ');
             } else if (option.type === 'select') {
               const selectedOption = option.options?.find((opt) => opt === value);
-              if (selectedOption) {
-                displayValue = selectedOption;
-              }
+              displayValue = selectedOption || String(value);
             }
 
             return (
               <Chip
                 key={id}
-                onClose={() => handleFilterChange(id, option.type === 'select' ? '' : '')}
+                onClose={() => handleFilterChange(id, '')}
                 variant="flat"
-                size="sm"
+                className="capitalize"
               >
                 {option.name}: {displayValue}
               </Chip>
@@ -283,7 +288,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filterOptions.map((option) => (
-          <div key={option.id} className="flex flex-col gap-1">
+          <div key={option.id} className="flex flex-col gap-2">
             <label htmlFor={option.id} className="text-sm font-medium">
               {option.name}
             </label>

@@ -2,6 +2,7 @@
 
 import { SkeletonLoader } from '@/shared/components/SkeletonLoader';
 import { cn } from '@/shared/utils/cn';
+import type React from 'react';
 
 interface AnalyticsCardSkeletonProps {
   /**
@@ -18,58 +19,65 @@ interface AnalyticsCardSkeletonProps {
  * AnalyticsCardSkeleton component
  * Provides a skeleton loading state for analytics cards
  */
-export function AnalyticsCardSkeleton({ type, className }: AnalyticsCardSkeletonProps) {
-  const getSkeletonContent = () => {
-    switch (type) {
-      case 'distribution':
-        return (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <SkeletonLoader width={120} height={24} />
-              <SkeletonLoader width={80} height={24} />
-            </div>
-            <div className="flex items-center justify-center h-[200px]">
-              <SkeletonLoader width={200} height={200} rounded />
-            </div>
-            <div className="mt-4 space-y-2">
-              <SkeletonLoader lines={3} height={16} gap="0.5rem" />
-            </div>
-          </>
-        );
-      case 'comparison':
-        return (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <SkeletonLoader width={150} height={24} />
-              <SkeletonLoader width={100} height={24} />
-            </div>
-            <div className="space-y-4">
-              <SkeletonLoader height={40} />
-              <SkeletonLoader height={40} />
-              <SkeletonLoader height={40} />
-            </div>
-          </>
-        );
-      case 'trends':
-        return (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <SkeletonLoader width={100} height={24} />
-              <SkeletonLoader width={80} height={24} />
-            </div>
-            <div className="h-[200px] flex items-end justify-between gap-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <SkeletonLoader
-                  key={`skeleton-bar-${i}-${Math.random().toString(36).substring(2, 9)}`}
-                  width={40}
-                  height={`${Math.random() * 100 + 50}%`}
-                />
-              ))}
-            </div>
-          </>
-        );
-    }
-  };
+export const AnalyticsCardSkeleton: React.FC<AnalyticsCardSkeletonProps> = ({
+  type,
+  className,
+}) => {
+  const baseClasses = 'p-6 bg-white rounded-lg shadow-sm';
 
-  return <div className={cn('p-4', className)}>{getSkeletonContent()}</div>;
-}
+  switch (type) {
+    case 'distribution':
+      return (
+        <div className={cn(baseClasses, className)}>
+          <div className="flex items-center justify-between">
+            <SkeletonLoader width={120} height={24} />
+            <SkeletonLoader width={80} height={24} />
+          </div>
+          <div className="mt-4 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonLoader
+                key={`distribution-skeleton-${i}-${Math.random()}`}
+                height={16}
+                className="w-full"
+              />
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'comparison':
+      return (
+        <div className={cn(baseClasses, className)}>
+          <div className="flex items-center justify-between">
+            <SkeletonLoader width={150} height={24} />
+            <SkeletonLoader width={100} height={24} />
+          </div>
+          <div className="mt-4">
+            <SkeletonLoader height={200} className="w-full" />
+          </div>
+        </div>
+      );
+
+    case 'trends':
+      return (
+        <div className={cn(baseClasses, className)}>
+          <div className="flex items-center justify-between">
+            <SkeletonLoader width={180} height={24} />
+            <SkeletonLoader width={120} height={24} />
+          </div>
+          <div className="h-[200px] flex items-end justify-between gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonLoader
+                key={`trend-skeleton-${i}-${Math.random()}`}
+                width={40}
+                height={`${Math.random() * 100 + 50}%`}
+              />
+            ))}
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+};

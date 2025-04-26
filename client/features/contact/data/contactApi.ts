@@ -84,14 +84,16 @@ class ContactApiClient {
   private client: AxiosInstance;
   private retryCount = 0;
   private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private readonly baseUrl: string;
 
   /**
    * Creates a new instance of ContactApiClient
    * Sets up axios instance with interceptors for logging, caching, and error handling
    */
-  constructor() {
+  constructor(baseUrl = '/api') {
+    this.baseUrl = baseUrl;
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+      baseURL: this.baseUrl,
       timeout: API_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
@@ -311,6 +313,34 @@ class ContactApiClient {
   clearCache(): void {
     this.cache.clear();
     console.debug('Contact API cache cleared');
+  }
+
+  async sendMessage(data: ContactFormData): Promise<ContactApiResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        message: 'Message sent successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to send message',
+        error: error instanceof Error ? error.message : 'Failed to send message',
+      };
+    }
   }
 }
 

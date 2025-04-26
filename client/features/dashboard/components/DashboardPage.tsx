@@ -6,133 +6,148 @@ import { DashboardErrorBoundary } from '@/features/dashboard/components/shared/D
 import { useDashboardData } from '@/features/dashboard/hooks/data/useDashboardData';
 import { useDashboardLoading } from '@/features/dashboard/hooks/data/useDashboardLoading';
 import { useCompanyStore } from '@/features/dashboard/store';
-import type { SortDescriptor } from '@/features/dashboard/types/table';
+import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
-import { useDebounce } from '@/shared/hooks';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { usePagination } from '@/shared/hooks';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 
-// Lazy load the DashboardContent component for code splitting
-const DashboardContent = lazy(() =>
+// Lazy load DashboardContent for code splitting
+const LazyDashboardContent = lazy(() =>
   import('@/features/dashboard/components/DashboardContent').then((module) => ({
     default: module.DashboardContent,
   })),
 );
 
-/**
- * DashboardPage component
- * Displays an interactive dashboard for exploring city data analytics.
- *
- * @returns {JSX.Element} The rendered dashboard page component
- */
-export function DashboardPage(): JSX.Element {
-  // Get URL parameters
-  const searchParams = useSearchParams();
-  const cityParam = searchParams?.get('city') || '';
+const ROWS_PER_PAGE = 10;
 
-  // State management
+/**
+ * DashboardPage
+ * Main entry point for the dashboard feature.
+ * Manages overall state and coordinates data fetching and user interactions.
+ */
+export function DashboardPage() {
+  // Global state from Zustand store
+  const { selectedCity, selectedIndustries, userLocation, distanceLimit, selectedRows } =
+    useCompanyStore();
+
+  // Local state for UI controls
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: 'company_name',
+    column: 'company_name' as CompanyTableKey,
     direction: 'asc',
   });
   const [viewMode, setViewMode] = useState<ViewMode>('table');
 
-  // Get global state from store
+  // Fetch dashboard data using custom hook
   const {
+    geojsonData,
+    cities,
+    isLoading: isDataLoading,
+    cityLoading,
+    tableRows,
+    visibleColumns,
+    handleCityChange,
+    errors,
+    refetch,
+  } = useDashboardData({
     selectedCity,
-    setSelectedCity,
     selectedIndustries,
-    selectedKeys,
-    setSelectedKeys,
     userLocation,
     distanceLimit,
-  } = useCompanyStore();
+    query: searchTerm,
+  });
 
-  // Debounce search term for better performance
-  const { value: debouncedSearchTerm } = useDebounce(searchTerm, 300);
+  // Track loading state
+  const { startSectionLoading, stopSectionLoading, isAnySectionLoading } = useDashboardLoading();
 
-  // Use the dashboard loading hook
-  const { sectionStates, startSectionLoading, stopSectionLoading } = useDashboardLoading();
+  // Setup pagination
+  const { paginated, totalPages } = usePagination(tableRows || [], currentPage, ROWS_PER_PAGE);
 
-  // Use the centralized data fetching hook
-  const { geojsonData, cities, isLoading, cityLoading, tableRows, visibleColumns } =
-    useDashboardData({
-      selectedCity,
-      selectedIndustries,
-      userLocation,
-      distanceLimit,
-      query: debouncedSearchTerm,
-    });
-
-  // Create a default empty FeatureCollection for when geojsonData is undefined
-  const defaultGeoJSON = {
-    type: 'FeatureCollection' as const,
-    features: [],
-  };
-
-  // Start loading sections when data is being fetched
+  // Update loading state based on data fetching
   useEffect(() => {
-    if (isLoading) {
+    if (isDataLoading || cityLoading) {
       startSectionLoading('all', 'Loading dashboard data...');
     } else {
       stopSectionLoading('all');
     }
-  }, [isLoading, startSectionLoading, stopSectionLoading]);
+  }, [isDataLoading, cityLoading, startSectionLoading, stopSectionLoading]);
 
   // Handle city selection
-  const handleCityChange = useCallback(
+  const onCityChange = useCallback(
     (city: string) => {
       startSectionLoading('map', 'Loading city data...');
-      setSelectedCity(city);
+      handleCityChange(city);
+      setCurrentPage(1); // Reset to first page when city changes
     },
-    [setSelectedCity, startSectionLoading],
+    [startSectionLoading, handleCityChange],
   );
 
-  // Handle search
-  const handleSearchChange = useCallback(
+  // Handle search term changes
+  const onSearchChange = useCallback(
     (term: string) => {
       startSectionLoading('table', 'Searching...');
       setSearchTerm(term);
+      setCurrentPage(1); // Reset to first page when search changes
     },
     [startSectionLoading],
   );
 
-  return (
-    <DashboardErrorBoundary>
-      <div className="container mx-auto px-4 py-8">
-        <DashboardHeader
-          cities={cities || []}
-          selectedCity={selectedCity}
-          onCityChange={handleCityChange}
-          cityLoading={cityLoading}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
+  // Get selected businesses from the store
+  const selectedBusinesses = Object.values(selectedRows);
 
+  // Get the first error if any
+  const error = useMemo(() => {
+    if (errors.geojson) return errors.geojson;
+    if (errors.cities) return errors.cities;
+    return null;
+  }, [errors]);
+
+  // Create prefetch function that returns a Promise
+  const prefetchViewData = useCallback(async (view: ViewMode) => {
+    // Implement your prefetch logic here
+    // This could involve fetching data for the new view mode
+    // before the user actually switches to it
+    console.log(`Prefetching data for view: ${view}`);
+    return Promise.resolve();
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <DashboardHeader
+        cities={cities || []}
+        selectedCity={selectedCity}
+        onCityChange={onCityChange}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        cityLoading={cityLoading}
+        searchTerm={searchTerm}
+        onSearchChange={onSearchChange}
+        fetchViewData={prefetchViewData}
+      />
+
+      <DashboardErrorBoundary>
         <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardContent
-            data={tableRows || []}
+          <LazyDashboardContent
+            data={paginated}
             allFilteredData={tableRows || []}
-            selectedBusinesses={[]}
-            geojson={geojsonData || defaultGeoJSON}
+            selectedBusinesses={selectedBusinesses}
+            geojson={geojsonData || { type: 'FeatureCollection', features: [] }}
             viewMode={viewMode}
             setViewMode={setViewMode}
-            columns={visibleColumns || []}
-            currentPage={page}
-            totalPages={1}
-            onPageChange={setPage}
-            isLoading={isLoading}
+            columns={visibleColumns}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            isLoading={isAnySectionLoading}
             searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
+            setSearchTerm={onSearchChange}
             sortDescriptor={sortDescriptor}
             setSortDescriptor={setSortDescriptor}
+            error={error}
           />
         </Suspense>
-      </div>
-    </DashboardErrorBoundary>
+      </DashboardErrorBoundary>
+    </div>
   );
 }

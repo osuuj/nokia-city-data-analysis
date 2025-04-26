@@ -21,7 +21,7 @@ export interface TeamMemberProfile {
   skills: {
     name: string;
     level: number;
-    category?: string;
+    category?: 'frontend' | 'backend' | 'devops' | 'design' | 'other';
   }[];
   projects: Project[];
   education?: Education[];
@@ -93,17 +93,6 @@ export const teamMemberProfiles: Record<string, TeamMemberProfile> = {
         startDate: '2022-06',
         endDate: '2022-12',
       },
-      {
-        id: '3',
-        title: 'Mobile App Development',
-        description: 'Cross-platform mobile app for business discovery',
-        technologies: ['React Native', 'TypeScript', 'Firebase'],
-        image: '/images/projects/mobile-app.jpg',
-        url: '/projects/mobile-app',
-        github: 'https://github.com/osuuj/mobile-app',
-        startDate: '2022-01',
-        endDate: '2022-05',
-      },
     ],
     experience: [
       {
@@ -138,73 +127,105 @@ export const teamMemberProfiles: Record<string, TeamMemberProfile> = {
     member: {
       id: 'kassu',
       name: 'Kassu',
-      jobTitle: 'Developer',
+      role: 'Developer',
       bio: 'Expert in building robust server architectures and efficient database solutions. Focuses on creating scalable backend systems that power modern web applications.',
-      shortBio: 'Backend developer specializing in database optimization and API design.',
-      portfolioLink: '/about/kassu',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=kassu',
-      skills: ['Python', 'SQL', 'Django', 'PostgreSQL', 'Docker', 'API Design', 'Data Engineering'],
-      socialLinks: {
+      avatar: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=kassu',
+      email: 'kassu@example.com',
+      social: {
         github: 'https://github.com/kassu',
         linkedin: 'https://linkedin.com/in/kassu',
       },
-      projects: ['1', '2'],
-      achievements: [
+      skills: ['Python', 'SQL', 'Django', 'PostgreSQL', 'Docker', 'API Design', 'Data Engineering'],
+      projects: ['3', '4'],
+      experience: [
         {
-          title: 'Backend Developer',
+          company: 'Osuuj',
+          position: 'Backend Developer',
+          startDate: '2021',
           description:
-            'Developed the data processing pipeline for the Osuuj Company Search Platform',
-          date: '2024',
+            'Developing and maintaining the backend infrastructure for the Osuuj Company Search Platform.',
+        },
+      ],
+      education: [
+        {
+          institution: 'University of Technology',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          startDate: '2016',
+          endDate: '2020',
+          description: 'Focus on backend development and database systems',
         },
       ],
     },
     skills: [
-      { name: 'Node.js', level: 92 },
-      { name: 'Python', level: 88 },
-      { name: 'PostgreSQL', level: 85 },
-      { name: 'AWS', level: 80 },
-      { name: 'Docker', level: 82 },
+      { name: 'Node.js', level: 92, category: 'backend' },
+      { name: 'Python', level: 88, category: 'backend' },
+      { name: 'PostgreSQL', level: 85, category: 'backend' },
+      { name: 'AWS', level: 80, category: 'devops' },
+      { name: 'Docker', level: 82, category: 'devops' },
     ],
     projects: [
       {
+        id: '3',
         title: 'API Gateway Service',
         description: 'Scalable API gateway with rate limiting and authentication',
-        tech: ['Node.js', 'Redis', 'Docker'],
-        link: '/projects/api-gateway',
+        technologies: ['Node.js', 'Redis', 'Docker'],
+        image: '/images/projects/api-gateway.jpg',
+        url: '/projects/api-gateway',
+        github: 'https://github.com/kassu/api-gateway',
+        startDate: '2023-03',
+        endDate: '2023-09',
       },
       {
+        id: '4',
         title: 'Data Pipeline System',
         description: 'ETL pipeline for processing large datasets',
-        tech: ['Python', 'Apache Airflow', 'PostgreSQL'],
-        link: '/projects/data-pipeline',
-      },
-      {
-        title: 'Cloud Infrastructure',
-        description: 'Automated cloud infrastructure deployment',
-        tech: ['AWS', 'Terraform', 'Docker'],
-        link: '/projects/cloud-infra',
-      },
-    ],
-    education: [
-      {
-        degree: 'Bachelor of Science in Computer Science',
-        institution: 'University of Technology',
-        year: '2019',
+        technologies: ['Python', 'Apache Airflow', 'PostgreSQL'],
+        image: '/images/projects/data-pipeline.jpg',
+        url: '/projects/data-pipeline',
+        github: 'https://github.com/kassu/data-pipeline',
+        startDate: '2022-09',
+        endDate: '2023-02',
       },
     ],
     experience: [
       {
+        id: '2',
         title: 'Backend Developer',
         company: 'Osuuj',
         period: '2021 - Present',
         description:
           'Developing and maintaining the backend infrastructure for the Osuuj Company Search Platform.',
+        technologies: ['Node.js', 'Python', 'PostgreSQL', 'Docker'],
+        achievements: [
+          'Implemented microservices architecture',
+          'Reduced API response time by 60%',
+          'Set up automated deployment pipeline',
+        ],
       },
       {
+        id: '3',
         title: 'Software Engineer',
         company: 'Data Systems Ltd.',
         period: '2019 - 2021',
         description: 'Built and optimized database systems and APIs for enterprise clients.',
+        technologies: ['Python', 'PostgreSQL', 'Redis'],
+        achievements: [
+          'Optimized database queries resulting in 40% faster response times',
+          'Implemented caching layer reducing server load by 50%',
+        ],
+      },
+    ],
+    education: [
+      {
+        id: '2',
+        institution: 'University of Technology',
+        degree: 'Bachelor of Science in Computer Science',
+        field: 'Computer Science',
+        startDate: '2016',
+        endDate: '2020',
+        description: 'Focus on backend development and database systems',
+        gpa: 3.7,
       },
     ],
   },

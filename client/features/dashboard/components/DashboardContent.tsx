@@ -9,30 +9,73 @@ import type {
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { usePagination } from '@/shared/hooks';
 import type { FeatureCollection, Point } from 'geojson';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import { PaginationControls } from './controls/PaginationControls';
+import { DashboardErrorBoundary } from './loading/DashboardErrorBoundary';
+import { DashboardSkeleton } from './loading/DashboardSkeleton';
 
+/**
+ * Props for the DashboardContent component
+ */
 interface DashboardContentProps {
+  /** Current page data to display */
   data: CompanyProperties[];
+
+  /** Complete filtered dataset for context operations */
   allFilteredData: CompanyProperties[];
+
+  /** Currently selected businesses */
   selectedBusinesses: CompanyProperties[];
+
+  /** GeoJSON data for map visualization */
   geojson: FeatureCollection<Point, CompanyProperties>;
+
+  /** Current view mode (table, map, split, analytics) */
   viewMode: ViewMode;
+
+  /** Callback to change the view mode */
   setViewMode: (mode: ViewMode) => void;
+
+  /** Configuration for table columns */
   columns: TableColumnConfig[];
+
+  /** Current page number (1-based) */
   currentPage: number;
+
+  /** Total number of pages */
   totalPages: number;
+
+  /** Callback to handle page changes */
   onPageChange: (page: number) => void;
+
+  /** Loading state indicator */
   isLoading: boolean;
+
+  /** Current search term */
   searchTerm: string;
+
+  /** Callback to update search term */
   setSearchTerm: (term: string) => void;
+
+  /** Current sort configuration */
   sortDescriptor: SortDescriptor;
+
+  /** Callback to update sort configuration */
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
+
+  /** Error state */
+  error: Error | null;
 }
 
 /**
- * DashboardContent component for the main content of the dashboard
- * Extracted from the dashboard page for better separation of concerns
+ * DashboardContent component
+ *
+ * Renders the main content of the dashboard, including the view switcher
+ * and pagination controls. Handles data filtering and loading states.
+ *
+ * @param props - Component props
+ * @returns The rendered dashboard content
  */
 export function DashboardContent({
   data,
@@ -50,24 +93,71 @@ export function DashboardContent({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
+  error,
 }: DashboardContentProps) {
+  // State for page size
+  const [pageSize, setPageSize] = useState(10);
+
+  // Memoize the filtered data to prevent unnecessary re-renders
+  const filteredData = useMemo(() => {
+    return useFilteredBusinesses({
+      data: allFilteredData,
+      searchTerm,
+      selectedIndustries: [], // TODO: Add industry filtering
+      userLocation: null, // TODO: Add location filtering
+      distanceLimit: null,
+      sortDescriptor,
+      isFetching: isLoading,
+    });
+  }, [allFilteredData, searchTerm, sortDescriptor, isLoading]);
+
+  // Handle page size change
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      setPageSize(newPageSize);
+      // Reset to first page when changing page size
+      onPageChange(1);
+    },
+    [onPageChange],
+  );
+
+  if (error) {
+    return <DashboardErrorBoundary error={error} />;
+  }
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <ViewSwitcher
-      data={data}
-      allFilteredData={allFilteredData}
-      selectedBusinesses={selectedBusinesses}
-      geojson={geojson}
-      viewMode={viewMode}
-      setViewMode={setViewMode}
-      columns={columns}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      onPageChange={onPageChange}
-      isLoading={isLoading}
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      sortDescriptor={sortDescriptor}
-      setSortDescriptor={setSortDescriptor}
-    />
+    <div className="flex flex-col h-full">
+      <ViewSwitcher
+        data={filteredData}
+        allFilteredData={allFilteredData}
+        selectedBusinesses={selectedBusinesses}
+        geojson={geojson}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        columns={columns}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        isLoading={isLoading}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+      />
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        isLoading={isLoading}
+        pageSize={pageSize}
+        onPageSizeChange={handlePageSizeChange}
+        totalItems={allFilteredData.length}
+      />
+    </div>
   );
 }
