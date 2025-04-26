@@ -1,7 +1,7 @@
 'use client';
 
+import { ProjectGridSkeleton } from '@/features/project/components';
 import { ProjectCard } from '@/features/project/components/ProjectCard';
-import { ProjectGridSkeleton } from '@/features/project/components/ProjectSkeleton';
 import { AnimatedProjectHero } from '@/features/project/components/hero';
 import { useProjects } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/ErrorMessage';

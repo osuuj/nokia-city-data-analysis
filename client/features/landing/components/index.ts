@@ -1,5 +1,5 @@
 /**
- * Landing Components
+ * Landing Feature Components
  *
  * This file exports all components for the landing feature.
  */
@@ -9,3 +9,5 @@ export * from './Hero';
 
 // Button component
 export * from './Button';
+
+export { LandingErrorBoundary } from './LandingErrorBoundary';

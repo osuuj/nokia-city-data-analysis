@@ -1,4 +1,4 @@
-import type { TeamMember } from '@/features/team/types';
+import type { Education, Experience, Project, TeamMember } from '../types';
 
 export const aboutStory = {
   title: 'Our Story',
@@ -21,24 +21,11 @@ export interface TeamMemberProfile {
   skills: {
     name: string;
     level: number;
+    category?: string;
   }[];
-  projects: {
-    title: string;
-    description: string;
-    tech: string[];
-    link: string;
-  }[];
-  education?: {
-    degree: string;
-    institution: string;
-    year: string;
-  }[];
-  experience?: {
-    title: string;
-    company: string;
-    period: string;
-    description: string;
-  }[];
+  projects: Project[];
+  education?: Education[];
+  experience?: Experience[];
 }
 
 export const teamMemberProfiles: Record<string, TeamMemberProfile> = {
@@ -46,79 +33,104 @@ export const teamMemberProfiles: Record<string, TeamMemberProfile> = {
     member: {
       id: 'juuso',
       name: 'Juuso',
-      jobTitle: 'Lead Developer',
+      role: 'Lead Developer',
       bio: 'Specializes in creating intuitive, beautiful user interfaces with modern web technologies. Passionate about building scalable and maintainable applications that provide great user experiences.',
-      shortBio: 'Full-stack developer with a passion for UI/UX design.',
-      portfolioLink: '/about/juuso',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso',
-      skills: ['React', 'TypeScript', 'Next.js', 'Node.js', 'UI/UX Design', 'AWS'],
-      socialLinks: {
+      avatar: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso',
+      email: 'juuso@example.com',
+      social: {
         github: 'https://github.com/osuuj',
         linkedin: 'https://linkedin.com/in/juuso',
       },
+      skills: ['React', 'TypeScript', 'Next.js', 'Node.js', 'UI/UX Design', 'AWS'],
       projects: ['1', '2'],
-      achievements: [
+      experience: [
         {
-          title: 'Lead Developer',
+          company: 'Osuuj',
+          position: 'Lead Developer',
+          startDate: '2022',
           description: 'Led the development of the Osuuj Company Search Platform',
-          date: '2024',
+        },
+      ],
+      education: [
+        {
+          institution: 'University of Technology',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          startDate: '2016',
+          endDate: '2020',
+          description: 'Graduated with honors',
         },
       ],
     },
     skills: [
-      { name: 'React', level: 95 },
-      { name: 'TypeScript', level: 90 },
-      { name: 'Next.js', level: 92 },
-      { name: 'Node.js', level: 85 },
-      { name: 'UI/UX Design', level: 88 },
-      { name: 'AWS', level: 80 },
+      { name: 'React', level: 95, category: 'frontend' },
+      { name: 'TypeScript', level: 90, category: 'frontend' },
+      { name: 'Next.js', level: 92, category: 'frontend' },
+      { name: 'Node.js', level: 85, category: 'backend' },
+      { name: 'UI/UX Design', level: 88, category: 'design' },
+      { name: 'AWS', level: 80, category: 'devops' },
     ],
     projects: [
       {
+        id: '1',
         title: 'Company Search Platform',
         description: 'Interactive search platform for discovering local businesses',
-        tech: ['React', 'Next.js', 'TypeScript', 'Node.js'],
-        link: '/projects/company-search',
+        technologies: ['React', 'Next.js', 'TypeScript', 'Node.js'],
+        image: '/images/projects/company-search.jpg',
+        url: '/projects/company-search',
+        github: 'https://github.com/osuuj/company-search',
+        startDate: '2023-01',
+        endDate: '2024-01',
       },
       {
+        id: '2',
         title: 'Data Visualization Dashboard',
         description: 'Real-time data visualization for business analytics',
-        tech: ['React', 'D3.js', 'TypeScript', 'Firebase'],
-        link: '/projects/data-dashboard',
+        technologies: ['React', 'D3.js', 'TypeScript', 'Firebase'],
+        image: '/images/projects/data-dashboard.jpg',
+        url: '/projects/data-dashboard',
+        github: 'https://github.com/osuuj/data-dashboard',
+        startDate: '2022-06',
+        endDate: '2022-12',
       },
       {
+        id: '3',
         title: 'Mobile App Development',
         description: 'Cross-platform mobile app for business discovery',
-        tech: ['React Native', 'TypeScript', 'Firebase'],
-        link: '/projects/mobile-app',
-      },
-    ],
-    education: [
-      {
-        degree: 'Master of Science in Computer Science',
-        institution: 'University of Technology',
-        year: '2020',
-      },
-      {
-        degree: 'Bachelor of Science in Software Engineering',
-        institution: 'Tech Institute',
-        year: '2018',
+        technologies: ['React Native', 'TypeScript', 'Firebase'],
+        image: '/images/projects/mobile-app.jpg',
+        url: '/projects/mobile-app',
+        github: 'https://github.com/osuuj/mobile-app',
+        startDate: '2022-01',
+        endDate: '2022-05',
       },
     ],
     experience: [
       {
+        id: '1',
         title: 'Lead Developer',
         company: 'Osuuj',
         period: '2022 - Present',
-        description:
-          'Leading the development of the Osuuj Company Search Platform and managing the development team.',
+        description: 'Leading the development of the Osuuj Company Search Platform.',
+        technologies: ['React', 'TypeScript', 'Next.js', 'Node.js'],
+        achievements: [
+          'Led a team of 5 developers',
+          'Improved application performance by 40%',
+          'Implemented CI/CD pipeline',
+        ],
       },
+    ],
+    education: [
       {
-        title: 'Senior Frontend Developer',
-        company: 'Tech Solutions Inc.',
-        period: '2020 - 2022',
+        id: '1',
+        institution: 'University of Technology',
+        degree: 'Bachelor of Science in Computer Science',
+        field: 'Computer Science',
+        startDate: '2016',
+        endDate: '2020',
         description:
-          'Developed and maintained multiple web applications using React and TypeScript.',
+          'Graduated with honors, specializing in web technologies and user interface design.',
+        gpa: 3.8,
       },
     ],
   },

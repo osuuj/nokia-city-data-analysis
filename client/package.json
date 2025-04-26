@@ -32,6 +32,7 @@
     "@react-aria/ssr": "3.9.7",
     "@react-aria/visually-hidden": "3.8.19",
     "@tanstack/react-query-devtools": "^5.74.6",
+    "axios": "^1.9.0",
     "clsx": "2.1.1",
     "framer-motion": "11.13.1",
     "intl-messageformat": "^10.5.0",
@@ -43,7 +44,8 @@
     "react-typed": "^2.0.12",
     "react-window": "^1.8.11",
     "swr": "^2.3.2",
-    "use-supercluster": "^1.2.0"
+    "use-supercluster": "^1.2.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

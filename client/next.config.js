@@ -3,7 +3,7 @@ const path = require('node:path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['img.heroui.chat'],
+    domains: ['img.heroui.chat', 'i.pravatar.cc', 'api.dicebear.com'],
   },
   webpack: (config) => {
     config.resolve.alias = {

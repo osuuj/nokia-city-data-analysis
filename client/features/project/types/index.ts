@@ -19,93 +19,143 @@ export enum ProjectStatus {
   OnHold = 'on_hold',
 }
 
+/**
+ * Represents a gallery item with image source, alt text, and optional caption
+ */
+export interface GalleryItem {
+  /**
+   * The source URL of the image
+   */
+  src: string;
+
+  /**
+   * The alt text for the image
+   */
+  alt: string;
+
+  /**
+   * Optional caption to display below the image
+   */
+  caption?: string;
+}
+
+/**
+ * Represents a project in the application
+ */
 export interface Project {
+  /**
+   * Unique identifier for the project
+   */
   id: string;
+
+  /**
+   * Title of the project
+   */
   title: string;
-  subtitle?: string; // ← Short context line
+
+  /**
+   * Subtitle or tagline of the project
+   */
+  subtitle?: string;
+
+  /**
+   * Brief description of the project
+   */
   description: string;
-  image: string;
-  gallery?: {
-    src: string;
-    alt: string;
-    caption?: string;
-  }[];
-  category: ProjectCategory;
-  tags: string[];
-  goals?: string[]; // ← Bullet points
-  timeline?: string; // ← e.g. "Q1 2025 – Q3 2025"
-  role?: string; // ← e.g. "Full-stack Developer"
-  team?: string[]; // ← List of team members
-  demoUrl: string;
+
+  /**
+   * Detailed description of the project
+   */
+  longDescription?: string;
+
+  /**
+   * Main image URL for the project
+   */
+  image?: string;
+
+  /**
+   * Array of gallery items showcasing the project
+   */
+  gallery?: GalleryItem[];
+
+  /**
+   * Category of the project
+   */
+  category?: ProjectCategory;
+
+  /**
+   * Array of technology tags used in the project
+   */
+  tags?: string[];
+
+  /**
+   * Array of project goals
+   */
+  goals?: string[];
+
+  /**
+   * Timeline or duration of the project
+   */
+  timeline?:
+    | string
+    | {
+        date: string;
+        title: string;
+        description: string;
+      }[];
+
+  /**
+   * Role in the project
+   */
+  role?: string;
+
+  /**
+   * Team members involved in the project
+   */
+  team?: string[];
+
+  /**
+   * URL to the project demo
+   */
+  demoUrl?: string;
+
+  /**
+   * URL to the project repository
+   */
   repoUrl?: string;
+
+  /**
+   * Whether the project is featured
+   */
   featured?: boolean;
+
+  /**
+   * Current status of the project
+   */
   status?: ProjectStatus;
-}
 
-export interface ProjectCardProps {
-  project: Project;
-}
+  /**
+   * Array of technologies used in the project
+   */
+  technologies?: string[];
 
-export const projectsData: Project[] = [
-  {
-    id: '1',
-    title: 'Osuuj Company Search Platform',
-    subtitle: 'A fast, scalable way to search and analyze companies by location and industry.',
-    description:
-      'A comprehensive company discovery platform designed for analysts, researchers, and job seekers to explore and analyze organizations across regions. Using open-source data processed through an ETL pipeline, the platform maps Finnish companies geographically and delivers actionable industry insights through intuitive analytics.',
-    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=1',
-    gallery: [
-      {
-        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=3',
-        alt: 'Company search interface',
-        caption: 'Main search interface with filters',
-      },
-      {
-        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=4',
-        alt: 'Company details view',
-        caption: 'Detailed company information page',
-      },
-    ],
-    category: ProjectCategory.Web,
-    tags: [
-      'Python',
-      'Pandas',
-      'Postgres',
-      'ETL',
-      'FastAPI',
-      'REST API',
-      'SQLAlchemy',
-      'React',
-      'Next.js',
-      'TypeScript',
-      'HeroUI',
-      'Tailwind CSS',
-      'Data Visualization',
-      'AWS',
-    ],
-    goals: [
-      'Design and build a full-stack application from scratch to showcase development skills',
-      'Create an interactive analytics view with map-based company visualization',
-      'Ensure a smooth and intuitive user experience for researchers, analysts, and job seekers',
-      'Integrate and process open data sources through a custom ETL pipeline',
-      'Deliver meaningful insights through visual dashboards and clean UI design',
-    ],
-    timeline: 'Q4 2024 – Q2 2025',
-    role: 'Lead Developer',
-    team: ['Juuso Juvonen', 'Kasper Rautio'],
-    demoUrl: '/dashboard',
-    repoUrl: 'https://github.com/osuuj/nokia-city-data-analysis',
-    featured: true,
-    status: ProjectStatus.Active,
-  },
-  {
-    id: '2',
-    title: 'Osuuj AI Chat',
-    description: 'In Progress ...',
-    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=2',
-    category: ProjectCategory.AI,
-    tags: ['Next.js', 'TypeScript'],
-    demoUrl: '/dashboard',
-    status: ProjectStatus.Planning,
-  },
-];
+  /**
+   * URL to the project's repository
+   */
+  repositoryUrl?: string;
+
+  /**
+   * URL to the live project
+   */
+  liveUrl?: string;
+
+  /**
+   * Start date of the project
+   */
+  startDate?: string;
+
+  /**
+   * End date of the project (optional for ongoing projects)
+   */
+  endDate?: string;
+}

@@ -42,6 +42,9 @@ export const ButtonStart: FC<ButtonStartProps> = ({
       rel="noopener noreferrer"
       className={clsx(
         'group relative h-9 overflow-hidden bg-transparent text-small font-normal inline-flex items-center justify-center rounded-full',
+        'transition-all duration-300 ease-in-out',
+        'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+        'hover:scale-105 active:scale-95',
         disabled && 'opacity-50 cursor-not-allowed',
         className,
       )}
@@ -52,12 +55,14 @@ export const ButtonStart: FC<ButtonStartProps> = ({
         backgroundOrigin: 'border-box',
         backgroundClip: 'padding-box, border-box',
       }}
+      aria-disabled={disabled}
     >
       {label}
       <Icon
-        className="flex-none outline-none transition-transform group-hover:translate-x-0.5 [&>path]:stroke-[2] ml-2"
+        className="flex-none outline-none transition-transform duration-300 group-hover:translate-x-1 [&>path]:stroke-[2] ml-2"
         icon="solar:arrow-right-linear"
         width={16}
+        aria-hidden="true"
       />
     </a>
   ) : (
@@ -66,6 +71,9 @@ export const ButtonStart: FC<ButtonStartProps> = ({
         type="button"
         className={clsx(
           'group relative h-9 overflow-hidden bg-transparent text-small font-normal',
+          'transition-all duration-300 ease-in-out',
+          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+          'hover:scale-105 active:scale-95',
           disabled && 'opacity-50 cursor-not-allowed',
           className,
         )}

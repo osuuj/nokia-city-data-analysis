@@ -1,56 +1,125 @@
+'use client';
+
+import { Card, CardBody, Progress } from '@heroui/react';
 import { motion } from 'framer-motion';
-import React from 'react';
+import React, { memo, useMemo } from 'react';
+import { useInView } from 'react-intersection-observer';
+import type { SkillsSectionProps } from '../types';
 
-interface Skill {
-  name: string;
-  level: number;
-}
+// Animation variants for staggered animations
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
-interface SkillsSectionProps {
-  skills: Skill[];
-  title?: string;
-}
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+    },
+  },
+};
 
-export default function SkillsSection({ skills, title = 'Skills' }: SkillsSectionProps) {
+// Memoized skill item component to prevent unnecessary re-renders
+const SkillItem = memo(
+  ({ skill, index }: { skill: { name: string; level: number }; index: number }) => {
+    const { ref, inView } = useInView({
+      threshold: 0.2,
+      triggerOnce: true,
+    });
+
+    // Map skill level to color based on proficiency
+    const getColorByLevel = (level: number) => {
+      if (level >= 90) return 'success';
+      if (level >= 75) return 'primary';
+      if (level >= 60) return 'secondary';
+      return 'warning';
+    };
+
+    return (
+      <motion.div ref={ref} variants={itemVariants} className="mb-3">
+        <div className="flex justify-between items-center mb-2">
+          <span className="font-medium">{skill.name}</span>
+          <motion.span
+            className="text-default-500"
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+          >
+            {skill.level}%
+          </motion.span>
+        </div>
+        <Progress
+          value={skill.level}
+          color={getColorByLevel(skill.level)}
+          className="h-2"
+          aria-label={`${skill.name} skill level: ${skill.level}%`}
+          showValueLabel={false}
+        />
+      </motion.div>
+    );
+  },
+);
+
+SkillItem.displayName = 'SkillItem';
+
+// Group skills by category for better organization
+const SkillsSection = ({ skills, title = 'Skills' }: SkillsSectionProps) => {
+  const { ref, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: true,
+  });
+
+  // Memoize the grouped skills to prevent recalculation on every render
+  const groupedSkills = useMemo(() => {
+    const groups: Record<string, typeof skills> = {};
+
+    for (const skill of skills) {
+      const category = skill.category || 'other';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(skill);
+    }
+
+    return groups;
+  }, [skills]);
+
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
+      ref={ref}
+      variants={containerVariants}
+      initial="hidden"
+      animate={inView ? 'visible' : 'hidden'}
       className="mb-8"
       aria-labelledby="skills-title"
     >
-      <h2 id="skills-title" className="text-2xl font-semibold mb-4">
-        {title}
-      </h2>
-      <ul className="grid gap-4" aria-label="Skills list">
-        {skills.map((skill, index) => (
-          <li
-            key={skill.name}
-            className="bg-content1 p-4 rounded-large backdrop-blur-md bg-opacity-85 border border-content2"
-          >
-            <div className="flex justify-between mb-2">
-              <span className="font-medium">{skill.name}</span>
-              <span className="text-default-500" aria-label={`${skill.level} percent`}>
-                {skill.level}%
-              </span>
+      <Card className="backdrop-blur-md bg-opacity-85">
+        <CardBody>
+          <h2 id="skills-title" className="text-2xl font-semibold mb-6">
+            {title}
+          </h2>
+
+          {Object.entries(groupedSkills).map(([category, categorySkills]) => (
+            <div key={category} className="mb-6">
+              <h3 className="text-lg font-medium mb-4 capitalize">{category}</h3>
+              {categorySkills.map((skill, index) => (
+                <SkillItem key={skill.name} skill={skill} index={index} />
+              ))}
             </div>
-            <progress
-              className="h-2 bg-default-100 rounded-full overflow-hidden"
-              value={skill.level}
-              max={100}
-              aria-label={`${skill.name} skill level: ${skill.level}%`}
-            >
-              <motion.div
-                className="h-full bg-primary"
-                initial={{ width: 0 }}
-                animate={{ width: `${skill.level}%` }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              />
-            </progress>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </CardBody>
+      </Card>
     </motion.section>
   );
-}
+};
+
+export default memo(SkillsSection);

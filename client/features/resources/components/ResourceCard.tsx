@@ -3,6 +3,7 @@
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
+import { memo, useCallback } from 'react';
 import type { Resource } from '../types';
 
 interface ResourceCardProps {
@@ -10,17 +11,36 @@ interface ResourceCardProps {
   className?: string;
 }
 
-export function ResourceCard({ resource, className }: ResourceCardProps) {
+/**
+ * ResourceCard Component
+ *
+ * Displays a card with resource information including title, description,
+ * icon, type, and tags. Provides a button to view or download the resource.
+ *
+ * @example
+ * <ResourceCard
+ *   resource={{
+ *     id: 'example',
+ *     title: 'Example Resource',
+ *     description: 'This is an example resource',
+ *     icon: 'lucide:file',
+ *     type: 'PDF',
+ *     category: 'guides',
+ *     link: '/resources/example'
+ *   }}
+ * />
+ */
+export const ResourceCard = memo(function ResourceCard({ resource, className }: ResourceCardProps) {
   const router = useRouter();
   const { title, description, icon, type, link, tags } = resource;
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (link.startsWith('http')) {
       window.open(link, '_blank');
     } else {
       router.push(link);
     }
-  };
+  }, [link, router]);
 
   return (
     <Card className={`backdrop-blur-md bg-opacity-90 ${className || ''}`}>
@@ -58,4 +78,4 @@ export function ResourceCard({ resource, className }: ResourceCardProps) {
       </CardBody>
     </Card>
   );
-}
+});

@@ -3,36 +3,55 @@
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
+import { memo, useCallback, useMemo } from 'react';
 import type { ProjectCardProps } from '../types';
 
-export const ProjectCard = ({ project }: ProjectCardProps) => {
+export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
   const isPlanning = project.status === 'planning';
 
-  const categoryIcons: Record<string, string> = {
-    web: 'lucide:globe',
-    mobile: 'lucide:smartphone',
-    ai: 'lucide:brain',
-    design: 'lucide:palette',
-  };
+  const categoryIcons: Record<string, string> = useMemo(
+    () => ({
+      web: 'lucide:globe',
+      mobile: 'lucide:smartphone',
+      ai: 'lucide:brain',
+      design: 'lucide:palette',
+    }),
+    [],
+  );
 
   const categoryColors: Record<
     string,
     'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'default'
-  > = {
-    web: 'primary',
-    mobile: 'secondary',
-    ai: 'success',
-    design: 'warning',
-    etl: 'warning',
-    api: 'secondary',
-    map: 'secondary', // Changed from 'info' to 'secondary' to match allowed types
-    analytics: 'danger',
-  };
+  > = useMemo(
+    () => ({
+      web: 'primary',
+      mobile: 'secondary',
+      ai: 'success',
+      design: 'warning',
+      etl: 'warning',
+      api: 'secondary',
+      map: 'secondary', // Changed from 'info' to 'secondary' to match allowed types
+      analytics: 'danger',
+    }),
+    [],
+  );
+
+  const handleCardPress = useCallback(() => {
+    router.push(`/project/${project.id}`);
+  }, [router, project.id]);
+
+  const handleDemoClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  const handleRepoClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
 
   return (
     <Card
-      onPress={() => router.push(`/project/${project.id}`)}
+      onPress={handleCardPress}
       className={`overflow-hidden h-full relative transition-all cursor-pointer ${
         isPlanning ? 'opacity-60 grayscale pointer-events-none' : ''
       }`}
@@ -113,6 +132,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
               as="a"
               href={project.demoUrl}
               rel="noopener noreferrer"
+              onClick={handleDemoClick}
             >
               Live Demo
             </Button>
@@ -126,6 +146,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
               href={project.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleRepoClick}
             >
               View Code
             </Button>
@@ -134,4 +155,4 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
       )}
     </Card>
   );
-};
+});

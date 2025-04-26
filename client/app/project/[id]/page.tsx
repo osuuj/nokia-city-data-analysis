@@ -1,7 +1,7 @@
 'use client';
 
+import { ProjectDetailSkeleton } from '@/features/project/components';
 import ProjectDetailClient from '@/features/project/components/ProjectDetailClient';
-import { ProjectDetailSkeleton } from '@/features/project/components/ProjectSkeleton';
 import { useProject } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/ErrorMessage';
 import { useEffect } from 'react';

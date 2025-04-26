@@ -6,7 +6,8 @@ import {
   invalidateProjectCache,
   prefetchProject,
 } from '../config/cache';
-import { type Project, projectsData } from '../types';
+import { projectsData } from '../data/sampleProjects';
+import type { Project } from '../types';
 
 // Define query keys for better cache management
 export const projectKeys = {

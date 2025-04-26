@@ -2,22 +2,47 @@ import { cn } from '@/shared/utils/cn';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { ResourceCategoryData } from '../types';
 
 interface ResourceAccordionProps {
   category: ResourceCategoryData;
 }
 
-export function ResourceAccordion({ category }: ResourceAccordionProps) {
+/**
+ * ResourceAccordion Component
+ *
+ * Displays a collapsible accordion with resource category information and
+ * a list of resources within that category.
+ *
+ * @example
+ * <ResourceAccordion
+ *   category={{
+ *     id: 'guides',
+ *     title: 'Guides & Tutorials',
+ *     description: 'In-depth guides and tutorials',
+ *     icon: 'lucide:book',
+ *     resources: [...]
+ *   }}
+ * />
+ */
+export const ResourceAccordion = memo(function ResourceAccordion({
+  category,
+}: ResourceAccordionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   return (
     <div className="border rounded-lg shadow-sm bg-background">
       <button
         type="button"
         className="w-full flex items-center justify-between p-4 text-left"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
+        aria-expanded={isExpanded}
+        aria-controls={`category-${category.id}`}
       >
         <div className="flex items-center space-x-3">
           <Icon icon={category.icon} className="w-6 h-6 text-primary-600" />
@@ -28,11 +53,16 @@ export function ResourceAccordion({ category }: ResourceAccordionProps) {
         </div>
         <ChevronDownIcon
           className={`w-5 h-5 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         />
       </button>
 
       {isExpanded && (
-        <div className="p-4 pt-0">
+        <div
+          id={`category-${category.id}`}
+          className="p-4 pt-0"
+          aria-labelledby={`category-header-${category.id}`}
+        >
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {category.resources.map((resource) => (
               <Link
@@ -67,4 +97,4 @@ export function ResourceAccordion({ category }: ResourceAccordionProps) {
       )}
     </div>
   );
-}
+});

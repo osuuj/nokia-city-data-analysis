@@ -2,18 +2,50 @@
 'use client';
 
 import { TeamMemberGrid } from '@/shared/components/team';
-import GalleryViewer from '@features/project/components/GalleryViewer';
-import TechStackShowcase from '@features/project/components/TechStackShowcase';
-import TimelineSection from '@features/project/components/TimelineSection';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ErrorMessage } from '@shared/components/ErrorMessage';
 import { AnimatedBackground } from '@shared/components/ui/background';
 import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { Suspense, useEffect, useState } from 'react';
+import { projectsData } from '../data/sampleProjects';
 import type { Project } from '../types';
-import { projectsData } from '../types';
+
+// Loading components for better UX
+const CardSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+    <div className="space-y-2">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+    </div>
+  </div>
+);
+
+// Dynamically import components with loading fallbacks
+const GalleryViewer = dynamic(
+  () =>
+    import('../components/ui/GalleryViewer').then((mod) => {
+      // Artificial delay removal
+      return mod;
+    }),
+  {
+    loading: () => <CardSkeleton />,
+    ssr: false,
+  },
+);
+
+const TechStackShowcase = dynamic(() => import('../components/ui/TechStackShowcase'), {
+  loading: () => <CardSkeleton />,
+  ssr: false,
+});
+
+const TimelineSection = dynamic(() => import('../components/ui/TimelineSection'), {
+  loading: () => <CardSkeleton />,
+  ssr: false,
+});
 
 interface ProjectDetailClientProps {
   project: Project;
@@ -24,9 +56,22 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const { setCurrentPageTitle } = useBreadcrumb();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Set the current page title for breadcrumbs
+  // Prefetch and setup
   useEffect(() => {
+    const prefetchComponents = async () => {
+      // Prefetch all dynamic components
+      const components = [
+        import('../components/ui/GalleryViewer'),
+        import('../components/ui/TechStackShowcase'),
+        import('../components/ui/TimelineSection'),
+      ];
+      await Promise.all(components);
+      setIsLoading(false);
+    };
+
+    prefetchComponents();
     setCurrentPageTitle(project.title);
   }, [project.title, setCurrentPageTitle]);
 
@@ -61,7 +106,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         <AnimatedBackground />
       </div>
 
-      {/* Hero */}
+      {/* Hero Section - Preloaded */}
       <header className="relative h-[40vh] overflow-hidden" aria-label="Project hero image">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-10" />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -69,6 +114,8 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             src={project.image}
             alt={project.title}
             className="w-full h-full object-cover scale-110"
+            loading="eager"
+            onLoad={() => setIsLoading(false)}
           />
         </div>
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4">
@@ -88,7 +135,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
       </header>
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 mt-8">
-        {/* Overview */}
+        {/* Overview Section - Always Rendered */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -104,10 +151,12 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
                 {project.timeline && (
                   <div
                     className="flex items-center gap-2 text-default-500"
-                    aria-label={`Timeline: ${project.timeline}`}
+                    aria-label={`Timeline: ${typeof project.timeline === 'string' ? project.timeline : 'Project Timeline'}`}
                   >
                     <Icon icon="lucide:calendar" aria-hidden="true" />
-                    <span>{project.timeline}</span>
+                    <span>
+                      {typeof project.timeline === 'string' ? project.timeline : 'Project Timeline'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -150,86 +199,75 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
           </Card>
         </motion.section>
 
-        {/* Gallery */}
-        <motion.section
-          id="gallery"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
-          aria-labelledby="gallery-heading"
-        >
-          <h2 className="text-2xl font-bold mb-6" id="gallery-heading">
-            Project Gallery
-          </h2>
-          <GalleryViewer
-            gallery={gallery}
-            projectTitle={project.title}
-            aria-labelledby="gallery-heading"
-          />
-        </motion.section>
+        {/* Lazy Loaded Sections */}
+        <Suspense fallback={<CardSkeleton />}>
+          {/* Gallery Section */}
+          {project.gallery && project.gallery.length > 0 && (
+            <motion.section
+              id="gallery"
+              aria-labelledby="gallery-heading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 id="gallery-heading" className="text-2xl font-bold mb-6">
+                Project Gallery
+              </h2>
+              <GalleryViewer items={project.gallery} className="w-full" />
+            </motion.section>
+          )}
 
-        {/* Tech Stack */}
-        <motion.section
-          id="tech"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          aria-labelledby="tech-heading"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-center" id="tech-heading">
-            Technologies Used
-          </h2>
-          <TechStackShowcase tags={project.tags} aria-labelledby="tech-heading" />
-        </motion.section>
+          {/* Tech Stack Section */}
+          {project.tags && project.tags.length > 0 && (
+            <motion.section
+              id="tech-stack"
+              aria-labelledby="tech-stack-heading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 id="tech-stack-heading" className="text-2xl font-bold mb-6">
+                Technologies Used
+              </h2>
+              <TechStackShowcase tags={project.tags} />
+            </motion.section>
+          )}
 
-        {/* Timeline */}
-        {project.timeline && (
-          <motion.section
-            id="timeline"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            aria-labelledby="timeline-heading"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-center" id="timeline-heading">
-              Project Timeline
-            </h2>
-            <TimelineSection timeline={project.timeline} aria-labelledby="timeline-heading" />
-          </motion.section>
-        )}
-
-        {/* Team */}
-        {project.team && project.team.length > 0 && (
-          <motion.section
-            id="team"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            aria-labelledby="team-heading"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-center" id="team-heading">
-              Team Members
-            </h2>
-            <TeamMemberGrid
-              team={project.team.map((member) => ({
-                name: member,
-                jobTitle: 'Team Member',
-                bio: '',
-                portfolioLink: '#',
-                avatarSrc: `https://img.heroui.chat/image/avatar?w=200&h=200&u=${member}`,
-              }))}
+          {/* Team Section */}
+          {project.team && project.team.length > 0 && (
+            <motion.section
+              id="team"
               aria-labelledby="team-heading"
-            />
-          </motion.section>
-        )}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 id="team-heading" className="text-2xl font-bold mb-6">
+                Project Team
+              </h2>
+              <TeamMemberGrid
+                team={project.team.map((name, index) => ({
+                  id: `team-member-${index}`,
+                  name,
+                  jobTitle: 'Team Member',
+                  bio: `Team member for ${project.title}`,
+                  portfolioLink: '#',
+                  avatarSrc: `/api/avatar?seed=${encodeURIComponent(name)}`,
+                }))}
+              />
+            </motion.section>
+          )}
+        </Suspense>
 
-        {/* CTA Buttons */}
+        {/* CTA Section - Always Rendered */}
         {(project.demoUrl || project.repoUrl) && (
-          <section className="flex justify-center gap-4" aria-label="Project actions">
+          <motion.section
+            className="flex justify-center gap-4"
+            aria-label="Project actions"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             {project.demoUrl && (
               <Button
                 as="a"
@@ -260,7 +298,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
                 View Code
               </Button>
             )}
-          </section>
+          </motion.section>
         )}
       </div>
     </main>
