@@ -1,121 +1,142 @@
 import { API_BASE_URL, API_RETRY_COUNT, API_RETRY_DELAY, API_TIMEOUT } from '../endpoints';
-import {
-  ApiClientError,
-  NetworkError,
-  TimeoutError,
-  handleApiError,
-  parseErrorResponse,
-} from '../errors';
 import type {
   ApiClient,
   ApiClientConfig,
   ApiRequestConfig,
   ApiResponse,
   HttpMethod,
+  RateLimitState,
+  RequestPriority,
+  RequestState,
 } from '../types';
+import {
+  ApiClientError,
+  NetworkError,
+  TimeoutError,
+  handleApiError,
+  parseErrorResponse,
+} from './errors';
 
 /**
  * API client implementation
  */
 export class ApiClientImpl implements ApiClient {
-  private config: ApiClientConfig;
+  private baseURL: string;
+  private defaultHeaders: Record<string, string>;
+  private defaultTimeout: number;
+  private defaultRetryCount: number;
+  private defaultRetryDelay: number;
+  private activeRequests: Map<string, AbortController>;
+  private requestStates: Map<string, RequestState>;
+  private cache: Map<string, { data: unknown; timestamp: number }>;
+  private rateLimitState: RateLimitState;
 
   constructor(config: ApiClientConfig) {
-    this.config = {
-      baseURL: config.baseURL || API_BASE_URL,
-      timeout: config.timeout || API_TIMEOUT,
-      headers: {
-        'Content-Type': 'application/json',
-        ...config.headers,
-      },
-      retryCount: config.retryCount || API_RETRY_COUNT,
-      retryDelay: config.retryDelay || API_RETRY_DELAY,
+    this.baseURL = config.baseURL || API_BASE_URL;
+    this.defaultHeaders = config.defaultHeaders || {};
+    this.defaultTimeout = API_TIMEOUT;
+    this.defaultRetryCount = API_RETRY_COUNT;
+    this.defaultRetryDelay = API_RETRY_DELAY;
+    this.activeRequests = new Map();
+    this.requestStates = new Map();
+    this.cache = new Map();
+    this.rateLimitState = {
+      tokens: 100,
+      lastRefill: Date.now(),
+      requests: 0,
+      windowStart: Date.now(),
     };
   }
 
   /**
-   * Make an HTTP request
+   * Make a request to the API
    */
   private async request<T>(
     method: HttpMethod,
     url: string,
     data?: unknown,
-    config?: ApiRequestConfig,
+    config?: Partial<ApiRequestConfig>,
   ): Promise<ApiResponse<T>> {
+    const requestId = crypto.randomUUID();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+    this.activeRequests.set(requestId, controller);
+
+    const timeoutId = setTimeout(() => controller.abort(), this.defaultTimeout);
 
     try {
-      const response = await this.makeRequest<T>(method, url, data, {
-        ...config,
+      const requestState: RequestState = {
+        id: requestId,
+        url,
+        method,
+        priority: config?.priority || 'auto',
+        status: 'pending',
+        startTime: Date.now(),
+        retryCount: 0,
+      };
+      this.requestStates.set(requestId, requestState);
+
+      const fullUrl = this.buildUrl(url, config?.params);
+      const headers = this.buildHeaders(config?.headers);
+
+      const requestConfig: RequestInit = {
+        method,
+        headers,
         signal: controller.signal,
-      });
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: config?.credentials,
+        mode: config?.mode,
+        redirect: config?.redirect,
+        referrer: config?.referrer,
+        referrerPolicy: config?.referrerPolicy,
+        integrity: config?.integrity,
+        keepalive: config?.keepalive,
+        cache: config?.cache,
+      };
 
-      clearTimeout(timeoutId);
-      return response;
+      const response = await fetch(fullUrl, requestConfig);
+      const responseData = await response.json();
+
+      const apiResponse: ApiResponse<T> = {
+        data: responseData as T,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()) as Record<string, string>,
+        config: requestConfig as ApiRequestConfig,
+        request: response,
+      };
+
+      // Update request state
+      requestState.status = 'completed';
+      requestState.endTime = Date.now();
+      this.requestStates.set(requestId, requestState);
+
+      return apiResponse;
     } catch (error) {
-      clearTimeout(timeoutId);
-      throw handleApiError(error);
-    }
-  }
-
-  /**
-   * Make an HTTP request with retry logic
-   */
-  private async makeRequest<T>(
-    method: HttpMethod,
-    url: string,
-    data?: unknown,
-    config?: ApiRequestConfig,
-  ): Promise<ApiResponse<T>> {
-    let lastError: Error | null = null;
-    const retryCount = this.config.retryCount ?? 3;
-
-    for (let attempt = 0; attempt < retryCount; attempt++) {
-      try {
-        const response = await fetch(this.buildUrl(url), {
-          method,
-          headers: this.buildHeaders(config?.headers),
-          body: data ? JSON.stringify(data) : undefined,
-          signal: config?.signal,
-        });
-
-        if (!response.ok) {
-          const error = await parseErrorResponse(response);
-          throw new ApiClientError(error);
-        }
-
-        const responseData = (await response.json()) as T;
-        return {
-          data: responseData,
-          status: response.status,
-        };
-      } catch (error) {
-        lastError = error as Error;
-        if (error instanceof TimeoutError || error instanceof NetworkError) {
-          if (attempt < retryCount - 1) {
-            await new Promise((resolve) => setTimeout(resolve, this.config.retryDelay));
-            continue;
-          }
-        }
-        throw error;
+      // Update request state with error
+      const requestState = this.requestStates.get(requestId);
+      if (requestState) {
+        requestState.status = 'error';
+        requestState.endTime = Date.now();
+        requestState.error = error instanceof Error ? error : new Error(String(error));
+        this.requestStates.set(requestId, requestState);
       }
-    }
 
-    throw lastError || new Error('Request failed');
+      throw handleApiError(error);
+    } finally {
+      clearTimeout(timeoutId);
+      this.activeRequests.delete(requestId);
+    }
   }
 
   /**
    * Build URL with base URL and query parameters
    */
   private buildUrl(url: string, params?: Record<string, string | number | boolean>): string {
-    const baseUrl = this.config.baseURL.endsWith('/')
-      ? this.config.baseURL.slice(0, -1)
-      : this.config.baseURL;
+    const baseUrl = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL;
     const apiUrl = url.startsWith('/') ? url : `/${url}`;
     const queryString = params
       ? `?${Object.entries(params)
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
           .join('&')}`
       : '';
     return `${baseUrl}${apiUrl}${queryString}`;
@@ -126,7 +147,7 @@ export class ApiClientImpl implements ApiClient {
    */
   private buildHeaders(customHeaders?: Record<string, string>): HeadersInit {
     return {
-      ...this.config.headers,
+      ...this.defaultHeaders,
       ...customHeaders,
     };
   }
@@ -134,7 +155,7 @@ export class ApiClientImpl implements ApiClient {
   /**
    * GET request
    */
-  public async get<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+  public async get<T>(url: string, config?: Partial<ApiRequestConfig>): Promise<ApiResponse<T>> {
     return this.request<T>('GET', url, undefined, config);
   }
 
@@ -144,7 +165,7 @@ export class ApiClientImpl implements ApiClient {
   public async post<T>(
     url: string,
     data?: unknown,
-    config?: ApiRequestConfig,
+    config?: Partial<ApiRequestConfig>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>('POST', url, data, config);
   }
@@ -155,7 +176,7 @@ export class ApiClientImpl implements ApiClient {
   public async put<T>(
     url: string,
     data?: unknown,
-    config?: ApiRequestConfig,
+    config?: Partial<ApiRequestConfig>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', url, data, config);
   }
@@ -163,7 +184,7 @@ export class ApiClientImpl implements ApiClient {
   /**
    * DELETE request
    */
-  public async delete<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+  public async delete<T>(url: string, config?: Partial<ApiRequestConfig>): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', url, undefined, config);
   }
 
@@ -173,8 +194,47 @@ export class ApiClientImpl implements ApiClient {
   public async patch<T>(
     url: string,
     data?: unknown,
-    config?: ApiRequestConfig,
+    config?: Partial<ApiRequestConfig>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>('PATCH', url, data, config);
+  }
+
+  /**
+   * Cancel a specific request by ID
+   */
+  public cancelRequest(requestId: string): void {
+    const controller = this.activeRequests.get(requestId);
+    if (controller) {
+      controller.abort();
+      this.activeRequests.delete(requestId);
+    }
+  }
+
+  /**
+   * Get the state of a specific request
+   */
+  public getRequestState(requestId: string): RequestState | undefined {
+    return this.requestStates.get(requestId);
+  }
+
+  /**
+   * Get all active request states
+   */
+  public getAllRequestStates(): RequestState[] {
+    return Array.from(this.requestStates.values());
+  }
+
+  /**
+   * Clear the request cache
+   */
+  public clearCache(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Get the current rate limit state
+   */
+  public getRateLimitState(): RateLimitState {
+    return { ...this.rateLimitState };
   }
 }

@@ -6,6 +6,9 @@ import {
   useMutation,
   useQuery,
 } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
+import { ApiService } from '../../api/service/ApiService';
+import { useLoading } from '../loading/useLoading';
 
 /**
  * Base query key factory
@@ -78,4 +81,84 @@ export function useApiPatchMutation<TData = unknown, TVariables = unknown, TErro
     mutationFn: (variables) => apiClient.patch<TData>(url, variables),
     ...options,
   });
+}
+
+/**
+ * Hook for making API requests with loading and error states
+ * @param url The URL to make the request to
+ * @param method The HTTP method to use
+ * @param config The request configuration
+ * @param data The request data (for POST, PUT, PATCH)
+ * @returns An object containing the response, loading state, error state, and a function to refetch the data
+ */
+export function useApi<T>(
+  url: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
+  config?: Partial<ApiRequestConfig>,
+  data?: unknown,
+) {
+  const [response, setResponse] = useState<ApiResponse<T> | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { startLoading, stopLoading } = useLoading();
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Start the loading indicator
+    const loadingId = startLoading({
+      message: `Loading data from ${url}`,
+      priority: config?.priority || 'auto',
+    });
+
+    try {
+      const apiService = ApiService.getInstance();
+      let result: ApiResponse<T>;
+
+      switch (method) {
+        case 'GET':
+          result = await apiService.get<T>(url, config);
+          break;
+        case 'POST':
+          result = await apiService.post<T>(url, data, config);
+          break;
+        case 'PUT':
+          result = await apiService.put<T>(url, data, config);
+          break;
+        case 'DELETE':
+          result = await apiService.delete<T>(url, config);
+          break;
+        case 'PATCH':
+          result = await apiService.patch<T>(url, data, config);
+          break;
+        default:
+          throw new Error(`Unsupported HTTP method: ${method}`);
+      }
+
+      setResponse(result);
+      return result;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+      stopLoading(loadingId);
+    }
+  }, [url, method, config, data, startLoading, stopLoading]);
+
+  // Automatically fetch data on mount if autoFetch is true
+  useEffect(() => {
+    if (config?.autoFetch !== false) {
+      fetchData();
+    }
+  }, [fetchData, config?.autoFetch]);
+
+  return {
+    response,
+    isLoading,
+    error,
+    fetchData,
+  };
 }

@@ -1,97 +1,297 @@
 'use client';
 
-import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-export type LoadingType = 'overlay' | 'inline' | 'skeleton';
-export type LoadingPriority = 'high' | 'medium' | 'low';
+/**
+ * Loading type options
+ */
+export type LoadingType = 'spinner' | 'progress' | 'skeleton' | 'overlay';
 
-interface LoadingState {
+/**
+ * Loading priority options
+ */
+export type LoadingPriority = 'high' | 'low' | 'auto';
+
+/**
+ * Loading state interface
+ */
+export interface LoadingState {
+  /** Whether loading is active */
   isLoading: boolean;
+  /** Loading message to display */
   message: string;
+  /** Type of loading indicator */
   type: LoadingType;
+  /** Priority of the loading state */
   priority: LoadingPriority;
+  /** Error message if loading failed */
+  error: string | null;
+  /** Progress percentage (0-100) */
+  progress: number;
+  /** Whether the loading state is transitioning */
+  isTransitioning: boolean;
 }
 
-interface LoadingContextType {
-  /**
-   * The current loading state
-   */
-  loadingState: LoadingState;
+/**
+ * Loading context interface
+ */
+export interface LoadingContextType {
   /**
    * Start the loading state with configuration
    */
-  startLoading: (config?: Partial<LoadingState>) => void;
+  startLoading: (options?: {
+    message?: string;
+    type?: LoadingType;
+    priority?: LoadingPriority;
+  }) => string;
   /**
    * Stop the loading state
    */
-  stopLoading: () => void;
+  stopLoading: (id: string) => void;
   /**
    * Update the loading message
    */
-  updateLoadingMessage: (message: string) => void;
+  updateLoadingMessage: (id: string, message: string) => void;
+  /**
+   * Update the loading progress
+   */
+  updateLoadingProgress: (id: string, progress: number) => void;
+  /**
+   * Set an error in the loading state
+   */
+  setError: (id: string, error: string) => void;
+  /**
+   * Reset the loading state
+   */
+  clearError: (id: string) => void;
+  /**
+   * Whether loading is active
+   */
+  isLoading: boolean;
+  /**
+   * The current loading state
+   */
+  currentLoadingState: LoadingState | null;
 }
 
+/**
+ * Default loading state
+ */
 const defaultLoadingState: LoadingState = {
   isLoading: false,
   message: 'Loading...',
-  type: 'overlay',
-  priority: 'medium',
+  type: 'spinner',
+  priority: 'auto',
+  error: null,
+  progress: 0,
+  isTransitioning: false,
 };
 
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+/**
+ * Loading context
+ */
+export const LoadingContext = createContext<LoadingContextType | null>(null);
 
+/**
+ * Loading provider props
+ */
 interface LoadingProviderProps {
   /**
    * The children to wrap with the loading context
    */
   children: ReactNode;
+  /**
+   * Default loading state
+   */
+  defaultState?: Partial<LoadingState>;
 }
 
 /**
  * LoadingProvider component
  * Provides responsive loading state management to the application
+ *
+ * @example
+ * ```tsx
+ * <LoadingProvider defaultState={{ type: 'overlay', priority: 'high' }}>
+ *   <App />
+ * </LoadingProvider>
+ * ```
  */
-export function LoadingProvider({ children }: LoadingProviderProps) {
-  const [loadingState, setLoadingState] = useState<LoadingState>(defaultLoadingState);
+export function LoadingProvider({ children, defaultState = {} }: LoadingProviderProps) {
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    ...defaultLoadingState,
+    ...defaultState,
+  });
 
-  const startLoading = useCallback((config?: Partial<LoadingState>) => {
-    setLoadingState((prev) => ({
-      ...prev,
-      isLoading: true,
-      ...config,
-    }));
+  // Use a ref to track if the component is mounted
+  const isMounted = useRef(true);
+
+  // Use a ref to store transition timeouts
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
   }, []);
 
-  const stopLoading = useCallback(() => {
+  /**
+   * Start loading with the provided configuration
+   */
+  const startLoading = useCallback(
+    (options?: { message?: string; type?: LoadingType; priority?: LoadingPriority }) => {
+      if (!isMounted.current) return '';
+
+      setLoadingState((prev) => ({
+        ...prev,
+        isLoading: true,
+        isTransitioning: true,
+        error: null,
+        ...options,
+      }));
+
+      // Clear any existing transition timeout
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+
+      // Set new transition timeout
+      transitionTimeoutRef.current = setTimeout(() => {
+        if (isMounted.current) {
+          setLoadingState((prev) => ({
+            ...prev,
+            isTransitioning: false,
+          }));
+        }
+      }, 300);
+
+      return `loading_${Math.random().toString(36).substring(2)}`;
+    },
+    [],
+  );
+
+  /**
+   * Stop loading
+   */
+  const stopLoading = useCallback((id: string) => {
+    if (!isMounted.current) return;
+
     setLoadingState((prev) => ({
       ...prev,
-      isLoading: false,
+      isTransitioning: true,
     }));
+
+    // Clear any existing transition timeout
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+    }
+
+    // Set new transition timeout
+    transitionTimeoutRef.current = setTimeout(() => {
+      if (isMounted.current) {
+        setLoadingState((prev) => ({
+          ...prev,
+          isLoading: false,
+          isTransitioning: false,
+          progress: 0,
+        }));
+      }
+    }, 300);
   }, []);
 
-  const updateLoadingMessage = useCallback((message: string) => {
+  /**
+   * Update loading message
+   */
+  const updateLoadingMessage = useCallback((id: string, message: string) => {
+    if (!isMounted.current) return;
+
     setLoadingState((prev) => ({
       ...prev,
       message,
     }));
   }, []);
 
-  return (
-    <LoadingContext.Provider
-      value={{
-        loadingState,
-        startLoading,
-        stopLoading,
-        updateLoadingMessage,
-      }}
-    >
-      {children}
-    </LoadingContext.Provider>
+  /**
+   * Update loading progress
+   */
+  const updateLoadingProgress = useCallback((id: string, progress: number) => {
+    if (!isMounted.current) return;
+
+    setLoadingState((prev) => ({
+      ...prev,
+      progress: Math.min(100, Math.max(0, progress)),
+    }));
+  }, []);
+
+  /**
+   * Set loading error
+   */
+  const setError = useCallback((id: string, error: string) => {
+    if (!isMounted.current) return;
+
+    setLoadingState((prev) => ({
+      ...prev,
+      error,
+    }));
+  }, []);
+
+  /**
+   * Reset loading state
+   */
+  const clearError = useCallback(
+    (id: string) => {
+      if (!isMounted.current) return;
+
+      setLoadingState({
+        ...defaultLoadingState,
+        ...defaultState,
+      });
+    },
+    [defaultState],
   );
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      startLoading,
+      stopLoading,
+      updateLoadingMessage,
+      updateLoadingProgress,
+      setError,
+      clearError,
+      isLoading: loadingState.isLoading,
+      currentLoadingState: loadingState,
+    }),
+    [
+      startLoading,
+      stopLoading,
+      updateLoadingMessage,
+      updateLoadingProgress,
+      setError,
+      clearError,
+      loadingState,
+    ],
+  );
+
+  return <LoadingContext.Provider value={contextValue}>{children}</LoadingContext.Provider>;
 }
 
 /**
  * Hook to use the loading context
+ * @returns Loading context value
  * @throws Error if used outside of LoadingProvider
  */
 export function useLoading() {
