@@ -1,73 +1,94 @@
 'use client';
 
-import type { CompanyProperties } from '@/features/dashboard/types';
-import type { SortDropdownProps } from '@/features/dashboard/types';
+import type {
+  CompanyProperties,
+  CompanyTableKey,
+  SortDescriptor,
+} from '@/features/dashboard/types';
+import { cn } from '@/shared/utils/cn';
+import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { columns } from '@shared/config/columns';
-import { AccessibleIconify } from '@shared/icons';
-import { useEffect, useState } from 'react';
+import { Icon } from '@iconify/react';
+import { useCallback, useMemo, useState } from 'react';
+
+interface SortDropdownProps {
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: (value: SortDescriptor) => void;
+  'aria-label'?: string;
+}
 
 /**
  * SortDropdown component
  * A dropdown menu for applying column sorting in the table view.
  * Provides options to sort by any visible column in ascending or descending order.
  */
-export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdownProps) {
-  // Get only visible columns for sorting options
-  const visibleColumns = columns.filter((col) => col.visible);
+export function SortDropdown({
+  sortDescriptor,
+  setSortDescriptor,
+  'aria-label': ariaLabel,
+}: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Close dropdown on window resize to prevent layout issues
-  useEffect(() => {
-    const handleResize = () => {
-      if (isOpen) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen]);
+  const visibleColumns = useCompanyStore((state) => state.visibleColumns);
 
   // Get the current sort direction icon
-  const getSortIcon = (columnKey: string) => {
-    if (sortDescriptor.column !== columnKey) return 'lucide:arrow-up-down';
+  const getSortIcon = useCallback(() => {
+    if (!sortDescriptor.column) return 'lucide:arrow-up-down';
     return sortDescriptor.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down';
-  };
+  }, [sortDescriptor]);
 
   // Get the current sort label
-  const getSortLabel = (columnKey: string) => {
-    if (sortDescriptor.column !== columnKey) return 'Sort by';
-    return `Sorted ${sortDescriptor.direction === 'asc' ? 'ascending' : 'descending'}`;
-  };
+  const getSortLabel = useCallback(() => {
+    if (!sortDescriptor.column) return 'Sort';
+    // Find column label by key
+    const columnLabel =
+      visibleColumns.find((col) => col.key === sortDescriptor.column)?.label ||
+      sortDescriptor.column;
+    return `${columnLabel} (${sortDescriptor.direction === 'asc' ? '↑' : '↓'})`;
+  }, [sortDescriptor, visibleColumns]);
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  }, []);
+
+  // Memoize the sort icon to prevent unnecessary re-renders
+  const sortIcon = useMemo(() => getSortIcon(), [getSortIcon]);
+
+  // Memoize the sort label to prevent unnecessary re-renders
+  const sortLabel = useMemo(() => getSortLabel(), [getSortLabel]);
 
   return (
-    <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
+    <Dropdown
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      placement="bottom-end"
+      shouldFlip={true}
+      onKeyDown={handleKeyDown}
+    >
       <DropdownTrigger>
         <Button
           size="sm"
-          variant="flat"
-          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
+          className={cn(
+            'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200',
+            'transition-colors duration-200',
+          )}
           startContent={
-            <AccessibleIconify
-              icon={getSortIcon(sortDescriptor.column)}
-              width={16}
-              className="text-default-400"
-              ariaLabel={getSortLabel(sortDescriptor.column)}
-            />
+            <Icon icon={sortIcon} width={16} className="text-default-500" aria-hidden="true" />
           }
-          aria-label={getSortLabel(sortDescriptor.column)}
+          aria-label={ariaLabel || `Sort: ${sortLabel}`}
         >
-          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">
-            {getSortLabel(sortDescriptor.column)}
-          </span>
+          <span className="hidden xs:inline-block text-xs truncate max-w-[80px]">{sortLabel}</span>
         </Button>
       </DropdownTrigger>
       <DropdownMenu
         aria-label="Sort options"
+        className="max-h-[400px] overflow-y-auto"
         onAction={(key) => {
           const [column, direction] = String(key).split('-');
           setSortDescriptor({
-            column: column as keyof CompanyProperties,
+            column: column as CompanyTableKey,
             direction: direction === 'ascending' ? 'asc' : 'desc',
           });
           setIsOpen(false);
@@ -77,28 +98,32 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
           <DropdownItem
             key={`${column.key}-ascending`}
             startContent={
-              <AccessibleIconify
+              <Icon
                 icon="lucide:arrow-up"
                 width={16}
-                className="text-default-400"
-                ariaLabel="Sort ascending"
+                className="text-default-500"
+                aria-hidden="true"
               />
             }
+            className="text-xs py-1"
+            aria-label={`Sort ${column.label} ascending`}
           >
-            Sort {column.label} ascending
+            {column.label} (ascending)
           </DropdownItem>,
           <DropdownItem
             key={`${column.key}-descending`}
             startContent={
-              <AccessibleIconify
+              <Icon
                 icon="lucide:arrow-down"
                 width={16}
-                className="text-default-400"
-                ariaLabel="Sort descending"
+                className="text-default-500"
+                aria-hidden="true"
               />
             }
+            className="text-xs py-1"
+            aria-label={`Sort ${column.label} descending`}
           >
-            Sort {column.label} descending
+            {column.label} (descending)
           </DropdownItem>,
         ])}
       </DropdownMenu>

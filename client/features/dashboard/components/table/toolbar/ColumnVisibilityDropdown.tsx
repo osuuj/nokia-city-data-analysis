@@ -1,69 +1,70 @@
 'use client';
 
 import type { TableColumnConfig } from '@/features/dashboard/types';
+import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import { Icon } from '@iconify/react';
 import { columns } from '@shared/config/columns';
-import { AccessibleIconify } from '@shared/icons';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * ColumnVisibilityDropdown
  * A dropdown menu that lets the user toggle column visibility on the table.
  */
 export function ColumnVisibilityDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
   const toggleColumnVisibility = useCompanyStore((state) => state.toggleColumnVisibility);
-  const [isOpen, setIsOpen] = useState(false);
 
-  // Close dropdown on window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (isOpen) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen]);
+  // Get selected keys for the dropdown
+  const selectedKeys = new Set(visibleColumns.map((col) => col.key));
 
-  const selectedKeys = new Set<string>(visibleColumns.map((col: TableColumnConfig) => col.key));
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  }, []);
 
   return (
     <Dropdown
       isOpen={isOpen}
       onOpenChange={setIsOpen}
       closeOnSelect={false}
+      placement="bottom-end"
+      shouldFlip={true}
+      onKeyDown={handleKeyDown}
       classNames={{
-        base: 'focus:outline-none focus:ring-0',
-        trigger: 'focus:outline-none focus:ring-0',
-        content: 'focus:outline-none focus:ring-0',
+        base: 'z-40',
+        content: 'min-w-[180px] max-w-[250px]',
       }}
     >
       <DropdownTrigger>
         <Button
-          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
+          className={cn(
+            'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200',
+            'transition-colors duration-200',
+          )}
           size="sm"
           startContent={
-            <AccessibleIconify
-              icon="solar:sort-horizontal-linear"
+            <Icon
+              icon="lucide:columns"
               width={16}
-              className="text-default-400"
-              ariaLabel="Toggle columns"
+              className="text-default-500"
+              aria-hidden="true"
             />
           }
           aria-label="Toggle column visibility"
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
         >
-          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Columns</span>
+          <span className="hidden xs:inline-block text-xs">Columns</span>
         </Button>
       </DropdownTrigger>
 
       <DropdownMenu
         classNames={{
-          base: 'text-left min-w-[180px] focus:outline-none focus:ring-0',
-          list: 'max-h-[300px] overflow-y-auto',
+          base: 'text-left',
+          list: 'max-h-[300px] overflow-y-auto p-1',
         }}
         disallowEmptySelection
         aria-label="Toggle column visibility"
@@ -87,7 +88,11 @@ export function ColumnVisibilityDropdown() {
           .map((item: TableColumnConfig) => (
             <DropdownItem
               key={item.key}
-              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+              className={cn(
+                'text-xs py-1 h-8',
+                'data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800',
+                'transition-colors duration-200',
+              )}
               aria-label={`${item.label} column ${selectedKeys.has(item.key) ? 'visible' : 'hidden'}`}
             >
               {item.label}

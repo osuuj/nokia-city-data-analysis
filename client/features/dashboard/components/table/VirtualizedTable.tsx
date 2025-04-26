@@ -62,75 +62,125 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     return String(value);
   };
 
+  const getColumnWidth = (key: string) => {
+    // Calculate relative widths as percentages based on content type
+    switch (key) {
+      case 'business_id':
+        return '10%'; // Narrow column for IDs
+      case 'company_name':
+        return '25%'; // Wider column for names
+      case 'street':
+      case 'city':
+        return '20%'; // Medium-wide for text content
+      default:
+        return `${100 / visibleColumns.length}%`; // Evenly distribute remaining columns
+    }
+  };
+
   return (
     <div
       ref={containerRef}
       style={{
         height,
-        width,
+        width: '100%',
         overflow: 'auto',
         position: 'relative',
       }}
       onScroll={handleScroll}
     >
       <div style={{ height: startIndex * ROW_HEIGHT }} />
-      <Table
-        aria-label="Virtualized table"
-        selectionMode="multiple"
-        selectedKeys={selectedKeys}
-        onSelectionChange={handleSelectionChange}
-        classNames={{
-          base: 'min-w-full',
-          table: 'min-w-full',
-          thead: 'bg-default-50',
-          th: 'text-default-600 text-xs font-medium uppercase tracking-wider',
-          td: 'text-default-700 text-sm',
-          tr: 'data-[selected=true]:bg-primary-50',
-        }}
-      >
-        <TableHeader>
-          {visibleColumns.map((column) => (
-            <TableColumn key={`header-${column.key}`} className="whitespace-nowrap">
-              {column.label}
-            </TableColumn>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {visibleRows.length > 0 ? (
-            visibleRows.map((item) => {
-              const isSelected = selectedKeys.has(item.business_id);
-              return (
-                <TableRow
-                  key={`row-${item.business_id}`}
-                  style={{ height: ROW_HEIGHT }}
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    const newSelectedKeys = new Set(selectedKeys);
-                    if (isSelected) {
-                      newSelectedKeys.delete(item.business_id);
-                    } else {
-                      newSelectedKeys.add(item.business_id);
-                    }
-                    onSelectionChange(newSelectedKeys);
-                  }}
-                >
-                  {visibleColumns.map((column) => (
-                    <TableCell key={`cell-${item.business_id}-${column.key}`}>
-                      {renderCellValue(item[column.key as keyof CompanyProperties])}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={visibleColumns.length} className="text-center py-4">
+      <div className="w-full min-w-full">
+        <Table
+          aria-label="Virtualized table"
+          selectionMode="multiple"
+          selectedKeys={selectedKeys}
+          onSelectionChange={handleSelectionChange}
+          isHeaderSticky
+          isStriped
+          layout="fixed"
+          classNames={{
+            base: 'w-full',
+            wrapper: 'w-full rounded-lg border border-default-200',
+            table: 'w-full table-fixed',
+            td: 'text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2',
+            th: 'text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 bg-default-200 text-default-800 font-semibold',
+            tr: 'hover:bg-default-50 data-[selected=true]:bg-primary-50',
+          }}
+          checkboxesProps={{
+            size: 'sm',
+            radius: 'sm',
+            color: 'primary',
+          }}
+        >
+          <TableHeader>
+            {visibleColumns.map((column) => (
+              <TableColumn
+                key={`header-${column.key}`}
+                className="py-1"
+                style={{
+                  width: getColumnWidth(column.key),
+                }}
+              >
+                <div className="flex items-center justify-start gap-1.5">
+                  <span className="truncate text-[10px] xs:text-xs sm:text-xs md:text-sm whitespace-nowrap">
+                    {column.label}
+                  </span>
+                </div>
+              </TableColumn>
+            ))}
+          </TableHeader>
+          <TableBody
+            emptyContent={
+              <div className="text-center py-3 text-default-500 text-xs md:text-sm">
                 No data available
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+              </div>
+            }
+          >
+            {visibleRows.length > 0 ? (
+              visibleRows.map((item) => {
+                const isSelected = selectedKeys.has(item.business_id);
+                return (
+                  <TableRow
+                    key={`row-${item.business_id}`}
+                    style={{ height: ROW_HEIGHT }}
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      const newSelectedKeys = new Set(selectedKeys);
+                      if (isSelected) {
+                        newSelectedKeys.delete(item.business_id);
+                      } else {
+                        newSelectedKeys.add(item.business_id);
+                      }
+                      onSelectionChange(newSelectedKeys);
+                    }}
+                  >
+                    {visibleColumns.map((column) => (
+                      <TableCell
+                        key={`cell-${item.business_id}-${column.key}`}
+                        style={{
+                          minWidth: column.key === 'business_id' ? '60px' : '80px',
+                          maxWidth: column.key === 'business_id' ? '100px' : '300px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <span className="truncate block w-full">
+                          {renderCellValue(item[column.key as keyof CompanyProperties])}
+                        </span>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length} className="text-center py-4">
+                  No data available
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       <div style={{ height: (data.length - endIndex) * ROW_HEIGHT }} />
     </div>
   );

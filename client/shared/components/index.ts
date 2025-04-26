@@ -19,5 +19,17 @@ export * from './data';
 // Team Components
 export * from './team';
 
+// Form Components
+export * from './forms';
+
+// Project Components
+export * from './projects';
+
+// Testimonial Components
+export * from './testimonials';
+
+// Timeline Components
+export * from './timeline';
+
 // Layout Components
-// export * from './layout'; // Commented out until layout components are properly exported
+export * from './layout';

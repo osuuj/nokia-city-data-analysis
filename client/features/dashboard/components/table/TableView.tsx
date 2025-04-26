@@ -201,14 +201,34 @@ export const TableView = React.memo<TableViewComponentProps>(
             setSelectedKeys={setSelectedKeys}
           />
 
-          <VirtualizedTable
-            data={filteredData}
-            visibleColumns={visibleColumns}
-            selectedKeys={selectedKeys}
-            onSelectionChange={handleSelectionChange}
-            height={600}
-            width={windowWidth - 48} // Adjust for padding
-          />
+          <div className="w-full overflow-x-auto">
+            <VirtualizedTable
+              data={filteredData}
+              visibleColumns={visibleColumns.map((col) => {
+                // Add suggested widths for columns based on content type
+                let width: number | undefined;
+                switch (col.key) {
+                  case 'business_id':
+                    width = 80;
+                    break;
+                  case 'company_name':
+                    width = 200;
+                    break;
+                  case 'street':
+                  case 'city':
+                    width = 150;
+                    break;
+                  default:
+                    width = 120; // Default column width
+                }
+                return { ...col, width };
+              })}
+              selectedKeys={selectedKeys}
+              onSelectionChange={handleSelectionChange}
+              height={600}
+              width={windowWidth - 96} // Adjust for padding and margins
+            />
+          </div>
 
           {bottomContent}
         </div>
