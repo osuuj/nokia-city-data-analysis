@@ -7,8 +7,6 @@ export { LoadingProvider, useLoading } from './loading';
 export type { LoadingType, LoadingPriority } from './loading';
 export { BreadcrumbProvider, useBreadcrumb } from './breadcrumb';
 export { ThemeProvider, useThemeContext } from './ThemeContext';
-export { AuthProvider, useAuth } from './auth';
-export type { UserRole, AuthStatus } from './auth';
 
 // Example: export { ThemeProvider, useTheme } from './ThemeContext';
 // Example: export { AuthProvider, useAuth } from './AuthContext';
