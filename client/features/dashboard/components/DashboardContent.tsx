@@ -98,18 +98,16 @@ export function DashboardContent({
   // State for page size
   const [pageSize, setPageSize] = useState(10);
 
-  // Memoize the filtered data to prevent unnecessary re-renders
-  const filteredData = useMemo(() => {
-    return useFilteredBusinesses({
-      data: allFilteredData,
-      searchTerm,
-      selectedIndustries: [], // TODO: Add industry filtering
-      userLocation: null, // TODO: Add location filtering
-      distanceLimit: null,
-      sortDescriptor,
-      isFetching: isLoading,
-    });
-  }, [allFilteredData, searchTerm, sortDescriptor, isLoading]);
+  // Call useFilteredBusinesses at the top level (not inside useMemo)
+  const filteredData = useFilteredBusinesses({
+    data: allFilteredData,
+    searchTerm,
+    selectedIndustries: [], // TODO: Add industry filtering
+    userLocation: null, // TODO: Add location filtering
+    distanceLimit: null,
+    sortDescriptor,
+    isFetching: isLoading,
+  });
 
   // Handle page size change
   const handlePageSizeChange = useCallback(

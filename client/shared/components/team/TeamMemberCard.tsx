@@ -44,13 +44,12 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
       <Card className="shadow-md h-full backdrop-blur-md bg-opacity-85 border border-content2">
         <CardHeader className="flex flex-col items-center gap-2 p-4">
           <div className="relative w-24 h-24">
-            <Image
+            <img
               src={avatarSrc}
               alt={name}
               width={96}
               height={96}
               className="rounded-full object-cover"
-              priority={false}
               loading="lazy"
             />
           </div>

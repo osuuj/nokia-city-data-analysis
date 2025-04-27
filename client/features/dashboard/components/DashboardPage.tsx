@@ -109,7 +109,7 @@ export function DashboardPage() {
     // This could involve fetching data for the new view mode
     // before the user actually switches to it
     console.log(`Prefetching data for view: ${view}`);
-    return Promise.resolve();
+    return Promise.resolve({ prefetched: true });
   }, []);
 
   return (

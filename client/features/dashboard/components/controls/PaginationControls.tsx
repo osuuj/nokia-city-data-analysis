@@ -62,7 +62,7 @@ export function PaginationControls({
         <Button
           variant="bordered"
           size="sm"
-          onClick={handlePreviousPage}
+          onPress={handlePreviousPage}
           disabled={currentPage === 1 || isLoading}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function PaginationControls({
         <Button
           variant="bordered"
           size="sm"
-          onClick={handleNextPage}
+          onPress={handleNextPage}
           disabled={currentPage === totalPages || isLoading}
         >
           Next

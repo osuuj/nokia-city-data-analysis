@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@shared/api';
-import { createQueryKey, useApiQuery } from '@shared/hooks/useApi';
+import { createQueryKey, useApiQuery } from '@shared/hooks';
 
 /**
  * City data type

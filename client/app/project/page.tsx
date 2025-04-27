@@ -1,8 +1,8 @@
 'use client';
 
 import { ProjectGridSkeleton } from '@/features/project/components';
+import { ProjectErrorBoundary } from '@/features/project/components';
 import { AnimatedProjectHero } from '@/features/project/components/hero';
-import { ProjectErrorBoundary } from '@/features/project/components/ui/ProjectErrorBoundary';
 import { useProjects } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/ErrorMessage';
 import { AnimatedBackground } from '@/shared/components/ui/background';

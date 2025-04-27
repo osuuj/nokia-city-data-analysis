@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@shared/api';
-import { createQueryKey, useApiQuery } from '@shared/hooks/useApi';
+import { createQueryKey, useApiQuery } from '@shared/hooks';
 
 /**
  * Company data type
@@ -33,9 +33,15 @@ export function useCompanies(params?: {
   return useApiQuery<Company[]>(
     createQueryKey('companies', params),
     API_ENDPOINTS.COMPANIES.LIST,
-    {
-      params: params as Record<string, string | number>,
-    },
+    params
+      ? {
+          url: API_ENDPOINTS.COMPANIES.LIST,
+          method: 'GET',
+          params: Object.fromEntries(
+            Object.entries(params).map(([k, v]) => [k, v != null ? String(v) : '']),
+          ),
+        }
+      : undefined,
     {
       staleTime: 1000 * 60 * 5, // 5 minutes
     },
