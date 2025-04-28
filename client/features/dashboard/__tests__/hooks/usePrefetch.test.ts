@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import { usePrefetch } from '../../hooks/usePrefetch';
 
 // Mock the useQueryClient hook

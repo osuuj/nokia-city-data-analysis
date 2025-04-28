@@ -1,7 +1,6 @@
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import { useDashboard } from '../../hooks/useDashboard';
 import type { DashboardError } from '../../types';
-import type { ViewMode } from '../../types/view';
 
 describe('useDashboard', () => {
   it('initializes with default values', () => {
