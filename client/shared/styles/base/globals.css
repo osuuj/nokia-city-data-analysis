@@ -1,4 +1,18 @@
-@import "mapbox-gl/dist/mapbox-gl.css"; /* ✅ Bringing in external map styles */
-@tailwind base; /* ✅ Tailwind's normalize + defaults */
-@tailwind components; /* ✅ Your custom components (if any) */
-@tailwind utilities; /* ✅ Tailwind utility classes */
+/* Import external styles */
+@import 'mapbox-gl/dist/mapbox-gl.css'; /* ✅ Bringing in external map styles */
+
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS below this line */
+
+/* 
+ * If you're seeing linter errors with @tailwind directives:
+ * 1. Add the VS Code CSS Validation extension or similar
+ * 2. Add a .vscode/settings.json file with this setting:
+ * {
+ *   "css.lint.unknownAtRules": "ignore"
+ * }
+ */

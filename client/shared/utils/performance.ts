@@ -238,15 +238,15 @@ export function withPerformanceTracking<P extends object>(
  */
 export function useDashboardPerformanceTracking(componentName: string): ProfilerOnRenderCallback {
   return (
-    id,
-    phase,
-    actualDuration,
-    baseDuration,
-    startTime,
-    commitTime,
-    interactions,
-    nextInteractions,
-  ) => {
+    id: string,
+    phase: 'mount' | 'update',
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number,
+    interactions: Set<Interaction>,
+    nextInteractions?: Set<Interaction>,
+  ): void => {
     const metrics: PerformanceMetrics = {
       id,
       phase,

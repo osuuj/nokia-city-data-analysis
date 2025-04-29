@@ -1,57 +1,89 @@
 'use client';
 
-import {
-  useFetchCities,
-  useFetchCompanies,
-} from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import { createQueryKey } from '@/shared/hooks/api';
+import { createQueryKey } from '@/shared/hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { type FC, useEffect } from 'react';
 
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
+// Define interface for city data
+interface City {
+  id: string;
+  name: string;
+  country: string;
+  population?: number;
 }
 
 /**
- * Preloader component
- * Fetches initial data for the home page when the landing page loads
- * This helps reduce the perceived loading time when navigating to the home page
+ * Preloader component for fetching initial data without rendering anything visible
+ * This helps with loading data for the home page in the background
  */
-export function Preloader() {
+const Preloader: FC = () => {
   const queryClient = useQueryClient();
 
-  // Prefetch cities and initial companies data
-  const { data: citiesResponse } = useFetchCities();
-  // Prefetch Helsinki companies - intentionally not using the return value
-  useFetchCompanies('Helsinki');
-
-  const cities = citiesResponse?.data;
-
-  // Prefetch additional data for other cities to improve initial load
+  // Prefetch cities and initial data
   useEffect(() => {
-    if (cities && cities.length > 0) {
-      // Prefetch data for the top 3 cities
-      const topCities = cities.slice(0, 3);
-      for (const city of topCities) {
-        if (city !== 'Helsinki') {
-          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES, {
-            city,
-          });
-          queryClient.prefetchQuery({
-            queryKey,
-            queryFn: () =>
-              fetch(`${API_ENDPOINTS.COMPANIES}?city=${encodeURIComponent(city)}`).then((res) =>
-                res.json(),
-              ),
-            staleTime: 60000, // Cache for 1 minute
-          });
+    const prefetchData = async () => {
+      try {
+        // Fetch all cities
+        const citiesResponse = await fetch(API_ENDPOINTS.CITIES);
+        const citiesData: City[] = await citiesResponse.json();
+
+        if (citiesData && Array.isArray(citiesData)) {
+          // Get Helsinki data (most commonly viewed)
+          const helsinkiCity = citiesData.find(
+            (city: City) => city.name.toLowerCase() === 'helsinki',
+          );
+
+          // Get top 3 cities (excluding Helsinki)
+          const topCities = citiesData
+            .filter((city: City) => city.name.toLowerCase() !== 'helsinki')
+            .slice(0, 3);
+
+          // Prefetch Helsinki data
+          if (helsinkiCity) {
+            // Prefetch city data
+            queryClient.prefetchQuery({
+              queryKey: createQueryKey('city', helsinkiCity.id),
+              queryFn: () =>
+                fetch(`${API_ENDPOINTS.CITIES}/${helsinkiCity.id}`).then((res) => res.json()),
+            });
+
+            // Prefetch companies data
+            queryClient.prefetchQuery({
+              queryKey: createQueryKey('companies', { city: helsinkiCity.id }),
+              queryFn: () =>
+                fetch(`${API_ENDPOINTS.COMPANIES}?city=${helsinkiCity.id}`).then((res) =>
+                  res.json(),
+                ),
+            });
+          }
+
+          // Prefetch data for top cities
+          for (const city of topCities) {
+            // Prefetch city data
+            queryClient.prefetchQuery({
+              queryKey: createQueryKey('city', city.id),
+              queryFn: () => fetch(`${API_ENDPOINTS.CITIES}/${city.id}`).then((res) => res.json()),
+            });
+
+            // Prefetch companies data
+            queryClient.prefetchQuery({
+              queryKey: createQueryKey('companies', { city: city.id }),
+              queryFn: () =>
+                fetch(`${API_ENDPOINTS.COMPANIES}?city=${city.id}`).then((res) => res.json()),
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error prefetching data:', error);
       }
-    }
-  }, [cities, queryClient]);
+    };
+
+    prefetchData();
+  }, [queryClient]);
 
   // This component doesn't render anything visible
   return null;
-}
+};
+
+export default Preloader;
