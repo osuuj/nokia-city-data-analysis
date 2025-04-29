@@ -5,9 +5,9 @@ import { useLoading } from '@/shared/hooks/loading/useLoading';
 import { cn } from '@/shared/utils/cn';
 import { Spinner } from '@heroui/react';
 import { memo, useMemo } from 'react';
-import { LoadingOverlay } from '../LoadingOverlay';
-import { LoadingSpinner } from '../LoadingSpinner';
-import { SkeletonLoader } from '../SkeletonLoader';
+import { LoadingOverlay } from './LoadingOverlay';
+import { LoadingSpinner } from './LoadingSpinner';
+import { SkeletonLoader } from './SkeletonLoader';
 
 interface ResponsiveLoadingProps {
   /**
