@@ -48,7 +48,7 @@ export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
         inputWrapper: 'h-8 md:h-9',
       }}
       size="sm"
-      placeholder="Search company..."
+      placeholder="Search company name..."
       startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
       value={searchTerm}
       onChange={(e) => onSearch(e.target.value)}

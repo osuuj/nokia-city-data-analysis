@@ -33,6 +33,7 @@ export function DashboardPage() {
 
   // Local state for UI controls
   const [searchTerm, setSearchTerm] = useState('');
+  const [companySearchTerm, setCompanySearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'company_name' as CompanyTableKey,
@@ -61,7 +62,7 @@ export function DashboardPage() {
     selectedIndustries,
     userLocation,
     distanceLimit,
-    query: searchTerm,
+    query: companySearchTerm,
   });
 
   // Track loading state
@@ -121,15 +122,11 @@ export function DashboardPage() {
     [startSectionLoading, handleCityChange],
   );
 
-  // Handle search term changes
-  const onSearchChange = useCallback(
-    (term: string) => {
-      startSectionLoading('table', 'Searching...');
-      setSearchTerm(term);
-      setCurrentPage(1); // Reset to first page when search changes
-    },
-    [startSectionLoading],
-  );
+  // Handle company search term changes
+  const onCompanySearchChange = (value: string) => {
+    setCompanySearchTerm(value);
+    setCurrentPage(1); // Reset to first page on search
+  };
 
   // Get selected businesses from the store
   const selectedBusinesses = Object.values(selectedRows);
@@ -198,7 +195,7 @@ export function DashboardPage() {
         setViewMode={setViewMode}
         cityLoading={cityLoading}
         searchTerm={searchTerm}
-        onSearchChange={onSearchChange}
+        onSearchChange={onCompanySearchChange}
         fetchViewData={prefetchViewData}
       />
 
@@ -227,7 +224,7 @@ export function DashboardPage() {
               onPageChange={setCurrentPage}
               isLoading={isAnySectionLoading}
               searchTerm={searchTerm}
-              setSearchTerm={onSearchChange}
+              setSearchTerm={onCompanySearchChange}
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
               error={error}

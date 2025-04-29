@@ -122,16 +122,6 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                   width={windowWidth - 96} // Adjust for padding and margins
                 />
               </Suspense>
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-4">
-                  <Pagination
-                    total={totalPages}
-                    page={currentPage}
-                    onChange={onPageChange}
-                    showControls
-                  />
-                </div>
-              )}
             </>
           )}
         </Card>

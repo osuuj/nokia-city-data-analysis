@@ -100,8 +100,8 @@ export function useDashboardDataQuery({
     },
     {
       enabled: !!selectedCity,
-      staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-      gcTime: 1000 * 60 * 30, // Keep in garbage collection for 30 minutes
+      staleTime: 1000 * 60 * 30, // Cache for 30 minutes
+      gcTime: 1000 * 60 * 60, // Keep in garbage collection for 60 minutes
       retry: customRetry,
     },
   );
