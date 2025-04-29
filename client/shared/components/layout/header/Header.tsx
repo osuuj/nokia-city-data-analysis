@@ -41,8 +41,7 @@ export const Header = () => {
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
   const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
@@ -117,7 +116,7 @@ export const Header = () => {
     console.log('Data is ready');
   };
 
-  // Use useEffect to handle side effects
+  // Remove scroll-related effects
   useEffect(() => {
     // Hide loading overlay when data is ready
     if (isDataReady && showLoadingOverlay) {
@@ -140,192 +139,206 @@ export const Header = () => {
     }
   }, [currentPathname, isNavigatingToDashboard]);
 
-  // Add effect to handle header visibility on scroll
-  useEffect(() => {
-    // Always keep header visible for all screen sizes
-    setIsHeaderVisible(true);
-
-    // Still need to handle menu open state
-    const handleScroll = () => {
-      if (isMenuOpen) {
-        document.body.style.overflow = 'hidden';
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isMenuOpen]);
-
   // Add effect to handle body overflow when menu is open
   useEffect(() => {
     if (isMenuOpen) {
+      // Just prevent scrolling without changing overflow
+      // This prevents layout shifts that might cause the header to disappear
       document.body.style.overflow = 'hidden';
-      setIsHeaderVisible(true);
+      document.body.style.position = 'relative';
     } else {
       document.body.style.overflow = '';
+      document.body.style.position = '';
     }
 
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+    };
+  }, [isMenuOpen]);
+
+  // Add this effect to close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
 
   return (
-    <div
-      className={`w-full sticky top-0 z-[100] ${
-        isBlackBgPage
-          ? 'bg-black text-white'
-          : isBlurry
-            ? 'bg-background/90 backdrop-blur-md text-foreground'
+    <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100] shadow-sm">
+      <div
+        className={`w-full ${
+          isBlackBgPage
+            ? 'bg-black text-white'
             : 'bg-background/90 backdrop-blur-md text-foreground'
-      }`}
-    >
-      {showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
-
-      <Navbar
-        maxWidth="2xl"
-        classNames={{
-          base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : ''}`,
-          wrapper: 'px-4 sm:px-6 gap-4',
-          item: 'data-[active=true]:font-medium data-[active=true]:text-primary',
-          menuItem: 'data-[active=true]:font-medium data-[active=true]:text-primary',
-          menu: 'mt-2 p-4 transition-transform duration-300 ease-in-out w-full',
-        }}
-        isMenuOpen={isMenuOpen}
-        onMenuOpenChange={setIsMenuOpen}
+        } ${isMenuOpen ? 'shadow-md' : ''}`}
       >
-        {/* Left: Logo + mobile toggle */}
-        <NavbarMenuToggle
-          className="sm:hidden"
-          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-        />
-        <NavbarBrand className="flex-grow sm:flex-grow-0">
-          <Link href="/" color="foreground" className="flex items-center gap-2">
-            <OsuujLogo className="min-w-[40px] min-h-[40px]" />
-          </Link>
-        </NavbarBrand>
+        {showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
 
-        {/* Center: Navigation links */}
-        <NavbarContent
-          justify="center"
-          className="hidden sm:flex flex-grow gap-6 max-w-[500px] h-12 "
+        <Navbar
+          maxWidth="2xl"
+          classNames={{
+            base: `pt-2 pb-2 lg:pt-4 lg:pb-4 ${isBlackBgPage ? 'bg-black' : ''}`,
+            wrapper: 'px-4 sm:px-6 gap-4',
+            item: 'data-[active=true]:font-medium data-[active=true]:text-primary',
+            menuItem: 'data-[active=true]:font-medium data-[active=true]:text-primary',
+            menu: 'pt-2 pb-4 max-h-[calc(100vh-64px)] overflow-auto',
+          }}
+          isMenuOpen={isMenuOpen}
+          onMenuOpenChange={setIsMenuOpen}
         >
-          <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 dark:bg-content1 backdrop-blur-md">
-            {navbarItems.map((item) => (
-              <NavbarItem
-                key={item.href}
-                isActive={isPathActive(item.href)}
-                className={`${clickedItem === item.href ? 'text-primary' : ''}`}
-              >
-                <Link
-                  href={item.href}
-                  color={isPathActive(item.href) ? 'primary' : 'foreground'}
-                  className={`px-3 py-1.5 rounded-full transition-colors ${
-                    isPathActive(item.href) ? 'bg-primary/10 font-medium' : 'hover:bg-content3/50'
-                  }`}
-                  onPress={() => {
-                    handleItemClick(item.href);
-                  }}
+          {/* Left: Logo + mobile toggle */}
+          <NavbarMenuToggle
+            className="sm:hidden relative w-8 h-8 flex items-center justify-center"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            icon={
+              <div className="relative flex flex-col justify-center items-center w-6 h-6">
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
+                />
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                />
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`}
+                />
+              </div>
+            }
+          />
+          <NavbarBrand className="flex-grow sm:flex-grow-0">
+            <Link href="/" color="foreground" className="flex items-center gap-2">
+              <OsuujLogo className="min-w-[40px] min-h-[40px]" />
+            </Link>
+          </NavbarBrand>
+
+          {/* Center: Navigation links */}
+          <NavbarContent
+            justify="center"
+            className="hidden sm:flex flex-grow gap-6 max-w-[500px] h-12"
+          >
+            <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 dark:bg-content1 backdrop-blur-md">
+              {navbarItems.map((item) => (
+                <NavbarItem
+                  key={item.href}
+                  isActive={isPathActive(item.href)}
+                  className={`${clickedItem === item.href ? 'text-primary' : ''}`}
                 >
-                  {item.label}
-                </Link>
-              </NavbarItem>
-            ))}
-          </div>
-        </NavbarContent>
-
-        {/* Right: Actions (search, GitHub, theme) */}
-        <NavbarContent justify="end" className="sm:flex max-w-fit">
-          <div className="flex items-center gap-1 px-2 py-1">
-            <NavbarItem className="lg:flex">
-              <Button
-                isIconOnly
-                radius="full"
-                variant="light"
-                aria-label="GitHub"
-                as="a"
-                href={siteConfig.links.github}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <GithubIcon className="text-default-700" />
-              </Button>
-            </NavbarItem>
-
-            <NavbarItem>
-              <ThemeSwitch aria-label="Toggle theme" />
-            </NavbarItem>
-          </div>
-        </NavbarContent>
-
-        {/* Mobile menu */}
-        <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200] bg-background">
-          <div className="w-full">
-            {/* Dashboard option at the top of the mobile menu with special styling */}
-            <NavbarMenuItem
-              key="dashboard"
-              isActive={currentPathname === '/dashboard'}
-              className="border-b border-divider/30 mb-2 pb-2"
-            >
-              <Link
-                href="/dashboard"
-                className={`w-full px-4 py-3 rounded-md block ${
-                  currentPathname === '/dashboard'
-                    ? 'bg-primary text-white font-medium'
-                    : 'text-foreground hover:bg-default-100'
-                }`}
-                onPress={() => {
-                  setIsMenuOpen(false);
-                  handleItemClick('/dashboard');
-                }}
-              >
-                Dashboard
-              </Link>
-            </NavbarMenuItem>
-
-            {/* Other menu items */}
-            {navbarItems
-              .filter((item) => item.href !== '/dashboard')
-              .map((item) => (
-                <NavbarMenuItem key={item.href} isActive={isPathActive(item.href)}>
                   <Link
-                    className={`w-full px-4 py-2 block ${
-                      isPathActive(item.href)
-                        ? 'text-primary font-medium'
-                        : 'text-foreground hover:text-primary'
-                    }`}
                     href={item.href}
+                    color={isPathActive(item.href) ? 'primary' : 'foreground'}
+                    className={`px-3 py-1.5 rounded-full transition-colors ${
+                      isPathActive(item.href) ? 'bg-primary/10 font-medium' : 'hover:bg-content3/50'
+                    }`}
                     onPress={() => {
-                      setIsMenuOpen(false);
                       handleItemClick(item.href);
                     }}
                   >
                     {item.label}
                   </Link>
-                </NavbarMenuItem>
+                </NavbarItem>
               ))}
-          </div>
-        </NavbarMenu>
-      </Navbar>
+            </div>
+          </NavbarContent>
 
-      {/* Breadcrumbs section */}
-      {shouldShowBreadcrumbs && (
-        <div className="w-full py-2 border-t border-divider/40">
-          <div className=" mx-auto w-full px-4 sm:px-6">
-            <Breadcrumbs />
+          {/* Right: Actions (search, GitHub, theme) */}
+          <NavbarContent justify="end" className="sm:flex max-w-fit">
+            <div className="flex items-center gap-1 px-2 py-1">
+              <NavbarItem className="lg:flex">
+                <Button
+                  isIconOnly
+                  radius="full"
+                  variant="light"
+                  aria-label="GitHub"
+                  as="a"
+                  href={siteConfig.links.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <GithubIcon className="text-default-700" />
+                </Button>
+              </NavbarItem>
+
+              <NavbarItem>
+                <ThemeSwitch aria-label="Toggle theme" />
+              </NavbarItem>
+            </div>
+          </NavbarContent>
+
+          {/* Mobile menu with animation */}
+          <NavbarMenu className="bg-background/95 backdrop-blur-md fixed top-[60px] left-0 right-0 bottom-0 overflow-y-auto border-t border-divider/30 shadow-lg transition-opacity duration-300 ease-in-out">
+            <div className="px-4 pb-2 pt-2">
+              {/* Dashboard option */}
+              <NavbarMenuItem
+                key="dashboard"
+                isActive={currentPathname === '/dashboard'}
+                className="border-b border-divider/30 mb-2 pb-2"
+              >
+                <Link
+                  href="/dashboard"
+                  className={`w-full px-4 py-3 rounded-md block ${
+                    currentPathname === '/dashboard'
+                      ? 'bg-primary text-white font-medium'
+                      : 'text-foreground hover:bg-default-100'
+                  }`}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                    handleItemClick('/dashboard');
+                  }}
+                >
+                  Dashboard
+                </Link>
+              </NavbarMenuItem>
+
+              {/* Other menu items */}
+              <div className="space-y-2">
+                {navbarItems
+                  .filter((item) => item.href !== '/dashboard')
+                  .map((item) => (
+                    <NavbarMenuItem key={item.href} isActive={isPathActive(item.href)}>
+                      <Link
+                        href={item.href}
+                        className={`w-full px-4 py-2 block rounded-md ${
+                          isPathActive(item.href)
+                            ? 'text-primary font-medium'
+                            : 'text-foreground hover:text-primary hover:bg-default-100/50'
+                        }`}
+                        onPress={() => {
+                          setIsMenuOpen(false);
+                          handleItemClick(item.href);
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    </NavbarMenuItem>
+                  ))}
+              </div>
+            </div>
+          </NavbarMenu>
+        </Navbar>
+
+        {/* Breadcrumbs section */}
+        {shouldShowBreadcrumbs && (
+          <div className="w-full py-2 border-t border-divider/40">
+            <div className="mx-auto w-full px-4 sm:px-6">
+              <Breadcrumbs />
+            </div>
           </div>
+        )}
+
+        {/* Hidden DataLoader to prefetch data */}
+        <div className="hidden">
+          <DataLoader onDataReady={handleDataReady}>
+            <div>Data is ready</div>
+          </DataLoader>
         </div>
-      )}
-
-      {/* Hidden DataLoader to prefetch data */}
-      <div className="hidden">
-        <DataLoader onDataReady={handleDataReady}>
-          <div>Data is ready</div>
-        </DataLoader>
       </div>
-    </div>
+    </header>
   );
 };

@@ -4,7 +4,7 @@
 export function AboutStory() {
   return (
     <div className="mb-10">
-      <h1 className="text-4xl font-bold text-primary mb-6">Our Story</h1>
+      <h1 className="text-4xl font-bold text-primary mb-6 text-center">Our Story</h1>
       <div className="rounded-large bg-content1 p-6 shadow-small backdrop-blur-md bg-opacity-85 border border-content2">
         <p className="text-default-600 mb-6">
           We started this project to help people discover local companies with powerful tools like

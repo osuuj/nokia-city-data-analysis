@@ -81,7 +81,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `}
         </Script>
       </head>
-      <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
+      <body
+        className={clsx(
+          'min-h-screen bg-background font-sans antialiased pt-24',
+          fontSans.variable,
+        )}
+      >
         <ErrorBoundary fallback={<ErrorFallback />}>
           <LoadingProvider>
             <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
