@@ -1,6 +1,5 @@
 import type { Business } from '@/features/dashboard/types';
-import { API_ENDPOINTS } from '@shared/api';
-import apiClient from '@shared/api';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { createQueryKey, useApiQuery } from '@shared/hooks/api';
 
 /**
@@ -18,11 +17,13 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
 
   console.log('📡 Fetching companies from:', city);
   try {
-    const response = await apiClient.get<Business[]>(API_ENDPOINTS.COMPANIES.LIST, {
-      params: { city },
-    });
-    console.log('✅ Companies fetched:', response.data);
-    return response.data;
+    const response = await fetch(`${API_ENDPOINTS.COMPANIES}?city=${encodeURIComponent(city)}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch companies: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('✅ Companies fetched:', data);
+    return data;
   } catch (error) {
     console.error('❌ Failed to fetch businesses:', error);
     throw error;
@@ -38,9 +39,13 @@ const fetchCompanies = async (city: string): Promise<Business[]> => {
 const fetchCities = async (): Promise<string[]> => {
   console.log('📡 Fetching cities...');
   try {
-    const response = await apiClient.get<string[]>(API_ENDPOINTS.CITIES.LIST);
-    console.log('✅ Cities fetched:', response.data);
-    return response.data;
+    const response = await fetch(API_ENDPOINTS.CITIES);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cities: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('✅ Cities fetched:', data);
+    return data;
   } catch (error) {
     console.error('❌ Failed to fetch cities:', error);
     throw error;
@@ -54,7 +59,7 @@ const fetchCities = async (): Promise<string[]> => {
  * @returns { data, error, isLoading }
  */
 export function useFetchCities() {
-  return useApiQuery<string[]>('cities', API_ENDPOINTS.CITIES.LIST, undefined, {
+  return useApiQuery<string[]>('cities', API_ENDPOINTS.CITIES, undefined, {
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
@@ -69,7 +74,7 @@ export function useFetchCities() {
 export function useFetchCompanies(city: string) {
   return useApiQuery<Business[]>(
     createQueryKey('companies', city),
-    API_ENDPOINTS.COMPANIES.LIST,
+    API_ENDPOINTS.COMPANIES,
     {
       params: { city },
     },

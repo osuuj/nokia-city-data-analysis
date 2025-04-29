@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@shared/api';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { createQueryKey, useApiQuery } from '@shared/hooks';
 
 /**
@@ -19,7 +19,7 @@ export interface City {
  * Hook to fetch all cities
  */
 export function useCities() {
-  return useApiQuery<City[]>('cities', API_ENDPOINTS.CITIES.LIST, undefined, {
+  return useApiQuery<City[]>('cities', API_ENDPOINTS.CITIES, undefined, {
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
@@ -28,7 +28,7 @@ export function useCities() {
  * Hook to fetch a specific city by ID
  */
 export function useCity(id: string) {
-  return useApiQuery<City>(createQueryKey('city', id), API_ENDPOINTS.CITIES.DETAIL(id), undefined, {
+  return useApiQuery<City>(createQueryKey('city', id), `${API_ENDPOINTS.CITIES}/${id}`, undefined, {
     enabled: !!id,
   });
 }
@@ -42,7 +42,7 @@ export function useCityStatistics(id: string) {
     totalEmployees: number;
     industries: Record<string, number>;
     growthRate: number;
-  }>(createQueryKey('city-statistics', id), API_ENDPOINTS.CITIES.STATISTICS(id), undefined, {
+  }>(createQueryKey('city-statistics', id), `${API_ENDPOINTS.CITIES}/${id}/statistics`, undefined, {
     enabled: !!id,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

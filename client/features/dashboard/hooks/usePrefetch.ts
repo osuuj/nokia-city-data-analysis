@@ -1,5 +1,4 @@
-import { API_ENDPOINTS } from '@/shared/api';
-import apiClient from '@/shared/api';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 
@@ -148,7 +147,7 @@ export function usePrefetchData() {
   const prefetchCities = useCallback(async () => {
     await queryClient.prefetchQuery({
       queryKey: createQueryKey('cities'),
-      queryFn: () => apiClient.get(API_ENDPOINTS.CITIES),
+      queryFn: () => fetch(API_ENDPOINTS.CITIES).then((res) => res.json()),
     });
   }, [queryClient]);
 
@@ -160,9 +159,9 @@ export function usePrefetchData() {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('companies', { city }),
         queryFn: () =>
-          apiClient.get(API_ENDPOINTS.COMPANIES, {
-            params: { city },
-          }),
+          fetch(`${API_ENDPOINTS.COMPANIES}?city=${encodeURIComponent(city)}`).then((res) =>
+            res.json(),
+          ),
       });
     },
     [queryClient],
@@ -175,7 +174,7 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('company', { id }),
-        queryFn: () => apiClient.get(`${API_ENDPOINTS.COMPANIES}/${id}`),
+        queryFn: () => fetch(`${API_ENDPOINTS.COMPANIES}/${id}`).then((res) => res.json()),
       });
     },
     [queryClient],
@@ -188,7 +187,7 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('city-statistics', { id }),
-        queryFn: () => apiClient.get(`${API_ENDPOINTS.CITIES}/${id}/statistics`),
+        queryFn: () => fetch(`${API_ENDPOINTS.CITIES}/${id}/statistics`).then((res) => res.json()),
       });
     },
     [queryClient],
@@ -201,7 +200,8 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('company-statistics', { id }),
-        queryFn: () => apiClient.get(`${API_ENDPOINTS.COMPANIES}/${id}/statistics`),
+        queryFn: () =>
+          fetch(`${API_ENDPOINTS.COMPANIES}/${id}/statistics`).then((res) => res.json()),
       });
     },
     [queryClient],

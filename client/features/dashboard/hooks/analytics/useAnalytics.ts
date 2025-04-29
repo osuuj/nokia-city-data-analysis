@@ -1,7 +1,11 @@
-import { ApiResponse } from '@/shared/api/types';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
-import { API_ENDPOINTS } from '@shared/api';
 import type { DistributionDataRaw, PivotedData, TopCityData } from './types';
+
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+}
 
 /**
  * Hook to fetch top cities data
@@ -44,7 +48,7 @@ export const useIndustriesByCity = (cities: string[]) => {
   const citiesParam = cities.join(',');
   return useApiQuery<PivotedData>(
     createQueryKey('industries-by-city', { cities }),
-    `${API_ENDPOINTS.ANALYTICS.INDUSTRIES_BY_CITY}?cities=${encodeURIComponent(citiesParam)}`,
+    `/api/v1/analytics/industries-by-city?cities=${encodeURIComponent(citiesParam)}`,
     undefined,
     {
       enabled: cities.length > 0 && cities.length <= 5,

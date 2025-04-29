@@ -5,10 +5,14 @@ import {
   useFetchCompanies,
 } from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import { ApiResponse } from '@/shared/api/types';
 import { createQueryKey } from '@/shared/hooks/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+}
 
 /**
  * Preloader component
@@ -31,14 +35,14 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES.LIST, {
+          const queryKey = createQueryKey(API_ENDPOINTS.COMPANIES, {
             city,
           });
           queryClient.prefetchQuery({
             queryKey,
             queryFn: () =>
-              fetch(`${API_ENDPOINTS.COMPANIES.LIST}?city=${encodeURIComponent(city)}`).then(
-                (res) => res.json(),
+              fetch(`${API_ENDPOINTS.COMPANIES}?city=${encodeURIComponent(city)}`).then((res) =>
+                res.json(),
               ),
             staleTime: 60000, // Cache for 1 minute
           });

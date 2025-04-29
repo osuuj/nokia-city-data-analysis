@@ -1,5 +1,4 @@
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import type { ApiError, ApiRequestConfig, ApiResponse } from '@/shared/api/types';
 import { useApiQuery } from '@/shared/hooks/api/useApi';
 import { CACHE_CONFIG } from '../../config/cache';
 import type {
@@ -9,6 +8,25 @@ import type {
   IndustryDistribution,
   TopCity,
 } from '../../types/analytics';
+
+// Define API types locally since api/types was removed
+interface ApiRequestConfig {
+  url?: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  params?: Record<string, string | number | boolean>;
+  headers?: Record<string, string>;
+  data?: unknown;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+}
+
+interface ApiError extends Error {
+  status?: number;
+  data?: unknown;
+}
 
 /**
  * Hook for fetching top cities data with enhanced error handling and caching
@@ -61,9 +79,9 @@ export const useIndustryDistributionEnhanced = (selectedCities: string[], enable
 export const useIndustriesByCityEnhanced = (selectedCities: string[], enabled = true) => {
   return useApiQuery<IndustryByCity[]>(
     ['analytics', 'industriesByCity', selectedCities],
-    API_ENDPOINTS.ANALYTICS.INDUSTRIES_BY_CITY,
+    '/api/v1/analytics/industries-by-city',
     {
-      url: API_ENDPOINTS.ANALYTICS.INDUSTRIES_BY_CITY,
+      url: '/api/v1/analytics/industries-by-city',
       method: 'GET',
       params: {
         cities: selectedCities.join(','),

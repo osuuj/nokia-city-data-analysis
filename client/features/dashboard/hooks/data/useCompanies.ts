@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@shared/api';
+import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { createQueryKey, useApiQuery } from '@shared/hooks';
 
 /**
@@ -32,11 +32,9 @@ export function useCompanies(params?: {
 }) {
   return useApiQuery<Company[]>(
     createQueryKey('companies', params),
-    API_ENDPOINTS.COMPANIES.LIST,
+    API_ENDPOINTS.COMPANIES,
     params
       ? {
-          url: API_ENDPOINTS.COMPANIES.LIST,
-          method: 'GET',
           params: Object.fromEntries(
             Object.entries(params).map(([k, v]) => [k, v != null ? String(v) : '']),
           ),
@@ -54,7 +52,7 @@ export function useCompanies(params?: {
 export function useCompany(id: string) {
   return useApiQuery<Company>(
     createQueryKey('company', id),
-    API_ENDPOINTS.COMPANIES.DETAIL(id),
+    `${API_ENDPOINTS.COMPANIES}/${id}`,
     undefined,
     {
       enabled: !!id,
@@ -71,8 +69,13 @@ export function useCompanyStatistics(id: string) {
     revenue: number;
     growthRate: number;
     industryRank: number;
-  }>(createQueryKey('company-statistics', id), API_ENDPOINTS.COMPANIES.STATISTICS(id), undefined, {
-    enabled: !!id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  }>(
+    createQueryKey('company-statistics', id),
+    `${API_ENDPOINTS.COMPANIES}/${id}/statistics`,
+    undefined,
+    {
+      enabled: !!id,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  );
 }
