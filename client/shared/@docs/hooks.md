@@ -1,6 +1,6 @@
 # Shared Hooks
 
-This directory contains reusable React hooks used across the application.
+This file provides documentation for the reusable React hooks in the `client/shared/hooks` directory.
 
 ## Directory Structure
 
@@ -12,6 +12,7 @@ hooks/
 ├── data/         # Data management hooks
 │   ├── useEnhancedQuery.ts
 │   └── index.ts
+├── loading/      # Loading-related hooks
 └── index.ts      # Main export file
 ```
 
@@ -24,6 +25,7 @@ hooks/
 - `useApiPutMutation` - Base mutation hook for PUT requests
 - `useApiDeleteMutation` - Base mutation hook for DELETE requests
 - `useApiPatchMutation` - Base mutation hook for PATCH requests
+- `createQueryKey` - Utility to create consistent query keys
 
 ### Data Hooks
 
@@ -62,6 +64,29 @@ const { data, isLoading } = useEnhancedQuery('users', '/api/users', {
 });
 ```
 
+### Using Utility Hooks
+
+```typescript
+import { useDebounce, usePagination } from '@shared/hooks';
+
+// Debounce example
+const [searchTerm, setSearchTerm] = useState('');
+const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+// Pagination example
+const { 
+  page, 
+  pageSize, 
+  totalPages, 
+  nextPage, 
+  prevPage, 
+  setPage 
+} = usePagination({ 
+  totalItems: 100, 
+  initialPageSize: 10 
+});
+```
+
 ## Best Practices
 
 1. **Type Safety**
@@ -86,5 +111,4 @@ When adding new hooks:
 1. Place them in the appropriate subdirectory
 2. Update the index.ts file to export the new hook
 3. Add proper TypeScript types
-4. Include JSDoc documentation
-5. Add usage examples to this README 
+4. Include JSDoc documentation 

@@ -1,6 +1,6 @@
 # Shared Components
 
-This directory contains reusable components that can be used across the application.
+This file provides documentation for the reusable components in the `client/shared/components` directory.
 
 ## Directory Structure
 
@@ -9,7 +9,12 @@ This directory contains reusable components that can be used across the applicat
 - `loading/` - Loading state components
 - `data/` - Data display components
 - `team/` - Team member display components
-- `layout/` - Layout components (not yet implemented)
+- `layout/` - Layout components including headers, footers, and navigation
+- `animations/` - Animation components and utilities
+- `forms/` - Form components and utilities
+- `projects/` - Project-related display components
+- `testimonials/` - Testimonial display components
+- `timeline/` - Timeline display components
 
 ## Usage
 
@@ -57,7 +62,15 @@ import { LoadingSpinner, SkeletonLoader, LoadingOverlay } from '@/shared/compone
 Components for displaying data.
 
 ```tsx
-import { DataTable, DataGrid } from '@/shared/components/data';
+import { DataTable, DataGrid, Preloader } from '@/shared/components/data';
+```
+
+### Layout Components
+
+Components for page layout and structure.
+
+```tsx
+import { Header, Footer, Sidebar } from '@/shared/components/layout';
 ```
 
 ### Team Components
@@ -66,6 +79,14 @@ Components for displaying team members.
 
 ```tsx
 import { TeamMemberCard, TeamMemberGrid } from '@/shared/components/team';
+```
+
+### Form Components
+
+Components for forms and user input.
+
+```tsx
+import { Form, FormField, Input, Select } from '@/shared/components/forms';
 ```
 
 ## Best Practices
