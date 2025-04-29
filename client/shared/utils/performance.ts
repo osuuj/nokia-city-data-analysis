@@ -268,20 +268,18 @@ export function useDashboardPerformanceTracking(componentName: string): Profiler
  * Track component render performance
  */
 export function usePerformanceTracking(componentName: string): void {
-  const monitor = PerformanceMonitor.getInstance();
-
-  // This is a placeholder for future implementation
-  // We could track component lifecycle events here
-  console.log(`[Performance] Component ${componentName} mounted`);
+  // Only log in development mode
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Performance] Component ${componentName} mounted`);
+  }
 }
 
 /**
  * Track user interaction performance
  */
 export function useInteractionTracking(interactionName: string): void {
-  const monitor = PerformanceMonitor.getInstance();
-
-  // This is a placeholder for future implementation
-  // We could track user interactions here
-  console.log(`[Performance] Interaction ${interactionName} tracked`);
+  // Only log in development mode
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Performance] Interaction ${interactionName} tracked`);
+  }
 }

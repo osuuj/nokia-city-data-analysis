@@ -6,7 +6,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { teamData } from './data';
-import type { TeamMember } from './types';
 
 // Query keys for team data
 export const teamQueryKeys = {

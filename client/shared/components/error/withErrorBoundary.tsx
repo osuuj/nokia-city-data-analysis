@@ -2,7 +2,6 @@
 
 import type React from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
-import { ErrorMessage } from './ErrorMessage';
 
 interface WithErrorBoundaryOptions {
   fallback?: React.ReactNode;

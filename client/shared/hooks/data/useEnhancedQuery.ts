@@ -1,5 +1,5 @@
-import { useQuery, type useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
+import type { useQueryClient } from '@tanstack/react-query';
 import {
   type ApiError,
   type ApiRequestConfig,

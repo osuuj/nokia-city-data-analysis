@@ -4,9 +4,8 @@ import type { LoadingPriority, LoadingType } from '@/shared/context/loading/Load
 import { useLoading } from '@/shared/hooks/loading/useLoading';
 import { cn } from '@/shared/utils/cn';
 import { Spinner } from '@heroui/react';
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { LoadingOverlay } from './LoadingOverlay';
-import { LoadingSpinner } from './LoadingSpinner';
 import { SkeletonLoader } from './SkeletonLoader';
 
 interface ResponsiveLoadingProps {

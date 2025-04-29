@@ -22,7 +22,7 @@ interface BreadcrumbsProps {
 export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentPageTitle, setCurrentPageTitle } = useBreadcrumb();
+  const { currentPageTitle } = useBreadcrumb();
   const [isNavigating, setIsNavigating] = useState(false);
 
   // Cache the previous valid pathname to prevent flashing during navigation

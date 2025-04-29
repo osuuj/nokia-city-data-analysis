@@ -41,7 +41,7 @@ export const Header = () => {
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
-  const [isBlurry, setIsBlurry] = useState(false);
+  const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
 

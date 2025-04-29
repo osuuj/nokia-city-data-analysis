@@ -24,7 +24,8 @@ export function Preloader() {
 
   // Prefetch cities and initial companies data
   const { data: citiesResponse } = useFetchCities();
-  const { data: companies } = useFetchCompanies('Helsinki');
+  // Prefetch Helsinki companies - intentionally not using the return value
+  useFetchCompanies('Helsinki');
 
   const cities = citiesResponse?.data;
 

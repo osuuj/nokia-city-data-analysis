@@ -5,7 +5,6 @@ import {
   useFetchCompanies,
 } from '@/features/dashboard/hooks/data/useCompaniesQuery';
 import { Spinner } from '@heroui/react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface DataLoaderProps {
@@ -19,7 +18,6 @@ interface DataLoaderProps {
  * Then renders children
  */
 export function DataLoader({ onDataReady, children }: DataLoaderProps) {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   // Set mounted state after hydration

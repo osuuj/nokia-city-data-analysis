@@ -40,9 +40,9 @@ const queryClient = new QueryClient({
  * This fixes the issue with the pulsing grey bar in the header during navigation
  */
 function NavigationEvents() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isNavigating, setIsNavigating] = useState(false);
+  // The useEffect doesn't need any variables from the component scope
+  // but setIsNavigating is used within the effect
+  const [, setIsNavigating] = useState(false);
 
   useEffect(() => {
     // Track navigation state to prevent showing loading indicators
@@ -54,8 +54,7 @@ function NavigationEvents() {
       setIsNavigating(false);
     };
 
-    // Reset isNavigating when pathname or searchParams change
-    // This prevents loading indicators from showing during regular navigation
+    // Reset isNavigating - prevents loading indicators during navigation
     setIsNavigating(false);
   }, []);
 

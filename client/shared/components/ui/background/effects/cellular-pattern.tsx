@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import React from 'react';
 
 interface CellularPatternProps {
@@ -23,10 +22,8 @@ export const CellularPattern: React.FC<CellularPatternProps> = ({
   viewportDimensions,
 }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = React.useRef<number>();
   const [cells, setCells] = React.useState<Cell[][]>([]);
   const [generation, setGeneration] = React.useState(0);
-  const lastEvolutionTimeRef = React.useRef(0);
   const evolutionIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Cell definition

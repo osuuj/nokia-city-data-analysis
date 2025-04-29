@@ -1,20 +1,9 @@
 'use client';
 
-import {
-  Avatar,
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Chip,
-  Tooltip,
-} from '@heroui/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
 import type { TeamMemberCardProps } from './types';
 
 export default function TeamMemberCard(props: TeamMemberCardProps) {
