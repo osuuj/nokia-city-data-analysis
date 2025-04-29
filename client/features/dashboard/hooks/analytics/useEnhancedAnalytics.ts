@@ -1,15 +1,21 @@
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import { useApiQuery } from '@/shared/hooks/api/useApi';
+import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
 import { CACHE_CONFIG } from '../../config/cache';
 import type {
-  AnalyticsQueryOptions,
-  CityComparison,
-  IndustryByCity,
-  IndustryDistribution,
-  TopCity,
-} from '../../types/analytics';
+  PivotedData as CityComparison,
+  PivotedData as IndustryByCity,
+  DistributionDataRaw as IndustryDistribution,
+  TopCityData as TopCity,
+} from './types';
 
-// Define API types locally since api/types was removed
+// These types should match what's expected by the useApiQuery hook
+interface AnalyticsQueryOptions<T> {
+  enabled: boolean;
+  staleTime: number;
+  gcTime: number;
+  onError?: (error: Error & { status?: number; data?: unknown }) => void;
+}
+
 interface ApiRequestConfig {
   url?: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -18,29 +24,19 @@ interface ApiRequestConfig {
   data?: unknown;
 }
 
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-}
-
-interface ApiError extends Error {
-  status?: number;
-  data?: unknown;
-}
-
 /**
  * Hook for fetching top cities data with enhanced error handling and caching
  */
 export const useTopCitiesEnhanced = (enabled = true) => {
   return useApiQuery<TopCity[]>(
-    ['analytics', 'topCities'],
+    createQueryKey('topCities'),
     API_ENDPOINTS.ANALYTICS.TOP_CITIES,
     undefined,
     {
       enabled,
       staleTime: CACHE_CONFIG.ANALYTICS.STALE_TIME,
       gcTime: CACHE_CONFIG.ANALYTICS.GC_TIME,
-      onError: (error: ApiError) => {
+      onError: (error) => {
         console.error('Failed to fetch top cities:', error);
         // Here you can add custom error handling like showing a toast notification
       },
@@ -53,11 +49,9 @@ export const useTopCitiesEnhanced = (enabled = true) => {
  */
 export const useIndustryDistributionEnhanced = (selectedCities: string[], enabled = true) => {
   return useApiQuery<IndustryDistribution[]>(
-    ['analytics', 'industryDistribution', selectedCities],
+    createQueryKey('industryDistribution', { cities: selectedCities }),
     API_ENDPOINTS.ANALYTICS.INDUSTRY_DISTRIBUTION,
     {
-      url: API_ENDPOINTS.ANALYTICS.INDUSTRY_DISTRIBUTION,
-      method: 'GET',
       params: {
         cities: selectedCities.join(','),
       },
@@ -66,7 +60,7 @@ export const useIndustryDistributionEnhanced = (selectedCities: string[], enable
       enabled: enabled && selectedCities.length > 0,
       staleTime: CACHE_CONFIG.ANALYTICS.STALE_TIME,
       gcTime: CACHE_CONFIG.ANALYTICS.GC_TIME,
-      onError: (error: ApiError) => {
+      onError: (error) => {
         console.error('Failed to fetch industry distribution:', error);
       },
     } as AnalyticsQueryOptions<IndustryDistribution[]>,
@@ -78,11 +72,9 @@ export const useIndustryDistributionEnhanced = (selectedCities: string[], enable
  */
 export const useIndustriesByCityEnhanced = (selectedCities: string[], enabled = true) => {
   return useApiQuery<IndustryByCity[]>(
-    ['analytics', 'industriesByCity', selectedCities],
+    createQueryKey('industriesByCity', { cities: selectedCities }),
     '/api/v1/analytics/industries-by-city',
     {
-      url: '/api/v1/analytics/industries-by-city',
-      method: 'GET',
       params: {
         cities: selectedCities.join(','),
       },
@@ -91,7 +83,7 @@ export const useIndustriesByCityEnhanced = (selectedCities: string[], enabled = 
       enabled: enabled && selectedCities.length > 0,
       staleTime: CACHE_CONFIG.ANALYTICS.STALE_TIME,
       gcTime: CACHE_CONFIG.ANALYTICS.GC_TIME,
-      onError: (error: ApiError) => {
+      onError: (error) => {
         console.error('Failed to fetch industries by city:', error);
       },
     } as AnalyticsQueryOptions<IndustryByCity[]>,
@@ -103,11 +95,9 @@ export const useIndustriesByCityEnhanced = (selectedCities: string[], enabled = 
  */
 export const useCityComparisonEnhanced = (selectedCities: string[], enabled = true) => {
   return useApiQuery<CityComparison[]>(
-    ['analytics', 'cityComparison', selectedCities],
+    createQueryKey('cityComparison', { cities: selectedCities }),
     API_ENDPOINTS.ANALYTICS.CITY_COMPARISON,
     {
-      url: API_ENDPOINTS.ANALYTICS.CITY_COMPARISON,
-      method: 'GET',
       params: {
         cities: selectedCities.join(','),
       },
@@ -116,7 +106,7 @@ export const useCityComparisonEnhanced = (selectedCities: string[], enabled = tr
       enabled: enabled && selectedCities.length >= 2,
       staleTime: CACHE_CONFIG.ANALYTICS.STALE_TIME,
       gcTime: CACHE_CONFIG.ANALYTICS.GC_TIME,
-      onError: (error: ApiError) => {
+      onError: (error) => {
         console.error('Failed to fetch city comparison:', error);
       },
     } as AnalyticsQueryOptions<CityComparison[]>,

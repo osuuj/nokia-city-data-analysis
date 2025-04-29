@@ -76,9 +76,6 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}): UseErro
             recoveryError instanceof Error
               ? recoveryError.message
               : 'Error during recovery attempt',
-          severity: 'error',
-          timestamp: new Date(),
-          details: recoveryError instanceof Error ? { stack: recoveryError.stack } : undefined,
         };
 
         setRecoveryError(dashboardError);

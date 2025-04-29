@@ -1,10 +1,6 @@
 'use client';
 
-import type {
-  CompanyProperties,
-  CompanyTableKey,
-  SortDescriptor,
-} from '@/features/dashboard/types';
+import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types';
 import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';

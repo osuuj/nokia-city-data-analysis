@@ -6,38 +6,20 @@ import type {
   City,
   DistributionItemRaw,
   ErrorWithApi,
-  Industry,
   PivotedData,
-  TopCityData,
 } from '@/features/dashboard/hooks/analytics/types';
-import {
-  useCityComparison,
-  useIndustriesByCity,
-  useIndustryDistribution,
-  useTopCities,
-} from '@/features/dashboard/hooks/analytics/useAnalytics';
-import type { Filter as DashboardFilter, FilterOption } from '@/features/dashboard/types';
+import type { Filter as DashboardFilter } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import type { ApiError } from '@/shared/api/types';
-import { ErrorBoundary } from '@/shared/components/error';
-import { ErrorMessage } from '@/shared/components/error';
-import { LoadingSpinner } from '@/shared/components/loading';
-import { useApiQuery } from '@/shared/hooks/api';
-import { createQueryKey } from '@/shared/hooks/api';
+import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
 import { useTheme } from 'next-themes';
 import type React from 'react';
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { CitySelection, IndustrySelection } from '../components/analytics-selection';
 import { AnalyticsCardSkeleton } from '../components/analytics-skeletons';
-import type {
-  DistributionDataRaw,
-  TransformedCityComparison,
-  TransformedDistribution,
-  TransformedIndustriesByCity,
-} from '../components/analytics-utils/types';
+import type { TransformedDistribution } from '../components/analytics-utils/types';
 import {
-  OTHER_CATEGORY_DISPLAY_NAME,
-  OTHER_CATEGORY_NAME_FROM_BACKEND,
   getIndustryKeyFromName,
   getIndustryName,
   getPotentialOthers,
@@ -97,7 +79,7 @@ const AnalyticsViewComponent: React.FC = () => {
   const [showMaxCitiesWarning, setShowMaxCitiesWarning] = useState(false);
   const [showMaxIndustriesWarning, setShowMaxIndustriesWarning] = useState(false);
   const [pieChartFocusCity, setPieChartFocusCity] = useState<string | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+  const [_error, setError] = useState<Error | null>(null);
 
   // Fetch cities data
   const { data: citiesData, isLoading: isCitiesLoading } = useApiQuery(
@@ -157,7 +139,7 @@ const AnalyticsViewComponent: React.FC = () => {
   }, []);
 
   // Memoize the transformed industry distribution data with combined calculations
-  const { chartData, total } = useMemo(() => {
+  const { chartData } = useMemo(() => {
     const data = industryDistributionData?.data;
     if (!Array.isArray(data)) return { chartData: [], total: 0 };
 
@@ -269,10 +251,6 @@ const AnalyticsViewComponent: React.FC = () => {
       stack: new Error().stack,
     };
     setError(convertedError);
-  };
-
-  const handleDataChange = (data: AnalyticsData[]) => {
-    // ... existing code ...
   };
 
   // Helper functions for industry data

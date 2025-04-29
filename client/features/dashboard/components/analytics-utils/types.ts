@@ -4,7 +4,7 @@ import type {
   TransformedCityComparison,
   TransformedDistribution,
   TransformedIndustriesByCity,
-} from '../../../hooks/analytics/types';
+} from '@/features/dashboard/hooks/analytics/types';
 
 // Re-export all types from the hooks/analytics/types.ts file
 export type {

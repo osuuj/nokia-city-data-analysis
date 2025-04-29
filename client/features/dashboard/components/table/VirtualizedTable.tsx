@@ -28,7 +28,7 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   selectedKeys,
   onSelectionChange,
   height,
-  width,
+  width: _width,
 }) => {
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);

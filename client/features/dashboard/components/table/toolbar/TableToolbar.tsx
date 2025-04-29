@@ -1,14 +1,12 @@
 'use client';
 
 import { filters } from '@/features/dashboard/data/filters';
-import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types';
-import type { FilterOption } from '@/features/dashboard/types';
-import { cn } from '@/shared/utils/cn';
+import type { FilterOption, SortDescriptor } from '@/features/dashboard/types';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button } from '@heroui/button';
 import { Divider } from '@heroui/divider';
 import { Tooltip } from '@heroui/tooltip';
-import { Icon } from '@iconify/react';
+import type React from 'react';
 import {
   type Dispatch,
   type SetStateAction,
@@ -17,7 +15,6 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type React from 'react';
 import { ColumnVisibilityDropdown } from './ColumnVisibilityDropdown';
 import { FilterGroup } from './FilterGroup';
 import { FilterTag } from './FilterTag';

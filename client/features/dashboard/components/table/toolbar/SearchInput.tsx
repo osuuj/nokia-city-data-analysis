@@ -2,7 +2,6 @@
 
 import type { SearchInputProps } from '@/features/dashboard/types';
 import { Input } from '@heroui/react';
-import { SearchIcon } from '@heroui/shared-icons';
 
 /**
  * CustomSearchIcon

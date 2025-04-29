@@ -1,6 +1,6 @@
 import { Tooltip } from '@heroui/react';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,

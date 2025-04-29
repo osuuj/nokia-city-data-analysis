@@ -2,27 +2,8 @@
 
 import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
 import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
-import type {
-  CompanyProperties,
-  CompanyTableKey,
-  SortDescriptor,
-  TableCellRendererProps,
-  TableColumnConfig,
-  TableViewProps,
-} from '@/features/dashboard/types';
-import { useMemoizedCallback } from '@/shared/hooks';
-import { useCompanyStore } from '@features/dashboard/store';
-import {
-  Card,
-  Pagination,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@heroui/react';
+import type { CompanyProperties, TableViewProps } from '@/features/dashboard/types';
+import { Card, Pagination, Spinner } from '@heroui/react';
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { TableSkeleton } from './skeletons/TableSkeleton';
 
@@ -60,7 +41,7 @@ const arePropsEqual = (
 export const TableView: React.FC<TableViewComponentProps> = React.memo(
   ({
     data,
-    allFilteredData,
+    allFilteredData: _allFilteredData,
     columns,
     currentPage,
     totalPages,
@@ -71,7 +52,6 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     sortDescriptor,
     setSortDescriptor,
   }) => {
-    const { visibleColumns } = useCompanyStore();
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [useLocation, setUseLocation] = useState(false);
     const [address, setAddress] = useState('');

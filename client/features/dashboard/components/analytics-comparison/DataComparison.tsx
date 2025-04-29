@@ -17,10 +17,10 @@ import {
 import { Icon } from '@iconify/react';
 import type React from 'react';
 import { useState } from 'react';
-import { ScatterPlotChart } from '../charts/ScatterPlotChart';
-import type { ScatterDataItem } from '../charts/ScatterPlotChart';
-import { TimeSeriesChart } from '../charts/TimeSeriesChart';
-import type { TimeSeriesDataItem } from '../charts/TimeSeriesChart';
+import { ScatterPlotChart } from '../analytics-charts/ScatterPlotChart';
+import type { ScatterDataItem } from '../analytics-charts/ScatterPlotChart';
+import { TimeSeriesChart } from '../analytics-charts/TimeSeriesChart';
+import type { TimeSeriesDataItem } from '../analytics-charts/TimeSeriesChart';
 
 /**
  * Represents the different dimensions for data comparison

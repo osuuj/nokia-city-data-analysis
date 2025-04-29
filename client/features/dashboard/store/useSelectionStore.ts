@@ -33,7 +33,7 @@ export const useSelectionStore = create<SelectionState>()(
                 acc[item.business_id] = item;
                 return acc;
               },
-              {} as Record<string, typeof item>,
+              {} as Record<string, CompanyProperties>,
             );
             return {
               selectedKeys: new Set(allFilteredData.map((item) => item.business_id)),

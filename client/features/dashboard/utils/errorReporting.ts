@@ -1,5 +1,4 @@
-import type { ApiError } from '@/shared/api/types/ApiTypes';
-import type { DashboardError } from '../types/common';
+import type { ApiError } from '@/shared/api/types';
 import { logError, logWarning } from './errorHandling';
 
 /**

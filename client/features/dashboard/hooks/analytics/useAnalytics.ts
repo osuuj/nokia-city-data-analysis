@@ -2,11 +2,6 @@ import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
 import type { DistributionDataRaw, PivotedData, TopCityData } from './types';
 
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-}
-
 /**
  * Hook to fetch top cities data
  *

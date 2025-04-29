@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { DashboardError } from '../components/DashboardError';
 import { DashboardFooter } from '../components/DashboardFooter';
 import { DashboardSidebar } from '../components/DashboardSidebar';
@@ -29,7 +29,7 @@ const DashboardSettings = createLazyComponent({
 });
 
 export const DashboardView: React.FC = React.memo(() => {
-  const { state, actions, error, isLoading, activeView } = useDashboard();
+  const { state: _, actions, error, isLoading, activeView } = useDashboard();
 
   // Preload components that are likely to be needed
   useEffect(() => {

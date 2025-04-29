@@ -1,5 +1,4 @@
 import type React from 'react';
-import { useDashboard } from '../hooks/useDashboard';
 
 interface DashboardSidebarProps {
   activeView: string;

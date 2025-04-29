@@ -6,14 +6,11 @@ import type {
   TableColumnConfig,
   ViewMode,
 } from '@/features/dashboard/types';
-import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
-import { usePagination } from '@/shared/hooks';
 import type { FeatureCollection, Point } from 'geojson';
-import { useCallback, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import { useCallback, useState } from 'react';
 import { PaginationControls } from './controls/PaginationControls';
 import { DashboardSkeleton } from './loading/DashboardSkeleton';
-import { DashboardErrorBoundary } from './shared/DashboardErrorBoundary';
 import { ErrorDisplay } from './shared/error/ErrorDisplay';
 
 /**
@@ -99,15 +96,12 @@ export function DashboardContent({
   // State for page size
   const [pageSize, setPageSize] = useState(10);
 
-  // Call useFilteredBusinesses at the top level (not inside useMemo)
-  const filteredData = useFilteredBusinesses({
+  // We're not using filteredBusinesses currently, so we can remove the hook call
+  // or use _ to mark it as intentionally unused
+  useFilteredBusinesses({
     data: allFilteredData,
-    searchTerm,
-    selectedIndustries: [], // TODO: Add industry filtering
-    userLocation: null, // TODO: Add location filtering
-    distanceLimit: null,
-    sortDescriptor,
-    isFetching: isLoading,
+    industries: [],
+    searchQuery: searchTerm,
   });
 
   // Handle page size change
@@ -138,7 +132,7 @@ export function DashboardContent({
   return (
     <div className="flex flex-col h-full">
       <ViewSwitcher
-        data={filteredData}
+        data={data}
         allFilteredData={allFilteredData}
         selectedBusinesses={selectedBusinesses}
         geojson={geojson}

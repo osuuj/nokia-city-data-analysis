@@ -5,7 +5,6 @@ import {
   withPerformanceTracking as baseWithPerformanceTracking,
 } from '@/shared/utils/performance';
 import type React from 'react';
-import { Profiler, createElement } from 'react';
 
 /**
  * Dashboard-specific performance monitoring options

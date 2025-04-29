@@ -1,7 +1,4 @@
-import type {
-  DistributionItemRaw,
-  PivotedData,
-} from '@/features/dashboard/hooks/analytics/useAnalytics';
+import type { DistributionItemRaw, PivotedData } from '@/features/dashboard/hooks/analytics/types';
 import type { TransformedCityComparison, TransformedIndustriesByCity } from './types';
 
 // Define the name for the grouped category from backend
@@ -57,13 +54,21 @@ export const transformCityComparison = (
       const industry = item.industry;
       if (!industry) return null;
 
-      // Create a new object with the industry property
-      const result: TransformedCityComparison = { industry: String(industry) };
+      // Create a new object with the industry property and empty cities array
+      const result: TransformedCityComparison = {
+        industry: String(industry),
+        cities: [], // Initialize with empty cities array
+      };
 
       // Add each city count as a separate property
       const entries = Object.entries(item).filter(([key]) => key !== 'industry');
       for (const [city, count] of entries) {
         result[city] = Number(count);
+        // Also add to the cities array for compatibility
+        result.cities.push({
+          name: city,
+          count: Number(count),
+        });
       }
 
       return result;

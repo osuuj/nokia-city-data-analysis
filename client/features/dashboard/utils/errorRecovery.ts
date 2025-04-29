@@ -1,4 +1,3 @@
-import type { ApiError } from '@/shared/api/types/ApiTypes';
 import type { DashboardError } from '../types/common';
 import { errorReporting } from './errorReporting';
 
@@ -60,7 +59,8 @@ export class ErrorRecoveryService {
     errorReporting.reportError(error, 'Error Recovery', 'ErrorRecoveryService');
 
     // Try to find a specific recovery strategy for this error type
-    const strategy = this.recoveryStrategies.get(error.code);
+    const errorCode = error.code ?? 'UNKNOWN_ERROR';
+    const strategy = this.recoveryStrategies.get(errorCode);
     if (strategy) {
       try {
         return await strategy(error);
@@ -102,7 +102,8 @@ export class ErrorRecoveryService {
    */
   private async defaultRecovery(error: DashboardError): Promise<boolean> {
     // Default recovery strategies based on error type
-    switch (error.code) {
+    const errorCode = error.code ?? 'UNKNOWN_ERROR';
+    switch (errorCode) {
       case 'NETWORK_ERROR':
         // For network errors, wait a bit and retry
         await new Promise((resolve) => setTimeout(resolve, 2000));

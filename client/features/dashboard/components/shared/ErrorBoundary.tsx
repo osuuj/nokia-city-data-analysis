@@ -9,8 +9,7 @@
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/button';
 import { Card } from '@heroui/card';
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
-import type { DashboardError } from '../../types/common';
+import React from 'react';
 import { errorReporting } from '../../utils/errorReporting';
 import { ErrorShake, FadeIn } from './animations';
 

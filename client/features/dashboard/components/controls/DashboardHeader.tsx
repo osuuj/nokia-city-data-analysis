@@ -1,7 +1,7 @@
 import { CitySearch } from '@/features/dashboard/components/controls/CitySearch';
 import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle';
 import type { ViewMode } from '@/features/dashboard/types/view';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 interface DashboardHeaderProps {
   viewMode: ViewMode;

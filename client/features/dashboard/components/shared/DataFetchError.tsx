@@ -1,4 +1,4 @@
-import type { DashboardError } from '@/features/dashboard/types/common';
+import type { DashboardError, ErrorWithStatus } from '@/features/dashboard/types/common';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/button';
 import { Card } from '@heroui/card';
@@ -8,7 +8,7 @@ import { errorReporting } from '../../utils/errorReporting';
 import { ErrorShake, FadeIn } from './animations';
 
 interface DataFetchErrorProps {
-  error: DashboardError | null;
+  error: DashboardError | ErrorWithStatus | null;
   onRetry?: () => void;
   className?: string;
   componentName?: string;
@@ -61,6 +61,10 @@ export const DataFetchError: React.FC<DataFetchErrorProps> = ({
     }
   };
 
+  // Check if error has details property (ErrorWithStatus type)
+  const errorWithDetails = error as ErrorWithStatus;
+  const hasDetails = 'details' in error || errorWithDetails.details !== undefined;
+
   return (
     <FadeIn duration={0.3}>
       <ErrorShake>
@@ -73,9 +77,9 @@ export const DataFetchError: React.FC<DataFetchErrorProps> = ({
               <h3 className="text-sm font-medium text-red-800">Error loading data</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>{error.message}</p>
-                {error.details && (
+                {hasDetails && errorWithDetails.details && (
                   <pre className="mt-2 overflow-auto rounded bg-red-100 p-2 text-xs">
-                    {JSON.stringify(error.details, null, 2)}
+                    {JSON.stringify(errorWithDetails.details, null, 2)}
                   </pre>
                 )}
               </div>

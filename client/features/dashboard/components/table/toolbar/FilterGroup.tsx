@@ -15,15 +15,9 @@ import { TagGroupItem } from './TagGroupItem';
  * FilterGroup
  * Groups industry and distance filters into a reusable popover component in the toolbar.
  */
-export const FilterGroup = ({
-  useLocation,
-  setUseLocation,
-  address,
-  setAddress,
-}: FilterGroupProps) => {
+export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterGroupProps) => {
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
-  const toggleIndustry = useCompanyStore((s) => s.toggleIndustry);
   const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
   const [draftDistance, setDraftDistance] = useState<number>(0);
   const userLocation = useCompanyStore((s) => s.userLocation);
@@ -35,7 +29,6 @@ export const FilterGroup = ({
 
   // For mobile screens, use a dropdown instead of popovers
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const [showMobileMenu, setShowMobileMenu] = useState<string | null>(null);
 
   useEffect(() => {
     if (useLocation) {

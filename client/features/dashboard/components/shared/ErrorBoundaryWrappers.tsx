@@ -1,18 +1,18 @@
-import { ErrorBoundary } from '@/shared/components/error';
-import { ErrorMessage } from '@/shared/components/error';
-import type { ErrorWithApi } from '../../hooks/analytics/types';
-import {
-  CityComparisonCard,
-  IndustriesByCityCard,
-  IndustryDistributionCard,
-  TopCitiesCard,
-} from './cards';
+import type { ErrorWithApi } from '@/features/dashboard/hooks/analytics/types';
 import type {
   CityComparisonCardProps,
   IndustriesByCityCardProps,
   IndustryDistributionCardProps,
   TopCitiesCardProps,
-} from './types';
+} from '@/features/dashboard/types/analytics/types';
+import { ErrorBoundary } from '@/shared/components/error';
+import { ErrorMessage } from '@/shared/components/error';
+import {
+  CityComparisonCard,
+  IndustriesByCityCard,
+  IndustryDistributionCard,
+  TopCitiesCard,
+} from '../analytics-cards';
 
 // Error boundary wrapper for IndustryDistributionCard
 export const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCardProps) => (

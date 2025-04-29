@@ -1,4 +1,4 @@
-import { Button, Select, SelectItem } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 

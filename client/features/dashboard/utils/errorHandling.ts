@@ -1,4 +1,4 @@
-import type { ApiError } from '@/shared/api/types/ApiTypes';
+import type { ApiError } from '@/shared/api/types';
 import type { ErrorInfo } from 'react';
 import type { DashboardError } from '../types/common';
 import { errorRecovery } from './errorRecovery';

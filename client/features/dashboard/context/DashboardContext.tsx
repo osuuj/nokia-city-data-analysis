@@ -27,11 +27,17 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, actions] = useDashboard();
+  const dashboardData = useDashboard();
 
-  const value = {
-    state,
-    actions,
+  const value: DashboardContextType = {
+    state: {
+      activeView: dashboardData.activeView,
+      theme: 'light' as const,
+      sidebarCollapsed: false,
+      error: dashboardData.error,
+      isLoading: dashboardData.isLoading,
+    },
+    actions: dashboardData.actions as DashboardActions,
   };
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
