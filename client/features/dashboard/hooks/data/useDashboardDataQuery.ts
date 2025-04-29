@@ -9,8 +9,8 @@ import { errorReporting } from '@/features/dashboard/utils/errorReporting';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { getVisibleColumns } from '@/features/dashboard/utils/table';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import type { ApiError, ApiResponse, HttpMethod } from '@/shared/api/types/ApiTypes';
 import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
+import type { ApiError } from '@/shared/hooks/api/useApi';
 import { columns as allColumns } from '@shared/config';
 import type { FeatureCollection, Point } from 'geojson';
 import { useCallback, useMemo } from 'react';
@@ -78,22 +78,9 @@ export function useDashboardDataQuery({
   const citiesErrorId = useMemo(() => 'cities-list', []);
 
   // Custom retry function using error handling utilities
-  const customRetry = useCallback((failureCount: number, error: ApiError) => {
-    const shouldRetryError = shouldRetry(error, failureCount, defaultRetryConfig);
-
-    if (shouldRetryError) {
-      // Report retry attempt
-      errorReporting.reportWarning(
-        `Retrying API request (attempt ${failureCount + 1})`,
-        `API: ${error.status ? `Status ${error.status}` : 'Unknown error'}`,
-        'useDashboardDataQuery',
-      );
-
-      // Return true to retry
-      return true;
-    }
-
-    return false;
+  const customRetry = useCallback((failureCount: number, error: Error) => {
+    const apiError = error as ApiError;
+    return shouldRetry(apiError, failureCount, defaultRetryConfig);
   }, []);
 
   // Fetch GeoJSON data for the selected city with React Query
@@ -104,10 +91,8 @@ export function useDashboardDataQuery({
     refetch: refetchGeojson,
   } = useApiQuery<PaginatedGeoJSONData>(
     dashboardQueryKeys.companies(selectedCity, filters),
-    API_ENDPOINTS.COMPANIES.LIST,
+    API_ENDPOINTS.GEOJSON,
     {
-      url: API_ENDPOINTS.COMPANIES.LIST,
-      method: 'GET',
       params: {
         city: selectedCity,
         ...filters,
@@ -132,15 +117,13 @@ export function useDashboardDataQuery({
     refetch: refetchCities,
   } = useApiQuery<string[]>(
     dashboardQueryKeys.cities(),
-    API_ENDPOINTS.CITIES.LIST,
-    {
-      url: API_ENDPOINTS.CITIES.LIST,
-      method: 'GET',
-    },
+    API_ENDPOINTS.CITIES,
+    {},
     {
       staleTime: 1000 * 60 * 30, // Cache for 30 minutes
       gcTime: 1000 * 60 * 60, // Keep in garbage collection for 1 hour
       retry: customRetry,
+      useErrorBoundary: false, // Don't throw errors to the error boundary
     },
   );
 
@@ -153,8 +136,14 @@ export function useDashboardDataQuery({
 
     return (
       geojsonData?.features
-        ?.map((f: { properties: CompanyProperties }) => f.properties)
+        ?.filter((f: { properties: CompanyProperties }) => f?.properties) // Ensure feature and properties exist
+        .map((f: { properties: CompanyProperties }) => f.properties)
         .filter((row: CompanyProperties) => {
+          // Check for valid address
+          if (!row.addresses) {
+            return false;
+          }
+
           const visiting = row.addresses?.['Visiting address'];
           const postal = row.addresses?.['Postal address'];
           const hasValidAddress =
@@ -162,6 +151,7 @@ export function useDashboardDataQuery({
 
           if (!hasValidAddress) return false;
 
+          // Deduplicate by business ID
           if (seen.has(row.business_id)) return false;
           seen.add(row.business_id);
           return true;
@@ -186,8 +176,7 @@ export function useDashboardDataQuery({
     return {
       code: 'UNKNOWN_ERROR',
       message: error instanceof Error ? error.message : 'An unknown error occurred',
-      severity: 'error',
-      timestamp: new Date(),
+      status: error instanceof Error && 'status' in error ? (error as ApiError).status : undefined,
     };
   }, []);
 

@@ -1,7 +1,12 @@
-import type { ApiError, ApiRequestConfig, ApiResponse } from '@shared/api/types';
 import { useQuery, type useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
-import { createQueryKey, useApiQuery } from '../api';
+import {
+  type ApiError,
+  type ApiRequestConfig,
+  type ApiResponse,
+  createQueryKey,
+  useApiQuery,
+} from '../api/useApi';
 
 /**
  * Enhanced query hook with improved caching, error handling, and retry logic
@@ -42,6 +47,9 @@ export function useEnhancedQuery<TData = unknown, TError = ApiError>(
   return useApiQuery<TData, TError>(key, url, config, mergedOptions);
 }
 
+// Base API URL from environment
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
 /**
  * Prefetch data for a query
  *
@@ -56,9 +64,40 @@ export function prefetchQuery<TData = unknown>(
   url: string,
   config?: ApiRequestConfig,
 ) {
+  // Create query params from config
+  let queryParams = '';
+
+  if (config?.params) {
+    const filteredParams: Record<string, string> = {};
+    for (const [k, v] of Object.entries(config.params)) {
+      if (v !== undefined && v !== null) {
+        filteredParams[k] = String(v);
+      }
+    }
+
+    queryParams = `?${new URLSearchParams(filteredParams).toString()}`;
+  }
+
   return queryClient.prefetchQuery({
     queryKey: typeof key === 'string' ? createQueryKey(key, config?.params) : key,
-    queryFn: () => fetch(url, config).then((res) => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`${BASE_API_URL}/${url}${queryParams}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...config?.headers,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return {
+        data,
+        success: true,
+      };
+    },
   });
 }
 

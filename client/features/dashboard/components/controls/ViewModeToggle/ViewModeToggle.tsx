@@ -42,25 +42,37 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   // Create prefetch functions for each view
   const prefetchTableData = usePrefetch(
     ['dashboard', 'table', 'data'],
-    () => fetchViewData?.('table') || Promise.resolve(),
+    async () => {
+      await fetchViewData?.('table');
+      return {}; // Return an empty object to avoid undefined
+    },
     { enabled: !!fetchViewData },
   );
 
   const prefetchSplitData = usePrefetch(
     ['dashboard', 'split', 'data'],
-    () => fetchViewData?.('split') || Promise.resolve(),
+    async () => {
+      await fetchViewData?.('split');
+      return {}; // Return an empty object to avoid undefined
+    },
     { enabled: !!fetchViewData },
   );
 
   const prefetchMapData = usePrefetch(
     ['dashboard', 'map', 'data'],
-    () => fetchViewData?.('map') || Promise.resolve(),
+    async () => {
+      await fetchViewData?.('map');
+      return {}; // Return an empty object to avoid undefined
+    },
     { enabled: !!fetchViewData },
   );
 
   const prefetchAnalyticsData = usePrefetch(
     ['dashboard', 'analytics', 'data'],
-    () => fetchViewData?.('analytics') || Promise.resolve(),
+    async () => {
+      await fetchViewData?.('analytics');
+      return {}; // Return an empty object to avoid undefined
+    },
     { enabled: !!fetchViewData },
   );
 

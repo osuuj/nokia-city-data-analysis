@@ -7,25 +7,39 @@
 export interface TeamMember {
   id: string;
   name: string;
-  role: string;
+  role?: string;
+  jobTitle?: string;
   bio: string;
-  avatar: string;
-  email: string;
+  shortBio?: string;
+  portfolioLink?: string;
+  avatarSrc?: string;
+  avatar?: string;
+  email?: string;
   social?: {
     github?: string;
     linkedin?: string;
     twitter?: string;
   };
+  socialLinks?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
   skills: string[];
-  projects: string[];
-  experience: {
+  projects: string[] | Project[];
+  achievements?: {
+    title: string;
+    description: string;
+    date: string;
+  }[];
+  experience?: {
     company: string;
     position: string;
     startDate: string;
     endDate?: string;
     description: string;
   }[];
-  education: {
+  education?: {
     institution: string;
     degree: string;
     field: string;

@@ -81,6 +81,14 @@ export const Header = () => {
     !currentPathname.startsWith('/home') &&
     !['/project', '/resources', '/about', '/contact', '/'].includes(currentPathname);
 
+  // Helper function to check if a path is active
+  const isPathActive = (path: string) => {
+    if (path === '/dashboard') {
+      return currentPathname === '/dashboard';
+    }
+    return currentPathname.startsWith(path);
+  };
+
   // Handle item click for immediate visual feedback
   const handleItemClick = (href: string) => {
     // Set clicked item for visual feedback
@@ -169,7 +177,7 @@ export const Header = () => {
         />
         <NavbarBrand className="flex-grow sm:flex-grow-0">
           <Link href="/" color="foreground" className="flex items-center gap-2">
-            <OsuujLogo large={true} />
+            <OsuujLogo size="medium" />
           </Link>
         </NavbarBrand>
 
@@ -182,16 +190,14 @@ export const Header = () => {
             {navbarItems.map((item) => (
               <NavbarItem
                 key={item.href}
-                isActive={currentPathname.startsWith(item.href)}
+                isActive={isPathActive(item.href)}
                 className={`${clickedItem === item.href ? 'text-primary' : ''}`}
               >
                 <Link
                   href={item.href}
-                  color={currentPathname.startsWith(item.href) ? 'primary' : 'foreground'}
+                  color={isPathActive(item.href) ? 'primary' : 'foreground'}
                   className={`px-3 py-1.5 rounded-full transition-colors ${
-                    currentPathname.startsWith(item.href)
-                      ? 'bg-primary/10 font-medium'
-                      : 'hover:bg-content3/50'
+                    isPathActive(item.href) ? 'bg-primary/10 font-medium' : 'hover:bg-content3/50'
                   }`}
                   onPress={() => {
                     handleItemClick(item.href);
@@ -231,14 +237,21 @@ export const Header = () => {
         {/* Mobile menu */}
         <NavbarMenu className="transition-transform duration-300 ease-in-out px-0 w-full left-0 right-0 z-[200] bg-background">
           <div className="w-full">
-            {/* Add Dashboard option at the top of the mobile menu */}
+            {/* Dashboard option at the top of the mobile menu with special styling */}
             <NavbarMenuItem
+              key="dashboard"
               isActive={currentPathname === '/dashboard'}
-              className={clsx(clickedItem === '/dashboard' ? 'text-primary' : '')}
+              className="border-b border-divider/30 mb-2 pb-2"
             >
               <Link
                 href="/dashboard"
+                className={`w-full px-4 py-3 rounded-md block ${
+                  currentPathname === '/dashboard'
+                    ? 'bg-primary text-white font-medium'
+                    : 'text-foreground hover:bg-default-100'
+                }`}
                 onPress={() => {
+                  setIsMenuOpen(false);
                   handleItemClick('/dashboard');
                 }}
               >
@@ -246,22 +259,17 @@ export const Header = () => {
               </Link>
             </NavbarMenuItem>
 
-            {/* Existing menu items - filter out Home to avoid duplication */}
+            {/* Other menu items */}
             {navbarItems
               .filter((item) => item.href !== '/dashboard')
               .map((item) => (
-                <NavbarMenuItem
-                  key={item.href}
-                  isActive={
-                    item.href === '/dashboard'
-                      ? currentPathname === '/dashboard'
-                      : currentPathname.startsWith(item.href)
-                  }
-                  className={clsx(clickedItem === item.href ? 'text-primary' : '')}
-                >
+                <NavbarMenuItem key={item.href} isActive={isPathActive(item.href)}>
                   <Link
-                    className="text-inherit w-full px-4 py-2"
-                    color="foreground"
+                    className={`w-full px-4 py-2 block ${
+                      isPathActive(item.href)
+                        ? 'text-primary font-medium'
+                        : 'text-foreground hover:text-primary'
+                    }`}
                     href={item.href}
                     onPress={() => {
                       setIsMenuOpen(false);

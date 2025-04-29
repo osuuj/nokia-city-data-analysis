@@ -12,8 +12,9 @@ import type { FeatureCollection, Point } from 'geojson';
 import { useCallback, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { PaginationControls } from './controls/PaginationControls';
-import { DashboardErrorBoundary } from './loading/DashboardErrorBoundary';
 import { DashboardSkeleton } from './loading/DashboardSkeleton';
+import { DashboardErrorBoundary } from './shared/DashboardErrorBoundary';
+import { ErrorDisplay } from './shared/error/ErrorDisplay';
 
 /**
  * Props for the DashboardContent component
@@ -120,10 +121,17 @@ export function DashboardContent({
   );
 
   if (error) {
-    return <DashboardErrorBoundary error={error} />;
+    return (
+      <ErrorDisplay
+        error={error}
+        message="Failed to load dashboard data"
+        showDetails={process.env.NODE_ENV === 'development'}
+      />
+    );
   }
 
-  if (isLoading) {
+  // Only show skeleton if we're loading AND don't have any data
+  if (isLoading && (!data || data.length === 0)) {
     return <DashboardSkeleton />;
   }
 

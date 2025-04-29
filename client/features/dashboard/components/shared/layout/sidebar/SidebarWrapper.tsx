@@ -4,6 +4,7 @@ import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { OsuujLogo } from '@shared/icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
@@ -18,6 +19,8 @@ export const SidebarWrapper = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const router = useRouter();
 
   // Set mounted state after hydration
   useEffect(() => {
@@ -38,6 +41,13 @@ export const SidebarWrapper = () => {
     setIsCollapsed((prev) => !prev);
   };
 
+  // Handle navigation to home page
+  const handleHomeNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    router.push('/');
+  };
+
   return (
     <aside
       className={cn(
@@ -50,9 +60,15 @@ export const SidebarWrapper = () => {
     >
       {/* Top: Logo + collapse toggle */}
       <div className={cn('flex items-center', { 'justify-center': isCompact })}>
-        <Link href="/" className="flex h-10 w-10 items-center justify-center">
+        <button
+          type="button"
+          onClick={handleHomeNavigation}
+          className="flex h-10 w-10 items-center justify-center outline-none focus:outline-none border-none bg-transparent cursor-pointer"
+          aria-label="Go to home page"
+          disabled={isNavigating}
+        >
           <OsuujLogo />
-        </Link>
+        </button>
 
         {showCollapseButton && (
           <Tooltip content="Collapse sidebar" placement="right">

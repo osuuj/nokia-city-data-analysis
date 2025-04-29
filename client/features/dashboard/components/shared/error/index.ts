@@ -7,3 +7,4 @@ export {
   logWarning,
   withErrorLogging,
 } from '../../../utils/errorHandling';
+export { ErrorDisplay } from './ErrorDisplay';

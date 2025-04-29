@@ -7,7 +7,7 @@ import {
 } from '@heroui/react';
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface BreadcrumbItem {
   label: string;
@@ -23,18 +23,49 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
   const pathname = usePathname();
   const router = useRouter();
   const { currentPageTitle, setCurrentPageTitle } = useBreadcrumb();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Cache the previous valid pathname to prevent flashing during navigation
+  const [previousValidPathname, setPreviousValidPathname] = useState<string | null>(null);
+
+  // Track landing page navigation
+  const isNavigatingToLanding =
+    isNavigating && (previousValidPathname === '/' || previousValidPathname === '/dashboard');
+
+  // Update previous valid pathname when pathname changes and it's not during navigation
+  useEffect(() => {
+    if (!isNavigating && pathname && pathname !== '/') {
+      setPreviousValidPathname(pathname);
+    }
+  }, [pathname, isNavigating]);
+
+  // Reset navigation state when pathname changes
+  useEffect(() => {
+    setIsNavigating(false);
+  }, []);
 
   // If no items provided, generate them based on pathname
-  const breadcrumbItems = items || getDefaultBreadcrumbItems(pathname, currentPageTitle);
+  const breadcrumbItems = useMemo(
+    () => items || getDefaultBreadcrumbItems(pathname, currentPageTitle),
+    [items, pathname, currentPageTitle],
+  );
 
   // Don't show breadcrumbs on dashboard page or main navigation pages
-  if (shouldHideBreadcrumbs(pathname)) {
+  // Also don't show when navigating to landing page
+  if (shouldHideBreadcrumbs(pathname) || isNavigatingToLanding) {
     return null;
   }
 
   // Handle navigation when clicking on breadcrumb items
   const handleNavigation = (href?: string) => {
     if (href) {
+      setIsNavigating(true);
+
+      // If navigating to root or dashboard, set a flag
+      if (href === '/' || href === '/dashboard') {
+        setPreviousValidPathname(href);
+      }
+
       router.push(href);
     }
   };
@@ -89,7 +120,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
 
 // Helper function to determine if breadcrumbs should be hidden
 function shouldHideBreadcrumbs(pathname: string): boolean {
-  // Hide on dashboard page
+  // Hide on landing page and dashboard page
   if (pathname === '/dashboard' || pathname === '/') {
     return true;
   }

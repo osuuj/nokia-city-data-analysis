@@ -50,7 +50,17 @@ export function usePrefetch<TData = unknown>(
     prefetchTimeoutRef.current = setTimeout(() => {
       queryClient.prefetchQuery({
         queryKey,
-        queryFn,
+        queryFn: async () => {
+          try {
+            const result = await queryFn();
+            // Return an empty object if the result is undefined or null
+            // This prevents the error: "Query data cannot be undefined"
+            return result ?? {};
+          } catch (error) {
+            console.error('Error prefetching data:', error);
+            return {}; // Return an empty object on error
+          }
+        },
         staleTime,
         gcTime,
       });
@@ -138,7 +148,7 @@ export function usePrefetchData() {
   const prefetchCities = useCallback(async () => {
     await queryClient.prefetchQuery({
       queryKey: createQueryKey('cities'),
-      queryFn: () => apiClient.get(API_ENDPOINTS.CITIES.LIST),
+      queryFn: () => apiClient.get(API_ENDPOINTS.CITIES),
     });
   }, [queryClient]);
 
@@ -150,7 +160,7 @@ export function usePrefetchData() {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('companies', { city }),
         queryFn: () =>
-          apiClient.get(API_ENDPOINTS.COMPANIES.LIST, {
+          apiClient.get(API_ENDPOINTS.COMPANIES, {
             params: { city },
           }),
       });
@@ -165,7 +175,7 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('company', { id }),
-        queryFn: () => apiClient.get(API_ENDPOINTS.COMPANIES.DETAIL(id)),
+        queryFn: () => apiClient.get(`${API_ENDPOINTS.COMPANIES}/${id}`),
       });
     },
     [queryClient],
@@ -178,7 +188,7 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('city-statistics', { id }),
-        queryFn: () => apiClient.get(API_ENDPOINTS.CITIES.STATISTICS(id)),
+        queryFn: () => apiClient.get(`${API_ENDPOINTS.CITIES}/${id}/statistics`),
       });
     },
     [queryClient],
@@ -191,7 +201,7 @@ export function usePrefetchData() {
     async (id: string) => {
       await queryClient.prefetchQuery({
         queryKey: createQueryKey('company-statistics', { id }),
-        queryFn: () => apiClient.get(API_ENDPOINTS.COMPANIES.STATISTICS(id)),
+        queryFn: () => apiClient.get(`${API_ENDPOINTS.COMPANIES}/${id}/statistics`),
       });
     },
     [queryClient],

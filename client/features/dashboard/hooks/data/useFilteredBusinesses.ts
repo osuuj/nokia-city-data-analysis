@@ -1,73 +1,75 @@
-import type { CompanyTableKey, FilteredBusinessParams } from '@/features/dashboard/types';
-import { getDistanceInKm } from '@/features/dashboard/utils/geo';
-import { useMemo } from 'react';
+import type { CompanyProperties } from '@/features/dashboard/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebounce } from '../useDebounce';
+
+interface UseFilteredBusinessesProps {
+  data: CompanyProperties[] | null;
+  industries: string[];
+  searchQuery: string;
+  debounceMs?: number;
+}
 
 /**
- * useFilteredBusinesses
- * Filters and sorts a list of businesses based on name, industry, distance, and sort descriptor.
- * Optimized to use a single pass through the data for filtering.
+ * Custom hook for filtering business data based on industries and search query.
  */
 export function useFilteredBusinesses({
   data,
-  searchTerm,
-  selectedIndustries,
-  userLocation,
-  distanceLimit,
-  sortDescriptor,
-  isFetching,
-}: FilteredBusinessParams) {
-  return useMemo(() => {
-    if (!data || isFetching) return [];
+  industries,
+  searchQuery,
+  debounceMs = 300,
+}: UseFilteredBusinessesProps) {
+  const [loading, setLoading] = useState(false);
+  const debouncedSearch = useDebounce(searchQuery, debounceMs);
 
-    // Prepare search term once
-    const searchTermLower = searchTerm.toLowerCase();
-    const hasSearchTerm = searchTermLower.length > 0;
-    const hasIndustryFilter = selectedIndustries.length > 0;
-    const hasDistanceFilter = userLocation && distanceLimit != null;
-    const { column, direction } = sortDescriptor;
+  // Reset loading state when search changes
+  useEffect(() => {
+    setLoading(true);
 
-    // Single pass through data for filtering
-    const filtered = data.filter((item) => {
-      // Search term filter
-      if (hasSearchTerm && !item.company_name.toLowerCase().includes(searchTermLower)) {
-        return false;
-      }
+    // Simulate an API call delay for better UX
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 100);
 
-      // Industry filter
-      if (hasIndustryFilter && !selectedIndustries.includes(item.industry_letter ?? '')) {
-        return false;
-      }
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
-      // Distance filter
-      if (hasDistanceFilter) {
-        const visiting = item.addresses?.['Visiting address'];
-        if (!visiting) return false;
+  /**
+   * Memoized filtered businesses based on industries and search query
+   */
+  const filteredBusinesses = useMemo(() => {
+    if (!data) {
+      return [];
+    }
 
-        const distance = getDistanceInKm(userLocation, {
-          latitude: visiting.latitude,
-          longitude: visiting.longitude,
-        });
+    let filtered = [...data];
 
-        if (distance > distanceLimit) return false;
-      }
+    // Filter by selected industries
+    if (industries.length > 0) {
+      filtered = filtered.filter((business) => {
+        return industries.includes(business.industry_letter);
+      });
+    }
 
-      return true;
-    });
+    // Filter by search query
+    if (debouncedSearch.trim() !== '') {
+      const lowerCaseSearch = debouncedSearch.toLowerCase();
+      filtered = filtered.filter((business) => {
+        return (
+          business.company_name?.toLowerCase().includes(lowerCaseSearch) ||
+          business.business_id?.toLowerCase().includes(lowerCaseSearch) ||
+          business.industry?.toLowerCase().includes(lowerCaseSearch)
+        );
+      });
+    }
 
-    // Sort the filtered data
-    return filtered.sort((a, b) => {
-      const aVal = column in a ? String(a[column as keyof typeof a] ?? '') : '';
-      const bVal = column in b ? String(b[column as keyof typeof b] ?? '') : '';
-      const comparison = aVal.localeCompare(bVal);
-      return direction === 'desc' ? -comparison : comparison;
-    });
-  }, [
-    data,
-    searchTerm,
-    selectedIndustries,
-    userLocation,
-    distanceLimit,
-    sortDescriptor,
-    isFetching,
-  ]);
+    return filtered;
+  }, [data, industries, debouncedSearch]);
+
+  return {
+    filteredBusinesses,
+    loading,
+    debouncedSearch,
+  };
 }

@@ -1,5 +1,3 @@
-import apiClient from '@shared/api';
-import type { ApiError, ApiRequestConfig, ApiResponse } from '@shared/api/types';
 import {
   type UseMutationOptions,
   type UseQueryOptions,
@@ -7,13 +5,78 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { ApiService } from '../../api/service/ApiService';
 import { useLoading } from '../loading/useLoading';
+
+// Base API URL - this should come from environment variables in production
+const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+// Type definitions
+export interface ApiResponse<T = unknown> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+export interface ApiError {
+  message: string;
+  status: number;
+  errors?: Record<string, string[]>;
+}
+
+export interface ApiRequestConfig {
+  params?: Record<string, string | number | boolean | undefined | null>;
+  headers?: Record<string, string>;
+  priority?: 'high' | 'low' | 'auto';
+  autoFetch?: boolean;
+}
 
 /**
  * Base query key factory
  */
 export const createQueryKey = <T extends unknown[]>(key: string, ...args: T) => [key, ...args];
+
+/**
+ * Default fetcher function
+ */
+const defaultFetcher = async <T>(
+  url: string,
+  config?: ApiRequestConfig,
+): Promise<ApiResponse<T>> => {
+  let queryParams = '';
+
+  if (config?.params) {
+    const filteredParams: Record<string, string> = {};
+    for (const [k, v] of Object.entries(config.params)) {
+      if (v !== undefined && v !== null) {
+        filteredParams[k] = String(v);
+      }
+    }
+
+    queryParams = `?${new URLSearchParams(filteredParams).toString()}`;
+  }
+
+  const response = await fetch(`${BASE_API_URL}/${url}${queryParams}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...config?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'An error occurred' }));
+    throw {
+      message: error.message || 'An error occurred',
+      status: response.status,
+      errors: error.errors,
+    };
+  }
+
+  const data = await response.json();
+  return {
+    data,
+    success: true,
+  };
+};
 
 /**
  * Base useQuery hook with error handling and type safety
@@ -26,7 +89,7 @@ export function useApiQuery<TData = unknown, TError = ApiError>(
 ) {
   return useQuery<ApiResponse<TData>, TError>({
     queryKey: typeof key === 'string' ? createQueryKey(key, config?.params) : key,
-    queryFn: () => apiClient.get<TData>(url, config),
+    queryFn: () => defaultFetcher<TData>(url, config),
     ...options,
   });
 }
@@ -39,7 +102,30 @@ export function useApiMutation<TData = unknown, TVariables = unknown, TError = A
   options?: Omit<UseMutationOptions<ApiResponse<TData>, TError, TVariables>, 'mutationFn'>,
 ) {
   return useMutation<ApiResponse<TData>, TError, TVariables>({
-    mutationFn: (variables) => apiClient.post<TData>(url, variables),
+    mutationFn: async (variables) => {
+      const response = await fetch(`${BASE_API_URL}/${url}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(variables),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'An error occurred' }));
+        throw {
+          message: error.message || 'An error occurred',
+          status: response.status,
+          errors: error.errors,
+        };
+      }
+
+      const data = await response.json();
+      return {
+        data,
+        success: true,
+      };
+    },
     ...options,
   });
 }
@@ -52,7 +138,19 @@ export function useApiPutMutation<TData = unknown, TVariables = unknown, TError 
   options?: Omit<UseMutationOptions<ApiResponse<TData>, TError, TVariables>, 'mutationFn'>,
 ) {
   return useMutation<ApiResponse<TData>, TError, TVariables>({
-    mutationFn: (variables) => apiClient.put<TData>(url, variables),
+    mutationFn: (variables) =>
+      fetch(`${BASE_API_URL}/${url}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(variables),
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      }),
     ...options,
   });
 }
@@ -65,7 +163,19 @@ export function useApiDeleteMutation<TData = unknown, TVariables = unknown, TErr
   options?: Omit<UseMutationOptions<ApiResponse<TData>, TError, TVariables>, 'mutationFn'>,
 ) {
   return useMutation<ApiResponse<TData>, TError, TVariables>({
-    mutationFn: (variables) => apiClient.delete<TData>(url),
+    mutationFn: (variables) =>
+      fetch(`${BASE_API_URL}/${url}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(variables),
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      }),
     ...options,
   });
 }
@@ -78,18 +188,25 @@ export function useApiPatchMutation<TData = unknown, TVariables = unknown, TErro
   options?: Omit<UseMutationOptions<ApiResponse<TData>, TError, TVariables>, 'mutationFn'>,
 ) {
   return useMutation<ApiResponse<TData>, TError, TVariables>({
-    mutationFn: (variables) => apiClient.patch<TData>(url, variables),
+    mutationFn: (variables) =>
+      fetch(`${BASE_API_URL}/${url}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(variables),
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      }),
     ...options,
   });
 }
 
 /**
  * Hook for making API requests with loading and error states
- * @param url The URL to make the request to
- * @param method The HTTP method to use
- * @param config The request configuration
- * @param data The request data (for POST, PUT, PATCH)
- * @returns An object containing the response, loading state, error state, and a function to refetch the data
  */
 export function useApi<T>(
   url: string,
@@ -113,31 +230,45 @@ export function useApi<T>(
     });
 
     try {
-      const apiService = ApiService.getInstance();
-      let result: ApiResponse<T>;
+      let queryParams = '';
 
-      switch (method) {
-        case 'GET':
-          result = await apiService.get<T>(url, config);
-          break;
-        case 'POST':
-          result = await apiService.post<T>(url, data, config);
-          break;
-        case 'PUT':
-          result = await apiService.put<T>(url, data, config);
-          break;
-        case 'DELETE':
-          result = await apiService.delete<T>(url, config);
-          break;
-        case 'PATCH':
-          result = await apiService.patch<T>(url, data, config);
-          break;
-        default:
-          throw new Error(`Unsupported HTTP method: ${method}`);
+      if (config?.params) {
+        const filteredParams: Record<string, string> = {};
+        for (const [k, v] of Object.entries(config.params)) {
+          if (v !== undefined && v !== null) {
+            filteredParams[k] = String(v);
+          }
+        }
+
+        queryParams = `?${new URLSearchParams(filteredParams).toString()}`;
       }
 
-      setResponse(result);
-      return result;
+      const requestOptions: RequestInit = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...config?.headers,
+        },
+      };
+
+      if (method !== 'GET' && data) {
+        requestOptions.body = JSON.stringify(data);
+      }
+
+      const res = await fetch(`${BASE_API_URL}/${url}${queryParams}`, requestOptions);
+
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status} ${res.statusText}`);
+      }
+
+      const result = await res.json();
+      const apiResponse = {
+        data: result,
+        success: true,
+      };
+
+      setResponse(apiResponse);
+      return apiResponse;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
