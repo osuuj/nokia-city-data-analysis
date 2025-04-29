@@ -28,13 +28,12 @@ export interface LazyLoadConfig {
  * @param config - Configuration for lazy loading
  * @returns A lazy-loaded component
  */
-export function createLazyComponentLoader<T extends ComponentType<Record<string, unknown>>>(
-  config: LazyLoadConfig,
-): T {
+// biome-ignore lint/suspicious/noExplicitAny: Using generic component pattern common in React
+export function createLazyComponentLoader<T extends ComponentType<any>>(config: LazyLoadConfig): T {
   const { path, componentName } = config;
 
   // Create the lazy component
-  const LazyComponent = lazy(() => import(`../views/${path}`)) as T;
+  const LazyComponent = lazy(() => import(`../views/${path}`)) as unknown as T;
   LazyComponent.displayName = componentName;
 
   return LazyComponent;

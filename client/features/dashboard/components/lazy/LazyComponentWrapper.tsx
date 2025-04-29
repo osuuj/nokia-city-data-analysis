@@ -42,7 +42,8 @@ const DefaultLoadingFallback: React.FC = () => (
  * @param config - Configuration for lazy loading with UI options
  * @returns A component that wraps the lazy component with error handling and loading states
  */
-export function createLazyComponent<T extends ComponentType<Record<string, unknown>>>(
+// biome-ignore lint/suspicious/noExplicitAny: Using generic component pattern common in React
+export function createLazyComponent<T extends ComponentType<any>>(
   config: LazyComponentWrapperConfig,
 ): React.FC<React.ComponentProps<T>> {
   const { componentName, fallback, errorBoundaryProps } = config;
