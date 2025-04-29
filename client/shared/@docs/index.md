@@ -4,6 +4,8 @@ This directory contains comprehensive documentation for the `client/shared` modu
 
 ## Table of Contents
 
+### Core Documentation
+
 - [Components](./components.md) - Reusable UI components
 - [Hooks](./hooks.md) - Custom React hooks
 - [Context](./context.md) - React Context providers
@@ -12,6 +14,21 @@ This directory contains comprehensive documentation for the `client/shared` modu
 - [Types](./types.md) - TypeScript types
 - [Styles](./styles.md) - Global styles
 - [Providers](./providers.md) - Application providers
+
+### Architecture & Guides
+
+- [Architecture](./architecture.md) - Architecture decisions and patterns
+- [Guides](./guides.md) - Usage guides and best practices
+
+### Feature Documentation
+
+- [About Feature](./features/about.md) - About page feature
+- [Contact Feature](./features/contact.md) - Contact page feature
+
+### Component Documentation
+
+- [About Components](./components/about.md) - About page components
+- [Contact Components](./components/contact.md) - Contact page components
 
 ## Overview
 
