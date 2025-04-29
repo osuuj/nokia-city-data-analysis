@@ -104,11 +104,17 @@ export const SidebarWrapper = () => {
         })}
       >
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
-          <Link href="/resources" className="w-full">
+          <Link
+            href="/resources"
+            className={cn('w-full', {
+              'flex justify-center': isCompact,
+            })}
+          >
             <Button
-              fullWidth
-              className={cn('justify-start truncate text-default-500 hover:text-foreground', {
-                'justify-center': isCompact,
+              fullWidth={!isCompact}
+              className={cn('truncate text-default-500 hover:text-foreground', {
+                'justify-center w-10 h-10': isCompact,
+                'justify-start': !isCompact,
               })}
               isIconOnly={isCompact}
               startContent={
@@ -117,6 +123,7 @@ export const SidebarWrapper = () => {
                     className="text-default-500"
                     icon="solar:info-circle-line-duotone"
                     width={24}
+                    height={24}
                   />
                 )
               }
@@ -127,6 +134,7 @@ export const SidebarWrapper = () => {
                   className="text-default-500"
                   icon="solar:info-circle-line-duotone"
                   width={24}
+                  height={24}
                 />
               ) : (
                 'Help & Information'
@@ -140,13 +148,14 @@ export const SidebarWrapper = () => {
             <Button
               isIconOnly
               variant="light"
-              className="mt-2 h-10 w-10 text-default-500"
+              className="flex items-center justify-center h-10 w-10 text-default-500"
               onPress={handleToggle}
             >
               <Icon
                 icon="solar:sidebar-minimalistic-outline"
                 className="text-default-500"
                 width={18}
+                height={18}
               />
             </Button>
           </Tooltip>

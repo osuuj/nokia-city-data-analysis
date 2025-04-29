@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { DashboardError } from '../components/DashboardError';
 import { DashboardFooter } from '../components/DashboardFooter';
 import { DashboardSidebar } from '../components/DashboardSidebar';
-import { PrimaryDashboardHeader } from '../components/PrimaryDashboardHeader';
+// Import commented out to remove the header
+// import { PrimaryDashboardHeader } from '../components/PrimaryDashboardHeader';
 import { createLazyComponent } from '../components/lazy';
 import { useDashboard } from '../hooks/useDashboard';
 import { preloadComponents } from '../utils/lazyLoading';
@@ -81,7 +82,7 @@ export const DashboardView: React.FC = React.memo(() => {
     <div className="flex h-screen bg-gray-100">
       <DashboardSidebar activeView={activeView} onViewChange={handleViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <PrimaryDashboardHeader />
+        {/* PrimaryDashboardHeader removed */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
           {isLoading ? LoadingSpinner : <ActiveViewComponent />}
         </main>

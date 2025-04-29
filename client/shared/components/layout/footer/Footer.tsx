@@ -8,21 +8,21 @@ import { OsuujLogo } from '@shared/icons';
  * Renders the main site footer including logo, nav links, social links, and copyright.
  */
 export const Footer = () => {
-  // Use global theme classes for light/dark mode
-  const footerClassName = 'flex w-full flex-col bg-background text-foreground';
+  const year = new Date().getFullYear();
 
   return (
-    <footer className={footerClassName}>
-      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center px-6 py-6 lg:py-6 md:py-5 sm:py-4 xs:py-3">
+    <footer className="w-full bg-background py-12 md:py-12 sm:py-6 xs:py-4 px-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center">
         <div className="flex items-center justify-center">
           <OsuujLogo className="min-w-[40px] min-h-[40px] sm:scale-90 xs:scale-75" />
         </div>
 
         <Spacer y={4} className="sm:hidden" />
-        <Spacer y={2} className="hidden sm:block" />
+        <Spacer y={2} className="hidden sm:block xs:hidden" />
+        <Spacer y={1} className="hidden xs:block" />
 
-        <p className="mt-1 text-center text-small text-default-400">
-          &copy; {new Date().getFullYear()} Osuuj. All rights reserved.
+        <p className="mt-1 text-center text-small text-default-400 xs:text-xs">
+          &copy; {year} Osuuj. All rights reserved.
         </p>
       </div>
     </footer>

@@ -4,6 +4,8 @@ import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
 import { Providers } from '@shared/providers';
 import '@/shared/styles/base/globals.css';
+import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
+import { GlobalStyles } from '@/shared/components/layout/GlobalStyles';
 import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
 import { BreadcrumbProvider } from '@/shared/context';
 import { LoadingProvider } from '@/shared/context/loading';
@@ -81,24 +83,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `}
         </Script>
       </head>
-      <body
-        className={clsx(
-          'min-h-screen bg-background font-sans antialiased pt-24',
-          fontSans.variable,
-        )}
-      >
-        <ErrorBoundary fallback={<ErrorFallback />}>
-          <LoadingProvider>
-            <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
-              <BreadcrumbProvider>
-                <ConditionalLayout>
-                  <ResponsiveLoading />
-                  {children}
-                </ConditionalLayout>
-              </BreadcrumbProvider>
-            </Providers>
-          </LoadingProvider>
-        </ErrorBoundary>
+      <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
+        <ClientLayoutWrapper>
+          {/* Global styles in a client component */}
+          <GlobalStyles />
+
+          <ErrorBoundary fallback={<ErrorFallback />}>
+            <LoadingProvider>
+              <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
+                <BreadcrumbProvider>
+                  <ConditionalLayout>
+                    <ResponsiveLoading />
+                    {children}
+                  </ConditionalLayout>
+                </BreadcrumbProvider>
+              </Providers>
+            </LoadingProvider>
+          </ErrorBoundary>
+        </ClientLayoutWrapper>
       </body>
     </html>
   );

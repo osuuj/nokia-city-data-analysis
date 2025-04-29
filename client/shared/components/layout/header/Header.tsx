@@ -41,10 +41,16 @@ export const Header = () => {
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
+
+  // Set mounted state after hydration to prevent mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check if we're on the landing page
   const isLandingPage = currentPathname === '/';
@@ -172,7 +178,7 @@ export const Header = () => {
   }, [isMenuOpen]);
 
   return (
-    <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100] shadow-sm">
+    <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100]">
       <div
         className={`w-full ${
           isBlackBgPage
@@ -180,7 +186,7 @@ export const Header = () => {
             : 'bg-background/90 backdrop-blur-md text-foreground'
         } ${isMenuOpen ? 'shadow-md' : ''}`}
       >
-        {showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
+        {isMounted && showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
 
         <Navbar
           maxWidth="2xl"
@@ -195,23 +201,25 @@ export const Header = () => {
           onMenuOpenChange={setIsMenuOpen}
         >
           {/* Left: Logo + mobile toggle */}
-          <NavbarMenuToggle
-            className="sm:hidden relative w-8 h-8 flex items-center justify-center"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            icon={
-              <div className="relative flex flex-col justify-center items-center w-6 h-6">
-                <span
-                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
-                />
-                <span
-                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
-                />
-                <span
-                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`}
-                />
-              </div>
-            }
-          />
+          {isMounted && (
+            <NavbarMenuToggle
+              className="sm:hidden relative w-8 h-8 flex items-center justify-center"
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              icon={
+                <div className="relative flex flex-col justify-center items-center w-6 h-6">
+                  <span
+                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
+                  />
+                  <span
+                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                  />
+                  <span
+                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`}
+                  />
+                </div>
+              }
+            />
+          )}
           <NavbarBrand className="flex-grow sm:flex-grow-0">
             <Link href="/" color="foreground" className="flex items-center gap-2">
               <OsuujLogo className="min-w-[40px] min-h-[40px]" />
@@ -265,9 +273,7 @@ export const Header = () => {
                 </Button>
               </NavbarItem>
 
-              <NavbarItem>
-                <ThemeSwitch aria-label="Toggle theme" />
-              </NavbarItem>
+              <NavbarItem>{isMounted && <ThemeSwitch aria-label="Toggle theme" />}</NavbarItem>
             </div>
           </NavbarContent>
 
@@ -324,8 +330,8 @@ export const Header = () => {
         </Navbar>
 
         {/* Breadcrumbs section */}
-        {shouldShowBreadcrumbs && (
-          <div className="w-full py-2 border-t border-divider/40">
+        {isMounted && shouldShowBreadcrumbs && (
+          <div className={`w-full py-2 border-divider/40 ${isLandingPage ? 'hidden' : ''}`}>
             <div className="mx-auto w-full px-4 sm:px-6">
               <Breadcrumbs />
             </div>

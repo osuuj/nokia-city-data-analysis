@@ -2,11 +2,11 @@
 
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
-import { Button, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
+import { Button, Popover, PopoverContent, PopoverTrigger, Tab, Tabs, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePrefetch } from '../../../hooks/usePrefetch';
 
 /**
@@ -31,6 +31,21 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   setViewMode,
   fetchViewData,
 }: ViewModeToggleProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Set mounted state after hydration to prevent mismatch
+  useEffect(() => {
+    setIsMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 480);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Memoize the selection change handler
   const handleSelectionChange = useCallback(
     (key: string | number) => {
@@ -79,10 +94,11 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   // Memoize the tab list class names
   const tabListClassNames = useMemo(
     () => ({
-      tabList: 'gap-2',
+      tabList: 'gap-1.5 sm:gap-2',
       cursor: 'w-full bg-primary',
-      tab: 'max-w-fit px-2 h-9',
-      tabContent: 'group-data-[selected=true]:text-primary',
+      tab: 'max-w-fit px-2 sm:px-3 h-9',
+      tabContent:
+        'group-data-[selected=true]:text-primary-foreground dark:group-data-[selected=true]:text-primary',
     }),
     [],
   );
@@ -94,13 +110,15 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         key="table"
         title={
           <div className="flex items-center gap-1.5" onMouseEnter={prefetchTableData}>
-            <Icon icon="lucide:table" width={16} />
-            <span className="text-sm">Table</span>
+            <Tooltip content="Table View" isDisabled={!isMobile}>
+              <Icon icon="lucide:table" width={18} height={18} />
+            </Tooltip>
+            <span className="text-sm hidden xs:inline-block sm:inline-block">Table</span>
           </div>
         }
       />
     ),
-    [prefetchTableData],
+    [prefetchTableData, isMobile],
   );
 
   // Memoize the split tab
@@ -110,13 +128,15 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         key="split"
         title={
           <div className="flex items-center gap-1.5" onMouseEnter={prefetchSplitData}>
-            <Icon icon="lucide:layout-grid" width={16} />
-            <span className="text-sm">Split</span>
+            <Tooltip content="Split View" isDisabled={!isMobile}>
+              <Icon icon="lucide:layout-grid" width={18} height={18} />
+            </Tooltip>
+            <span className="text-sm hidden xs:inline-block sm:inline-block">Split</span>
           </div>
         }
       />
     ),
-    [prefetchSplitData],
+    [prefetchSplitData, isMobile],
   );
 
   // Memoize the map tab
@@ -126,13 +146,15 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         key="map"
         title={
           <div className="flex items-center gap-1.5" onMouseEnter={prefetchMapData}>
-            <Icon icon="lucide:map" width={16} />
-            <span className="text-sm">Map</span>
+            <Tooltip content="Map View" isDisabled={!isMobile}>
+              <Icon icon="lucide:map" width={18} height={18} />
+            </Tooltip>
+            <span className="text-sm hidden xs:inline-block sm:inline-block">Map</span>
           </div>
         }
       />
     ),
-    [prefetchMapData],
+    [prefetchMapData, isMobile],
   );
 
   // Memoize the analytics tab
@@ -142,13 +164,15 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         key="analytics"
         title={
           <div className="flex items-center gap-1.5" onMouseEnter={prefetchAnalyticsData}>
-            <Icon icon="lucide:bar-chart-2" width={16} />
-            <span className="text-sm">Analytics</span>
+            <Tooltip content="Analytics View" isDisabled={!isMobile}>
+              <Icon icon="lucide:bar-chart-2" width={18} height={18} />
+            </Tooltip>
+            <span className="text-sm hidden xs:inline-block sm:inline-block">Analytics</span>
           </div>
         }
       />
     ),
-    [prefetchAnalyticsData],
+    [prefetchAnalyticsData, isMobile],
   );
 
   // Memoize the GitHub button
