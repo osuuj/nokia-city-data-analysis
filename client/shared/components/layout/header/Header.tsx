@@ -14,7 +14,7 @@ import {
 } from '@heroui/react';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { DataLoader } from '@/shared/components/data';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
@@ -41,12 +41,16 @@ export const Header = () => {
   const [clickedItem, setClickedItem] = useState<string | null>(null);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
 
   // Check if we're on the landing page
   const isLandingPage = currentPathname === '/';
+  // Check if we're on dashboard page
+  const isDashboardPage = currentPathname === '/dashboard';
 
   // Prefetch cities data
   const { data: cities } = useQuery({
@@ -136,10 +140,30 @@ export const Header = () => {
     }
   }, [currentPathname, isNavigatingToDashboard]);
 
+  // Add effect to handle header visibility on scroll
+  useEffect(() => {
+    // Always keep header visible for all screen sizes
+    setIsHeaderVisible(true);
+
+    // Still need to handle menu open state
+    const handleScroll = () => {
+      if (isMenuOpen) {
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMenuOpen]);
+
   // Add effect to handle body overflow when menu is open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
+      setIsHeaderVisible(true);
     } else {
       document.body.style.overflow = '';
     }
@@ -180,7 +204,7 @@ export const Header = () => {
         />
         <NavbarBrand className="flex-grow sm:flex-grow-0">
           <Link href="/" color="foreground" className="flex items-center gap-2">
-            <OsuujLogo />
+            <OsuujLogo className="min-w-[40px] min-h-[40px]" />
           </Link>
         </NavbarBrand>
 

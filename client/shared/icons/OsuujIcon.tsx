@@ -31,8 +31,15 @@ export const OsuujLogo = ({ large = false, className = '' }: OsuujLogoProps) => 
   const logoSrc = resolvedTheme === 'light' ? '/ouuj-black.svg' : '/ouuj-color.svg';
 
   return (
-    <div className={clsx('relative w-14 h-14', className)}>
-      <Image src={logoSrc} alt="Osuuj Logo" fill className="object-contain" priority={true} />
+    <div className={clsx('relative w-10 h-10 block', className)}>
+      <Image
+        src={logoSrc}
+        alt="Osuuj Logo"
+        fill
+        sizes="(max-width: 768px) 24px, 40px"
+        className="object-contain"
+        priority={true}
+      />
     </div>
   );
 };

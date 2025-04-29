@@ -57,7 +57,7 @@ export const Hero = (): JSX.Element => {
 
   return (
     <header
-      className={`relative h-[calc(100vh-24rem)] w-full overflow-hidden ${bgColor}`}
+      className={`relative h-[calc(100vh-24rem)] md:h-[calc(100vh-24rem)] sm:h-[calc(100vh-16rem)] xs:h-[calc(100vh-12rem)] w-full overflow-hidden ${bgColor}`}
       aria-label="Hero section"
     >
       {/* 🔹 Video Background */}
