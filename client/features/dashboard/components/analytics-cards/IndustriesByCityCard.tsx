@@ -69,7 +69,8 @@ export const IndustriesByCityCard: React.FC<IndustriesByCityCardProps> = ({
       };
 
       // Add all properties that are in the selectedIndustryDisplayNames
-      for (const [key, value] of Object.entries(item)) {
+      const entries = Object.entries(item);
+      for (const [key, value] of entries) {
         if (key !== 'city' && selectedIndustryDisplayNames.has(key)) {
           result[key] = value;
         }

@@ -148,16 +148,6 @@ export function DashboardContent({
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
       />
-
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        isLoading={isLoading}
-        pageSize={pageSize}
-        onPageSizeChange={handlePageSizeChange}
-        totalItems={allFilteredData.length}
-      />
     </div>
   );
 }

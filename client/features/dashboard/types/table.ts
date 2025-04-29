@@ -101,7 +101,6 @@ export interface SearchInputProps {
 export interface FilterGroupProps {
   useLocation: boolean;
   setUseLocation: Dispatch<SetStateAction<boolean>>;
-  address: string;
   setAddress: Dispatch<SetStateAction<string>>;
 }
 

@@ -27,7 +27,7 @@ export interface ToolbarProps {
   selectedKeys: Set<string>;
   useLocation: boolean;
   setUseLocation: Dispatch<SetStateAction<boolean>>;
-  address: string;
+  address?: string;
   setAddress: Dispatch<SetStateAction<string>>;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: (value: SortDescriptor) => void;
@@ -166,7 +166,6 @@ export function TableToolbar({
                 <FilterGroup
                   useLocation={useLocation}
                   setUseLocation={setUseLocation}
-                  address={address}
                   setAddress={setAddress}
                 />
               </div>

@@ -45,6 +45,7 @@ export function DashboardPage() {
   const prevDataLoadingRef = useRef(false);
   const prevCityLoadingRef = useRef(false);
   const dataLoadedOnceRef = useRef(false);
+  const stableDataStateRef = useRef(false);
 
   // Fetch dashboard data using custom hook
   const {
@@ -73,6 +74,12 @@ export function DashboardPage() {
 
   // Update loading state based on data fetching, but prevent unnecessary loading cycles
   useEffect(() => {
+    // If we have stable data, don't trigger new loading states unless explicitly needed
+    if (stableDataStateRef.current && tableRows?.length > 0 && selectedCity) {
+      stopSectionLoading('all');
+      return;
+    }
+
     // Only show loading if we transitioned from not loading to loading
     if (
       (isDataLoading && !prevDataLoadingRef.current) ||
@@ -89,12 +96,18 @@ export function DashboardPage() {
       if (tableRows?.length > 0 || errors.geojson || errors.cities) {
         stopSectionLoading('all');
         dataLoadedOnceRef.current = true;
+
+        // Mark that we're now in a stable data state if we have rows
+        if (tableRows?.length > 0) {
+          stableDataStateRef.current = true;
+        }
       }
     }
 
     // If we have data but loading was triggered again, stop the loading
     if (!isDataLoading && !cityLoading && dataLoadedOnceRef.current && isAnySectionLoading) {
       stopSectionLoading('all');
+      stableDataStateRef.current = true;
     }
 
     // Update refs for next render
@@ -108,6 +121,7 @@ export function DashboardPage() {
     tableRows,
     errors,
     isAnySectionLoading,
+    selectedCity,
   ]);
 
   // Handle city selection
@@ -115,6 +129,7 @@ export function DashboardPage() {
     (city: string) => {
       // Reset data loaded flag when changing city
       dataLoadedOnceRef.current = false;
+      stableDataStateRef.current = false;
       startSectionLoading('map', 'Loading city data...');
       handleCityChange(city);
       setCurrentPage(1); // Reset to first page when city changes
@@ -209,8 +224,8 @@ export function DashboardPage() {
         }
       >
         <Suspense fallback={<DashboardSkeleton />}>
-          {/* Only render content if we have data or we're intentionally loading */}
-          {(tableRows?.length > 0 || isDataLoading || cityLoading) && (
+          {/* Always render content if a city is selected or we have data */}
+          {(tableRows?.length > 0 || isDataLoading || cityLoading || selectedCity) && (
             <LazyDashboardContent
               data={paginated}
               allFilteredData={tableRows || []}
