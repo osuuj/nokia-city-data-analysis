@@ -10,7 +10,7 @@ type Interaction = { id: number; name: string; timestamp: number };
  */
 interface PerformanceMetrics {
   id: string;
-  phase: string;
+  phase: 'mount' | 'update' | 'nested-update';
   actualDuration: number;
   baseDuration: number;
   startTime: number;
@@ -188,15 +188,15 @@ export function withPerformanceTracking<P extends object>(
   Component: ComponentType<P>,
   componentName: string,
 ): FC<P> {
-  const profilerCallback: ProfilerOnRenderCallback = (
-    id,
-    phase,
-    actualDuration,
-    baseDuration,
-    startTime,
-    commitTime,
-    interactions,
-    nextInteractions,
+  const profilerCallback = ((
+    id: string,
+    phase: 'mount' | 'update' | 'nested-update',
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number,
+    interactions: Set<Interaction>,
+    ...rest: unknown[]
   ) => {
     const metrics: PerformanceMetrics = {
       id,
@@ -212,7 +212,7 @@ export function withPerformanceTracking<P extends object>(
       componentName,
       metrics,
     });
-  };
+  }) as ProfilerOnRenderCallback;
 
   const ProfilerWrapper: FC<P> = (props: P) =>
     createElement(
@@ -237,15 +237,15 @@ export function withPerformanceTracking<P extends object>(
  * ```
  */
 export function useDashboardPerformanceTracking(componentName: string): ProfilerOnRenderCallback {
-  return (
+  return ((
     id: string,
-    phase: 'mount' | 'update',
+    phase: 'mount' | 'update' | 'nested-update',
     actualDuration: number,
     baseDuration: number,
     startTime: number,
     commitTime: number,
     interactions: Set<Interaction>,
-    nextInteractions?: Set<Interaction>,
+    ...rest: unknown[]
   ): void => {
     const metrics: PerformanceMetrics = {
       id,
@@ -261,7 +261,7 @@ export function useDashboardPerformanceTracking(componentName: string): Profiler
       componentName,
       metrics,
     });
-  };
+  }) as ProfilerOnRenderCallback;
 }
 
 /**

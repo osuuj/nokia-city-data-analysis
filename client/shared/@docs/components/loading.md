@@ -1,6 +1,6 @@
 # Loading Components
 
-This directory contains components for handling loading states throughout the application.
+This document provides information about components for handling loading states throughout the application.
 
 ## Components
 

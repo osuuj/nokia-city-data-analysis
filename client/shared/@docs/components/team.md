@@ -1,6 +1,6 @@
 # Team Components
 
-This directory contains reusable components for displaying team members across the application.
+This document provides information about the reusable components for displaying team members across the application.
 
 ## Components
 

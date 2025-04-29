@@ -1,6 +1,6 @@
 # Error Handling Components
 
-This directory contains components for handling errors throughout the application.
+This document provides information about components for handling errors throughout the application.
 
 ## Components
 

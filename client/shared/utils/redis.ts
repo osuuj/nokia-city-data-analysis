@@ -71,10 +71,8 @@ class MemoryCache {
   }
 
   async exists(key: string): Promise<boolean> {
-    return (
-      this.cache.has(key) &&
-      (!this.cache.get(key)?.expiry || this.cache.get(key)?.expiry > Date.now())
-    );
+    const item = this.cache.get(key);
+    return this.cache.has(key) && (!item?.expiry || item.expiry > Date.now());
   }
 }
 
@@ -180,7 +178,8 @@ class RedisClient {
   public async get(key: string): Promise<string | null> {
     if (this.useRedis && this.getClient()) {
       try {
-        return await this.client?.get(key);
+        const result = await this.client?.get(key);
+        return result ?? null;
       } catch (error) {
         console.error('Redis get error:', error);
         // Fallback to memory cache
