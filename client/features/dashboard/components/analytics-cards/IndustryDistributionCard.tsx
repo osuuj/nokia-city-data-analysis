@@ -3,9 +3,9 @@
 import { Select, SelectItem } from '@heroui/react';
 import { useMemo } from 'react';
 import type React from 'react';
-import { BaseCard } from '../../shared/BaseCard';
-import { IndustryDistribution } from '../charts/IndustryDistribution';
-import type { TransformedDistribution } from '../utils/types';
+import { IndustryDistribution } from '../analytics-charts/IndustryDistribution';
+import type { TransformedDistribution } from '../analytics-utils/types';
+import { BaseCard } from '../shared/BaseCard';
 
 interface IndustryDistributionCardProps {
   data: TransformedDistribution[];

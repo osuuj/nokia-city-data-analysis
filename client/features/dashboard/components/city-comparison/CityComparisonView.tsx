@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CityComparison } from '../analytics/charts/CityComparison';
-import type { TransformedCityComparison } from '../analytics/utils/types';
+import { CityComparison } from '../analytics-charts/CityComparison';
+import type { TransformedCityComparison } from '../analytics-utils/types';
 import { BaseCard } from '../shared/BaseCard';
 
 interface ComparisonData {

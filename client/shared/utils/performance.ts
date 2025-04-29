@@ -8,7 +8,7 @@ type Interaction = { id: number; name: string; timestamp: number };
 /**
  * Performance metrics interface
  */
-interface PerformanceMetrics {
+export interface PerformanceMetrics {
   id: string;
   phase: 'mount' | 'update' | 'nested-update';
   actualDuration: number;

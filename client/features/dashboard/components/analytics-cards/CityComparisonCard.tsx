@@ -2,10 +2,10 @@
 
 import type React from 'react';
 import { useMemo } from 'react';
-import { BaseCard } from '../../shared/BaseCard';
-import { CityComparison } from '../charts/CityComparison';
-import type { ChartDataItem } from '../charts/CityComparison';
-import type { TransformedCityComparison } from '../utils/types';
+import { CityComparison } from '../analytics-charts/CityComparison';
+import type { ChartDataItem } from '../analytics-charts/CityComparison';
+import type { TransformedCityComparison } from '../analytics-utils/types';
+import { BaseCard } from '../shared/BaseCard';
 
 /**
  * Props for the CityComparisonCard component

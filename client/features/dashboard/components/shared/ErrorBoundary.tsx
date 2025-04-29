@@ -1,7 +1,16 @@
+/**
+ * @deprecated Use ErrorBoundary from @/shared/components/error instead
+ * This component is kept for backward compatibility but will be removed in a future version.
+ *
+ * Example usage of the shared component:
+ * import { ErrorBoundary } from '@/shared/components/error';
+ */
+
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@heroui/button';
 import { Card } from '@heroui/card';
-import React from 'react';
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import type { DashboardError } from '../../types/common';
 import { errorReporting } from '../../utils/errorReporting';
 import { ErrorShake, FadeIn } from './animations';
 

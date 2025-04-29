@@ -1,5 +1,11 @@
+import {
+  type PerformanceMetrics,
+  PerformanceMonitor,
+  type PerformanceMonitoringOptions,
+  withPerformanceTracking as baseWithPerformanceTracking,
+} from '@/shared/utils/performance';
 import type React from 'react';
-import { Profiler, type ProfilerOnRenderCallback, createElement } from 'react';
+import { Profiler, createElement } from 'react';
 
 /**
  * Dashboard-specific performance monitoring options
@@ -24,126 +30,6 @@ const defaultOptions: DashboardPerformanceOptions = {
   trackTable: true,
   trackMap: true,
 };
-
-// Define types previously imported from shared utils
-interface PerformanceMonitoringOptions {
-  /** Whether to log metrics to console */
-  logToConsole?: boolean;
-  /** Whether to track component renders */
-  trackRenders?: boolean;
-  /** Whether to track interactions */
-  trackInteractions?: boolean;
-  /** Custom callback for performance data */
-  onMetrics?: (metrics: Record<string, PerformanceMetrics[]>) => void;
-}
-
-type Interaction = { id: number; name: string; timestamp: number };
-
-interface PerformanceMetrics {
-  id: string;
-  phase: string;
-  actualDuration: number;
-  baseDuration: number;
-  startTime: number;
-  commitTime: number;
-  interactions: Set<Interaction>;
-}
-
-// Define the PerformanceMonitor class
-class PerformanceMonitor {
-  private static instance: PerformanceMonitor;
-  private metrics: Map<string, PerformanceMetrics[]> = new Map();
-  private options: PerformanceMonitoringOptions;
-
-  private constructor(options: PerformanceMonitoringOptions = {}) {
-    this.options = {
-      logToConsole: process.env.NODE_ENV === 'development',
-      trackRenders: true,
-      trackInteractions: true,
-      ...options,
-    };
-  }
-
-  /**
-   * Get singleton instance
-   */
-  public static getInstance(options?: PerformanceMonitoringOptions): PerformanceMonitor {
-    if (!PerformanceMonitor.instance) {
-      PerformanceMonitor.instance = new PerformanceMonitor(options);
-    }
-    return PerformanceMonitor.instance;
-  }
-
-  /**
-   * Get metrics for a component
-   */
-  public getMetrics(componentName: string): PerformanceMetrics[] {
-    return this.metrics.get(componentName) || [];
-  }
-
-  /**
-   * Clear metrics for a component
-   */
-  public clearMetrics(componentName: string): void {
-    this.metrics.delete(componentName);
-  }
-
-  /**
-   * Clear all metrics
-   */
-  public clearAllMetrics(): void {
-    this.metrics.clear();
-  }
-
-  /**
-   * Get a performance report
-   */
-  public getReport(): Record<string, PerformanceMetrics[]> {
-    const report: Record<string, PerformanceMetrics[]> = {};
-    this.metrics.forEach((metrics, componentName) => {
-      report[componentName] = metrics;
-    });
-    return report;
-  }
-}
-
-/**
- * Higher-order component that wraps a component with React Profiler
- * to measure its rendering performance.
- */
-function withPerformanceTracking<P extends object>(
-  Component: React.ComponentType<P>,
-  componentName: string,
-): React.ComponentType<P> {
-  const profilerCallback: ProfilerOnRenderCallback = (
-    id: string,
-    phase: 'mount' | 'update',
-    actualDuration: number,
-    baseDuration: number,
-    startTime: number,
-    commitTime: number,
-    interactions: Set<{ id: number; name: string; timestamp: number }>,
-    nextInteractions?: Set<{ id: number; name: string; timestamp: number }>,
-  ) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Performance] ${componentName}:`, {
-        phase,
-        actualDuration: `${actualDuration.toFixed(2)}ms`,
-        baseDuration: `${baseDuration.toFixed(2)}ms`,
-      });
-    }
-  };
-
-  const ProfilerWrapper: React.FC<P> = (props: P) =>
-    createElement(
-      Profiler,
-      { id: componentName, onRender: profilerCallback },
-      createElement(Component, props),
-    );
-
-  ProfilerWrapper.displayName = `WithPerformanceTracking(${componentName})`;
-  return ProfilerWrapper;
-}
 
 /**
  * Dashboard performance monitoring class
@@ -184,7 +70,7 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackAnalytics) {
       return Component;
     }
-    return withPerformanceTracking(Component, `Analytics:${componentName}`);
+    return baseWithPerformanceTracking(Component, `Analytics:${componentName}`);
   }
 
   /**
@@ -197,7 +83,7 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackTable) {
       return Component;
     }
-    return withPerformanceTracking(Component, `Table:${componentName}`);
+    return baseWithPerformanceTracking(Component, `Table:${componentName}`);
   }
 
   /**
@@ -210,34 +96,34 @@ export class DashboardPerformanceMonitor {
     if (!this.options.trackMap) {
       return Component;
     }
-    return withPerformanceTracking(Component, `Map:${componentName}`);
+    return baseWithPerformanceTracking(Component, `Map:${componentName}`);
   }
 
   /**
    * Get metrics for an analytics component
    */
-  public getAnalyticsMetrics(componentName: string) {
+  public getAnalyticsMetrics(componentName: string): PerformanceMetrics[] {
     return this.monitor.getMetrics(`Analytics:${componentName}`);
   }
 
   /**
    * Get metrics for a table component
    */
-  public getTableMetrics(componentName: string) {
+  public getTableMetrics(componentName: string): PerformanceMetrics[] {
     return this.monitor.getMetrics(`Table:${componentName}`);
   }
 
   /**
    * Get metrics for a map component
    */
-  public getMapMetrics(componentName: string) {
+  public getMapMetrics(componentName: string): PerformanceMetrics[] {
     return this.monitor.getMetrics(`Map:${componentName}`);
   }
 
   /**
    * Get a performance report for all dashboard components
    */
-  public getDashboardReport() {
+  public getDashboardReport(): Record<string, PerformanceMetrics[]> {
     return this.monitor.getReport();
   }
 

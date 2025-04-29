@@ -27,21 +27,14 @@ import { createQueryKey } from '@/shared/hooks/api';
 import { useTheme } from 'next-themes';
 import type React from 'react';
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { withDashboardErrorBoundary } from '../../components/shared/withDashboardErrorBoundary';
-import {
-  useCityComparisonEnhanced,
-  useIndustriesByCityEnhanced,
-  useIndustryDistributionEnhanced,
-  useTopCitiesEnhanced,
-} from '../../hooks/analytics/useEnhancedAnalytics';
-import { CitySelection, IndustrySelection } from './selection';
-import { AnalyticsCardSkeleton } from './skeletons/AnalyticsCardSkeleton';
+import { CitySelection, IndustrySelection } from '../components/analytics-selection';
+import { AnalyticsCardSkeleton } from '../components/analytics-skeletons';
 import type {
   DistributionDataRaw,
   TransformedCityComparison,
   TransformedDistribution,
   TransformedIndustriesByCity,
-} from './utils/types';
+} from '../components/analytics-utils/types';
 import {
   OTHER_CATEGORY_DISPLAY_NAME,
   OTHER_CATEGORY_NAME_FROM_BACKEND,
@@ -51,26 +44,33 @@ import {
   getThemedIndustryColor,
   transformCityComparison,
   transformIndustriesByCity,
-} from './utils/utils';
+} from '../components/analytics-utils/utils';
+import { withDashboardErrorBoundary } from '../components/shared/withDashboardErrorBoundary';
+import {
+  useCityComparisonEnhanced,
+  useIndustriesByCityEnhanced,
+  useIndustryDistributionEnhanced,
+  useTopCitiesEnhanced,
+} from '../hooks/analytics/useEnhancedAnalytics';
 
 // Lazy load card components for code splitting
 const CityComparisonCard = lazy(() =>
-  import('./cards/CityComparisonCard').then((module) => ({
+  import('../components/analytics-cards/CityComparisonCard').then((module) => ({
     default: module.CityComparisonCard,
   })),
 );
 const IndustriesByCityCard = lazy(() =>
-  import('./cards/IndustriesByCityCard').then((module) => ({
+  import('../components/analytics-cards/IndustriesByCityCard').then((module) => ({
     default: module.IndustriesByCityCard,
   })),
 );
 const IndustryDistributionCard = lazy(() =>
-  import('./cards/IndustryDistributionCard').then((module) => ({
+  import('../components/analytics-cards/IndustryDistributionCard').then((module) => ({
     default: module.IndustryDistributionCard,
   })),
 );
 const TopCitiesCard = lazy(() =>
-  import('./cards/TopCitiesCard').then((module) => ({
+  import('../components/analytics-cards/TopCitiesCard').then((module) => ({
     default: module.TopCitiesCard,
   })),
 );
@@ -102,7 +102,7 @@ const AnalyticsViewComponent: React.FC = () => {
   // Fetch cities data
   const { data: citiesData, isLoading: isCitiesLoading } = useApiQuery(
     createQueryKey('cities'),
-    API_ENDPOINTS.CITIES.LIST,
+    API_ENDPOINTS.CITIES,
   );
 
   // Convert selectedCities Set to Array for the hooks

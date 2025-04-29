@@ -1,19 +1,70 @@
-import React, { lazy, Suspense } from 'react';
+/**
+ * Lazy Loading Utilities
+ * Pure utility functions for lazy loading components without JSX
+ */
 
-interface LazyComponentConfig {
+import { lazy } from 'react';
+import type { ComponentType } from 'react';
+
+/**
+ * Configuration for lazy loading a component
+ */
+export interface LazyLoadConfig {
+  /**
+   * The path to the component to lazy load
+   */
   path: string;
+
+  /**
+   * The name of the component to lazy load
+   */
   componentName: string;
 }
 
-export const createLazyComponent = ({ path, componentName }: LazyComponentConfig) => {
-  const Component = lazy(() => import(`../views/${path}`));
-  Component.displayName = componentName;
-  return Component;
-};
+/**
+ * Creates a lazy-loaded component without Suspense or ErrorBoundary
+ * This function contains no JSX
+ *
+ * @param config - Configuration for lazy loading
+ * @returns A lazy-loaded component
+ */
+export function createLazyComponentLoader<T extends ComponentType<Record<string, unknown>>>(
+  config: LazyLoadConfig,
+): T {
+  const { path, componentName } = config;
 
-export const preloadComponents = (components: LazyComponentConfig[]) => {
-  for (const { path } of components) {
-    const componentPath = `../views/${path}`;
-    import(/* webpackPrefetch: true */ componentPath);
+  // Create the lazy component
+  const LazyComponent = lazy(() => import(`../views/${path}`)) as T;
+  LazyComponent.displayName = componentName;
+
+  return LazyComponent;
+}
+
+/**
+ * Preload a component for faster subsequent loading
+ *
+ * @param path - The path to the component to preload
+ * @param componentName - The name of the component to preload
+ */
+export function preloadComponent(path: string, componentName: string): void {
+  import(/* webpackChunkName: "[request]" */ `../components/${path}`)
+    .then(() => {
+      console.log(`Preloaded component ${componentName} from ${path}`);
+    })
+    .catch((error) => {
+      console.error(`Error preloading component ${componentName} from ${path}:`, error);
+    });
+}
+
+/**
+ * Preload multiple components
+ *
+ * @param components - Array of components to preload
+ */
+export function preloadComponents(
+  components: Array<{ path: string; componentName: string }>,
+): void {
+  for (const { path, componentName } of components) {
+    preloadComponent(path, componentName);
   }
-};
+}

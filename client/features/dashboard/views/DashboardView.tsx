@@ -1,10 +1,11 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import { DashboardError } from '../components/DashboardError';
 import { DashboardFooter } from '../components/DashboardFooter';
-import { DashboardHeader } from '../components/DashboardHeader';
 import { DashboardSidebar } from '../components/DashboardSidebar';
+import { PrimaryDashboardHeader } from '../components/PrimaryDashboardHeader';
+import { createLazyComponent } from '../components/lazy';
 import { useDashboard } from '../hooks/useDashboard';
-import { createLazyComponent, preloadComponents } from '../utils/lazyLoading';
+import { preloadComponents } from '../utils/lazyLoading';
 
 // Lazy load the main content components
 const DashboardOverview = createLazyComponent({
@@ -80,7 +81,7 @@ export const DashboardView: React.FC = React.memo(() => {
     <div className="flex h-screen bg-gray-100">
       <DashboardSidebar activeView={activeView} onViewChange={handleViewChange} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader />
+        <PrimaryDashboardHeader />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
           {isLoading ? LoadingSpinner : <ActiveViewComponent />}
         </main>

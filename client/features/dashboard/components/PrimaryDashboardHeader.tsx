@@ -1,7 +1,11 @@
 import type React from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 
-export const DashboardHeader: React.FC = () => {
+/**
+ * PrimaryDashboardHeader
+ * Primary header for the dashboard that handles view switching
+ */
+export const PrimaryDashboardHeader: React.FC = () => {
   const { state, actions } = useDashboard();
 
   return (

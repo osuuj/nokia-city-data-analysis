@@ -2,12 +2,12 @@
 
 import type { ViewSwitcherProps } from '@/features/dashboard/types';
 import { Suspense, lazy } from 'react';
-import { AnalyticsCardSkeleton } from '../analytics/skeletons/AnalyticsCardSkeleton';
+import { AnalyticsCardSkeleton } from '../analytics-skeletons';
 import { TableSkeleton } from '../table/skeletons/TableSkeleton';
 
 // Lazy load components for code splitting
 const AnalyticsView = lazy(() =>
-  import('@/features/dashboard/components/analytics/AnalyticsView').then((module) => ({
+  import('@/features/dashboard/views/AnalyticsView').then((module) => ({
     default: module.AnalyticsView,
   })),
 );

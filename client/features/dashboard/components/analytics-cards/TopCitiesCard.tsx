@@ -3,8 +3,8 @@
 import type { TopCityData } from '@/features/dashboard/hooks/analytics/types';
 import type React from 'react';
 import { useMemo } from 'react';
-import { BaseCard } from '../../shared/BaseCard';
-import { TopCitiesChart } from '../charts';
+import { TopCitiesChart } from '../analytics-charts';
+import { BaseCard } from '../shared/BaseCard';
 
 /**
  * Props for the TopCitiesCard component
