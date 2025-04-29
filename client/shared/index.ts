@@ -4,7 +4,7 @@ export * from './icons';
 export * from './components';
 export * from './hooks';
 // export * from './utils'; // Commented out until utils are properly exported
-export * from './api';
+// export * from './api'; // Removed - API now handled through hooks/api
 export * from './types';
 export * from './context';
 // export * from './styles'; // Commented out until styles are properly exported
