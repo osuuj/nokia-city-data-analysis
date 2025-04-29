@@ -34,7 +34,7 @@ interface PerformanceMonitoringOptions {
   /** Whether to track interactions */
   trackInteractions?: boolean;
   /** Custom callback for performance data */
-  onMetrics?: (metrics: PerformanceMetrics) => void;
+  onMetrics?: (metrics: Record<string, PerformanceMetrics[]>) => void;
 }
 
 type Interaction = { id: number; name: string; timestamp: number };
