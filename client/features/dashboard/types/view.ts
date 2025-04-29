@@ -19,6 +19,8 @@ export type ViewMode = 'table' | 'map' | 'split' | 'analytics';
  * @property geojson {FeatureCollection<Point, CompanyProperties>} - GeoJSON data for map view.
  * @property viewMode {ViewMode} - Current selected view mode explicitly.
  * @property setViewMode {(mode: ViewMode) => void} - Callback to explicitly change the view mode.
+ * @property pageSize {number} - Number of rows to display per page.
+ * @property onPageSizeChange {(pageSize: number) => void} - Callback to handle page size changes.
  */
 export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
   data: CompanyProperties[];
@@ -30,6 +32,8 @@ export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
   viewMode: ViewMode;
   selectedBusinesses: CompanyProperties[];
   setViewMode: (mode: ViewMode) => void;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 /**

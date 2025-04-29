@@ -1,8 +1,8 @@
 'use client';
 
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Spinner } from '@heroui/react';
 import type React from 'react';
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CompanyProperties } from '../../types';
 
 interface VirtualizedTableProps {
@@ -17,6 +17,12 @@ interface VirtualizedTableProps {
   onSelectionChange: (keys: Set<string>) => void;
   height: number;
   width: number;
+  sortDescriptor?: {
+    column: string;
+    direction: 'asc' | 'desc';
+  };
+  onSortChange?: (column: string) => void;
+  isLoading?: boolean;
 }
 
 const ROW_HEIGHT = 40;
@@ -29,35 +35,105 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
   onSelectionChange,
   height,
   width: _width,
+  sortDescriptor,
+  onSortChange,
+  isLoading = false,
 }) => {
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Sort the data based on sortDescriptor
+  const sortedData = useMemo(() => {
+    if (!sortDescriptor) return data;
+
+    return [...data].sort((a, b) => {
+      const column = sortDescriptor.column;
+      const direction = sortDescriptor.direction;
+
+      // Get values for comparison
+      let valueA: string | number | boolean | object | null | undefined =
+        a[column as keyof CompanyProperties];
+      let valueB: string | number | boolean | object | null | undefined =
+        b[column as keyof CompanyProperties];
+
+      // Handle special cases like addresses
+      if (
+        column === 'street' ||
+        column === 'building_number' ||
+        column === 'postal_code' ||
+        column === 'city'
+      ) {
+        valueA =
+          a.addresses?.['Visiting address']?.[
+            column as keyof (typeof a.addresses)['Visiting address']
+          ] || '';
+        valueB =
+          b.addresses?.['Visiting address']?.[
+            column as keyof (typeof b.addresses)['Visiting address']
+          ] || '';
+      }
+
+      // Convert to lowercase strings for string comparison
+      if (valueA && valueB && typeof valueA === 'string' && typeof valueB === 'string') {
+        valueA = valueA.toLowerCase();
+        valueB = valueB.toLowerCase();
+      }
+
+      // Handle null/undefined values (sort them to the end)
+      if (valueA === null || valueA === undefined) return direction === 'asc' ? 1 : -1;
+      if (valueB === null || valueB === undefined) return direction === 'asc' ? -1 : 1;
+
+      // Perform the comparison
+      if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+      if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortDescriptor]);
+
   const visibleRowCount = Math.ceil(height / ROW_HEIGHT);
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_SIZE);
   const endIndex = Math.min(
-    data.length,
+    sortedData.length,
     Math.ceil((scrollTop + height) / ROW_HEIGHT) + BUFFER_SIZE,
   );
 
-  const visibleRows = data.slice(startIndex, endIndex);
+  const visibleRows = sortedData.slice(startIndex, endIndex);
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     setScrollTop(event.currentTarget.scrollTop);
   };
 
-  const handleSelectionChange = (keys: unknown) => {
-    if (Array.isArray(keys)) {
-      onSelectionChange(new Set(keys));
-    } else if (keys instanceof Set) {
-      onSelectionChange(new Set([...keys].map(String)));
-    }
-  };
-
   const renderCellValue = (
     value: string | number | boolean | object | null | undefined,
+    columnKey: string,
+    item: CompanyProperties,
   ): string => {
-    if (value === null || value === undefined) return '';
+    if (
+      columnKey === 'street' ||
+      columnKey === 'building_number' ||
+      columnKey === 'postal_code' ||
+      columnKey === 'city' ||
+      columnKey === 'entrance' ||
+      columnKey === 'address_type'
+    ) {
+      const visiting = item.addresses?.['Visiting address'];
+      switch (columnKey) {
+        case 'street':
+          return visiting?.street ?? '-';
+        case 'building_number':
+          return visiting?.building_number ?? '-';
+        case 'postal_code':
+          return visiting?.postal_code ?? '-';
+        case 'city':
+          return visiting?.city ?? '-';
+        case 'entrance':
+          return visiting?.entrance ?? '-';
+        case 'address_type':
+          return 'Visiting address';
+      }
+    }
+
+    if (value === null || value === undefined) return '-';
     if (typeof value === 'object') return JSON.stringify(value);
     return String(value);
   };
@@ -77,111 +153,168 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     }
   };
 
+  const handleSelectionChange = (businessId: string) => {
+    const newSelectedKeys = new Set(selectedKeys);
+    if (selectedKeys.has(businessId)) {
+      newSelectedKeys.delete(businessId);
+    } else {
+      newSelectedKeys.add(businessId);
+    }
+    onSelectionChange(newSelectedKeys);
+  };
+
   return (
     <div
       ref={containerRef}
       style={{
         height,
         width: '100%',
-        overflow: 'auto',
         position: 'relative',
+        overflow: 'hidden',
       }}
-      onScroll={handleScroll}
+      className="relative"
     >
-      <div style={{ height: startIndex * ROW_HEIGHT }} />
-      <div className="w-full min-w-full">
-        <Table
-          aria-label="Virtualized table"
-          selectionMode="multiple"
-          selectedKeys={selectedKeys}
-          onSelectionChange={handleSelectionChange}
-          isHeaderSticky
-          isStriped
-          layout="fixed"
-          classNames={{
-            base: 'w-full',
-            wrapper: 'w-full rounded-lg border border-default-200',
-            table: 'w-full table-fixed',
-            td: 'text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2',
-            th: 'text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 bg-default-200 text-default-800 font-semibold',
-            tr: 'hover:bg-default-50 data-[selected=true]:bg-primary-50',
-          }}
-          checkboxesProps={{
-            size: 'sm',
-            radius: 'sm',
-            color: 'primary',
-          }}
-        >
-          <TableHeader>
-            {visibleColumns.map((column) => (
-              <TableColumn
-                key={`header-${column.key}`}
-                className="py-1"
-                style={{
-                  width: getColumnWidth(column.key),
-                }}
-              >
-                <div className="flex items-center justify-start gap-1.5">
-                  <span className="truncate text-[10px] xs:text-xs sm:text-xs md:text-sm whitespace-nowrap">
-                    {column.label}
-                  </span>
-                </div>
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody
-            emptyContent={
-              <div className="text-center py-3 text-default-500 text-xs md:text-sm">
-                No data available
-              </div>
-            }
-          >
-            {visibleRows.length > 0 ? (
-              visibleRows.map((item) => {
-                const isSelected = selectedKeys.has(item.business_id);
-                return (
-                  <TableRow
-                    key={`row-${item.business_id}`}
-                    style={{ height: ROW_HEIGHT }}
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      const newSelectedKeys = new Set(selectedKeys);
-                      if (isSelected) {
-                        newSelectedKeys.delete(item.business_id);
-                      } else {
-                        newSelectedKeys.add(item.business_id);
+      {/* Header stays fixed at the top using regular table element */}
+      <div className="sticky top-0 z-10 bg-default-200 w-full">
+        <table className="w-full table-fixed border-t border-x border-default-200 rounded-t-lg">
+          <thead className="bg-default-200">
+            <tr>
+              <th className="w-8 text-center bg-default-200 text-default-800 font-semibold">
+                {/* Checkbox header */}
+                <input
+                  type="checkbox"
+                  checked={selectedKeys.size > 0 && selectedKeys.size === data.length}
+                  onChange={() => {
+                    if (selectedKeys.size === data.length) {
+                      onSelectionChange(new Set());
+                    } else {
+                      onSelectionChange(new Set(data.map((item) => item.business_id)));
+                    }
+                  }}
+                  className="rounded-sm"
+                  disabled={isLoading || data.length === 0}
+                />
+              </th>
+              {visibleColumns.map((column) => (
+                <th
+                  key={`header-${column.key}`}
+                  className="text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2 bg-default-200 text-default-800 font-semibold py-1"
+                  style={{
+                    width: getColumnWidth(column.key),
+                  }}
+                  aria-sort={
+                    sortDescriptor?.column === column.key
+                      ? sortDescriptor.direction === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : 'none'
+                  }
+                >
+                  <button
+                    className={`w-full h-full flex items-center justify-start gap-1.5 ${!isLoading ? 'cursor-pointer hover:bg-default-300' : 'cursor-default'}`}
+                    onClick={() => !isLoading && onSortChange?.(column.key)}
+                    onKeyDown={(e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && !isLoading) {
+                        e.preventDefault();
+                        onSortChange?.(column.key);
                       }
-                      onSelectionChange(newSelectedKeys);
                     }}
+                    disabled={isLoading}
+                    type="button"
                   >
-                    {visibleColumns.map((column) => (
-                      <TableCell
-                        key={`cell-${item.business_id}-${column.key}`}
-                        style={{
-                          minWidth: column.key === 'business_id' ? '60px' : '80px',
-                          maxWidth: column.key === 'business_id' ? '100px' : '300px',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <span className="truncate block w-full">
-                          {renderCellValue(item[column.key as keyof CompanyProperties])}
-                        </span>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={visibleColumns.length} className="text-center py-4">
-                  No data available
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                    <span className="truncate text-[10px] xs:text-xs sm:text-xs md:text-sm whitespace-nowrap">
+                      {column.label}
+                    </span>
+                    {sortDescriptor?.column === column.key && (
+                      <span className="text-xs text-primary-500">
+                        {sortDescriptor.direction === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+              ))}
+            </tr>
+          </thead>
+        </table>
       </div>
-      <div style={{ height: (data.length - endIndex) * ROW_HEIGHT }} />
+
+      {/* Scrollable body */}
+      <div
+        style={{
+          height: height - 38 /* Subtract header height */,
+          width: '100%',
+          overflow: 'auto',
+        }}
+        onScroll={handleScroll}
+        className="border-b border-x border-default-200 rounded-b-lg"
+      >
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <Spinner size="lg" color="primary" />
+          </div>
+        ) : (
+          <>
+            <div style={{ height: startIndex * ROW_HEIGHT }} />
+            <table className="w-full table-fixed">
+              <tbody>
+                {visibleRows.length > 0 ? (
+                  visibleRows.map((item) => {
+                    const isSelected = selectedKeys.has(item.business_id);
+                    return (
+                      <tr
+                        key={`row-${item.business_id}`}
+                        style={{ height: ROW_HEIGHT }}
+                        className={`hover:bg-default-50 ${isSelected ? 'bg-primary-50' : ''} ${
+                          Number.parseInt(item.business_id) % 2 === 0 ? 'bg-default-50' : ''
+                        }`}
+                      >
+                        <td className="w-8 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleSelectionChange(item.business_id)}
+                            className="rounded-sm text-primary-500 focus:ring-primary-500"
+                          />
+                        </td>
+                        {visibleColumns.map((column) => (
+                          <td
+                            key={`cell-${item.business_id}-${column.key}`}
+                            className="text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2"
+                            style={{
+                              minWidth: column.key === 'business_id' ? '60px' : '80px',
+                              maxWidth: column.key === 'business_id' ? '100px' : '300px',
+                              overflow: 'hidden',
+                              width: getColumnWidth(column.key),
+                            }}
+                          >
+                            <span className="truncate block w-full">
+                              {renderCellValue(
+                                item[column.key as keyof CompanyProperties],
+                                column.key,
+                                item,
+                              )}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={visibleColumns.length + 1}
+                      className="text-center py-4 text-default-500 text-xs md:text-sm"
+                    >
+                      No data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            <div style={{ height: (sortedData.length - endIndex) * ROW_HEIGHT }} />
+          </>
+        )}
+      </div>
     </div>
   );
 };

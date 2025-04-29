@@ -158,7 +158,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
                   step={1}
                   value={draftDistance}
                   onChange={(val) => setDraftDistance(val as number)}
-                  className="py-1 text-[10px] xs:text-xs sm:text-sm"
+                  className="py-1 text-[10px] xs:text-xs sm:text-sm w-full overflow-x-hidden"
                   tooltipContent="Adjust distance range"
                 />
               )}

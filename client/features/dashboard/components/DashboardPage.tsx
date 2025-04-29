@@ -35,6 +35,7 @@ export function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [companySearchTerm, setCompanySearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(ROWS_PER_PAGE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'company_name' as CompanyTableKey,
     direction: 'asc',
@@ -70,88 +71,37 @@ export function DashboardPage() {
   const { startSectionLoading, stopSectionLoading, isAnySectionLoading } = useDashboardLoading();
 
   // Setup pagination
-  const { paginated, totalPages } = usePagination(tableRows || [], currentPage, ROWS_PER_PAGE);
+  const { paginated, totalPages } = usePagination(tableRows || [], currentPage, pageSize);
+
+  // Handle page size change
+  const handlePageSizeChange = useCallback((newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  }, []);
 
   // Update loading state based on data fetching, but prevent unnecessary loading cycles
   useEffect(() => {
-    // If we have stable data, don't trigger new loading states unless explicitly needed
-    if (stableDataStateRef.current && tableRows?.length > 0 && selectedCity) {
-      stopSectionLoading('all');
-      return;
-    }
+    // Prevent recursive updates by using refs to track state
+    const isCurrentlyLoading = isDataLoading || cityLoading;
+    const wasLoading = prevDataLoadingRef.current || prevCityLoadingRef.current;
+    const hasData = tableRows?.length > 0;
+    const hasError = errors.geojson || errors.cities;
 
-    // Only show loading if we transitioned from not loading to loading
-    if (
-      (isDataLoading && !prevDataLoadingRef.current) ||
-      (cityLoading && !prevCityLoadingRef.current)
-    ) {
+    // Case 1: Started loading - show loading indicator
+    if (isCurrentlyLoading && !wasLoading) {
       startSectionLoading('all', 'Loading dashboard data...');
     }
-    // Only stop loading if we have data and we're no longer loading
-    else if (
-      (!isDataLoading && prevDataLoadingRef.current) ||
-      (!cityLoading && prevCityLoadingRef.current)
-    ) {
-      // Only stop loading if we actually have data, or if there's an error
-      if (tableRows?.length > 0 || errors.geojson || errors.cities) {
-        stopSectionLoading('all');
-        dataLoadedOnceRef.current = true;
-
-        // Mark that we're now in a stable data state if we have rows
-        if (tableRows?.length > 0) {
-          stableDataStateRef.current = true;
-        }
-      }
-    }
-
-    // If we have data but loading was triggered again, stop the loading
-    if (!isDataLoading && !cityLoading && dataLoadedOnceRef.current && isAnySectionLoading) {
+    // Case 2: Finished loading with data or error - stop loading
+    else if (!isCurrentlyLoading && wasLoading && (hasData || hasError)) {
       stopSectionLoading('all');
-      stableDataStateRef.current = true;
+      dataLoadedOnceRef.current = true;
+      stableDataStateRef.current = hasData;
     }
 
     // Update refs for next render
     prevDataLoadingRef.current = isDataLoading;
     prevCityLoadingRef.current = cityLoading;
-  }, [
-    isDataLoading,
-    cityLoading,
-    startSectionLoading,
-    stopSectionLoading,
-    tableRows,
-    errors,
-    isAnySectionLoading,
-    selectedCity,
-  ]);
-
-  // Handle city selection
-  const onCityChange = useCallback(
-    (city: string) => {
-      // Reset data loaded flag when changing city
-      dataLoadedOnceRef.current = false;
-      stableDataStateRef.current = false;
-      startSectionLoading('map', 'Loading city data...');
-      handleCityChange(city);
-      setCurrentPage(1); // Reset to first page when city changes
-    },
-    [startSectionLoading, handleCityChange],
-  );
-
-  // Handle company search term changes
-  const onCompanySearchChange = (value: string) => {
-    setCompanySearchTerm(value);
-    setCurrentPage(1); // Reset to first page on search
-  };
-
-  // Get selected businesses from the store
-  const selectedBusinesses = Object.values(selectedRows);
-
-  // Get the first error if any
-  const error = useMemo(() => {
-    if (errors.geojson) return errors.geojson;
-    if (errors.cities) return errors.cities;
-    return null;
-  }, [errors]);
+  }, [isDataLoading, cityLoading, startSectionLoading, stopSectionLoading, tableRows, errors]);
 
   // Create prefetch function that returns a Promise
   const prefetchViewData = useCallback(
@@ -200,6 +150,51 @@ export function DashboardPage() {
     [selectedCity, refetch],
   );
 
+  // Prevent unnecessary data refetching when changing view modes
+  const onViewModeChange = useCallback(
+    (newViewMode: ViewMode) => {
+      // Always preserve data when switching views - never trigger loading
+      setViewMode(newViewMode);
+
+      // Only prefetch data in the background if we need to
+      if (newViewMode === 'analytics') {
+        prefetchViewData(newViewMode).catch((error) => {
+          console.error('Error prefetching view data:', error);
+        });
+      }
+    },
+    [prefetchViewData],
+  );
+
+  // Handle city selection
+  const onCityChange = useCallback(
+    (city: string) => {
+      // Reset data loaded flag when changing city
+      dataLoadedOnceRef.current = false;
+      stableDataStateRef.current = false;
+      startSectionLoading('map', 'Loading city data...');
+      handleCityChange(city);
+      setCurrentPage(1); // Reset to first page when city changes
+    },
+    [startSectionLoading, handleCityChange],
+  );
+
+  // Handle company search term changes
+  const onCompanySearchChange = (value: string) => {
+    setCompanySearchTerm(value);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  // Get selected businesses from the store
+  const selectedBusinesses = Object.values(selectedRows);
+
+  // Get the first error if any
+  const error = useMemo(() => {
+    if (errors.geojson) return errors.geojson;
+    if (errors.cities) return errors.cities;
+    return null;
+  }, [errors]);
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <DashboardHeader
@@ -212,6 +207,7 @@ export function DashboardPage() {
         searchTerm={searchTerm}
         onSearchChange={onCompanySearchChange}
         fetchViewData={prefetchViewData}
+        onViewModeChange={onViewModeChange}
       />
 
       <DashboardErrorBoundary
@@ -243,6 +239,8 @@ export function DashboardPage() {
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
               error={error}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
             />
           )}
         </Suspense>

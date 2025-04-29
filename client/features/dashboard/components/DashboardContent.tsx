@@ -64,6 +64,12 @@ interface DashboardContentProps {
 
   /** Error state */
   error: Error | null;
+
+  /** Number of rows to display per page */
+  pageSize?: number;
+
+  /** Callback to handle page size changes */
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 /**
@@ -92,9 +98,11 @@ export function DashboardContent({
   sortDescriptor,
   setSortDescriptor,
   error,
+  pageSize,
+  onPageSizeChange,
 }: DashboardContentProps) {
   // State for page size
-  const [pageSize, setPageSize] = useState(10);
+  const [currentPageSize, setCurrentPageSize] = useState(pageSize || 10);
 
   // We're not using filteredBusinesses currently, so we can remove the hook call
   // or use _ to mark it as intentionally unused
@@ -107,11 +115,14 @@ export function DashboardContent({
   // Handle page size change
   const handlePageSizeChange = useCallback(
     (newPageSize: number) => {
-      setPageSize(newPageSize);
+      setCurrentPageSize(newPageSize);
       // Reset to first page when changing page size
       onPageChange(1);
+      if (onPageSizeChange) {
+        onPageSizeChange(newPageSize);
+      }
     },
-    [onPageChange],
+    [onPageChange, onPageSizeChange],
   );
 
   if (error) {
@@ -147,6 +158,8 @@ export function DashboardContent({
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
       />
     </div>
   );

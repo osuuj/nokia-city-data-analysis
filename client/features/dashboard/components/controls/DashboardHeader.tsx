@@ -13,6 +13,7 @@ interface DashboardHeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   fetchViewData?: (view: ViewMode) => Promise<void>;
+  onViewModeChange?: (view: ViewMode) => void;
 }
 
 /**
@@ -29,6 +30,7 @@ export const DashboardHeader = React.memo(function DashboardHeader({
   searchTerm,
   onSearchChange,
   fetchViewData,
+  onViewModeChange,
 }: DashboardHeaderProps) {
   // Memoize the view mode toggle section
   const viewModeToggleSection = useMemo(
@@ -36,12 +38,12 @@ export const DashboardHeader = React.memo(function DashboardHeader({
       <div className="flex items-center justify-between">
         <ViewModeToggle
           viewMode={viewMode}
-          setViewMode={setViewMode}
+          setViewMode={onViewModeChange || setViewMode}
           fetchViewData={fetchViewData}
         />
       </div>
     ),
-    [viewMode, setViewMode, fetchViewData],
+    [viewMode, setViewMode, fetchViewData, onViewModeChange],
   );
 
   // Memoize the city search section

@@ -43,6 +43,8 @@ export function ViewSwitcher({
   setSortDescriptor,
   allFilteredData,
   selectedBusinesses,
+  pageSize,
+  onPageSizeChange,
 }: ViewSwitcherProps) {
   return (
     <div className="w-full">
@@ -60,6 +62,8 @@ export function ViewSwitcher({
             setSearchTerm={setSearchTerm}
             sortDescriptor={sortDescriptor}
             setSortDescriptor={setSortDescriptor}
+            pageSize={pageSize}
+            onPageSizeChange={onPageSizeChange}
           />
         </Suspense>
       )}
@@ -94,6 +98,8 @@ export function ViewSwitcher({
                 setSearchTerm={setSearchTerm}
                 sortDescriptor={sortDescriptor}
                 setSortDescriptor={setSortDescriptor}
+                pageSize={pageSize}
+                onPageSizeChange={onPageSizeChange}
               />
             </Suspense>
           </div>

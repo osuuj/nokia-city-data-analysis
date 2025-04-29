@@ -156,10 +156,13 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
         </PopoverTrigger>
 
         <PopoverContent
-          className="p-0 shadow-lg border border-default-200"
+          className="p-0 shadow-lg border border-default-200 overflow-x-hidden"
           style={{ maxWidth, width: '100%' }}
         >
-          <div className="p-2 xs:p-3 max-h-[50vh] overflow-auto w-full" ref={contentRef}>
+          <div
+            className="p-2 xs:p-3 max-h-[50vh] overflow-y-auto overflow-x-hidden w-full"
+            ref={contentRef}
+          >
             <h3 className="mb-2 text-sm font-medium">{title}</h3>
             <div className="w-full">{children}</div>
           </div>

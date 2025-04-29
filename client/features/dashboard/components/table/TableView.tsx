@@ -2,9 +2,13 @@
 
 import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
 import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
-import type { CompanyProperties, TableViewProps } from '@/features/dashboard/types';
-import { Card, Pagination, Spinner } from '@heroui/react';
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import type {
+  CompanyProperties,
+  CompanyTableKey,
+  TableViewProps,
+} from '@/features/dashboard/types';
+import { Card, Pagination, Select, SelectItem, Spinner } from '@heroui/react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TableSkeleton } from './skeletons/TableSkeleton';
 
 // Lazy load VirtualizedTable component for code splitting
@@ -16,6 +20,8 @@ const VirtualizedTable = lazy(() =>
 
 interface TableViewComponentProps extends TableViewProps {
   allFilteredData: CompanyProperties[];
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 /**
@@ -34,7 +40,8 @@ const arePropsEqual = (
     prevProps.isLoading === nextProps.isLoading &&
     prevProps.searchTerm === nextProps.searchTerm &&
     prevProps.sortDescriptor.column === nextProps.sortDescriptor.column &&
-    prevProps.sortDescriptor.direction === nextProps.sortDescriptor.direction
+    prevProps.sortDescriptor.direction === nextProps.sortDescriptor.direction &&
+    prevProps.pageSize === nextProps.pageSize
   );
 };
 
@@ -51,6 +58,8 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     setSearchTerm,
     sortDescriptor,
     setSortDescriptor,
+    pageSize = 10,
+    onPageSizeChange,
   }) => {
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [useLocation, setUseLocation] = useState(false);
@@ -58,6 +67,30 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     const [windowWidth, setWindowWidth] = useState(
       typeof window !== 'undefined' ? window.innerWidth : 1024,
     );
+    // Track previous data to prevent unnecessary loading states
+    const prevDataRef = useRef<CompanyProperties[]>([]);
+    const [effectiveIsLoading, setEffectiveIsLoading] = useState(isLoading);
+
+    // Determine if we should show loading spinner or keep showing previous data
+    useEffect(() => {
+      if (!isLoading) {
+        // When loading completes, update previous data reference and set effective loading to false
+        prevDataRef.current = data;
+        setEffectiveIsLoading(false);
+      } else if (isLoading && prevDataRef.current.length === 0) {
+        // Only show loading on first load or when we have no previous data
+        setEffectiveIsLoading(true);
+      } else if (
+        isLoading &&
+        data &&
+        data.length > 0 &&
+        JSON.stringify(data) !== JSON.stringify(prevDataRef.current)
+      ) {
+        // Show loading only if the data is actually different
+        setEffectiveIsLoading(true);
+      }
+      // Keep showing previous data if the city selection is the same
+    }, [isLoading, data]);
 
     const handleSearchChange = useCallback(
       (value: string) => {
@@ -89,47 +122,146 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       }));
     }, [columns]);
 
+    // Handle sort change
+    const handleSortChange = useCallback(
+      (column: string) => {
+        setSortDescriptor((prev) => {
+          if (prev.column === column) {
+            // Toggle direction if same column
+            return {
+              ...prev,
+              direction: prev.direction === 'asc' ? 'desc' : 'asc',
+            };
+          }
+          // New column, default to ascending
+          return {
+            column: column as CompanyTableKey,
+            direction: 'asc',
+          };
+        });
+      },
+      [setSortDescriptor],
+    );
+
+    // Handle page size change
+    const handlePageSizeChange = useCallback(
+      (
+        e: React.ChangeEvent<HTMLSelectElement> | { target: { value: string }; keys?: Set<string> },
+      ) => {
+        if (onPageSizeChange) {
+          // Get the selected key from the selection
+          let newSize: string | null = e.target.value;
+
+          // Check if this is a SelectionEvent with keys
+          if (!newSize && 'keys' in e && e.keys && e.keys.size > 0) {
+            newSize = Array.from(e.keys)[0];
+          }
+
+          if (newSize) {
+            onPageSizeChange(Number.parseInt(String(newSize), 10));
+          }
+        }
+      },
+      [onPageSizeChange],
+    );
+
     // Create pagination content
     const bottomContent = useMemo(() => {
       const isMobile = windowWidth < 640;
       const isXsScreen = windowWidth < 400;
 
       // Calculate the range of items being displayed
-      const startItem = _allFilteredData.length > 0 ? (currentPage - 1) * 10 + 1 : 0;
-      const endItem = Math.min(currentPage * 10, _allFilteredData.length);
+      const startItem = _allFilteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+      const endItem = Math.min(currentPage * pageSize, _allFilteredData.length);
+
+      // Page size options
+      const pageSizes = ['10', '25', '50', '100'];
 
       return (
         <div className="flex w-full flex-col items-center justify-center gap-1 px-1 py-1 sm:gap-1 sm:px-2 sm:py-2 md:gap-2 md:px-3 md:py-3">
-          <div className="flex w-full justify-center">
-            <Pagination
-              disableCursorAnimation
-              classNames={{
-                base: 'text-xs gap-0.5 sm:text-sm sm:gap-1 md:text-sm md:gap-1',
-                item: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                cursor:
-                  'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary-500',
-                next: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                prev: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                ellipsis: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                wrapper: 'w-full flex justify-center max-w-full overflow-x-auto px-0',
-              }}
-              siblings={1}
-              boundaries={1}
-              showControls={true}
-              isCompact={isMobile}
-              showShadow={!isXsScreen}
-              dotsJump={1}
-              color="primary"
-              page={currentPage}
-              total={totalPages}
-              onChange={onPageChange}
-              size={isMobile ? 'sm' : 'md'}
-              aria-label="Table pagination"
-            />
+          <div className="flex w-full items-center px-2">
+            {/* Page size selector - left aligned */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm w-1/4">
+              <span className="text-gray-600 hidden xs:inline">Show:</span>
+              <Select
+                size="sm"
+                aria-label="Page size"
+                defaultSelectedKeys={[pageSize.toString()]}
+                onSelectionChange={(keys) => {
+                  if (onPageSizeChange && keys !== 'all') {
+                    // Make sure keys is a Set before converting
+                    if (keys instanceof Set && keys.size > 0) {
+                      // Convert Set to Array and get the first item
+                      const newSize = Array.from(keys)[0] as string;
+                      onPageSizeChange(Number.parseInt(newSize, 10));
+                    }
+                  }
+                }}
+                className="w-20 min-w-unit-16"
+                classNames={{
+                  trigger: 'h-8',
+                  value: 'text-small',
+                }}
+                isDisabled={!onPageSizeChange || effectiveIsLoading}
+              >
+                {pageSizes.map((size) => (
+                  <SelectItem key={size}>{size}</SelectItem>
+                ))}
+              </Select>
+            </div>
+
+            {/* Pagination - centered */}
+            <div className="flex-grow flex justify-center">
+              <Pagination
+                disableCursorAnimation
+                classNames={{
+                  base: 'text-xs gap-0.5 sm:text-sm sm:gap-1 md:text-sm md:gap-1',
+                  item: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
+                  cursor:
+                    'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-primary-500',
+                  next: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
+                  prev: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
+                  ellipsis: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
+                  wrapper: 'flex justify-center max-w-full overflow-x-auto px-0',
+                }}
+                siblings={1}
+                boundaries={1}
+                showControls={true}
+                isCompact={isMobile}
+                showShadow={!isXsScreen}
+                dotsJump={1}
+                color="primary"
+                page={currentPage}
+                total={totalPages}
+                onChange={onPageChange}
+                size={isMobile ? 'sm' : 'md'}
+                aria-label="Table pagination"
+              />
+            </div>
+
+            {/* Item count - right aligned */}
+            <div className="w-1/4 text-right text-xs sm:text-sm hidden sm:block">
+              <span className="text-gray-600">
+                {startItem}-{endItem} of {_allFilteredData.length}
+              </span>
+            </div>
           </div>
         </div>
       );
-    }, [currentPage, totalPages, onPageChange, windowWidth, _allFilteredData]);
+    }, [
+      currentPage,
+      totalPages,
+      onPageChange,
+      windowWidth,
+      _allFilteredData,
+      pageSize,
+      onPageSizeChange,
+      effectiveIsLoading,
+    ]);
+
+    // Use the actual data if available, or the previous data if we're in the middle of a reload
+    const displayData =
+      effectiveIsLoading && prevDataRef.current.length > 0 ? prevDataRef.current : data;
 
     return (
       <ScaleIn>
@@ -147,25 +279,20 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               setSelectedKeys={setSelectedKeys}
             />
           </FadeIn>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Spinner size="lg" />
-            </div>
-          ) : (
-            <>
-              <Suspense fallback={<TableSkeleton />}>
-                <VirtualizedTable
-                  data={data}
-                  visibleColumns={transformedColumns}
-                  selectedKeys={selectedKeys}
-                  onSelectionChange={handleSelectionChange}
-                  height={600}
-                  width={windowWidth - 96} // Adjust for padding and margins
-                />
-              </Suspense>
-              {bottomContent}
-            </>
-          )}
+          <Suspense fallback={<TableSkeleton />}>
+            <VirtualizedTable
+              data={displayData}
+              visibleColumns={transformedColumns}
+              selectedKeys={selectedKeys}
+              onSelectionChange={handleSelectionChange}
+              height={600}
+              width={windowWidth - 96} // Adjust for padding and margins
+              sortDescriptor={sortDescriptor}
+              onSortChange={handleSortChange}
+              isLoading={effectiveIsLoading && prevDataRef.current.length === 0} // Only show loading if we have no previous data
+            />
+          </Suspense>
+          {!effectiveIsLoading && bottomContent}
         </Card>
       </ScaleIn>
     );
