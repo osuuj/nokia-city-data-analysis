@@ -5,7 +5,7 @@ import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface SortDropdownProps {
   sortDescriptor: SortDescriptor;
@@ -47,6 +47,16 @@ export function SortDropdown({
     if (e.key === 'Escape') {
       setIsOpen(false);
     }
+  }, []);
+
+  // Close dropdown when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Memoize the sort icon to prevent unnecessary re-renders
@@ -98,14 +108,6 @@ export function SortDropdown({
         {visibleColumns.flatMap((column) => [
           <DropdownItem
             key={`${column.key}-ascending`}
-            startContent={
-              <AccessibleIconify
-                icon="lucide:arrow-up"
-                className="text-default-500"
-                width={16}
-                ariaLabel={`Sort ${column.label} ascending icon`}
-              />
-            }
             className="text-xs py-1"
             aria-label={`Sort ${column.label} ascending`}
           >
@@ -113,14 +115,6 @@ export function SortDropdown({
           </DropdownItem>,
           <DropdownItem
             key={`${column.key}-descending`}
-            startContent={
-              <AccessibleIconify
-                icon="lucide:arrow-down"
-                className="text-default-500"
-                width={16}
-                ariaLabel={`Sort ${column.label} descending icon`}
-              />
-            }
             className="text-xs py-1"
             aria-label={`Sort ${column.label} descending`}
           >

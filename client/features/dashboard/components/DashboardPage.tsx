@@ -182,6 +182,7 @@ export function DashboardPage() {
   // Handle company search term changes
   const onCompanySearchChange = (value: string) => {
     setCompanySearchTerm(value);
+    setSearchTerm(value); // Also update searchTerm to keep both in sync
     setCurrentPage(1); // Reset to first page on search
   };
 

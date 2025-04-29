@@ -6,7 +6,7 @@ import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { columns } from '@shared/config/columns';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * ColumnVisibilityDropdown
@@ -25,6 +25,16 @@ export function ColumnVisibilityDropdown() {
     if (e.key === 'Escape') {
       setIsOpen(false);
     }
+  }, []);
+
+  // Close dropdown when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      setIsOpen(false);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return (
