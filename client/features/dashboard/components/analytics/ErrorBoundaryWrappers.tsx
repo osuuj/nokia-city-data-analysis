@@ -1,5 +1,5 @@
-import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
-import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { ErrorBoundary } from '@/shared/components/error';
+import { ErrorMessage } from '@/shared/components/error';
 import type { ErrorWithApi } from '../../hooks/analytics/types';
 import {
   CityComparisonCard,

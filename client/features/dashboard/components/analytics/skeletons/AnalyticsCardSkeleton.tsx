@@ -1,6 +1,6 @@
 'use client';
 
-import { SkeletonLoader } from '@/shared/components/SkeletonLoader';
+import { SkeletonLoader } from '@/shared/components/loading';
 import { cn } from '@/shared/utils/cn';
 import type React from 'react';
 

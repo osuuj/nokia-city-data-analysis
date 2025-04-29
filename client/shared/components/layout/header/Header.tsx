@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingOverlay } from '@/shared/components/ui/loading';
+import { LoadingOverlay } from '@/shared/components/loading';
 import {
   Button,
   Link,
@@ -12,16 +12,16 @@ import {
   NavbarMenuItem,
   NavbarMenuToggle,
 } from '@heroui/react';
+import { useQuery } from '@tanstack/react-query';
 import { clsx } from 'clsx';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import useSWR from 'swr';
 
 import { DataLoader } from '@/shared/components/data';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
-import Breadcrumbs from '@/shared/layout/components/header/Breadcrumbs';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
+import Breadcrumbs from './Breadcrumbs';
 
 const navbarItems = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -32,7 +32,6 @@ const navbarItems = [
 ];
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 /**
  * Header
@@ -51,24 +50,23 @@ export const Header = () => {
   const isLandingPage = currentPathname === '/';
 
   // Prefetch cities data
-  const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // Cache for 5 minutes
-    suspense: false,
+  const { data: cities } = useQuery({
+    queryKey: ['cities'],
+    queryFn: () => fetch(`${BASE_URL}/api/v1/cities`).then((res) => res.json()),
+    staleTime: 300000, // 5 minutes (same as the SWR dedupingInterval)
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Prefetch initial company data (using a default city)
-  const { data: companies } = useSWR(
-    `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-      suspense: false,
-    },
-  );
+  const { data: companies } = useQuery({
+    queryKey: ['companies', 'geojson', 'Helsinki'],
+    queryFn: () =>
+      fetch(`${BASE_URL}/api/v1/companies.geojson?city=Helsinki`).then((res) => res.json()),
+    staleTime: 60000, // 1 minute (same as the SWR dedupingInterval)
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   // Check if data is ready
   const isDataReady = cities && companies;
@@ -126,10 +124,16 @@ export const Header = () => {
 
   // Reset navigation states when pathname changes
   useEffect(() => {
-    // If we're navigating to dashboard and the pathname changes, reset the states
-    if (isNavigatingToDashboard && currentPathname === '/dashboard') {
+    // Handle both dashboard navigation and landing page navigation
+    if ((isNavigatingToDashboard && currentPathname === '/dashboard') || currentPathname === '/') {
+      // Hide loading overlay immediately when reaching dashboard or landing page
       setShowLoadingOverlay(false);
       setIsNavigatingToDashboard(false);
+    }
+
+    // This ensures the loading overlay is never shown when navigating to the landing page
+    if (currentPathname === '/') {
+      setShowLoadingOverlay(false);
     }
   }, [currentPathname, isNavigatingToDashboard]);
 
@@ -177,7 +181,7 @@ export const Header = () => {
         />
         <NavbarBrand className="flex-grow sm:flex-grow-0">
           <Link href="/" color="foreground" className="flex items-center gap-2">
-            <OsuujLogo size="medium" />
+            <OsuujLogo />
           </Link>
         </NavbarBrand>
 

@@ -115,6 +115,11 @@ interface LoadingProviderProps {
   defaultState?: Partial<LoadingState>;
 }
 
+// Add a function to detect if we're handling navigation to or from the landing page
+const isLandingNavigation = (pathname: string): boolean => {
+  return pathname === '/' || pathname === '/dashboard';
+};
+
 /**
  * LoadingProvider component
  * Provides responsive loading state management to the application
@@ -131,6 +136,9 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
     ...defaultLoadingState,
     ...defaultState,
   });
+
+  // Get the current pathname for navigation checks
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
   // Use a ref to track if the component is mounted
   const isMounted = useRef(true);
@@ -154,6 +162,11 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
   const startLoading = useCallback(
     (options?: { message?: string; type?: LoadingType; priority?: LoadingPriority }) => {
       if (!isMounted.current) return '';
+
+      // Don't show loading for navigation between landing page and dashboard
+      if (isLandingNavigation(pathname)) {
+        return '';
+      }
 
       setLoadingState((prev) => ({
         ...prev,
@@ -180,7 +193,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
 
       return `loading_${Math.random().toString(36).substring(2)}`;
     },
-    [],
+    [pathname],
   );
 
   /**

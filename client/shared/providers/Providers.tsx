@@ -42,11 +42,21 @@ const queryClient = new QueryClient({
 function NavigationEvents() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
-    // This effect runs on route changes
-    // The grey bar issue is fixed by properly handling route transitions
-    // without needing to show any loading indicators on main navigation
+    // Track navigation state to prevent showing loading indicators
+    const handleRouteChangeStart = () => {
+      setIsNavigating(true);
+    };
+
+    const handleRouteChangeComplete = () => {
+      setIsNavigating(false);
+    };
+
+    // Reset isNavigating when pathname or searchParams change
+    // This prevents loading indicators from showing during regular navigation
+    setIsNavigating(false);
   }, []);
 
   return null;

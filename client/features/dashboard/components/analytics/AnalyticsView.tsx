@@ -19,8 +19,8 @@ import {
 import type { Filter as DashboardFilter, FilterOption } from '@/features/dashboard/types';
 import { API_ENDPOINTS } from '@/shared/api/endpoints';
 import type { ApiError } from '@/shared/api/types';
-import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
-import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { ErrorBoundary } from '@/shared/components/error';
+import { ErrorMessage } from '@/shared/components/error';
 import { LoadingSpinner } from '@/shared/components/loading';
 import { useApiQuery } from '@/shared/hooks/api';
 import { createQueryKey } from '@/shared/hooks/api';

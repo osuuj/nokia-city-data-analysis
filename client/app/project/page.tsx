@@ -4,7 +4,7 @@ import { ProjectGridSkeleton } from '@/features/project/components';
 import { ProjectErrorBoundary } from '@/features/project/components';
 import { AnimatedProjectHero } from '@/features/project/components/hero';
 import { useProjects } from '@/features/project/hooks/useProjects';
-import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { ErrorMessage } from '@/shared/components/error';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';

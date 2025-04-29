@@ -1,1 +1,1 @@
-export { LoadingOverlay } from './LoadingOverlay';
+export { LoadingOverlay } from '@/shared/components/loading';

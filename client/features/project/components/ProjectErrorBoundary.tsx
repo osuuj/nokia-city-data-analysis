@@ -1,6 +1,6 @@
 'use client';
 
-import { ErrorMessage } from '@/shared/components/ErrorMessage';
+import { ErrorMessage } from '@/shared/components/error';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {

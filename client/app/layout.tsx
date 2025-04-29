@@ -1,7 +1,7 @@
-import { ErrorFallback } from '@/shared/components/ErrorFallback';
+import { ErrorFallback } from '@/shared/components/error';
 import { ErrorBoundary } from '@/shared/components/error';
+import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
-import { ConditionalLayout } from '@shared/layout/components/conditional/ConditionalLayout';
 import { Providers } from '@shared/providers';
 import '@/shared/styles/base/globals.css';
 import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
