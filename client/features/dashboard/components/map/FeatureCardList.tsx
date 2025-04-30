@@ -24,6 +24,7 @@ export interface FeatureCardListProps {
   selectedColor?: string;
   theme: string;
   flyTo?: (coords: [number, number], businessId?: string, addressType?: string) => void;
+  toggleAddressType?: (businessId: string) => void;
 }
 
 export function FeatureCardList({
@@ -32,6 +33,7 @@ export function FeatureCardList({
   onSelect,
   theme = 'light',
   flyTo,
+  toggleAddressType,
   selectedColor = '#9C27B0', // Default color
 }: FeatureCardListProps) {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
@@ -302,29 +304,104 @@ export function FeatureCardList({
                       );
                     }
 
-                    // If coordinates are the same or only one address is available
-                    if (!coordsDiffer && visiting) {
-                      return renderAddress('Visiting / Postal Address:', visiting);
-                    }
-
-                    // Otherwise, show both addresses separately
-                    return (
-                      <>
-                        {visiting &&
-                          renderAddress(
-                            'Visiting Address',
-                            visiting,
-                            [visiting.longitude, visiting.latitude],
-                            coordsDiffer,
-                          )}
-                        {postal &&
-                          renderAddress(
-                            'Postal Address',
+                    // If coordinates are the same and both addresses exist
+                    if (!coordsDiffer && visiting && postal) {
+                      return (
+                        <div className="space-y-2">
+                          {/* Show that the addresses are at the same location */}
+                          <div className="bg-default-50 p-2 rounded-md border border-default-200">
+                            <div className="flex items-center justify-center text-xs text-default-600">
+                              <Icon icon="lucide:info" className="mr-1" width={14} />
+                              <span>Visiting & postal addresses are at the same location</span>
+                            </div>
+                          </div>
+                          {renderAddress(
+                            'Combined Address:',
                             postal,
                             [postal.longitude, postal.latitude],
-                            coordsDiffer,
+                            true,
                           )}
-                      </>
+                        </div>
+                      );
+                    }
+
+                    // If coordinates are the same but only one address type exists
+                    if (!coordsDiffer) {
+                      if (visiting) {
+                        return renderAddress(
+                          'Visiting Address:',
+                          visiting,
+                          [visiting.longitude, visiting.latitude],
+                          true,
+                        );
+                      }
+                      if (postal) {
+                        return renderAddress(
+                          'Postal Address:',
+                          postal,
+                          [postal.longitude, postal.latitude],
+                          true,
+                        );
+                      }
+                    }
+
+                    // Show both addresses separately with a divider when they differ
+                    const currentAddressType = selectedFeature.properties.addressType;
+                    return (
+                      <div className="space-y-2">
+                        {/* Notification about different addresses */}
+                        <div className="bg-primary-50 p-2 rounded-md border border-primary-200">
+                          <div className="flex items-center justify-center text-xs text-primary-700">
+                            <Icon icon="lucide:map-pin" className="mr-1" width={14} />
+                            <span>Company has different visiting & postal addresses</span>
+                          </div>
+
+                          {/* Toggle button to switch between address types */}
+                          {toggleAddressType && (
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              className="w-full mt-2 py-1 text-xs bg-primary-100 text-primary-800"
+                              startContent={<Icon icon="lucide:refresh-cw" width={12} />}
+                              onPress={() =>
+                                toggleAddressType(selectedFeature.properties.business_id)
+                              }
+                            >
+                              Switch to{' '}
+                              {currentAddressType === 'Visiting address' ? 'Postal' : 'Visiting'}{' '}
+                              Address
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Visiting address */}
+                        {visiting && (
+                          <div
+                            className={`${currentAddressType === 'Visiting address' ? 'ring-2 ring-primary-300' : ''}`}
+                          >
+                            {renderAddress(
+                              'Visiting Address',
+                              visiting,
+                              [visiting.longitude, visiting.latitude],
+                              true,
+                            )}
+                          </div>
+                        )}
+
+                        {/* Postal address */}
+                        {postal && (
+                          <div
+                            className={`${currentAddressType === 'Postal address' ? 'ring-2 ring-primary-300' : ''}`}
+                          >
+                            {renderAddress(
+                              'Postal Address',
+                              postal,
+                              [postal.longitude, postal.latitude],
+                              true,
+                            )}
+                          </div>
+                        )}
+                      </div>
                     );
                   })()}
 

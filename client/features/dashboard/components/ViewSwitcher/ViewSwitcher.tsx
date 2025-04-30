@@ -6,6 +6,8 @@ import { useGeoJSONData } from '../../hooks/data';
 import { useCompanyStore } from '../../store/useCompanyStore';
 import type { CompanyProperties, SortDescriptor, TableColumnConfig, ViewMode } from '../../types';
 import { transformCompanyGeoJSON } from '../../utils/geo';
+import { AnalyticsSkeleton, DashboardSkeleton, SectionSkeleton } from '../loading/Skeletons';
+import { ErrorDisplay } from '../shared/error/ErrorDisplay';
 
 // Define the emptyStateReason type to handle both string and object formats
 type EmptyStateReason =
@@ -36,22 +38,8 @@ export interface ViewSwitcherProps {
   onPageSizeChange?: (pageSize: number) => void;
   emptyStateReason?: EmptyStateReason;
   geojson?: FeatureCollection<Point, CompanyProperties>; // Optional prop for passing GeoJSON directly
+  error?: Error | null; // Added error prop for direct error handling
 }
-
-// Import skeleton components for loading states
-const TableSkeleton = () => (
-  <div className="w-full h-[70vh] animate-pulse bg-default-100 rounded-lg" />
-);
-
-const MapSkeleton = () => (
-  <div className="w-full h-full flex items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
-  </div>
-);
-
-const AnalyticsCardSkeleton = ({ type }: { type: string }) => (
-  <div className="w-full h-[50vh] animate-pulse bg-default-100 rounded-lg" />
-);
 
 // Lazy load components for code splitting
 const AnalyticsView = lazy(() =>
@@ -76,6 +64,7 @@ const TableView = lazy(() =>
  * ViewSwitcher
  * Controls display of TableView, MapView, or both in split layout.
  * Uses React.lazy for code splitting to improve initial load performance.
+ * Now handles error states and loading directly.
  */
 export function ViewSwitcher({
   data,
@@ -96,6 +85,7 @@ export function ViewSwitcher({
   pageSize,
   onPageSizeChange,
   emptyStateReason,
+  error,
 }: ViewSwitcherProps) {
   // Get the selected city from the store
   const selectedCity = useCompanyStore((state) => state.selectedCity);
@@ -138,14 +128,25 @@ export function ViewSwitcher({
     emptyStateReason: formattedEmptyStateReason,
   };
 
-  // Log the state to help debug any issues
-  console.log('ViewSwitcher state:', {
-    viewMode,
-    hasGeoData: transformedGeoJSON?.features?.length > 0,
-    isLoadingExternal: externalLoading,
-    isLoadingGeoJson: isGeoJsonLoading,
-    selectedCity,
-  });
+  // Handle error state - moved up from parent components
+  if (error) {
+    return (
+      <ErrorDisplay
+        error={error}
+        message="Failed to load dashboard data"
+        showDetails={process.env.NODE_ENV === 'development'}
+      />
+    );
+  }
+
+  // Show skeleton during initial loading - moved up from parent components
+  if (
+    isLoading &&
+    (!data || data.length === 0) &&
+    (!emptyStateReason || (typeof emptyStateReason === 'object' && !emptyStateReason.noResults))
+  ) {
+    return <DashboardSkeleton />;
+  }
 
   // Determine if we should show any view - at least one condition must be true:
   // 1. We have data to show
@@ -158,14 +159,14 @@ export function ViewSwitcher({
   return (
     <div className="w-full">
       {viewMode === 'table' && shouldShowView && (
-        <Suspense fallback={<TableSkeleton />}>
+        <Suspense fallback={<SectionSkeleton section="table" />}>
           <TableView {...tableProps} />
         </Suspense>
       )}
 
       {viewMode === 'map' && shouldShowView && (
         <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
-          <Suspense fallback={<MapSkeleton />}>
+          <Suspense fallback={<SectionSkeleton section="map" />}>
             <MapView geojson={transformedGeoJSON} selectedBusinesses={selectedBusinesses} />
           </Suspense>
         </div>
@@ -174,13 +175,13 @@ export function ViewSwitcher({
       {viewMode === 'split' && shouldShowView && (
         <div className="flex flex-col lg:flex-row lg:gap-4">
           <div className="w-full lg:w-1/2 mb-4 lg:mb-0">
-            <Suspense fallback={<TableSkeleton />}>
+            <Suspense fallback={<SectionSkeleton section="table" />}>
               <TableView {...tableProps} />
             </Suspense>
           </div>
           <div className="w-full lg:w-1/2 h-[50vh] sm:h-[55vh] lg:h-auto lg:min-h-[70vh] border border-default-200 rounded-lg">
             <div className="h-full w-full">
-              <Suspense fallback={<MapSkeleton />}>
+              <Suspense fallback={<SectionSkeleton section="map" />}>
                 <MapView geojson={transformedGeoJSON} selectedBusinesses={selectedBusinesses} />
               </Suspense>
             </div>
@@ -190,7 +191,7 @@ export function ViewSwitcher({
 
       {viewMode === 'analytics' && shouldShowView && (
         <div className="w-full">
-          <Suspense fallback={<AnalyticsCardSkeleton type="distribution" />}>
+          <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
             <AnalyticsView />
           </Suspense>
         </div>

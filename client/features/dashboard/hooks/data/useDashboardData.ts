@@ -41,7 +41,7 @@ export function useDashboardData({
   query: string;
 }) {
   // Access the store to update the selected city
-  const { setSelectedCity } = useCompanyStore();
+  const { setSelectedCity, setFilteredBusinessIds } = useCompanyStore();
 
   // State to store cities from direct fetch
   const [citiesState, setCitiesState] = useState<{
@@ -399,8 +399,22 @@ export function useDashboardData({
       }
     }
 
+    // Return the filtered rows
     return rows;
   }, [geojsonState.data, query, selectedIndustries, userLocation, distanceLimit]);
+
+  // After applying all filters, update the filteredBusinessIds in the store
+  // This ensures we can maintain consistent selection state across pagination
+  useEffect(() => {
+    if (Array.isArray(tableRows)) {
+      // Extract all the business IDs from filtered data
+      const businessIds = tableRows.map((row) => row.business_id);
+
+      // Update the store with the complete list of filtered business IDs
+      // This allows the table to know which rows should be selectable across all pages
+      setFilteredBusinessIds(businessIds);
+    }
+  }, [tableRows, setFilteredBusinessIds]);
 
   // Get visible columns for the table
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);

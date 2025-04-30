@@ -1,7 +1,7 @@
 'use client';
 
 import { filters } from '@/features/dashboard/data/filters';
-import type { FilterOption, SortDescriptor } from '@/features/dashboard/types';
+import type { CompanyProperties, FilterOption, SortDescriptor } from '@/features/dashboard/types';
 import { useCompanyStore } from '@features/dashboard/store';
 import { Button } from '@heroui/button';
 import { Divider } from '@heroui/divider';
@@ -32,6 +32,7 @@ export interface ToolbarProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: (value: SortDescriptor) => void;
   setSelectedKeys: (value: Set<string>) => void;
+  allFilteredData?: CompanyProperties[]; // Optional array of all filtered data for selection across pagination
 }
 
 export function TableToolbar({
@@ -45,6 +46,7 @@ export function TableToolbar({
   sortDescriptor,
   setSortDescriptor,
   setSelectedKeys,
+  allFilteredData = [],
 }: ToolbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(

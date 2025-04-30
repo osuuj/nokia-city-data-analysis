@@ -17,7 +17,7 @@ import { useTheme } from 'next-themes';
 import type React from 'react';
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { CitySelection, IndustrySelection } from '../components/analytics-selection';
-import { AnalyticsCardSkeleton } from '../components/analytics-skeletons';
+import { AnalyticsSkeleton } from '../components/analytics-skeletons';
 import type { TransformedDistribution } from '../components/analytics-utils/types';
 import {
   getIndustryKeyFromName,
@@ -294,7 +294,7 @@ const AnalyticsViewComponent: React.FC = () => {
             setError(error);
           }}
         >
-          <Suspense fallback={<AnalyticsCardSkeleton type="trends" />}>
+          <Suspense fallback={<AnalyticsSkeleton type="trends" />}>
             <TopCitiesCard
               data={topCitiesData?.data || []}
               isLoading={isTopCitiesLoading}
@@ -311,7 +311,7 @@ const AnalyticsViewComponent: React.FC = () => {
             setError(error);
           }}
         >
-          <Suspense fallback={<AnalyticsCardSkeleton type="distribution" />}>
+          <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
             <IndustryDistributionCard
               data={chartData}
               currentTheme={currentTheme as 'light' | 'dark' | undefined}
@@ -336,7 +336,7 @@ const AnalyticsViewComponent: React.FC = () => {
             setError(error);
           }}
         >
-          <Suspense fallback={<AnalyticsCardSkeleton type="comparison" />}>
+          <Suspense fallback={<AnalyticsSkeleton type="comparison" />}>
             <IndustriesByCityCard
               data={transformedIndustriesByCity}
               currentTheme={currentTheme as 'light' | 'dark' | undefined}
@@ -358,7 +358,7 @@ const AnalyticsViewComponent: React.FC = () => {
             setError(error);
           }}
         >
-          <Suspense fallback={<AnalyticsCardSkeleton type="comparison" />}>
+          <Suspense fallback={<AnalyticsSkeleton type="comparison" />}>
             <CityComparisonCard
               data={transformedCityComparison}
               currentTheme={currentTheme as 'light' | 'dark' | undefined}

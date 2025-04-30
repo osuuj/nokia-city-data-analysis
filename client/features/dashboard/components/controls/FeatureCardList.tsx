@@ -17,12 +17,12 @@ interface FeatureCardListProps {
   activeFeature: Feature<Point, CompanyProperties> | null;
   /** Callback when a feature is selected */
   onSelect: (feature: Feature<Point, CompanyProperties>) => void;
-  /** Color to use for selected items */
+  /** Color to use for selected items (as string) */
   selectedColor: string;
   /** Theme to use for styling */
   theme?: string;
   /** Optional callback to fly to coordinates */
-  flyTo?: (coords: [number, number], addressType?: string) => void;
+  flyTo?: (coords: [number, number], businessId?: string, addressType?: string) => void;
 }
 
 /**

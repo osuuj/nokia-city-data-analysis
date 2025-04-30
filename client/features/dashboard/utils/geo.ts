@@ -101,32 +101,19 @@ export function transformCompanyGeoJSON(
     }
 
     // Check if addresses have different coordinates
+    const visitingHasCoords = visiting?.latitude && visiting?.longitude;
+    const postalHasCoords = postal?.latitude && postal?.longitude;
+
+    // Check if they're actually different coordinates
     const hasDifferentCoords =
-      visiting &&
-      postal &&
-      (visiting.latitude !== postal.latitude || visiting.longitude !== postal.longitude) &&
-      visiting.latitude &&
-      visiting.longitude &&
-      postal.latitude &&
-      postal.longitude;
+      visitingHasCoords &&
+      postalHasCoords &&
+      (visiting.latitude !== postal.latitude || visiting.longitude !== postal.longitude);
 
     if (hasDifferentCoords) {
-      // Create separate features for visiting and postal addresses
-      if (visiting?.latitude && visiting.longitude) {
-        transformedFeatures.push({
-          ...feature,
-          geometry: {
-            type: 'Point',
-            coordinates: [visiting.longitude, visiting.latitude],
-          },
-          properties: {
-            ...feature.properties,
-            addressType: 'Visiting address',
-          },
-        });
-      }
-
-      if (postal?.latitude && postal.longitude) {
+      // Create separate features for postal and visiting addresses
+      if (postalHasCoords) {
+        // Add postal address first (preferred)
         transformedFeatures.push({
           ...feature,
           geometry: {
@@ -139,9 +126,9 @@ export function transformCompanyGeoJSON(
           },
         });
       }
-    } else {
-      // Use the visiting address or fall back to postal address
-      if (visiting?.latitude && visiting.longitude) {
+
+      if (visitingHasCoords) {
+        // Then add visiting address
         transformedFeatures.push({
           ...feature,
           geometry: {
@@ -150,9 +137,14 @@ export function transformCompanyGeoJSON(
           },
           properties: {
             ...feature.properties,
+            addressType: 'Visiting address',
           },
         });
-      } else if (postal?.latitude && postal.longitude) {
+      }
+    } else {
+      // Addresses are the same or only one is available
+      // Prefer postal address if available
+      if (postalHasCoords) {
         transformedFeatures.push({
           ...feature,
           geometry: {
@@ -161,6 +153,19 @@ export function transformCompanyGeoJSON(
           },
           properties: {
             ...feature.properties,
+            addressType: 'Postal address',
+          },
+        });
+      } else if (visitingHasCoords) {
+        transformedFeatures.push({
+          ...feature,
+          geometry: {
+            type: 'Point',
+            coordinates: [visiting.longitude, visiting.latitude],
+          },
+          properties: {
+            ...feature.properties,
+            addressType: 'Visiting address',
           },
         });
       }

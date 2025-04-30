@@ -3,7 +3,7 @@
 import { cn } from '@/shared/utils/cn';
 import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
 import React from 'react';
-import { AnalyticsCardSkeleton } from '../analytics-skeletons';
+import { AnalyticsSkeleton } from '../analytics-skeletons';
 
 export interface BaseCardProps {
   /** Title of the card */
@@ -99,7 +99,7 @@ export const BaseCard = React.memo<BaseCardProps>(
           return loadingComponent;
         }
         if (analyticsType) {
-          return <AnalyticsCardSkeleton type={analyticsType} />;
+          return <AnalyticsSkeleton type={analyticsType} />;
         }
         return (
           <div className="animate-pulse space-y-4 w-full">

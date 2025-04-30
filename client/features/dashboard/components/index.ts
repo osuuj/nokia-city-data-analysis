@@ -14,8 +14,8 @@ export * from './analytics-charts';
 export * from './shared';
 
 // Export individual components
-export { DashboardContent } from './DashboardContent';
 export { DashboardSidebar } from './DashboardSidebar';
 export { DashboardFooter } from './DashboardFooter';
 export { DashboardError } from './DashboardError';
 export { PrimaryDashboardHeader } from './PrimaryDashboardHeader';
+export { DashboardPage } from './DashboardPage';

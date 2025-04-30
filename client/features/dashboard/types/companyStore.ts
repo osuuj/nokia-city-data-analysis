@@ -1,4 +1,4 @@
-import type { CompanyProperties, Coordinates } from './business';
+import type { AddressType, CompanyProperties, Coordinates } from './business';
 import type { CompanyTableKey, TableColumnConfig } from './table';
 
 /**
@@ -12,6 +12,8 @@ import type { CompanyTableKey, TableColumnConfig } from './table';
  * @property selectedIndustries {string[]} - Currently selected industry codes (e.g., ['A', 'B']).
  * @property userLocation {Coordinates | null} - User's current location if location sharing is allowed.
  * @property distanceLimit {number | null} - Max distance (in km) to show businesses from user location.
+ * @property preferredAddressType {AddressType} - Preferred address type for display (postal or visiting).
+ * @property filteredBusinessIds {string[]} - Array of all filtered business IDs for cross-pagination selection.
  */
 export interface CompanyState {
   selectedCity: string;
@@ -21,6 +23,8 @@ export interface CompanyState {
   selectedIndustries: string[];
   userLocation: Coordinates | null;
   distanceLimit: number | null;
+  preferredAddressType: AddressType;
+  filteredBusinessIds: string[];
 }
 
 /**
@@ -41,6 +45,8 @@ export interface CompanyState {
  *
  * @method setUserLocation - Updates user location.
  * @method setDistanceLimit - Sets max filter distance in km.
+ * @method setPreferredAddressType - Sets the preferred address type.
+ * @method setFilteredBusinessIds - Updates the list of all filtered business IDs.
  */
 export interface CompanyActions {
   setSelectedCity: (city: string) => void;
@@ -58,6 +64,9 @@ export interface CompanyActions {
 
   setUserLocation: (coords: Coordinates | null) => void;
   setDistanceLimit: (value: number | null) => void;
+
+  setPreferredAddressType: (type: AddressType) => void;
+  setFilteredBusinessIds: (ids: string[]) => void;
 }
 
 /**

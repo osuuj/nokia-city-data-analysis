@@ -1,7 +1,8 @@
 'use client';
 
+import { ViewSwitcher } from '@/features/dashboard/components/ViewSwitcher';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
-import { DashboardSkeleton } from '@/features/dashboard/components/loading/DashboardSkeleton';
+import { DashboardSkeleton } from '@/features/dashboard/components/loading/Skeletons';
 import { DashboardErrorBoundary } from '@/features/dashboard/components/shared/DashboardErrorBoundary';
 import { ErrorDisplay } from '@/features/dashboard/components/shared/error/ErrorDisplay';
 import { useDashboardData } from '@/features/dashboard/hooks/data/useDashboardData';
@@ -10,14 +11,7 @@ import { useCompanyStore } from '@/features/dashboard/store';
 import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { usePagination } from '@/shared/hooks';
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-// Lazy load DashboardContent for code splitting
-const LazyDashboardContent = lazy(() =>
-  import('@/features/dashboard/components/DashboardContent').then((module) => ({
-    default: module.DashboardContent,
-  })),
-);
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const ROWS_PER_PAGE = 10;
 
@@ -369,7 +363,7 @@ export function DashboardPage() {
         <Suspense fallback={<DashboardSkeleton />}>
           {/* Always render content if a city is selected or we have data */}
           {(tableRows?.length > 0 || isDataLoading || cityLoading || selectedCity) && (
-            <LazyDashboardContent
+            <ViewSwitcher
               data={paginated}
               allFilteredData={tableRows || []}
               selectedBusinesses={selectedBusinesses}

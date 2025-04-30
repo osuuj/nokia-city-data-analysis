@@ -51,7 +51,7 @@ const arePropsEqual = (
 export const TableView: React.FC<TableViewComponentProps> = React.memo(
   ({
     data,
-    allFilteredData: _allFilteredData,
+    allFilteredData,
     columns,
     currentPage,
     totalPages,
@@ -65,12 +65,22 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     onPageSizeChange,
     emptyStateReason,
   }) => {
-    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+    // Get selections and filteredBusinessIds from store to maintain state across pagination
+    // Use separate selectors to avoid infinite re-renders
+    const storeSelectedKeys = useCompanyStore((state) => state.selectedKeys);
+    const filteredBusinessIds = useCompanyStore((state) => state.filteredBusinessIds);
+
+    // Local state for tracking selected keys - initialized from the store
+    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
+      new Set(Array.from(storeSelectedKeys).filter((id) => filteredBusinessIds.includes(id))),
+    );
+
     const [useLocation, setUseLocation] = useState(false);
     const [address, setAddress] = useState('');
     const [windowWidth, setWindowWidth] = useState(
       typeof window !== 'undefined' ? window.innerWidth : 1024,
     );
+
     // Track previous data to prevent unnecessary loading states
     const prevDataRef = useRef<CompanyProperties[]>([]);
     const prevPageSizeRef = useRef<number>(pageSize);
@@ -81,6 +91,24 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
 
     // Get visible columns from company store - must be at top level, not inside hooks
     const storeVisibleColumns = useCompanyStore((state) => state.visibleColumns);
+
+    // Sync local selectedKeys with store selection when filteredBusinessIds change
+    useEffect(() => {
+      // Only update if the sets are actually different to prevent render loops
+      const filteredStoreKeys = Array.from(storeSelectedKeys).filter((id) =>
+        filteredBusinessIds.includes(id),
+      );
+
+      // Check if current selectedKeys matches filtered store keys
+      const currentKeys = Array.from(selectedKeys);
+      const needsUpdate =
+        filteredStoreKeys.length !== currentKeys.length ||
+        filteredStoreKeys.some((id) => !selectedKeys.has(id));
+
+      if (needsUpdate) {
+        setSelectedKeys(new Set(filteredStoreKeys));
+      }
+    }, [filteredBusinessIds, storeSelectedKeys, selectedKeys]); // Add selectedKeys to dependencies
 
     // Check if we're switching page size and cache the current page of data
     useEffect(() => {
@@ -133,9 +161,29 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       [setSearchTerm],
     );
 
-    const handleSelectionChange = useCallback((keys: Set<string>) => {
-      setSelectedKeys(keys);
-    }, []);
+    // Update the store with the new selection and maintain local state
+    const handleSelectionChange = useCallback(
+      (keys: Set<string>) => {
+        // Only update if the keys are different from current selection to prevent loops
+        const currentKeysArray = Array.from(selectedKeys);
+        const newKeysArray = Array.from(keys);
+
+        // Check if there's an actual change in the selection
+        const hasSelectionChanged =
+          currentKeysArray.length !== newKeysArray.length ||
+          currentKeysArray.some((id) => !keys.has(id));
+
+        if (hasSelectionChanged) {
+          // Update local state first
+          setSelectedKeys(keys);
+
+          // Update the global store with the new selection
+          // setSelectedKeys in the store handles both the keys and rows
+          useCompanyStore.getState().setSelectedKeys(keys, allFilteredData);
+        }
+      },
+      [allFilteredData, selectedKeys],
+    );
 
     useEffect(() => {
       const handleResize = () => {
@@ -208,8 +256,8 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       const isXsScreen = windowWidth < 400;
 
       // Calculate the range of items being displayed
-      const startItem = _allFilteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-      const endItem = Math.min(currentPage * pageSize, _allFilteredData.length);
+      const startItem = allFilteredData.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+      const endItem = Math.min(currentPage * pageSize, allFilteredData.length);
 
       // Page size options
       const pageSizes = ['10', '25', '50', '100'];
@@ -312,7 +360,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
             {/* Item count - right aligned, full width on mobile */}
             <div className="w-full xs:w-1/3 text-center xs:text-right text-xs sm:text-sm">
               <span className="text-gray-600">
-                {startItem}-{endItem} of {_allFilteredData.length}
+                {startItem}-{endItem} of {allFilteredData.length}
               </span>
             </div>
           </div>
@@ -323,7 +371,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       totalPages,
       onPageChange,
       windowWidth,
-      _allFilteredData,
+      allFilteredData,
       pageSize,
       onPageSizeChange,
       effectiveIsLoading,
@@ -365,12 +413,13 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               setAddress={setAddress}
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
-              setSelectedKeys={setSelectedKeys}
+              setSelectedKeys={handleSelectionChange}
+              allFilteredData={allFilteredData}
             />
           </FadeIn>
 
           {/* Only show empty state message if we have an empty state reason and no data */}
-          {!effectiveIsLoading && displayData.length === 0 && _allFilteredData.length === 0 && (
+          {!effectiveIsLoading && displayData.length === 0 && allFilteredData.length === 0 && (
             <div className="flex justify-center items-center p-10 text-gray-500">
               <div className="text-center">
                 <p className="text-lg font-semibold">{emptyStateReason || 'No companies found'}</p>

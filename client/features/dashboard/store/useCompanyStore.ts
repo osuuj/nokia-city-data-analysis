@@ -1,4 +1,4 @@
-import type { CompanyProperties, CompanyStore } from '@/features/dashboard/types';
+import type { AddressType, CompanyProperties, CompanyStore } from '@/features/dashboard/types';
 import type { CompanyTableKey } from '@/features/dashboard/types';
 import { columns } from '@shared/config/columns';
 import { create } from 'zustand';
@@ -15,6 +15,8 @@ import { create } from 'zustand';
  * @state selectedIndustries {string[]} - Industries currently filtered.
  * @state userLocation {Coordinates | null} - User's geolocation for filtering.
  * @state distanceLimit {number | null} - Current maximum distance for location-based filtering.
+ * @state preferredAddressType {AddressType} - Preferred address type for display.
+ * @state filteredBusinessIds {string[]} - All filtered business IDs for pagination.
  *
  * @actions
  * - setSelectedCity(city: string): void
@@ -28,6 +30,8 @@ import { create } from 'zustand';
  * - clearIndustries(): void
  * - setUserLocation(coords: Coordinates | null): void
  * - setDistanceLimit(value: number | null): void
+ * - setPreferredAddressType(type: AddressType): void
+ * - setFilteredBusinessIds(ids: string[]): void
  */
 export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
@@ -46,10 +50,21 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
     set((state) => {
       if (keys === 'all' && allFilteredData) {
         // Select all rows across all pages (using `allFilteredData`)
+        const newKeys = new Set(allFilteredData.map((item) => item.business_id));
+        const newRows = allFilteredData.reduce(
+          (acc, item) => {
+            acc[item.business_id] = item;
+            return acc;
+          },
+          {} as Record<string, CompanyProperties>,
+        );
+
         return {
-          selectedKeys: new Set(allFilteredData.map((item) => item.business_id)),
+          selectedKeys: newKeys,
+          selectedRows: newRows,
         };
       }
+      // Just update the keys, but keep the selected rows
       return { selectedKeys: keys instanceof Set ? keys : new Set() };
     }),
 
@@ -126,4 +141,14 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   distanceLimit: null,
 
   setDistanceLimit: (value: number | null) => set({ distanceLimit: value }),
+
+  /** Preferred address type */
+  preferredAddressType: 'Postal address',
+
+  setPreferredAddressType: (type: AddressType) => set({ preferredAddressType: type }),
+
+  /** Filtered business IDs for pagination */
+  filteredBusinessIds: [],
+
+  setFilteredBusinessIds: (ids: string[]) => set({ filteredBusinessIds: ids }),
 }));

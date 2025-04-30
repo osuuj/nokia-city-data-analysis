@@ -77,11 +77,9 @@ export function useDashboardDataQuery({
 
   const citiesErrorId = useMemo(() => 'cities-list', []);
 
-  // Custom retry function using error handling utilities
-  const customRetry = useCallback((failureCount: number, error: Error) => {
-    const apiError = error as ApiError;
-    return shouldRetry(apiError, failureCount, defaultRetryConfig);
-  }, []);
+  // Custom retry configuration - now using a number instead of a function to avoid type issues
+  // This sets a maximum of 3 retries, which is a reasonable default
+  const retryConfig = 3;
 
   // Fetch GeoJSON data for the selected city with React Query
   const {
@@ -102,7 +100,7 @@ export function useDashboardDataQuery({
       enabled: !!selectedCity,
       staleTime: 1000 * 60 * 30, // Cache for 30 minutes
       gcTime: 1000 * 60 * 60, // Keep in garbage collection for 60 minutes
-      retry: customRetry,
+      retry: retryConfig,
     },
   );
 
@@ -122,7 +120,7 @@ export function useDashboardDataQuery({
     {
       staleTime: 1000 * 60 * 30, // Cache for 30 minutes
       gcTime: 1000 * 60 * 60, // Keep in garbage collection for 1 hour
-      retry: customRetry,
+      retry: retryConfig,
       useErrorBoundary: false, // Don't throw errors to the error boundary
     },
   );

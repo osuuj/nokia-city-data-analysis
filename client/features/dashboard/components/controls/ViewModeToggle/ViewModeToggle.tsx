@@ -162,7 +162,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
       <ButtonGroup variant="flat" size="sm" fullWidth>
         <Button
           className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onClick={() => handleViewModeChange('table')}
+          onPress={() => handleViewModeChange('table')}
           onMouseEnter={prefetchTableData}
         >
           <Icon icon="lucide:list" className="mr-1" />
@@ -170,7 +170,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         </Button>
         <Button
           className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onClick={() => handleViewModeChange('map')}
+          onPress={() => handleViewModeChange('map')}
           onMouseEnter={prefetchMapData}
         >
           <Icon icon="lucide:map" className="mr-1" />
@@ -178,7 +178,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         </Button>
         <Button
           className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onClick={() => handleViewModeChange('split')}
+          onPress={() => handleViewModeChange('split')}
           onMouseEnter={prefetchSplitData}
         >
           <Icon icon="lucide:layout-dashboard" className="mr-1" />
@@ -186,7 +186,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         </Button>
         <Button
           className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onClick={() => handleViewModeChange('analytics')}
+          onPress={() => handleViewModeChange('analytics')}
           onMouseEnter={prefetchAnalyticsData}
         >
           <Icon icon="lucide:bar-chart-2" className="mr-1" />
