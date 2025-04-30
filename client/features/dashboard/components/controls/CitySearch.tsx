@@ -207,7 +207,7 @@ export const CitySearch = React.memo(function CitySearch({
         onKeyDown={handleKeyDown}
         endContent={endContent}
         isLoading={isLoading}
-        startContent={<Icon icon="lucide:search" className="text-default-400" width={16} />}
+        startContent={<Icon icon="lucide:search" className="text-default-400" width={18} />}
         isClearable={false}
       >
         {renderItem}

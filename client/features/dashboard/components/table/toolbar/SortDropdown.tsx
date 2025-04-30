@@ -80,6 +80,7 @@ export function SortDropdown({
             'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200',
             'transition-colors duration-200',
           )}
+          disableRipple={true}
           startContent={
             <AccessibleIconify
               icon={sortIcon}

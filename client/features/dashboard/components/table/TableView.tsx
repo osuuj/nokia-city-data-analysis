@@ -219,10 +219,10 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
 
       return (
         <div className="flex w-full flex-col items-center justify-center gap-1 px-1 py-1 sm:gap-1 sm:px-2 sm:py-2 md:gap-2 md:px-3 md:py-3">
-          <div className="flex w-full items-center px-2">
-            {/* Page size selector - left aligned */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm w-1/4">
-              <span className="text-gray-600 hidden xs:inline">Show:</span>
+          <div className="flex w-full flex-wrap items-center px-2 gap-y-2">
+            {/* Page size selector - left aligned, full width on mobile */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm w-full xs:w-1/3 justify-center xs:justify-start">
+              <span className="text-gray-600 inline">Show:</span>
               <Select
                 size="sm"
                 aria-label="Page size"
@@ -262,10 +262,15 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                     }
                   }
                 }}
+                popoverProps={{
+                  shouldFlip: true,
+                  placement: 'top',
+                }}
                 className="w-20 min-w-unit-16"
                 classNames={{
                   trigger: 'h-8',
                   value: 'text-small',
+                  popoverContent: 'z-50',
                 }}
                 isDisabled={!onPageSizeChange || effectiveIsLoading}
               >
@@ -275,8 +280,8 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               </Select>
             </div>
 
-            {/* Pagination - centered */}
-            <div className="flex-grow flex justify-center">
+            {/* Pagination - centered, full width on mobile */}
+            <div className="flex-grow flex justify-center w-full xs:w-auto order-first xs:order-none">
               <Pagination
                 disableCursorAnimation
                 classNames={{
@@ -287,10 +292,10 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                   next: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
                   prev: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
                   ellipsis: 'w-7 h-7 min-w-6 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10',
-                  wrapper: 'flex justify-center max-w-full overflow-x-auto px-0',
+                  wrapper: 'flex justify-center w-full overflow-x-auto px-0',
                 }}
-                siblings={1}
-                boundaries={1}
+                siblings={isXsScreen ? 0 : 1}
+                boundaries={isXsScreen ? 0 : 1}
                 showControls={true}
                 isCompact={isMobile}
                 showShadow={!isXsScreen}
@@ -304,8 +309,8 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               />
             </div>
 
-            {/* Item count - right aligned */}
-            <div className="w-1/4 text-right text-xs sm:text-sm hidden sm:block">
+            {/* Item count - right aligned, full width on mobile */}
+            <div className="w-full xs:w-1/3 text-center xs:text-right text-xs sm:text-sm">
               <span className="text-gray-600">
                 {startItem}-{endItem} of {_allFilteredData.length}
               </span>
@@ -363,35 +368,66 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               setSelectedKeys={setSelectedKeys}
             />
           </FadeIn>
-          <Suspense fallback={<TableSkeleton />}>
-            <VirtualizedTable
-              data={displayData}
-              visibleColumns={transformedColumns.filter((col) => col.visible)}
-              selectedKeys={selectedKeys}
-              onSelectionChange={handleSelectionChange}
-              height={600}
-              width={windowWidth - 96} // Adjust for padding and margins
-              sortDescriptor={sortDescriptor}
-              onSortChange={handleSortChange}
-              isLoading={effectiveIsLoading && prevDataRef.current.length === 0} // Only show loading if we have no previous data
-            />
-            {!effectiveIsLoading && displayData.length === 0 && _allFilteredData.length === 0 && (
-              <div className="flex justify-center items-center p-10 text-gray-500">
-                <div className="text-center">
-                  <p className="text-lg font-semibold">
-                    {emptyStateReason || 'No companies found'}
-                  </p>
-                  <p className="text-sm mt-2">
-                    {emptyStateReason?.includes('distance')
-                      ? 'Try increasing the distance range or select a different location.'
-                      : emptyStateReason?.includes('industry')
-                        ? 'Try selecting different industries or clear your filters.'
-                        : 'Try adjusting your filters or search criteria.'}
-                  </p>
-                </div>
+
+          {/* Only show empty state message if we have an empty state reason and no data */}
+          {!effectiveIsLoading && displayData.length === 0 && _allFilteredData.length === 0 && (
+            <div className="flex justify-center items-center p-10 text-gray-500">
+              <div className="text-center">
+                <p className="text-lg font-semibold">{emptyStateReason || 'No companies found'}</p>
+                <p className="text-sm mt-2">
+                  {emptyStateReason?.includes('distance') ? (
+                    <>
+                      Try increasing the distance range or select a different location.
+                      <button
+                        type="button"
+                        onClick={() => useCompanyStore.getState().setDistanceLimit(null)}
+                        className="text-primary-500 ml-1 underline hover:text-primary-700"
+                      >
+                        Reset distance filter
+                      </button>
+                    </>
+                  ) : emptyStateReason?.includes('industry') ? (
+                    <>
+                      Try selecting different industries or clear your filters.
+                      <button
+                        type="button"
+                        onClick={() => useCompanyStore.getState().setSelectedIndustries([])}
+                        className="text-primary-500 ml-1 underline hover:text-primary-700"
+                      >
+                        Reset industry filters
+                      </button>
+                    </>
+                  ) : (
+                    'Try adjusting your filters or search criteria.'
+                  )}
+                </p>
               </div>
-            )}
-          </Suspense>
+            </div>
+          )}
+
+          {/* Only render the table if we have data or we're loading and have previous data */}
+          {(displayData.length > 0 || (effectiveIsLoading && prevDataRef.current.length > 0)) && (
+            <Suspense fallback={<TableSkeleton />}>
+              <VirtualizedTable
+                data={displayData}
+                visibleColumns={transformedColumns.filter((col) => col.visible)}
+                selectedKeys={selectedKeys}
+                onSelectionChange={handleSelectionChange}
+                height={600}
+                width={windowWidth - 96} // Adjust for padding and margins
+                sortDescriptor={sortDescriptor}
+                onSortChange={handleSortChange}
+                isLoading={effectiveIsLoading && prevDataRef.current.length === 0} // Only show loading if we have no previous data
+              />
+            </Suspense>
+          )}
+
+          {/* Show skeleton only when first loading with no previous data */}
+          {effectiveIsLoading &&
+            displayData.length === 0 &&
+            prevDataRef.current.length === 0 &&
+            !emptyStateReason && <TableSkeleton />}
+
           {/* Always show pagination, regardless of loading state */}
           {bottomContent}
         </Card>

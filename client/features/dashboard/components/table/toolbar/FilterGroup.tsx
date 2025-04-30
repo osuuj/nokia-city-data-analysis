@@ -58,7 +58,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
 
   // Unified view for both mobile and desktop
   return (
-    <div className="flex items-center gap-1 whitespace-nowrap">
+    <div className="flex items-center gap-1 sm:gap-2  whitespace-nowrap">
       {/* Industry Filter */}
       <Tooltip content="Filter by industry" placement="bottom">
         <div>
@@ -108,7 +108,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
         </div>
       </Tooltip>
 
-      <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
+      <Divider className="hidden sm:block h-4 xs:h-5" orientation="vertical" />
 
       {/* Distance Filter */}
       <Tooltip content="Filter by distance" placement="bottom">

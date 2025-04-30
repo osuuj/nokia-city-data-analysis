@@ -91,8 +91,12 @@ export function TableToolbar({
 
   // Check if there are active filters
   const hasActiveFilters = useMemo(() => {
-    return selectedIndustryItems.length > 0 || (useLocation && distanceLimit != null);
-  }, [selectedIndustryItems, useLocation, distanceLimit]);
+    return (
+      selectedIndustryItems.length > 0 ||
+      (useLocation && distanceLimit != null) ||
+      selectedKeys.size > 0
+    );
+  }, [selectedIndustryItems, useLocation, distanceLimit, selectedKeys]);
 
   // Set mounted state to true after component mounts
   useEffect(() => {
@@ -143,7 +147,7 @@ export function TableToolbar({
         </div>
 
         {/* Control buttons with proper spacing and positioning - added overflow-x-auto for mobile scrolling */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-default-300 scrollbar-track-default-100">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-default-300 scrollbar-track-default-100">
           <div className="flex items-center gap-1 sm:gap-2 flex-nowrap min-w-max">
             <Tooltip content="Sort data" placement="top" delay={300}>
               <div>
@@ -177,21 +181,6 @@ export function TableToolbar({
               </div>
             </Tooltip>
 
-            {hasActiveFilters && (
-              <Tooltip content="Reset all filters" placement="top" delay={300}>
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="primary"
-                  className="text-[10px] xs:text-xs sm:text-sm focus:outline-none focus:ring-0 h-7 sm:h-8 bg-default-100 text-default-800"
-                  onPress={resetAllFilters}
-                  aria-label="Reset all filters"
-                >
-                  <span className="hidden xs:inline">Reset</span> Filters
-                </Button>
-              </Tooltip>
-            )}
-
             {/* Vertical divider */}
             <Divider className="hidden sm:block h-4 xs:h-5" orientation="vertical" />
 
@@ -200,6 +189,30 @@ export function TableToolbar({
               {`${selectedKeys.size} selected`}
             </div>
           </div>
+
+          {/* Reset Filters button - moved outside to improve visibility on mobile */}
+          {hasActiveFilters && (
+            <div className="ml-auto mt-1 sm:mt-0">
+              <Tooltip content="Reset all filters" placement="top" delay={300}>
+                <Button
+                  size="sm"
+                  variant="solid"
+                  color="primary"
+                  className="text-[10px] xs:text-xs sm:text-sm focus:outline-none focus:ring-0 h-8 sm:h-8 px-2 sm:px-3"
+                  onPress={resetAllFilters}
+                  aria-label="Reset all filters"
+                  disableRipple={true}
+                  startContent={
+                    <span className="inline-block" aria-hidden="true">
+                      ✕
+                    </span>
+                  }
+                >
+                  <span>Reset Filters</span>
+                </Button>
+              </Tooltip>
+            </div>
+          )}
         </div>
       </div>
 

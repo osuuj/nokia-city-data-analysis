@@ -337,13 +337,14 @@ export function useDashboardData({
         // Special case for Construction (F)
         if (rows.length === 0 && industrySet.has('F')) {
           // Alternate search for construction companies
-          const constructionCompanies = geojsonState.data?.features
-            .filter((f) => f.properties)
-            .map((f) => f.properties)
-            .filter((row) => {
-              if (!row || !row.industry) return false;
-              return row.industry.toLowerCase().includes('construction');
-            });
+          const constructionCompanies =
+            geojsonState.data?.features
+              ?.filter((f) => f.properties)
+              .map((f) => f.properties)
+              .filter((row) => {
+                if (!row || !row.industry) return false;
+                return row.industry.toLowerCase().includes('construction');
+              }) || [];
 
           // Force a new array reference for React detection
           rows = [...constructionCompanies];

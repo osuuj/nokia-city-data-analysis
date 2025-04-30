@@ -153,6 +153,25 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
     }
   };
 
+  const getMinWidthForColumn = (key: string) => {
+    // Set minimum widths in pixels for different column types
+    switch (key) {
+      case 'business_id':
+        return '60px';
+      case 'company_name':
+        return '150px';
+      case 'street':
+        return '120px';
+      case 'city':
+        return '100px';
+      case 'building_number':
+      case 'postal_code':
+        return '80px';
+      default:
+        return '80px';
+    }
+  };
+
   const handleSelectionChange = (businessId: string) => {
     const newSelectedKeys = new Set(selectedKeys);
     if (selectedKeys.has(businessId)) {
@@ -175,8 +194,8 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
       className="relative"
     >
       {/* Header stays fixed at the top using regular table element */}
-      <div className="sticky top-0 z-10 bg-default-200 w-full">
-        <table className="w-full table-fixed border-t border-x border-default-200 rounded-t-lg">
+      <div className="sticky top-0 z-10 bg-default-200 w-full overflow-x-auto">
+        <table className="w-full min-w-[650px] table-fixed border-t border-x border-default-200 rounded-t-lg">
           <thead className="bg-default-200">
             <tr>
               <th className="w-8 text-center bg-default-200 text-default-800 font-semibold">
@@ -246,7 +265,7 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
           overflow: 'auto',
         }}
         onScroll={handleScroll}
-        className="border-b border-x border-default-200 rounded-b-lg"
+        className="border-b border-x border-default-200 rounded-b-lg overflow-x-auto"
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -255,7 +274,7 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
         ) : (
           <>
             <div style={{ height: startIndex * ROW_HEIGHT }} />
-            <table className="w-full table-fixed">
+            <table className="w-full min-w-[650px] table-fixed">
               <tbody>
                 {visibleRows.length > 0 ? (
                   visibleRows.map((item) => {
@@ -281,7 +300,7 @@ export const VirtualizedTable: React.FC<VirtualizedTableProps> = ({
                             key={`cell-${item.business_id}-${column.key}`}
                             className="text-[10px] xs:text-xs sm:text-xs md:text-sm px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 md:px-3 md:py-2"
                             style={{
-                              minWidth: column.key === 'business_id' ? '60px' : '80px',
+                              minWidth: getMinWidthForColumn(column.key),
                               maxWidth: column.key === 'business_id' ? '100px' : '300px',
                               overflow: 'hidden',
                               width: getColumnWidth(column.key),

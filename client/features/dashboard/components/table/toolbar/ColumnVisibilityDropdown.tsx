@@ -11,8 +11,8 @@ import {
   DropdownSection,
   DropdownTrigger,
 } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { columns } from '@shared/config/columns';
+import { AccessibleIconify } from '@shared/icons';
 import { type Key, useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
@@ -105,8 +105,9 @@ export function ColumnVisibilityDropdown() {
             },
           )}
           size="sm"
+          disableRipple={true}
           startContent={
-            <Icon
+            <AccessibleIconify
               icon="lucide:columns"
               width={16}
               className={
@@ -114,7 +115,7 @@ export function ColumnVisibilityDropdown() {
                   ? 'text-primary-500'
                   : 'text-default-500'
               }
-              aria-hidden="true"
+              ariaLabel="Column visibility icon"
             />
           }
           aria-label="Toggle column visibility"

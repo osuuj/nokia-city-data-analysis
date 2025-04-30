@@ -15,7 +15,7 @@ export interface MapViewProps {
   selectedBusinesses?: CompanyProperties[];
 }
 
-export const MapView = ({ geojson }: MapViewProps) => {
+export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
   const [activeFeature, setActiveFeature] = useState<Feature<
     Point,
@@ -33,6 +33,22 @@ export const MapView = ({ geojson }: MapViewProps) => {
       prevThemeRef.current = theme;
     }
   }, [theme]);
+
+  // Handle selectedBusinesses prop changes for split view
+  useEffect(() => {
+    if (!selectedBusinesses?.length || !mapLoaded || !geojson) return;
+
+    // Find the first business in the selected list that has a match in geojson
+    const selectedBusiness = selectedBusinesses[0];
+    const matchingFeature = geojson.features.find(
+      (feature) => feature.properties.business_id === selectedBusiness.business_id,
+    );
+
+    if (matchingFeature?.geometry) {
+      const coords = matchingFeature.geometry.coordinates as [number, number];
+      flyTo(coords, selectedBusiness.business_id);
+    }
+  }, [selectedBusinesses, mapLoaded, geojson]);
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 

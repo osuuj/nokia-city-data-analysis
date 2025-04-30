@@ -1,9 +1,9 @@
 'use client';
-
 import { useFilteredBusinesses } from '@/features/dashboard/hooks/data/useFilteredBusinesses';
 import type { CompanyProperties } from '@/features/dashboard/types';
 import type { SearchInputProps } from '@/features/dashboard/types';
 import { Input } from '@heroui/react';
+import { Icon } from '@iconify/react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -121,7 +121,7 @@ export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
           }}
           size="sm"
           placeholder="Search company name..."
-          startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
+          startContent={<Icon icon="lucide:search" width={14} className="text-default-400" />}
           value={localSearchTerm}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

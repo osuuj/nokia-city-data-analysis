@@ -143,8 +143,8 @@ export function DashboardContent({
     );
   }
 
-  // Only show skeleton if we're loading AND don't have any data
-  if (isLoading && (!data || data.length === 0)) {
+  // Only show skeleton if we're loading AND don't have any data AND don't have a filter reason
+  if (isLoading && (!data || data.length === 0) && !emptyStateReason?.noResults) {
     return <DashboardSkeleton />;
   }
 

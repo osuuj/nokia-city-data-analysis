@@ -46,25 +46,29 @@ export function ViewSwitcher({
   pageSize,
   onPageSizeChange,
 }: ViewSwitcherProps) {
+  // Define shared table props to maintain consistent data between views
+  const tableProps = {
+    data,
+    allFilteredData,
+    columns,
+    currentPage,
+    totalPages,
+    onPageChange,
+    isLoading,
+    searchTerm,
+    setSearchTerm,
+    sortDescriptor,
+    setSortDescriptor,
+    pageSize,
+    onPageSizeChange,
+    emptyStateReason: 'No data available',
+  };
+
   return (
     <div className="w-full">
       {viewMode === 'table' && (
         <Suspense fallback={<TableSkeleton />}>
-          <TableView
-            data={data}
-            allFilteredData={allFilteredData}
-            columns={columns}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-            isLoading={isLoading}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            sortDescriptor={sortDescriptor}
-            setSortDescriptor={setSortDescriptor}
-            pageSize={pageSize}
-            onPageSizeChange={onPageSizeChange}
-          />
+          <TableView {...tableProps} />
         </Suspense>
       )}
 
@@ -77,7 +81,7 @@ export function ViewSwitcher({
               </div>
             }
           >
-            <MapView geojson={geojson} />
+            <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
           </Suspense>
         </div>
       )}
@@ -86,21 +90,7 @@ export function ViewSwitcher({
         <div className="flex flex-col lg:flex-row lg:gap-4">
           <div className="w-full lg:w-1/2 mb-4 lg:mb-0">
             <Suspense fallback={<TableSkeleton />}>
-              <TableView
-                data={data}
-                allFilteredData={allFilteredData}
-                columns={columns}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-                isLoading={isLoading}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                sortDescriptor={sortDescriptor}
-                setSortDescriptor={setSortDescriptor}
-                pageSize={pageSize}
-                onPageSizeChange={onPageSizeChange}
-              />
+              <TableView {...tableProps} />
             </Suspense>
           </div>
           {geojson && (

@@ -9,8 +9,24 @@ import {
   PopoverTrigger,
   useDisclosure,
 } from '@heroui/react';
-import { Icon } from '@iconify/react';
+import { AccessibleIconify } from '@shared/icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+// Global style override
+// Add a style tag to remove focus outlines from buttons
+const injectGlobalStyle =
+  typeof document !== 'undefined' &&
+  (() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+    button:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  `;
+    document.head.appendChild(style);
+    return true;
+  })();
 
 export interface IconConfig {
   name: string;
@@ -125,27 +141,25 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
         shouldBlockScroll={true}
         shouldFlip={true}
         classNames={{
-          base: 'focus:outline-none focus:ring-0 z-50',
-          trigger: 'focus:outline-none focus:ring-0',
-          content: 'focus:outline-none focus:ring-0 max-h-[80vh]',
+          base: 'z-50',
         }}
         onKeyDown={handleKeyDown}
       >
         <PopoverTrigger>
           <Button
             className={cn(
-              'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3',
-              'hover:bg-default-200 active:bg-default-300',
+              'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200',
               'transition-colors duration-200',
               className,
             )}
             size="sm"
+            disableRipple={true}
             startContent={
-              <Icon
+              <AccessibleIconify
                 icon={iconConfig.name}
                 width={iconConfig.width || 16}
-                className={iconConfig.color || 'text-default-400'}
-                aria-hidden="true"
+                className={iconConfig.color || 'text-default-500'}
+                ariaLabel={`${title} icon`}
               />
             }
             aria-expanded={isOpen}
@@ -155,10 +169,7 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent
-          className="p-0 shadow-lg border border-default-200"
-          style={{ maxWidth, width: '100%' }}
-        >
+        <PopoverContent className="p-0 " style={{ maxWidth, width: '100%' }}>
           <div className="p-2 xs:p-3 max-h-[50vh] overflow-y-auto w-full" ref={contentRef}>
             <h3 className="mb-2 text-sm font-medium">{title}</h3>
             <div className="w-full">{children}</div>
@@ -169,7 +180,7 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
             <Button
               size="sm"
               variant="flat"
-              className="text-xs focus:outline-none focus:ring-0"
+              className="text-xs"
               onPress={() => {
                 onCancel?.();
                 onClose();
@@ -180,7 +191,7 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
             <Button
               size="sm"
               color="primary"
-              className="text-xs focus:outline-none focus:ring-0"
+              className="text-xs"
               onPress={() => {
                 onApply?.();
                 onClose();
