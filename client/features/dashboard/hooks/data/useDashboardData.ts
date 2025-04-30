@@ -1,6 +1,7 @@
 import { useCompanyStore } from '@/features/dashboard/store';
 import type { CompanyProperties, SortDescriptor } from '@/features/dashboard/types';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
+import { getDistanceInKm } from '@/features/dashboard/utils/geo';
 import { getVisibleColumns } from '@/features/dashboard/utils/table';
 import { columns as allColumns } from '@shared/config';
 import type { FeatureCollection, Point } from 'geojson';
@@ -62,6 +63,17 @@ export function useDashboardData({
     data: null,
     isLoading: false,
     error: null,
+  });
+
+  // Empty state reasons - for better UI feedback
+  const [emptyStateReason, setEmptyStateReason] = useState<{
+    noResults: boolean;
+    reason: 'distance' | 'industry' | 'search' | 'none';
+    message: string;
+  }>({
+    noResults: false,
+    reason: 'none',
+    message: '',
   });
 
   // Fetch cities directly using the Fetch API
@@ -159,6 +171,12 @@ export function useDashboardData({
 
     try {
       setGeojsonState((prev) => ({ ...prev, isLoading: true, error: null }));
+      // Reset empty state reason when fetching new data
+      setEmptyStateReason({
+        noResults: false,
+        reason: 'none',
+        message: '',
+      });
 
       const url = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(selectedCity)}`;
 
@@ -205,7 +223,7 @@ export function useDashboardData({
     }
   }, [selectedCity, fetchGeojsonData]);
 
-  // Process table rows from GeoJSON data
+  // Process table rows from GeoJSON data and apply filters
   const tableRows = useMemo(() => {
     const seen = new Set<string>();
 
@@ -217,7 +235,14 @@ export function useDashboardData({
       return [];
     }
 
-    const rows = geojsonState.data.features
+    // Check a sample of features to see if industry_letter exists
+    if (geojsonState.data.features.length > 0) {
+      const sampleFeature = geojsonState.data.features[0];
+      // Removed console log for sample feature properties
+    }
+
+    // Step 1: Extract and deduplicate rows
+    let rows = geojsonState.data.features
       .filter((f) => f?.properties) // Ensure feature and properties exist
       .map((f) => f.properties)
       .filter((row) => {
@@ -243,8 +268,138 @@ export function useDashboardData({
         return true;
       });
 
+    // Reset empty state reason before filtering
+    setEmptyStateReason({
+      noResults: false,
+      reason: 'none',
+      message: '',
+    });
+
+    // Step 2: Apply search query filtering
+    if (query && query.trim() !== '') {
+      const lowerCaseQuery = query.toLowerCase().trim();
+
+      const previousCount = rows.length;
+      rows = rows.filter((row) => {
+        // Check company name (most common)
+        if (row.company_name?.toLowerCase().includes(lowerCaseQuery)) {
+          return true;
+        }
+
+        // Check business ID
+        if (row.business_id?.toLowerCase().includes(lowerCaseQuery)) {
+          return true;
+        }
+
+        // Check industry
+        if (row.industry?.toLowerCase().includes(lowerCaseQuery)) {
+          return true;
+        }
+
+        // Check address
+        const visitingAddress = row.addresses?.['Visiting address'];
+        if (visitingAddress?.street?.toLowerCase().includes(lowerCaseQuery)) {
+          return true;
+        }
+
+        return false;
+      });
+
+      // Check if search yielded no results
+      if (rows.length === 0 && previousCount > 0) {
+        setEmptyStateReason({
+          noResults: true,
+          reason: 'search',
+          message: `No companies found matching "${query}"`,
+        });
+      }
+    }
+
+    // Step 3: Apply industry filtering
+    if (selectedIndustries.length > 0) {
+      try {
+        // Create a simple lookup set for faster checking
+        const industrySet = new Set(selectedIndustries.map((i) => i.toUpperCase()));
+        const previousCount = rows.length;
+
+        // Apply a simple, direct filter
+        const filteredRows = rows.filter((row) => {
+          // If there's no industry_letter, we can't match it
+          if (!row.industry_letter) return false;
+
+          // Simple uppercase comparison
+          return industrySet.has(row.industry_letter.toUpperCase());
+        });
+
+        // Force a new array instance with spread to ensure React detects the change
+        rows = [...filteredRows];
+
+        // Special case for Construction (F)
+        if (rows.length === 0 && industrySet.has('F')) {
+          // Alternate search for construction companies
+          const constructionCompanies = geojsonState.data?.features
+            .filter((f) => f.properties)
+            .map((f) => f.properties)
+            .filter((row) => {
+              if (!row || !row.industry) return false;
+              return row.industry.toLowerCase().includes('construction');
+            });
+
+          // Force a new array reference for React detection
+          rows = [...constructionCompanies];
+        }
+
+        // Check if industry filtering yielded no results
+        if (rows.length === 0 && previousCount > 0) {
+          const industries = selectedIndustries.join(', ');
+          setEmptyStateReason({
+            noResults: true,
+            reason: 'industry',
+            message: `No companies found in selected industries: ${industries}`,
+          });
+        }
+      } catch (error) {
+        console.error('Error during industry filtering:', error);
+        // If there's an error, return the original unfiltered rows
+      }
+    }
+
+    // Step 4: Apply distance filtering
+    if (userLocation && distanceLimit) {
+      try {
+        const previousCount = rows.length;
+        const filteredRows = rows.filter((row) => {
+          const visitingAddress = row.addresses?.['Visiting address'];
+          if (!visitingAddress || !visitingAddress.latitude || !visitingAddress.longitude)
+            return false;
+
+          const distance = getDistanceInKm(userLocation, {
+            latitude: visitingAddress.latitude,
+            longitude: visitingAddress.longitude,
+          });
+
+          return distance <= distanceLimit;
+        });
+
+        // Force a new array instance to ensure React detects the change
+        rows = [...filteredRows];
+
+        // Check if distance filtering yielded no results
+        if (rows.length === 0 && previousCount > 0) {
+          setEmptyStateReason({
+            noResults: true,
+            reason: 'distance',
+            message: `No companies found within ${distanceLimit}km of your location`,
+          });
+        }
+      } catch (error) {
+        console.error('Error during distance filtering:', error);
+        // If there's an error, return the current filtered rows without distance filtering
+      }
+    }
+
     return rows;
-  }, [geojsonState.data]);
+  }, [geojsonState.data, query, selectedIndustries, userLocation, distanceLimit]);
 
   // Get visible columns for the table
   const visibleColumns = useMemo(() => getVisibleColumns(allColumns), []);
@@ -265,6 +420,22 @@ export function useDashboardData({
     fetchGeojsonData();
   }, [fetchGeojsonData]);
 
+  // Expose refetch function for manual search refresh
+  const refreshSearch = useCallback(async () => {
+    try {
+      // Re-fetch geojson data with current query
+      await fetchGeojsonData();
+    } catch (error) {
+      console.error('Error refreshing search:', error);
+    }
+  }, [fetchGeojsonData]);
+
+  // Add refreshSearch to the refetch object
+  const refetchFunctions = {
+    geojson: fetchGeojsonData,
+    search: refreshSearch,
+  };
+
   return {
     geojsonData: geojsonState.data,
     cities: citiesState.data,
@@ -273,13 +444,11 @@ export function useDashboardData({
     tableRows,
     visibleColumns,
     handleCityChange,
+    emptyStateReason,
     errors: {
       geojson: geojsonState.error,
       cities: citiesState.error,
     },
-    refetch: {
-      geojson: refetchGeojson,
-      cities: () => {}, // Will be handled by the useEffect
-    },
+    refetch: refetchFunctions, // Updated to include search refresh
   };
 }

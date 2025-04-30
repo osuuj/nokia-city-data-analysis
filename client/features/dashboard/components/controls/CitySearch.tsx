@@ -1,4 +1,4 @@
-import { Autocomplete, AutocompleteItem } from '@heroui/react';
+import { Autocomplete, AutocompleteItem, Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState, type Key } from 'react';
@@ -79,7 +79,6 @@ export const CitySearch = React.memo(function CitySearch({
         setSelectionMade(true);
         onCityChange(key);
         router.replace(`/dashboard?city=${encodeURIComponent(key)}`);
-        console.log('Selected city:', key);
       }
     },
     [onCityChange, router],
@@ -124,6 +123,32 @@ export const CitySearch = React.memo(function CitySearch({
     router.replace('/dashboard');
   }, [onCityChange, router]);
 
+  // Custom endContent to avoid nested button issue
+  const endContent = useMemo(() => {
+    // Only show the clear button if there's a search term or selection
+    if (localSearchTerm || selectedCity) {
+      return (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleClear}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClear();
+              }
+            }}
+            className="cursor-pointer text-default-400 hover:text-default-600 p-1"
+            aria-label="Clear city selection"
+            type="button"
+          >
+            <Icon icon="lucide:x" width={16} />
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }, [localSearchTerm, selectedCity, handleClear]);
+
   // Memoize the render item function
   const renderItem = useCallback(
     (item: { name: string }) => (
@@ -144,8 +169,7 @@ export const CitySearch = React.memo(function CitySearch({
       listbox: 'max-h-[300px]',
       listboxWrapper: '',
       popoverContent: 'max-w-[40vw] md:max-w-xs',
-      endContentWrapper: '',
-      clearButton: 'text-default-400 hover:text-default-600',
+      endContentWrapper: 'flex gap-1',
       selectorButton: '',
       label: 'text-primary-500 font-medium',
       mainWrapper: 'bg-content2 bg-opacity-20 rounded-lg p-2 hover:bg-opacity-30 transition-all',
@@ -181,10 +205,10 @@ export const CitySearch = React.memo(function CitySearch({
         onInputChange={handleLocalSearchChange}
         onSelectionChange={handleSelectionChange}
         onKeyDown={handleKeyDown}
-        onClear={handleClear}
-        isClearable={true}
+        endContent={endContent}
         isLoading={isLoading}
         startContent={<Icon icon="lucide:search" className="text-default-400" width={16} />}
+        isClearable={false}
       >
         {renderItem}
       </Autocomplete>

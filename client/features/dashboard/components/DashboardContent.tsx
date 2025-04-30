@@ -65,6 +65,13 @@ interface DashboardContentProps {
   /** Error state */
   error: Error | null;
 
+  /** Empty state reason if no results are found */
+  emptyStateReason?: {
+    noResults: boolean;
+    reason: 'distance' | 'industry' | 'search' | 'none';
+    message: string;
+  };
+
   /** Number of rows to display per page */
   pageSize?: number;
 
@@ -98,6 +105,7 @@ export function DashboardContent({
   sortDescriptor,
   setSortDescriptor,
   error,
+  emptyStateReason,
   pageSize,
   onPageSizeChange,
 }: DashboardContentProps) {
@@ -160,6 +168,7 @@ export function DashboardContent({
         setSortDescriptor={setSortDescriptor}
         pageSize={pageSize}
         onPageSizeChange={onPageSizeChange}
+        emptyStateReason={emptyStateReason}
       />
     </div>
   );

@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 /**
  * A hook that paginates a data array into slices based on the current page and row count.
- * Useful for implementing pagination in tables, lists, or any data display component.
+ * Enhanced version with performance optimizations for large datasets.
  *
  * @template T - The type of data being paginated
  * @param data - The full data array to paginate
@@ -66,6 +66,14 @@ export function usePagination<T>(
 ) {
   const { validateInput = true } = options;
 
+  // Refs to keep track of previous values and cache
+  const paginatedCacheRef = useRef<{
+    data: T[];
+    page: number;
+    rowsPerPage: number;
+    result: T[];
+  }>({ data: [], page: 0, rowsPerPage: 0, result: [] });
+
   // Validate input parameters if enabled
   const validatedPage = validateInput ? Math.max(1, Math.floor(page)) : page;
   const validatedRowsPerPage = validateInput ? Math.max(1, Math.floor(rowsPerPage)) : rowsPerPage;
@@ -76,34 +84,63 @@ export function usePagination<T>(
   const startIndex = (validatedPage - 1) * validatedRowsPerPage;
   const endIndex = Math.min(startIndex + validatedRowsPerPage, totalItems);
 
-  // Get the paginated data slice using a more efficient approach
-  // Only slice when necessary to avoid unnecessary object creation
+  // Check if we can use cached result
+  const canUseCache = useMemo(() => {
+    const cache = paginatedCacheRef.current;
+    return (
+      cache.data === data &&
+      cache.page === validatedPage &&
+      cache.rowsPerPage === validatedRowsPerPage &&
+      cache.result.length > 0
+    );
+  }, [data, validatedPage, validatedRowsPerPage]);
+
+  // Get the paginated data slice with optimizations
   const paginated = useMemo(() => {
-    // If asking for complete dataset or small dataset, just return it directly
-    if (startIndex === 0 && validatedRowsPerPage >= totalItems) {
-      return data;
+    // If we can use cache, return it immediately
+    if (canUseCache) {
+      return paginatedCacheRef.current.result;
     }
 
-    // For very large datasets with high page numbers, use a more efficient slicing
-    if (totalItems > 1000 && startIndex > 500) {
-      // Create a new array only for the items needed
-      return data.slice(startIndex, endIndex);
+    // If data length is small or requesting all data, just return or slice once
+    if (totalItems <= validatedRowsPerPage && startIndex === 0) {
+      const result = data.slice(0);
+      paginatedCacheRef.current = {
+        data,
+        page: validatedPage,
+        rowsPerPage: validatedRowsPerPage,
+        result,
+      };
+      return result;
     }
 
-    // Standard case
-    return data.slice(startIndex, endIndex);
-  }, [data, startIndex, endIndex, totalItems, validatedRowsPerPage]);
+    // Standard pagination slice
+    const result = data.slice(startIndex, endIndex);
+
+    // Update cache
+    paginatedCacheRef.current = {
+      data,
+      page: validatedPage,
+      rowsPerPage: validatedRowsPerPage,
+      result,
+    };
+
+    return result;
+  }, [canUseCache, data, startIndex, endIndex, totalItems, validatedPage, validatedRowsPerPage]);
 
   // Calculate additional pagination metadata
-  const pageInfo = {
-    startIndex,
-    endIndex,
-    totalItems,
-    isFirstPage: validatedPage === 1,
-    isLastPage: validatedPage === totalPages,
-    hasNextPage: validatedPage < totalPages,
-    hasPreviousPage: validatedPage > 1,
-  };
+  const pageInfo = useMemo(
+    () => ({
+      startIndex,
+      endIndex,
+      totalItems,
+      isFirstPage: validatedPage === 1,
+      isLastPage: validatedPage === totalPages,
+      hasNextPage: validatedPage < totalPages,
+      hasPreviousPage: validatedPage > 1,
+    }),
+    [startIndex, endIndex, totalItems, validatedPage, totalPages],
+  );
 
   return {
     paginated,

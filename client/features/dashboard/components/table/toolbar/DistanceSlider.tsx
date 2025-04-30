@@ -58,8 +58,8 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
 
     return (
       <div className={cn('flex flex-col gap-1 xs:gap-2 sm:gap-3', className)}>
-        <div className="flex flex-col gap-1 overflow-x-hidden">
-          <div className="flex h-6 xs:h-7 sm:h-8 w-full items-end justify-between px-1 sm:px-2 overflow-x-hidden">
+        <div className="flex flex-col gap-1">
+          <div className="flex h-6 xs:h-7 sm:h-8 w-full items-end justify-between px-1 sm:px-2">
             {rangePips}
           </div>
           <Slider
@@ -75,7 +75,7 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
             size="sm"
             aria-label="Distance in kilometers"
             classNames={{
-              base: 'py-1 overflow-x-hidden',
+              base: 'py-1',
               track: 'h-1',
               thumb: 'h-3 w-3 xs:h-3 xs:w-3 sm:h-4 sm:w-4',
             }}

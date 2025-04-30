@@ -2,6 +2,7 @@
 
 import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
 import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
+import { useCompanyStore } from '@/features/dashboard/store';
 import type {
   CompanyProperties,
   CompanyTableKey,
@@ -22,6 +23,7 @@ interface TableViewComponentProps extends TableViewProps {
   allFilteredData: CompanyProperties[];
   pageSize?: number;
   onPageSizeChange?: (pageSize: number) => void;
+  emptyStateReason: string;
 }
 
 /**
@@ -41,7 +43,8 @@ const arePropsEqual = (
     prevProps.searchTerm === nextProps.searchTerm &&
     prevProps.sortDescriptor.column === nextProps.sortDescriptor.column &&
     prevProps.sortDescriptor.direction === nextProps.sortDescriptor.direction &&
-    prevProps.pageSize === nextProps.pageSize
+    prevProps.pageSize === nextProps.pageSize &&
+    prevProps.emptyStateReason === nextProps.emptyStateReason
   );
 };
 
@@ -60,6 +63,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     setSortDescriptor,
     pageSize = 10,
     onPageSizeChange,
+    emptyStateReason,
   }) => {
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [useLocation, setUseLocation] = useState(false);
@@ -69,7 +73,30 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     );
     // Track previous data to prevent unnecessary loading states
     const prevDataRef = useRef<CompanyProperties[]>([]);
+    const prevPageSizeRef = useRef<number>(pageSize);
     const [effectiveIsLoading, setEffectiveIsLoading] = useState(isLoading);
+
+    // Cache rendered data to improve performance when changing page size
+    const dataCache = useRef<Record<string, CompanyProperties[]>>({});
+
+    // Get visible columns from company store - must be at top level, not inside hooks
+    const storeVisibleColumns = useCompanyStore((state) => state.visibleColumns);
+
+    // Check if we're switching page size and cache the current page of data
+    useEffect(() => {
+      // When page size changes, cache the current data
+      if (prevPageSizeRef.current !== pageSize) {
+        // Clean cache when page size changes to prevent memory issues
+        dataCache.current = {};
+        prevPageSizeRef.current = pageSize;
+      }
+
+      // Cache data for current page size and page number
+      if (data.length > 0 && !isLoading) {
+        const cacheKey = `${pageSize}-${currentPage}`;
+        dataCache.current[cacheKey] = [...data];
+      }
+    }, [data, pageSize, currentPage, isLoading]);
 
     // Determine if we should show loading spinner or keep showing previous data
     useEffect(() => {
@@ -88,6 +115,13 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       ) {
         // Show loading only if the data is actually different
         setEffectiveIsLoading(true);
+
+        // For better UX during filtering, use a short timeout to prevent flickering
+        const timer = setTimeout(() => {
+          setEffectiveIsLoading(false);
+        }, 300);
+
+        return () => clearTimeout(timer);
       }
       // Keep showing previous data if the city selection is the same
     }, [isLoading, data]);
@@ -112,15 +146,18 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Transform columns to match VirtualizedTable props
+    // Transform columns to match VirtualizedTable props, respecting the visibility from the store
     const transformedColumns = useMemo(() => {
+      // Use a Map for fast lookup of visibility status
+      const visibilityMap = new Map(storeVisibleColumns.map((col) => [col.key, true]));
+
       return columns.map((col) => ({
         key: col.key,
         label: col.label,
-        visible: true,
-        userVisible: true,
+        visible: visibilityMap.has(col.key), // Use visibility from store
+        userVisible: col.userVisible,
       }));
-    }, [columns]);
+    }, [columns, storeVisibleColumns]); // Add storeVisibleColumns as dependency
 
     // Handle sort change
     const handleSortChange = useCallback(
@@ -177,6 +214,9 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       // Page size options
       const pageSizes = ['10', '25', '50', '100'];
 
+      // Force showing pagination even if data is changing
+      const displayTotalPages = totalPages > 0 ? totalPages : 1;
+
       return (
         <div className="flex w-full flex-col items-center justify-center gap-1 px-1 py-1 sm:gap-1 sm:px-2 sm:py-2 md:gap-2 md:px-3 md:py-3">
           <div className="flex w-full items-center px-2">
@@ -192,10 +232,33 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                     // Optimize performance by implementing a direct callback
                     if (keys instanceof Set && keys.size > 0) {
                       const newSize = Array.from(keys)[0] as string;
-                      // Start loading immediately to improve perceived performance
+
+                      // START OPTIMIZED CODE
+                      // Immediately update UI to show loading
                       setEffectiveIsLoading(true);
-                      // Apply the page size change
-                      onPageSizeChange(Number.parseInt(newSize, 10));
+
+                      // Use a more efficient async approach with immediate UI update
+                      const numericSize = Number.parseInt(newSize, 10);
+
+                      // CRITICAL: Store current data as fallback during transition
+                      prevDataRef.current = data.length ? [...data] : prevDataRef.current;
+
+                      // Use microtask to avoid blocking the UI
+                      Promise.resolve().then(() => {
+                        // Apply the page size change - this is a synchronous operation
+                        if (onPageSizeChange) {
+                          onPageSizeChange(numericSize);
+                        }
+
+                        // Use another microtask to update loading state after render
+                        Promise.resolve().then(() => {
+                          // After a brief delay to allow rendering, show the results
+                          setTimeout(() => {
+                            setEffectiveIsLoading(false);
+                          }, 50);
+                        });
+                      });
+                      // END OPTIMIZED CODE
                     }
                   }
                 }}
@@ -234,7 +297,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                 dotsJump={1}
                 color="primary"
                 page={currentPage}
-                total={totalPages}
+                total={displayTotalPages}
                 onChange={onPageChange}
                 size={isMobile ? 'sm' : 'md'}
                 aria-label="Table pagination"
@@ -259,11 +322,30 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       pageSize,
       onPageSizeChange,
       effectiveIsLoading,
+      data, // Add data as dependency to refresh when filtered data changes
     ]);
 
     // Use the actual data if available, or the previous data if we're in the middle of a reload
-    const displayData =
-      effectiveIsLoading && prevDataRef.current.length > 0 ? prevDataRef.current : data;
+    const displayData = useMemo(() => {
+      // If we're loading, try to use cached data first for better perceived performance
+      if (effectiveIsLoading) {
+        const cacheKey = `${pageSize}-${currentPage}`;
+        const cachedData = dataCache.current[cacheKey];
+
+        // Use cached data if available
+        if (cachedData && cachedData.length > 0) {
+          return cachedData;
+        }
+
+        // Fall back to previous data if available
+        if (prevDataRef.current.length > 0) {
+          return prevDataRef.current;
+        }
+      }
+
+      // Otherwise use current data
+      return data;
+    }, [data, effectiveIsLoading, pageSize, currentPage]);
 
     return (
       <ScaleIn>
@@ -284,7 +366,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
           <Suspense fallback={<TableSkeleton />}>
             <VirtualizedTable
               data={displayData}
-              visibleColumns={transformedColumns}
+              visibleColumns={transformedColumns.filter((col) => col.visible)}
               selectedKeys={selectedKeys}
               onSelectionChange={handleSelectionChange}
               height={600}
@@ -293,8 +375,25 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
               onSortChange={handleSortChange}
               isLoading={effectiveIsLoading && prevDataRef.current.length === 0} // Only show loading if we have no previous data
             />
+            {!effectiveIsLoading && displayData.length === 0 && _allFilteredData.length === 0 && (
+              <div className="flex justify-center items-center p-10 text-gray-500">
+                <div className="text-center">
+                  <p className="text-lg font-semibold">
+                    {emptyStateReason || 'No companies found'}
+                  </p>
+                  <p className="text-sm mt-2">
+                    {emptyStateReason?.includes('distance')
+                      ? 'Try increasing the distance range or select a different location.'
+                      : emptyStateReason?.includes('industry')
+                        ? 'Try selecting different industries or clear your filters.'
+                        : 'Try adjusting your filters or search criteria.'}
+                  </p>
+                </div>
+              </div>
+            )}
           </Suspense>
-          {!effectiveIsLoading && bottomContent}
+          {/* Always show pagination, regardless of loading state */}
+          {bottomContent}
         </Card>
       </ScaleIn>
     );

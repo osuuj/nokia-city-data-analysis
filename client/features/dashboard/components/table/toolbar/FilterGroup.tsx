@@ -47,12 +47,10 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
   const handleGetLocation = async () => {
     try {
       const coords = await requestBrowserLocation();
-      console.log('User location:', coords);
       setUserLocation(coords);
       setUseLocation(true);
     } catch (error) {
       // Handle the error gracefully without showing an alert
-      console.log('Location access denied by user');
       setUseLocation(false);
       setUserLocation(null);
     }
@@ -66,8 +64,18 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
         <div>
           <PopoverFilterWrapper
             title="Industry"
-            onApply={() => setSelectedIndustries(draftIndustries)}
-            onCancel={() => setDraftIndustries(selectedIndustries)}
+            onApply={() => {
+              if (draftIndustries.length !== selectedIndustries.length) {
+                setTimeout(() => {
+                  setSelectedIndustries(draftIndustries);
+                }, 50);
+              } else {
+                setSelectedIndustries(draftIndustries);
+              }
+            }}
+            onCancel={() => {
+              setDraftIndustries(selectedIndustries);
+            }}
             icon="lucide:tag"
             maxWidth={isMobile ? '280px' : undefined}
           >
@@ -127,7 +135,6 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
                       await handleGetLocation();
                     } catch (error) {
                       // If location access is denied, the popover will be closed by the onCancel handler
-                      console.log('Location access denied by user');
                     }
                   } else {
                     setUseLocation(false);
@@ -151,16 +158,17 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
               )}
 
               {useLocation && userLocation && (
-                <DistanceSlider
-                  aria-label="Distance Filter"
-                  minValue={0}
-                  maxValue={30}
-                  step={1}
-                  value={draftDistance}
-                  onChange={(val) => setDraftDistance(val as number)}
-                  className="py-1 text-[10px] xs:text-xs sm:text-sm w-full overflow-x-hidden"
-                  tooltipContent="Adjust distance range"
-                />
+                <div className="flex flex-col gap-1">
+                  <DistanceSlider
+                    aria-label="Distance Filter"
+                    minValue={0}
+                    maxValue={30}
+                    step={1}
+                    value={draftDistance}
+                    onChange={(val) => setDraftDistance(val as number)}
+                    className="py-1 text-[10px] xs:text-xs sm:text-sm w-full"
+                  />
+                </div>
               )}
             </div>
           </PopoverFilterWrapper>

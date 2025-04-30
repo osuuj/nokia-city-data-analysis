@@ -70,7 +70,29 @@ export const applyIndustryFilter = (
   selectedIndustries: string[],
 ): CompanyProperties[] => {
   if (selectedIndustries.length === 0) return data;
-  return data.filter((item) => selectedIndustries.includes(item.industry_letter));
+
+  // Create a simple lookup set for faster checking
+  const industrySet = new Set(selectedIndustries.map((i) => i.toUpperCase()));
+
+  // Apply a simple, direct filter
+  const filteredData = data.filter((item) => {
+    // If there's no industry_letter, we can't match it
+    if (!item.industry_letter) return false;
+
+    // Simple uppercase comparison
+    return industrySet.has(item.industry_letter.toUpperCase());
+  });
+
+  // Special case for Construction (F)
+  if (filteredData.length === 0 && industrySet.has('F')) {
+    // Alternate search for construction companies
+    return data.filter((item) => {
+      if (!item.industry) return false;
+      return item.industry.toLowerCase().includes('construction');
+    });
+  }
+
+  return filteredData;
 };
 
 /**

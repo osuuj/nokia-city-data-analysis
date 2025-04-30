@@ -16,7 +16,7 @@ export function useFilteredBusinesses({
   data,
   industries,
   searchQuery,
-  debounceMs = 300,
+  debounceMs = 200, // Reduced debounce time for faster feedback
 }: UseFilteredBusinessesProps) {
   const [loading, setLoading] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, debounceMs);
@@ -39,10 +39,10 @@ export function useFilteredBusinesses({
 
   // More efficient search implementation
   const searchCompanies = useCallback((companies: CompanyProperties[], query: string) => {
-    if (!query.trim()) return companies;
+    if (!query || !query.trim()) return companies;
 
     const lowerCaseQuery = query.toLowerCase();
-    return companies.filter((business) => {
+    const results = companies.filter((business) => {
       // Check company name (most common search)
       if (business.company_name?.toLowerCase().includes(lowerCaseQuery)) {
         return true;
@@ -70,6 +70,8 @@ export function useFilteredBusinesses({
 
       return false;
     });
+
+    return results;
   }, []);
 
   /**
@@ -89,7 +91,7 @@ export function useFilteredBusinesses({
       });
     }
 
-    // Filter by search query
+    // Filter by search query - also log the filtering operation
     if (debouncedSearch.trim() !== '') {
       filtered = searchCompanies(filtered, debouncedSearch);
     }

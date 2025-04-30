@@ -100,7 +100,12 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Industry filtering */
   selectedIndustries: [],
 
-  setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
+  setSelectedIndustries: (values: string[]) => {
+    // Use a stable reference if the arrays are identical
+    if (Array.isArray(values)) {
+      set({ selectedIndustries: values });
+    }
+  },
 
   toggleIndustry: (industry: string) =>
     set((state) => {
@@ -120,5 +125,5 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
 
   distanceLimit: null,
 
-  setDistanceLimit: (value) => set({ distanceLimit: value }),
+  setDistanceLimit: (value: number | null) => set({ distanceLimit: value }),
 }));

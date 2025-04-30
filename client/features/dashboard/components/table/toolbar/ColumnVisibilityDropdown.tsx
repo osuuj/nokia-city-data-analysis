@@ -3,10 +3,17 @@
 import type { TableColumnConfig } from '@/features/dashboard/types';
 import { cn } from '@/shared/utils/cn';
 import { useCompanyStore } from '@features/dashboard/store';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import {
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownSection,
+  DropdownTrigger,
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { columns } from '@shared/config/columns';
-import { useCallback, useEffect, useState } from 'react';
+import { type Key, useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
  * ColumnVisibilityDropdown
@@ -16,9 +23,12 @@ export function ColumnVisibilityDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
   const toggleColumnVisibility = useCompanyStore((state) => state.toggleColumnVisibility);
+  const resetColumns = useCompanyStore((state) => state.resetColumns);
 
   // Get selected keys for the dropdown
-  const selectedKeys = new Set(visibleColumns.map((col) => col.key));
+  const selectedKeys = useMemo(() => {
+    return new Set(visibleColumns.map((col) => col.key));
+  }, [visibleColumns]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -36,6 +46,40 @@ export function ColumnVisibilityDropdown() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Handle resetting columns to default
+  const handleResetColumns = useCallback(() => {
+    resetColumns();
+    // Close the dropdown after resetting
+    setIsOpen(false);
+  }, [resetColumns]);
+
+  // Filter columns that can be toggled by users
+  const toggleableColumns = useMemo(
+    () => columns.filter((col: TableColumnConfig) => col.userVisible !== false),
+    [],
+  );
+
+  // Handle selection changes directly
+  const handleSelectionChange = useCallback(
+    (keys: Set<Key> | 'all') => {
+      if (keys === 'all') return;
+
+      const selected = keys as Set<string>;
+
+      for (const col of columns) {
+        if (!col.userVisible) continue; // Skip columns that users shouldn't toggle
+
+        const isVisible = selected.has(col.key);
+        const isCurrentlyVisible = visibleColumns.some((v) => v.key === col.key);
+
+        if (isVisible !== isCurrentlyVisible) {
+          toggleColumnVisibility(col.key);
+        }
+      }
+    },
+    [visibleColumns, toggleColumnVisibility],
+  );
 
   return (
     <Dropdown
@@ -55,13 +99,21 @@ export function ColumnVisibilityDropdown() {
           className={cn(
             'bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200',
             'transition-colors duration-200',
+            {
+              'bg-primary-100 text-primary-800':
+                visibleColumns.length !== columns.filter((c) => c.visible).length,
+            },
           )}
           size="sm"
           startContent={
             <Icon
               icon="lucide:columns"
               width={16}
-              className="text-default-500"
+              className={
+                visibleColumns.length !== columns.filter((c) => c.visible).length
+                  ? 'text-primary-500'
+                  : 'text-default-500'
+              }
               aria-hidden="true"
             />
           }
@@ -80,34 +132,40 @@ export function ColumnVisibilityDropdown() {
         aria-label="Toggle column visibility"
         selectedKeys={selectedKeys}
         selectionMode="multiple"
-        onSelectionChange={(keys) => {
-          const selected = keys as Set<string>;
-          for (const col of columns) {
-            const isVisible = selected.has(col.key);
-            const isCurrentlyVisible = visibleColumns.some(
-              (v: TableColumnConfig) => v.key === col.key,
-            );
-            if (isVisible !== isCurrentlyVisible) {
-              toggleColumnVisibility(col.key);
-            }
-          }
-        }}
+        onSelectionChange={handleSelectionChange}
       >
-        {columns
-          .filter((col: TableColumnConfig) => col.userVisible !== false)
-          .map((item: TableColumnConfig) => (
+        <DropdownSection aria-label="Columns" items={toggleableColumns}>
+          {(column) => (
             <DropdownItem
-              key={item.key}
+              key={column.key}
+              textValue={column.label}
               className={cn(
                 'text-xs py-1 h-8',
                 'data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800',
                 'transition-colors duration-200',
               )}
-              aria-label={`${item.label} column ${selectedKeys.has(item.key) ? 'visible' : 'hidden'}`}
             >
-              {item.label}
+              {column.label}
             </DropdownItem>
-          ))}
+          )}
+        </DropdownSection>
+
+        <DropdownSection aria-label="Actions">
+          <DropdownItem
+            key="divider"
+            textValue="Divider"
+            className="h-px bg-default-200 my-1 p-0 focus:outline-none"
+            isReadOnly
+          />
+          <DropdownItem
+            key="reset"
+            textValue="Reset to Default"
+            className="text-xs py-1 h-8 text-primary-500 font-medium"
+            onPress={handleResetColumns}
+          >
+            Reset to Default
+          </DropdownItem>
+        </DropdownSection>
       </DropdownMenu>
     </Dropdown>
   );

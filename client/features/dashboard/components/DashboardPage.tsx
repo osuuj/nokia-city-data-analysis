@@ -31,9 +31,13 @@ export function DashboardPage() {
   const { selectedCity, selectedIndustries, userLocation, distanceLimit, selectedRows } =
     useCompanyStore();
 
+  // Add search timeout reference (moved inside component)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Local state for UI controls
   const [searchTerm, setSearchTerm] = useState('');
   const [companySearchTerm, setCompanySearchTerm] = useState('');
+  const [citySearchTerm, setCitySearchTerm] = useState(''); // New, completely separate city search term
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(ROWS_PER_PAGE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -47,6 +51,8 @@ export function DashboardPage() {
   const prevCityLoadingRef = useRef(false);
   const dataLoadedOnceRef = useRef(false);
   const stableDataStateRef = useRef(false);
+  // Add a ref to track table rows count for pagination management
+  const prevRowsCountRef = useRef(0);
 
   // Fetch dashboard data using custom hook
   const {
@@ -59,6 +65,7 @@ export function DashboardPage() {
     handleCityChange,
     errors,
     refetch,
+    emptyStateReason,
   } = useDashboardData({
     selectedCity,
     selectedIndustries,
@@ -70,28 +77,112 @@ export function DashboardPage() {
   // Track loading state
   const { startSectionLoading, stopSectionLoading, isAnySectionLoading } = useDashboardLoading();
 
-  // Setup pagination
-  const { paginated, totalPages } = usePagination(tableRows || [], currentPage, pageSize);
+  // Setup pagination with edge case handling
+  const { paginated, totalPages } = useMemo(() => {
+    // Make sure we have data
+    if (!tableRows || tableRows.length === 0) {
+      // Don't log unless it's a development environment
+      if (process.env.NODE_ENV === 'development') {
+        // Check if it's an empty state due to filtering or just no data yet
+        if (emptyStateReason?.noResults) {
+          // We already know the reason, no need to log
+        } else {
+          // Only log if we truly have no data
+          console.debug('No tableRows data, setting empty pagination');
+        }
+      }
+      return { paginated: [], totalPages: 1 };
+    }
+
+    // Calculate total pages
+    const calculatedTotalPages = Math.max(1, Math.ceil(tableRows.length / pageSize));
+
+    // Ensure current page is valid (not greater than total pages)
+    const validCurrentPage = Math.min(currentPage, calculatedTotalPages);
+
+    // If current page changed, update it (but only if it's out of bounds)
+    if (validCurrentPage !== currentPage) {
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Resetting current page from ${currentPage} to ${validCurrentPage}`);
+      }
+      // Use setTimeout to avoid state updates during render
+      setTimeout(() => setCurrentPage(validCurrentPage), 0);
+    }
+
+    // Calculate start and end indices
+    const startIndex = (validCurrentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, tableRows.length);
+
+    // Create paginated data
+    const paginatedData = tableRows.slice(startIndex, endIndex);
+
+    // Only log in development and use debug level
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(
+        `Pagination: page ${validCurrentPage}/${calculatedTotalPages}, showing ${startIndex + 1 || 0}-${endIndex} of ${tableRows.length} items`,
+      );
+    }
+
+    return {
+      paginated: paginatedData,
+      totalPages: calculatedTotalPages,
+    };
+  }, [tableRows, pageSize, currentPage, emptyStateReason]);
+
+  // Force update pagination when industry filter changes
+  useEffect(() => {
+    // When industry filter changes, reset to page 1
+    if (selectedIndustries.length > 0) {
+      console.log('Industry filters changed, resetting to page 1');
+      // Use a small delay to let the data update first
+      setTimeout(() => {
+        if (currentPage !== 1) {
+          setCurrentPage(1);
+        } else {
+          // Force a refresh by creating a new array if already on page 1
+          if (tableRows && tableRows.length > 0) {
+            prevRowsCountRef.current = tableRows.length;
+          }
+        }
+      }, 50);
+    }
+  }, [selectedIndustries, currentPage, tableRows]);
 
   // Handle page size change
   const handlePageSizeChange = useCallback(
     (newSize: number) => {
+      // Don't reset to first page for better UX when increasing page size
+      const needsPageReset = newSize < pageSize;
+
       // Start loading to give user feedback
       startSectionLoading('table', 'Adjusting page size...');
 
-      // Use a timeout to prevent UI blocking
+      // Use a more efficient approach with debouncing
       setTimeout(() => {
+        // Update page size first (synchronous operation)
         setPageSize(newSize);
-        setCurrentPage(1); // Reset to first page when changing page size
 
-        // Stop loading after a brief delay to allow UI to update
+        // Only reset page if we're decreasing page size
+        if (needsPageReset) {
+          setCurrentPage(1);
+        }
+
+        // Small delay to allow UI to update
         setTimeout(() => {
           stopSectionLoading('table');
         }, 50);
       }, 0);
     },
-    [startSectionLoading, stopSectionLoading],
+    [pageSize, startSectionLoading, stopSectionLoading],
   );
+
+  // Update prev rows count ref when tableRows changes
+  useEffect(() => {
+    if (tableRows) {
+      prevRowsCountRef.current = tableRows.length;
+    }
+  }, [tableRows]);
 
   // Update loading state based on data fetching, but prevent unnecessary loading cycles
   useEffect(() => {
@@ -193,20 +284,53 @@ export function DashboardPage() {
     [startSectionLoading, handleCityChange],
   );
 
-  // Handle company search term changes
+  // Handle company search term changes - COMPLETELY SEPARATE from city search
   const onCompanySearchChange = useCallback(
     (value: string) => {
-      // Only update the company search term if the value is different
+      // Only update if value has changed
       if (companySearchTerm !== value) {
+        // Show loading indicator
+        startSectionLoading('table', 'Filtering...');
+
+        // Clear previous timeout if it exists
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+          searchTimeoutRef.current = null;
+        }
+
+        // Set company search term
         setCompanySearchTerm(value);
-        // Update the search term for UI consistency
+
+        // Also update the main search term variable
         setSearchTerm(value);
-        // Reset to first page on search
+
+        // Reset to first page when search changes
         setCurrentPage(1);
+
+        // Debounce search to avoid too many rapid API calls
+        searchTimeoutRef.current = setTimeout(() => {
+          // Trigger a search refresh if the search term is non-empty
+          if (value.trim() !== '') {
+            console.log('Triggering search refresh for:', value);
+            refetch.search().catch((err) => console.error('Search refresh error:', err));
+          }
+
+          // Stop loading after query is applied
+          stopSectionLoading('table');
+        }, 300);
+
+        // Log for debugging
+        console.log('Search term updated:', value);
       }
     },
-    [companySearchTerm],
+    [companySearchTerm, startSectionLoading, stopSectionLoading, refetch],
   );
+
+  // Handle city search term changes - COMPLETELY SEPARATE from company search
+  const onCitySearchChange = useCallback((value: string) => {
+    // Only update city search state, not company search
+    setCitySearchTerm(value);
+  }, []);
 
   // Get selected businesses from the store
   const selectedBusinesses = Object.values(selectedRows);
@@ -227,8 +351,8 @@ export function DashboardPage() {
         viewMode={viewMode}
         setViewMode={setViewMode}
         cityLoading={cityLoading}
-        searchTerm={searchTerm}
-        onSearchChange={onCompanySearchChange}
+        searchTerm={citySearchTerm}
+        onSearchChange={onCitySearchChange}
         fetchViewData={prefetchViewData}
         onViewModeChange={onViewModeChange}
       />
@@ -264,6 +388,7 @@ export function DashboardPage() {
               error={error}
               pageSize={pageSize}
               onPageSizeChange={handlePageSizeChange}
+              emptyStateReason={emptyStateReason}
             />
           )}
         </Suspense>

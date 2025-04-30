@@ -133,7 +133,13 @@ export function TableToolbar({
       <div className="flex flex-col gap-2 w-full">
         {/* Search input with proper width control */}
         <div className="w-full">
-          <SearchInput searchTerm={searchTerm} onSearch={onSearch} />
+          <SearchInput
+            searchTerm={searchTerm}
+            onSearch={(term) => {
+              console.log('Search term in toolbar:', term);
+              onSearch(term);
+            }}
+          />
         </div>
 
         {/* Control buttons with proper spacing and positioning - added overflow-x-auto for mobile scrolling */}
