@@ -2,7 +2,16 @@
 
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
-import { Button, Popover, PopoverContent, PopoverTrigger, Tab, Tabs, Tooltip } from '@heroui/react';
+import {
+  Button,
+  ButtonGroup,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Tab,
+  Tabs,
+  Tooltip,
+} from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';
@@ -46,12 +55,25 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Memoize the selection change handler
-  const handleSelectionChange = useCallback(
-    (key: string | number) => {
-      setViewMode(key as ViewMode);
+  // Create a directly callable function that handles both prefetching and view mode setting
+  const handleViewModeChange = useCallback(
+    (mode: ViewMode) => {
+      console.log(`Changing view mode to: ${mode} (current: ${viewMode})`);
+
+      // Only process if the mode is different
+      if (mode !== viewMode) {
+        // Prefetch data if available
+        if (fetchViewData) {
+          fetchViewData(mode).catch((error) => {
+            console.error(`Error prefetching data for ${mode} view:`, error);
+          });
+        }
+
+        // Set the view mode
+        setViewMode(mode);
+      }
     },
-    [setViewMode],
+    [viewMode, setViewMode, fetchViewData],
   );
 
   // Create prefetch functions for each view
@@ -91,90 +113,6 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     { enabled: !!fetchViewData },
   );
 
-  // Memoize the tab list class names
-  const tabListClassNames = useMemo(
-    () => ({
-      tabList: 'gap-1.5 sm:gap-2',
-      cursor: 'w-full bg-primary',
-      tab: 'max-w-fit px-2 sm:px-3 h-9',
-      tabContent:
-        'group-data-[selected=true]:text-primary-foreground dark:group-data-[selected=true]:text-primary',
-    }),
-    [],
-  );
-
-  // Memoize the table tab
-  const tableTab = useMemo(
-    () => (
-      <Tab
-        key="table"
-        title={
-          <div className="flex items-center gap-1.5" onMouseEnter={prefetchTableData}>
-            <Tooltip content="Table View" isDisabled={!isMobile}>
-              <Icon icon="lucide:table" width={18} height={18} />
-            </Tooltip>
-            <span className="text-sm hidden xs:inline-block sm:inline-block">Table</span>
-          </div>
-        }
-      />
-    ),
-    [prefetchTableData, isMobile],
-  );
-
-  // Memoize the split tab
-  const splitTab = useMemo(
-    () => (
-      <Tab
-        key="split"
-        title={
-          <div className="flex items-center gap-1.5" onMouseEnter={prefetchSplitData}>
-            <Tooltip content="Split View" isDisabled={!isMobile}>
-              <Icon icon="lucide:layout-grid" width={18} height={18} />
-            </Tooltip>
-            <span className="text-sm hidden xs:inline-block sm:inline-block">Split</span>
-          </div>
-        }
-      />
-    ),
-    [prefetchSplitData, isMobile],
-  );
-
-  // Memoize the map tab
-  const mapTab = useMemo(
-    () => (
-      <Tab
-        key="map"
-        title={
-          <div className="flex items-center gap-1.5" onMouseEnter={prefetchMapData}>
-            <Tooltip content="Map View" isDisabled={!isMobile}>
-              <Icon icon="lucide:map" width={18} height={18} />
-            </Tooltip>
-            <span className="text-sm hidden xs:inline-block sm:inline-block">Map</span>
-          </div>
-        }
-      />
-    ),
-    [prefetchMapData, isMobile],
-  );
-
-  // Memoize the analytics tab
-  const analyticsTab = useMemo(
-    () => (
-      <Tab
-        key="analytics"
-        title={
-          <div className="flex items-center gap-1.5" onMouseEnter={prefetchAnalyticsData}>
-            <Tooltip content="Analytics View" isDisabled={!isMobile}>
-              <Icon icon="lucide:bar-chart-2" width={18} height={18} />
-            </Tooltip>
-            <span className="text-sm hidden xs:inline-block sm:inline-block">Analytics</span>
-          </div>
-        }
-      />
-    ),
-    [prefetchAnalyticsData, isMobile],
-  );
-
   // Memoize the GitHub button
   const githubButton = useMemo(
     () => (
@@ -205,19 +143,56 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [githubButton],
   );
 
+  // If not mounted yet, show a placeholder to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-between w-full">
+        <div className="flex space-x-1 h-9 items-center">
+          <div className="w-20 h-7 bg-default-100 rounded-md" />
+          <div className="w-20 h-7 bg-default-100 rounded-md" />
+          <div className="w-20 h-7 bg-default-100 rounded-md" />
+          <div className="w-20 h-7 bg-default-100 rounded-md" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-between w-full">
-      <Tabs
-        aria-label="View mode options"
-        selectedKey={viewMode}
-        onSelectionChange={handleSelectionChange}
-        classNames={tabListClassNames}
-      >
-        {tableTab}
-        {splitTab}
-        {mapTab}
-        {analyticsTab}
-      </Tabs>
+      <ButtonGroup variant="flat" size="sm" fullWidth>
+        <Button
+          className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
+          onClick={() => handleViewModeChange('table')}
+          onMouseEnter={prefetchTableData}
+        >
+          <Icon icon="lucide:list" className="mr-1" />
+          Table
+        </Button>
+        <Button
+          className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
+          onClick={() => handleViewModeChange('map')}
+          onMouseEnter={prefetchMapData}
+        >
+          <Icon icon="lucide:map" className="mr-1" />
+          Map
+        </Button>
+        <Button
+          className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
+          onClick={() => handleViewModeChange('split')}
+          onMouseEnter={prefetchSplitData}
+        >
+          <Icon icon="lucide:layout-dashboard" className="mr-1" />
+          Split
+        </Button>
+        <Button
+          className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
+          onClick={() => handleViewModeChange('analytics')}
+          onMouseEnter={prefetchAnalyticsData}
+        >
+          <Icon icon="lucide:bar-chart-2" className="mr-1" />
+          Analytics
+        </Button>
+      </ButtonGroup>
 
       {desktopControls}
 

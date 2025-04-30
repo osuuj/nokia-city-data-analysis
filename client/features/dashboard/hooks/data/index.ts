@@ -6,3 +6,4 @@ export { useFetchCities, useFetchCompanies } from './useCompaniesQuery';
 export { useFilteredBusinesses } from './useFilteredBusinesses';
 export { useData } from './useData';
 export { useDashboardDataQuery } from './useDashboardDataQuery';
+export { useGeoJSONData, useCitiesData } from './useGeoJSONData';
