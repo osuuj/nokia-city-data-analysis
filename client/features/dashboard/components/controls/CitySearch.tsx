@@ -34,13 +34,14 @@ export const CitySearch = React.memo(function CitySearch({
     // Create a function with the correct signature for debounce
     const debouncedFn = debounce((value: unknown) => {
       if (typeof value === 'string') {
-        onSearchChange(value);
+        // Only update search term, but don't propagate to company search
+        // onSearchChange(value);
       }
     }, 300);
 
     // Return a wrapper that accepts string and passes it to the debounced function
     return (term: string) => debouncedFn(term);
-  }, [onSearchChange]);
+  }, []);
 
   // Update local search term when prop changes
   useEffect(() => {
@@ -84,6 +85,45 @@ export const CitySearch = React.memo(function CitySearch({
     [onCityChange, router],
   );
 
+  // Handle keydown to properly process Enter key
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && localSearchTerm) {
+        e.preventDefault(); // Prevent default form submission
+
+        // Find the first matching city
+        const matchingCity = filteredCities.find(
+          (city) => city.name.toLowerCase() === localSearchTerm.toLowerCase(),
+        );
+
+        // If we have an exact match, select it
+        if (matchingCity) {
+          setSelectionMade(true);
+          onCityChange(matchingCity.name);
+          router.replace(`/dashboard?city=${encodeURIComponent(matchingCity.name)}`);
+        } else if (filteredCities.length > 0) {
+          // Or select the first match
+          setSelectionMade(true);
+          onCityChange(filteredCities[0].name);
+          router.replace(`/dashboard?city=${encodeURIComponent(filteredCities[0].name)}`);
+        }
+      }
+    },
+    [filteredCities, localSearchTerm, onCityChange, router],
+  );
+
+  // Handle clear button click
+  const handleClear = useCallback(() => {
+    // Clear the selected city
+    onCityChange('');
+    // Reset the search term
+    setLocalSearchTerm('');
+    // Reset selection state
+    setSelectionMade(false);
+    // Update URL to remove city parameter
+    router.replace('/dashboard');
+  }, [onCityChange, router]);
+
   // Memoize the render item function
   const renderItem = useCallback(
     (item: { name: string }) => (
@@ -105,7 +145,7 @@ export const CitySearch = React.memo(function CitySearch({
       listboxWrapper: '',
       popoverContent: 'max-w-[40vw] md:max-w-xs',
       endContentWrapper: '',
-      clearButton: '',
+      clearButton: 'text-default-400 hover:text-default-600',
       selectorButton: '',
       label: 'text-primary-500 font-medium',
       mainWrapper: 'bg-content2 bg-opacity-20 rounded-lg p-2 hover:bg-opacity-30 transition-all',
@@ -120,7 +160,7 @@ export const CitySearch = React.memo(function CitySearch({
       return (
         <div className="flex items-center text-xs text-success-500 mt-1">
           <Icon icon="lucide:check-circle" className="mr-1" width={12} />
-          <span>City selected</span>
+          <span>{selectedCity} selected</span>
         </div>
       );
     }
@@ -140,6 +180,9 @@ export const CitySearch = React.memo(function CitySearch({
         inputValue={localSearchTerm}
         onInputChange={handleLocalSearchChange}
         onSelectionChange={handleSelectionChange}
+        onKeyDown={handleKeyDown}
+        onClear={handleClear}
+        isClearable={true}
         isLoading={isLoading}
         startContent={<Icon icon="lucide:search" className="text-default-400" width={16} />}
       >

@@ -2,6 +2,7 @@
 
 import type { SearchInputProps } from '@/features/dashboard/types';
 import { Input } from '@heroui/react';
+import { useCallback } from 'react';
 
 /**
  * CustomSearchIcon
@@ -39,19 +40,45 @@ const CustomSearchIcon = ({ width = 16, className = '' }) => (
  * A small input used to filter table content by keyword.
  */
 export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
+  // Handle form submission
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    // Focus is already on the input, so this prevents further propagation
+  }, []);
+
+  // Handle input change
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onSearch(e.target.value);
+    },
+    [onSearch],
+  );
+
+  // Handle key down to prevent default behaviors
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
+      e.stopPropagation(); // Stop event propagation
+    }
+  }, []);
+
   return (
-    <Input
-      className="w-auto min-w-[200px] max-w-[300px]"
-      classNames={{
-        base: 'max-w-full',
-        input: 'text-xs md:text-sm truncate',
-        inputWrapper: 'h-8 md:h-9',
-      }}
-      size="sm"
-      placeholder="Search company name..."
-      startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
-      value={searchTerm}
-      onChange={(e) => onSearch(e.target.value)}
-    />
+    <form onSubmit={handleSubmit} className="w-auto min-w-[200px] max-w-[300px]">
+      <Input
+        className="w-full"
+        classNames={{
+          base: 'max-w-full',
+          input: 'text-xs md:text-sm truncate',
+          inputWrapper: 'h-8 md:h-9',
+        }}
+        size="sm"
+        placeholder="Search company name..."
+        startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
+        value={searchTerm}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        aria-label="Search for companies"
+      />
+    </form>
   );
 }

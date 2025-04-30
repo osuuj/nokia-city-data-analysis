@@ -23,16 +23,53 @@ export function useFilteredBusinesses({
 
   // Reset loading state when search changes
   useEffect(() => {
-    setLoading(true);
+    if (searchQuery) {
+      setLoading(true);
 
-    // Simulate an API call delay for better UX
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 100);
+      // Simulate an API call delay for better UX
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 100);
 
-    return () => {
-      clearTimeout(timer);
-    };
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [searchQuery]);
+
+  // More efficient search implementation
+  const searchCompanies = useCallback((companies: CompanyProperties[], query: string) => {
+    if (!query.trim()) return companies;
+
+    const lowerCaseQuery = query.toLowerCase();
+    return companies.filter((business) => {
+      // Check company name (most common search)
+      if (business.company_name?.toLowerCase().includes(lowerCaseQuery)) {
+        return true;
+      }
+
+      // Check business ID
+      if (business.business_id?.toLowerCase().includes(lowerCaseQuery)) {
+        return true;
+      }
+
+      // Check industry (less priority)
+      if (business.industry?.toLowerCase().includes(lowerCaseQuery)) {
+        return true;
+      }
+
+      // Additional search on address if available
+      const visitingAddress = business.addresses?.['Visiting address'];
+      if (
+        visitingAddress &&
+        typeof visitingAddress.street === 'string' &&
+        visitingAddress.street.toLowerCase().includes(lowerCaseQuery)
+      ) {
+        return true;
+      }
+
+      return false;
+    });
   }, []);
 
   /**
@@ -54,18 +91,11 @@ export function useFilteredBusinesses({
 
     // Filter by search query
     if (debouncedSearch.trim() !== '') {
-      const lowerCaseSearch = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((business) => {
-        return (
-          business.company_name?.toLowerCase().includes(lowerCaseSearch) ||
-          business.business_id?.toLowerCase().includes(lowerCaseSearch) ||
-          business.industry?.toLowerCase().includes(lowerCaseSearch)
-        );
-      });
+      filtered = searchCompanies(filtered, debouncedSearch);
     }
 
     return filtered;
-  }, [data, industries, debouncedSearch]);
+  }, [data, industries, debouncedSearch, searchCompanies]);
 
   return {
     filteredBusinesses,

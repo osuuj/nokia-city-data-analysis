@@ -189,10 +189,12 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                 defaultSelectedKeys={[pageSize.toString()]}
                 onSelectionChange={(keys) => {
                   if (onPageSizeChange && keys !== 'all') {
-                    // Make sure keys is a Set before converting
+                    // Optimize performance by implementing a direct callback
                     if (keys instanceof Set && keys.size > 0) {
-                      // Convert Set to Array and get the first item
                       const newSize = Array.from(keys)[0] as string;
+                      // Start loading immediately to improve perceived performance
+                      setEffectiveIsLoading(true);
+                      // Apply the page size change
                       onPageSizeChange(Number.parseInt(newSize, 10));
                     }
                   }

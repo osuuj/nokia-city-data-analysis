@@ -74,10 +74,24 @@ export function DashboardPage() {
   const { paginated, totalPages } = usePagination(tableRows || [], currentPage, pageSize);
 
   // Handle page size change
-  const handlePageSizeChange = useCallback((newSize: number) => {
-    setPageSize(newSize);
-    setCurrentPage(1); // Reset to first page when changing page size
-  }, []);
+  const handlePageSizeChange = useCallback(
+    (newSize: number) => {
+      // Start loading to give user feedback
+      startSectionLoading('table', 'Adjusting page size...');
+
+      // Use a timeout to prevent UI blocking
+      setTimeout(() => {
+        setPageSize(newSize);
+        setCurrentPage(1); // Reset to first page when changing page size
+
+        // Stop loading after a brief delay to allow UI to update
+        setTimeout(() => {
+          stopSectionLoading('table');
+        }, 50);
+      }, 0);
+    },
+    [startSectionLoading, stopSectionLoading],
+  );
 
   // Update loading state based on data fetching, but prevent unnecessary loading cycles
   useEffect(() => {
@@ -180,11 +194,19 @@ export function DashboardPage() {
   );
 
   // Handle company search term changes
-  const onCompanySearchChange = (value: string) => {
-    setCompanySearchTerm(value);
-    setSearchTerm(value); // Also update searchTerm to keep both in sync
-    setCurrentPage(1); // Reset to first page on search
-  };
+  const onCompanySearchChange = useCallback(
+    (value: string) => {
+      // Only update the company search term if the value is different
+      if (companySearchTerm !== value) {
+        setCompanySearchTerm(value);
+        // Update the search term for UI consistency
+        setSearchTerm(value);
+        // Reset to first page on search
+        setCurrentPage(1);
+      }
+    },
+    [companySearchTerm],
+  );
 
   // Get selected businesses from the store
   const selectedBusinesses = Object.values(selectedRows);

@@ -76,10 +76,23 @@ export function usePagination<T>(
   const startIndex = (validatedPage - 1) * validatedRowsPerPage;
   const endIndex = Math.min(startIndex + validatedRowsPerPage, totalItems);
 
-  // Get the paginated data slice
+  // Get the paginated data slice using a more efficient approach
+  // Only slice when necessary to avoid unnecessary object creation
   const paginated = useMemo(() => {
+    // If asking for complete dataset or small dataset, just return it directly
+    if (startIndex === 0 && validatedRowsPerPage >= totalItems) {
+      return data;
+    }
+
+    // For very large datasets with high page numbers, use a more efficient slicing
+    if (totalItems > 1000 && startIndex > 500) {
+      // Create a new array only for the items needed
+      return data.slice(startIndex, endIndex);
+    }
+
+    // Standard case
     return data.slice(startIndex, endIndex);
-  }, [data, startIndex, endIndex]);
+  }, [data, startIndex, endIndex, totalItems, validatedRowsPerPage]);
 
   // Calculate additional pagination metadata
   const pageInfo = {
