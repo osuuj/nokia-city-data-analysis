@@ -16,7 +16,6 @@ import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import { DataLoader } from '@/shared/components/data';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
@@ -114,12 +113,6 @@ export const Header = () => {
     setTimeout(() => {
       setClickedItem(null);
     }, 300);
-  };
-
-  // Function to handle data ready event
-  const handleDataReady = () => {
-    // This function is called when data is ready
-    console.log('Data is ready');
   };
 
   // Remove scroll-related effects
@@ -337,13 +330,6 @@ export const Header = () => {
             </div>
           </div>
         )}
-
-        {/* Hidden DataLoader to prefetch data */}
-        <div className="hidden">
-          <DataLoader onDataReady={handleDataReady}>
-            <div>Data is ready</div>
-          </DataLoader>
-        </div>
       </div>
     </header>
   );

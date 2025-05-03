@@ -1,6 +1,5 @@
 'use client';
 
-import { DataLoader } from '@/shared/components/data';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
@@ -73,15 +72,6 @@ export const Hero = (): JSX.Element => {
           onStartExploring={handleStartExploring}
         />
       </Suspense>
-
-      {/* Hidden DataLoader to prefetch data */}
-      {isClient && (
-        <div className="hidden" aria-hidden="true">
-          <DataLoader onDataReady={handleDataReady}>
-            <div>Data is ready</div>
-          </DataLoader>
-        </div>
-      )}
     </header>
   );
 };

@@ -1,9 +1,9 @@
 'use client';
 
+import { TestimonialCard } from '@/features/about/components/TestimonialCard';
 import { ContactForm } from '@/shared/components/forms';
 import { Header } from '@/shared/components/layout';
 import { ProjectCard } from '@/shared/components/projects';
-import { TestimonialCard } from '@/shared/components/testimonials';
 import { TimelineItem } from '@/shared/components/timeline';
 import { AnimatedText } from '@/shared/components/ui';
 import { AnimatedSkillBar } from '@/shared/components/ui';
