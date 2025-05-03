@@ -1,4 +1,4 @@
-import { ErrorFallback } from '@/shared/components/error';
+import { ErrorMessage } from '@/shared/components/error';
 import { ErrorBoundary } from '@/shared/components/error';
 import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
@@ -88,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Global styles in a client component */}
           <GlobalStyles />
 
-          <ErrorBoundary fallback={<ErrorFallback />}>
+          <ErrorBoundary fallback={<ErrorMessage />}>
             <LoadingProvider>
               <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
                 <BreadcrumbProvider>
