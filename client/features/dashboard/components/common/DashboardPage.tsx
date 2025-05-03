@@ -1,10 +1,10 @@
 'use client';
 
-import { ViewSwitcher } from '@/features/dashboard/components/ViewSwitcher';
+import { ViewSwitcher } from '@/features/dashboard/components/common/ViewSwitcher';
+import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error/DashboardErrorBoundary';
+import { ErrorDisplay } from '@/features/dashboard/components/common/error/ErrorDisplay';
+import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
-import { DashboardSkeleton } from '@/features/dashboard/components/loading/Skeletons';
-import { DashboardErrorBoundary } from '@/features/dashboard/components/shared/DashboardErrorBoundary';
-import { ErrorDisplay } from '@/features/dashboard/components/shared/error/ErrorDisplay';
 import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
 import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useDashboardState } from '@/features/dashboard/hooks/useDashboardState';
