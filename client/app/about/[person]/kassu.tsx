@@ -3,10 +3,10 @@
 import { AnimatedSkillBar } from '@/features/about/components/AnimatedSkillBar';
 import AnimatedText from '@/features/about/components/AnimatedText';
 import { TestimonialCard } from '@/features/about/components/TestimonialCard';
-import { ContactForm } from '@/shared/components/forms';
+import { ContactForm } from '@/features/contact/components';
+import { ProjectCard } from '@/features/project/components';
+import { TimelineItem } from '@/features/project/components/ui/TimelineItem';
 import { Header } from '@/shared/components/layout';
-import { ProjectCard } from '@/shared/components/projects';
-import { TimelineItem } from '@/shared/components/timeline';
 import { ParticleBackground } from '@/shared/components/ui';
 import { useThemeContext } from '@/shared/context/ThemeContext';
 import { Avatar, Button, Card, CardBody, Divider, Link, Tooltip } from '@heroui/react';
@@ -758,12 +758,7 @@ export default function KassuPage() {
             {projects.map((project, index) => (
               <ProjectCard
                 key={project.title}
-                title={project.title}
-                description={project.description}
-                tech={project.tech}
-                image={project.image}
-                link={project.link}
-                index={index}
+                project={{ ...project, id: project.title.toLowerCase().replace(/\s+/g, '-') }}
               />
             ))}
           </div>
