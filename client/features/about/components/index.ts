@@ -14,3 +14,7 @@ export * from './EducationSection';
 export * from './ExperienceSection';
 export * from './ProjectsSection';
 export * from './SkillsSection';
+export * from './TeamMemberCard';
+export * from './TeamMemberCardSkeleton';
+export * from './TeamMemberGrid';
+export * from './lazy';

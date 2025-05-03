@@ -1,7 +1,7 @@
 // ProjectDetailClient.tsx
 'use client';
 
-import { TeamMemberGrid } from '@/features/about/components/team';
+import { TeamMemberGrid } from '@/features/about/components';
 import { AnimatedBackground } from '@/shared/components/ui';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';

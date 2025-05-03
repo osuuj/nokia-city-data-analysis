@@ -4,9 +4,22 @@ import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Tooltip } from '@
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import type { TeamMemberCardProps } from './types';
+import type { TeamMember } from '../types';
 
-export default function TeamMemberCard(props: TeamMemberCardProps) {
+interface TeamMemberCardProps {
+  member?: TeamMember;
+  // Allow passing TeamMember fields directly as props for flexibility
+  name?: string;
+  jobTitle?: string;
+  bio?: string;
+  shortBio?: string;
+  portfolioLink?: string;
+  avatarSrc?: string;
+  skills?: string[];
+  socialLinks?: Record<string, string>;
+}
+
+export function TeamMemberCard(props: TeamMemberCardProps) {
   // Handle both direct props and member object
   const member = props.member || props;
 
@@ -49,7 +62,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
           <p className="text-default-600 text-center mb-4">{shortBio}</p>
           {skills.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {skills.map((skill) => (
+              {skills.map((skill: string) => (
                 <Chip key={skill} size="sm" variant="flat">
                   {skill}
                 </Chip>
@@ -67,7 +80,7 @@ export default function TeamMemberCard(props: TeamMemberCardProps) {
               View Portfolio
             </Button>
           </Link>
-          {Object.entries(socialLinks).map(([platform, url]) => (
+          {(Object.entries(socialLinks) as [string, string][]).map(([platform, url]) => (
             <Tooltip key={platform} content={platform}>
               <Link href={url} target="_blank" rel="noopener noreferrer">
                 <Button isIconOnly variant="light" size="sm">

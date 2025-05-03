@@ -2,14 +2,14 @@
 
 import { motion } from 'framer-motion';
 import React from 'react';
+import type { TeamMember } from '../types';
 import TeamMemberCard from './TeamMemberCard';
-import type { TeamMember } from './types';
 
 interface TeamMemberGridProps {
   team: TeamMember[];
 }
 
-export default function TeamMemberGrid({ team }: TeamMemberGridProps) {
+export function TeamMemberGrid({ team }: TeamMemberGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {team.map((member, index) => (

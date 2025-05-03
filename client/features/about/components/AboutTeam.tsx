@@ -1,8 +1,5 @@
-import {
-  TeamMemberCard,
-  TeamMemberCardSkeleton,
-  useTeamMembers,
-} from '@/features/about/components/team';
+import { TeamMemberCard, TeamMemberCardSkeleton } from '@/features/about/components';
+import { useTeamMembers } from '@/features/about/hooks';
 
 /**
  * Component that displays the team members section of the About page.
