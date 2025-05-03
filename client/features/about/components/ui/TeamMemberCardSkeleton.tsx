@@ -3,7 +3,7 @@
 import { Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
 import React from 'react';
 
-export default function TeamMemberCardSkeleton() {
+export function TeamMemberCardSkeleton() {
   return (
     <Card className="shadow-md h-full backdrop-blur-md bg-opacity-85 border border-content2">
       <CardHeader className="flex flex-col items-center gap-2 p-4">

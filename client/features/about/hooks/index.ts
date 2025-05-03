@@ -5,6 +5,4 @@
  * It serves as the main entry point for data fetching hooks and other custom hooks.
  */
 
-export * from './useProfileData';
-export * from './useProfilesList';
 export * from './useTeamMember';

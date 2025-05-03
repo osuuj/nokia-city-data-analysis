@@ -17,6 +17,5 @@ export * from './types';
 // Data
 export * from './data';
 
-// Note: Utils and Store exports are commented out until they contain actual exports
-// export * from './utils';
+// Note: Store exports are commented out until they contain actual exports
 // export * from './store';

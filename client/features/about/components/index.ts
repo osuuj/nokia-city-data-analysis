@@ -4,17 +4,7 @@
  * This file exports all components for the about feature.
  */
 
-export * from './AboutErrorBoundary';
-export * from './AboutStory';
-export * from './AboutTeam';
-export * from './ProfilePage';
-export * from './ProfileHeader';
-export * from './ProfileSkeleton';
-export * from './EducationSection';
-export * from './ExperienceSection';
-export * from './ProjectsSection';
-export * from './SkillsSection';
-export * from './TeamMemberCard';
-export * from './TeamMemberCardSkeleton';
-export * from './TeamMemberGrid';
-export * from './lazy';
+// Re-export components from subdirectories
+export * from './ui';
+export * from './layout';
+export * from './sections';

@@ -4,7 +4,7 @@ import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Tooltip } from '@
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import type { TeamMember } from '../types';
+import type { Skill, TeamMember } from '../../types';
 
 interface TeamMemberCardProps {
   member?: TeamMember;
@@ -15,7 +15,7 @@ interface TeamMemberCardProps {
   shortBio?: string;
   portfolioLink?: string;
   avatarSrc?: string;
-  skills?: string[];
+  skills?: string[] | Skill[];
   socialLinks?: Record<string, string>;
 }
 
@@ -62,11 +62,15 @@ export function TeamMemberCard(props: TeamMemberCardProps) {
           <p className="text-default-600 text-center mb-4">{shortBio}</p>
           {skills.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {skills.map((skill: string) => (
-                <Chip key={skill} size="sm" variant="flat">
-                  {skill}
-                </Chip>
-              ))}
+              {skills.map((skill: string | Skill) => {
+                // Handle both string and Skill object
+                const skillName = typeof skill === 'string' ? skill : skill.name;
+                return (
+                  <Chip key={skillName} size="sm" variant="flat">
+                    {skillName}
+                  </Chip>
+                );
+              })}
             </div>
           )}
         </CardBody>
