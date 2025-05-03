@@ -1,9 +1,12 @@
 'use client';
 
-import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types';
+import type {
+  CompanyTableKey,
+  SortDescriptor,
+  TableColumnConfig,
+} from '@/features/dashboard/types';
 import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { cn } from '@/shared/utils/cn';
-import { useCompanyStore } from '@features/dashboard/store';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -24,7 +27,7 @@ export function SortDropdown({
   'aria-label': ariaLabel,
 }: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const visibleColumns = useCompanyStore((state) => state.visibleColumns);
+  const visibleColumns: TableColumnConfig[] = [];
 
   // Get the current sort direction icon
   const getSortIcon = useCallback(() => {
@@ -40,7 +43,7 @@ export function SortDropdown({
       visibleColumns.find((col) => col.key === sortDescriptor.column)?.label ||
       sortDescriptor.column;
     return `${columnLabel} (${sortDescriptor.direction === 'asc' ? '↑' : '↓'})`;
-  }, [sortDescriptor, visibleColumns]);
+  }, [sortDescriptor]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

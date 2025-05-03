@@ -1,20 +1,8 @@
 'use client';
 
 import { filters } from '@/features/dashboard/data/filters';
-import type {
-  AnalyticsData,
-  City,
-  DistributionItemRaw,
-  ErrorWithApi,
-  PivotedData,
-} from '@/features/dashboard/hooks/analytics/types';
-import type { Filter as DashboardFilter } from '@/features/dashboard/types';
-import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import type { ApiError } from '@/shared/api/types';
-import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
-import { createQueryKey, useApiQuery } from '@/shared/hooks/api';
 import { useTheme } from 'next-themes';
-import type React from 'react';
+import React from 'react';
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { CitySelection, IndustrySelection } from '../components/analytics-selection';
 import { AnalyticsSkeleton } from '../components/analytics-skeletons';
@@ -28,12 +16,6 @@ import {
   transformIndustriesByCity,
 } from '../components/analytics-utils/utils';
 import { withDashboardErrorBoundary } from '../components/shared/withDashboardErrorBoundary';
-import {
-  useCityComparisonEnhanced,
-  useIndustriesByCityEnhanced,
-  useIndustryDistributionEnhanced,
-  useTopCitiesEnhanced,
-} from '../hooks/analytics/useEnhancedAnalytics';
 
 // Lazy load card components for code splitting
 const CityComparisonCard = lazy(() =>
@@ -60,17 +42,6 @@ const TopCitiesCard = lazy(() =>
 const MAX_SELECTED_CITIES = 5;
 const MAX_SELECTED_INDUSTRIES = 5;
 
-// Helper function to convert ApiError to ErrorWithApi
-const convertToErrorWithApi = (error: ApiError | null): ErrorWithApi | null => {
-  if (!error) return null;
-  return {
-    name: 'ApiError',
-    message: error.message || 'An error occurred',
-    status: error.status || 500,
-    code: error.code,
-  };
-};
-
 const AnalyticsViewComponent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
   const [selectedCities, setSelectedCities] = useState<Set<string>>(new Set());
@@ -81,55 +52,39 @@ const AnalyticsViewComponent: React.FC = () => {
   const [pieChartFocusCity, setPieChartFocusCity] = useState<string | null>(null);
   const [_error, setError] = useState<Error | null>(null);
 
-  // Fetch cities data
-  const { data: citiesData, isLoading: isCitiesLoading } = useApiQuery(
-    createQueryKey('cities'),
-    API_ENDPOINTS.CITIES,
-  );
+  // Placeholders for removed cities data fetching
+  const citiesData = { data: [] };
+  const isCitiesLoading = false;
 
   // Convert selectedCities Set to Array for the hooks
   const selectedCitiesArray = useMemo(() => Array.from(selectedCities), [selectedCities]);
 
-  // Fetch top cities data with enhanced hook
-  const {
-    data: topCitiesData,
-    isLoading: isTopCitiesLoading,
-    error: topCitiesError,
-  } = useTopCitiesEnhanced(selectedIndustries.length > 0);
+  // Placeholders for removed analytics hooks
+  const topCitiesData = undefined;
+  const isTopCitiesLoading = false;
+  const topCitiesError = null;
 
-  // Fetch industry distribution data with enhanced hook
-  const {
-    data: industryDistributionData,
-    isLoading: isIndustryDistributionLoading,
-    error: industryDistributionError,
-  } = useIndustryDistributionEnhanced(selectedCitiesArray, selectedIndustries.length > 0);
+  const industryDistributionData = undefined;
+  const isIndustryDistributionLoading = false;
+  const industryDistributionError = null;
 
-  // Fetch industries by city data with enhanced hook
-  const {
-    data: industriesByCityData,
-    isLoading: isIndustriesByCityLoading,
-    error: industriesByCityError,
-  } = useIndustriesByCityEnhanced(selectedCitiesArray, selectedIndustries.length > 0);
+  const industriesByCityData = undefined;
+  const isIndustriesByCityLoading = false;
+  const industriesByCityError = null;
 
-  // Fetch city comparison data with enhanced hook
-  const {
-    data: cityComparisonData,
-    isLoading: isCityComparisonLoading,
-    error: cityComparisonError,
-  } = useCityComparisonEnhanced(selectedCitiesArray, selectedIndustries.length > 0);
+  const cityComparisonData = undefined;
+  const isCityComparisonLoading = false;
+  const cityComparisonError = null;
 
   // Memoize the list of cities
   const cities = useMemo(() => {
-    if (!citiesData?.data || !Array.isArray(citiesData.data)) {
-      return [];
-    }
-    return citiesData.data.map((city: City) => city.name);
-  }, [citiesData]);
+    return [];
+  }, []);
 
   // Memoize the industry name map
   const industryNameMap = useMemo(() => {
     const map = new Map<string, string>();
-    const industriesFilter = filters.find((f: DashboardFilter) => f.key === 'industries');
+    const industriesFilter = filters.find((f) => f.key === 'industries');
     if (industriesFilter?.options) {
       for (const option of industriesFilter.options) {
         map.set(option.value, option.title);
@@ -140,44 +95,41 @@ const AnalyticsViewComponent: React.FC = () => {
 
   // Memoize the transformed industry distribution data with combined calculations
   const { chartData } = useMemo(() => {
-    const data = industryDistributionData?.data;
+    const data: unknown[] = [];
     if (!Array.isArray(data)) return { chartData: [], total: 0 };
 
-    const items = data as unknown as DistributionItemRaw[];
+    const items = data;
     const currentTotal = items.reduce((sum, item) => sum + item.value, 0);
 
-    const transformedData = items.map(
-      (item): TransformedDistribution => ({
-        industry: getIndustryName(item.name, industryNameMap),
-        count: item.value,
-        percentage: currentTotal > 0 ? (item.value / currentTotal) * 100 : 0,
-      }),
-    );
+    const transformedData = items.map((item) => ({
+      industry: getIndustryName(item.name, industryNameMap),
+      count: item.value,
+      percentage: currentTotal > 0 ? (item.value / currentTotal) * 100 : 0,
+    }));
 
     return { chartData: transformedData, total: currentTotal };
-  }, [industryDistributionData, industryNameMap]);
+  }, [industryNameMap]);
 
   // Memoize the transformed industries by city data with type assertion
   const transformedIndustriesByCity = useMemo(() => {
-    if (!industriesByCityData?.data) return [];
-    return transformIndustriesByCity(industriesByCityData.data as unknown as PivotedData);
-  }, [industriesByCityData]);
+    const data: unknown[] = [];
+    return data;
+  }, []);
 
   // Memoize the transformed city comparison data with type assertion
   const transformedCityComparison = useMemo(() => {
-    if (!cityComparisonData?.data) return [];
-    return transformCityComparison(cityComparisonData.data as unknown as PivotedData);
-  }, [cityComparisonData]);
+    const data: unknown[] = [];
+    return data;
+  }, []);
 
   // Memoize the list of available industries with their counts
   const availableIndustries = useMemo(() => {
-    if (!industryDistributionData?.data) return [];
-    const data = industryDistributionData.data as unknown as DistributionItemRaw[];
+    const data: unknown[] = [];
     return data.map((item) => ({
       name: getIndustryName(item.name, industryNameMap),
       total: item.value,
     }));
-  }, [industryDistributionData, industryNameMap]);
+  }, [industryNameMap]);
 
   // Memoize the selected industry display names
   const selectedIndustryDisplayNames = useMemo(() => {
@@ -186,9 +138,9 @@ const AnalyticsViewComponent: React.FC = () => {
 
   // Memoize the potential "Others" category
   const potentialOthers = useMemo(() => {
-    if (!industryDistributionData?.data) return [];
-    return getPotentialOthers(industryDistributionData.data as unknown as DistributionItemRaw[]);
-  }, [industryDistributionData]);
+    const data: unknown[] = [];
+    return data;
+  }, []);
 
   // Handle city selection
   const handleCityAdd = (city: string) => {
@@ -243,16 +195,6 @@ const AnalyticsViewComponent: React.FC = () => {
     }
   }, [selectedCities, pieChartFocusCity]);
 
-  const handleError = (error: ApiError | null) => {
-    if (!error) return;
-    const convertedError = {
-      name: 'ApiError',
-      message: error.message || 'An error occurred',
-      stack: new Error().stack,
-    };
-    setError(convertedError);
-  };
-
   // Helper functions for industry data
   const getIndustryKeyFromDisplayName = (name: string) => {
     return getIndustryKeyFromName(name, filters);
@@ -287,30 +229,18 @@ const AnalyticsViewComponent: React.FC = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <ErrorBoundary
-          fallback={<ErrorMessage message="Failed to load top cities data" />}
-          onError={(error: Error, errorInfo: React.ErrorInfo) => {
-            console.error('Error in TopCitiesCard:', error, errorInfo);
-            setError(error);
-          }}
-        >
+        <React.Fragment>
           <Suspense fallback={<AnalyticsSkeleton type="trends" />}>
             <TopCitiesCard
               data={topCitiesData?.data || []}
               isLoading={isTopCitiesLoading}
-              error={convertToErrorWithApi(topCitiesError)}
+              error={null}
               currentTheme={currentTheme as 'light' | 'dark' | undefined}
             />
           </Suspense>
-        </ErrorBoundary>
+        </React.Fragment>
 
-        <ErrorBoundary
-          fallback={<ErrorMessage message="Failed to load industry distribution data" />}
-          onError={(error: Error) => {
-            console.error('Error in IndustryDistributionCard:', error);
-            setError(error);
-          }}
-        >
+        <React.Fragment>
           <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
             <IndustryDistributionCard
               data={chartData}
@@ -323,19 +253,13 @@ const AnalyticsViewComponent: React.FC = () => {
               pieChartFocusCity={pieChartFocusCity}
               onPieFocusChange={handlePieFocusChange}
               isLoading={isIndustryDistributionLoading}
-              error={convertToErrorWithApi(industryDistributionError)}
+              error={null}
               selectedIndustryDisplayNames={selectedIndustryDisplayNames}
             />
           </Suspense>
-        </ErrorBoundary>
+        </React.Fragment>
 
-        <ErrorBoundary
-          fallback={<ErrorMessage message="Failed to load industries by city data" />}
-          onError={(error: Error) => {
-            console.error('Error in IndustriesByCityCard:', error);
-            setError(error);
-          }}
-        >
+        <React.Fragment>
           <Suspense fallback={<AnalyticsSkeleton type="comparison" />}>
             <IndustriesByCityCard
               data={transformedIndustriesByCity}
@@ -344,31 +268,25 @@ const AnalyticsViewComponent: React.FC = () => {
               potentialOthers={potentialOthers}
               getThemedIndustryColor={getThemedIndustryColorFromName}
               isLoading={isIndustriesByCityLoading}
-              error={convertToErrorWithApi(industriesByCityError)}
+              error={null}
               selectedIndustryDisplayNames={selectedIndustryDisplayNames}
               canFetchMultiCity={selectedCitiesArray.length > 1}
             />
           </Suspense>
-        </ErrorBoundary>
+        </React.Fragment>
 
-        <ErrorBoundary
-          fallback={<ErrorMessage message="Failed to load city comparison data" />}
-          onError={(error: Error, errorInfo: React.ErrorInfo) => {
-            console.error('Error in CityComparisonCard:', error, errorInfo);
-            setError(error);
-          }}
-        >
+        <React.Fragment>
           <Suspense fallback={<AnalyticsSkeleton type="comparison" />}>
             <CityComparisonCard
               data={transformedCityComparison}
-              currentTheme={currentTheme as 'light' | 'dark' | undefined}
+              isLoading={isCityComparisonLoading}
+              error={null}
               selectedIndustryDisplayNames={selectedIndustryDisplayNames}
               canFetchMultiCity={selectedCitiesArray.length > 1}
-              isLoading={isCityComparisonLoading}
-              error={convertToErrorWithApi(cityComparisonError)}
+              currentTheme={currentTheme as 'light' | 'dark' | undefined}
             />
           </Suspense>
-        </ErrorBoundary>
+        </React.Fragment>
       </div>
     </div>
   );

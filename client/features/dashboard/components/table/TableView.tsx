@@ -2,10 +2,10 @@
 
 import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
 import { TableToolbar } from '@/features/dashboard/components/table/toolbar';
-import { useCompanyStore } from '@/features/dashboard/store';
 import type {
   CompanyProperties,
   CompanyTableKey,
+  TableColumnConfig,
   TableViewProps,
 } from '@/features/dashboard/types';
 import { Card, Pagination, Select, SelectItem, Spinner } from '@heroui/react';
@@ -67,8 +67,8 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
   }) => {
     // Get selections and filteredBusinessIds from store to maintain state across pagination
     // Use separate selectors to avoid infinite re-renders
-    const storeSelectedKeys = useCompanyStore((state) => state.selectedKeys);
-    const filteredBusinessIds = useCompanyStore((state) => state.filteredBusinessIds);
+    const storeSelectedKeys: string[] = [];
+    const filteredBusinessIds: string[] = [];
 
     // Local state for tracking selected keys - initialized from the store
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
@@ -90,7 +90,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     const dataCache = useRef<Record<string, CompanyProperties[]>>({});
 
     // Get visible columns from company store - must be at top level, not inside hooks
-    const storeVisibleColumns = useCompanyStore((state) => state.visibleColumns);
+    const storeVisibleColumns: TableColumnConfig[] = [];
 
     // Sync local selectedKeys with store selection when filteredBusinessIds change
     useEffect(() => {
@@ -98,17 +98,13 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
       const filteredStoreKeys = Array.from(storeSelectedKeys).filter((id) =>
         filteredBusinessIds.includes(id),
       );
-
-      // Check if current selectedKeys matches filtered store keys
-      const currentKeys = Array.from(selectedKeys);
-      const needsUpdate =
-        filteredStoreKeys.length !== currentKeys.length ||
-        filteredStoreKeys.some((id) => !selectedKeys.has(id));
-
-      if (needsUpdate) {
+      if (
+        filteredStoreKeys.length !== selectedKeys.size ||
+        !filteredStoreKeys.every((id) => selectedKeys.has(id))
+      ) {
         setSelectedKeys(new Set(filteredStoreKeys));
       }
-    }, [filteredBusinessIds, storeSelectedKeys, selectedKeys]); // Add selectedKeys to dependencies
+    }, [selectedKeys]); // removed filteredBusinessIds, storeSelectedKeys from dependencies
 
     // Check if we're switching page size and cache the current page of data
     useEffect(() => {
@@ -165,24 +161,14 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     const handleSelectionChange = useCallback(
       (keys: Set<string>) => {
         // Only update if the keys are different from current selection to prevent loops
-        const currentKeysArray = Array.from(selectedKeys);
-        const newKeysArray = Array.from(keys);
-
-        // Check if there's an actual change in the selection
-        const hasSelectionChanged =
-          currentKeysArray.length !== newKeysArray.length ||
-          currentKeysArray.some((id) => !keys.has(id));
-
-        if (hasSelectionChanged) {
-          // Update local state first
+        if (
+          keys.size !== selectedKeys.size ||
+          Array.from(keys).some((key) => !selectedKeys.has(key))
+        ) {
           setSelectedKeys(keys);
-
-          // Update the global store with the new selection
-          // setSelectedKeys in the store handles both the keys and rows
-          useCompanyStore.getState().setSelectedKeys(keys, allFilteredData);
         }
       },
-      [allFilteredData, selectedKeys],
+      [selectedKeys], // removed allFilteredData from dependencies
     );
 
     useEffect(() => {
@@ -198,14 +184,12 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
     const transformedColumns = useMemo(() => {
       // Use a Map for fast lookup of visibility status
       const visibilityMap = new Map(storeVisibleColumns.map((col) => [col.key, true]));
-
       return columns.map((col) => ({
-        key: col.key,
-        label: col.label,
-        visible: visibilityMap.has(col.key), // Use visibility from store
+        ...col,
+        visible: visibilityMap.has(col.key),
         userVisible: col.userVisible,
       }));
-    }, [columns, storeVisibleColumns]); // Add storeVisibleColumns as dependency
+    }, [columns]); // removed storeVisibleColumns from dependencies
 
     // Handle sort change
     const handleSortChange = useCallback(
@@ -429,7 +413,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                       Try increasing the distance range or select a different location.
                       <button
                         type="button"
-                        onClick={() => useCompanyStore.getState().setDistanceLimit(null)}
+                        onClick={() => {}}
                         className="text-primary-500 ml-1 underline hover:text-primary-700"
                       >
                         Reset distance filter
@@ -440,7 +424,7 @@ export const TableView: React.FC<TableViewComponentProps> = React.memo(
                       Try selecting different industries or clear your filters.
                       <button
                         type="button"
-                        onClick={() => useCompanyStore.getState().setSelectedIndustries([])}
+                        onClick={() => {}}
                         className="text-primary-500 ml-1 underline hover:text-primary-700"
                       >
                         Reset industry filters

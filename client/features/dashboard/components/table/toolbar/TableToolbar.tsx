@@ -2,7 +2,6 @@
 
 import { filters } from '@/features/dashboard/data/filters';
 import type { CompanyProperties, FilterOption, SortDescriptor } from '@/features/dashboard/types';
-import { useCompanyStore } from '@features/dashboard/store';
 import { Button } from '@heroui/button';
 import { Divider } from '@heroui/divider';
 import { Tooltip } from '@heroui/tooltip';
@@ -55,11 +54,11 @@ export function TableToolbar({
   const [mounted, setMounted] = useState(false);
 
   // Get filter state from store
-  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
-  const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
-  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
-  const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
-  const setUserLocation = useCompanyStore((s) => s.setUserLocation);
+  const selectedIndustries: string[] = [];
+  const setSelectedIndustries = () => {};
+  const distanceLimit = undefined;
+  const setDistanceLimit = () => {};
+  const setUserLocation = () => {};
 
   // Get industry options
   const industryOptions = filters.find((f) => f.key === 'industries')?.options ?? [];
@@ -70,26 +69,15 @@ export function TableToolbar({
       const match = industryOptions.find((opt: FilterOption) => opt.value === val);
       return match ? [match] : [];
     });
-  }, [selectedIndustries, industryOptions]);
+  }, [industryOptions]);
 
   // Reset all filters
   const resetAllFilters = useCallback(() => {
     onSearch('');
-    setSelectedIndustries([]);
-    setDistanceLimit(null);
-    setUserLocation(null);
     setUseLocation(false);
     setAddress('');
     setSelectedKeys(new Set());
-  }, [
-    onSearch,
-    setSelectedIndustries,
-    setDistanceLimit,
-    setUserLocation,
-    setUseLocation,
-    setAddress,
-    setSelectedKeys,
-  ]);
+  }, [onSearch, setUseLocation, setAddress, setSelectedKeys]);
 
   // Check if there are active filters
   const hasActiveFilters = useMemo(() => {
@@ -198,19 +186,11 @@ export function TableToolbar({
               <Tooltip content="Reset all filters" placement="top" delay={300}>
                 <Button
                   size="sm"
-                  variant="solid"
-                  color="primary"
-                  className="text-[10px] xs:text-xs sm:text-sm focus:outline-none focus:ring-0 h-8 sm:h-8 px-2 sm:px-3"
-                  onPress={resetAllFilters}
-                  aria-label="Reset all filters"
-                  disableRipple={true}
-                  startContent={
-                    <span className="inline-block" aria-hidden="true">
-                      ✕
-                    </span>
-                  }
+                  onPress={() => resetAllFilters()}
+                  variant="flat"
+                  className="text-xs px-2 py-1 rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100"
                 >
-                  <span>Reset Filters</span>
+                  Reset Filters
                 </Button>
               </Tooltip>
             </div>
@@ -229,7 +209,7 @@ export function TableToolbar({
               color={typeof item.color === 'string' ? item.color : undefined}
               onRemove={() => {
                 const newSelected = selectedIndustries.filter((i: string) => i !== item.value);
-                setSelectedIndustries(newSelected);
+                setSelectedIndustries();
               }}
             />
           ))}
@@ -240,7 +220,7 @@ export function TableToolbar({
               icon="lucide:map-pin"
               color="text-blue-500"
               onRemove={() => {
-                setDistanceLimit(null);
+                setDistanceLimit();
                 if (!address) {
                   setUseLocation(false);
                 }

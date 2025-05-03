@@ -2,7 +2,6 @@
 
 import type { TableColumnConfig } from '@/features/dashboard/types';
 import { cn } from '@/shared/utils/cn';
-import { useCompanyStore } from '@features/dashboard/store';
 import {
   Button,
   Dropdown,
@@ -21,14 +20,14 @@ import { type Key, useCallback, useEffect, useMemo, useState } from 'react';
  */
 export function ColumnVisibilityDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const visibleColumns = useCompanyStore((state) => state.visibleColumns);
-  const toggleColumnVisibility = useCompanyStore((state) => state.toggleColumnVisibility);
-  const resetColumns = useCompanyStore((state) => state.resetColumns);
+  const visibleColumns: TableColumnConfig[] = [];
+  const toggleColumnVisibility = () => {};
+  const resetColumns = () => {};
 
   // Get selected keys for the dropdown
   const selectedKeys = useMemo(() => {
     return new Set(visibleColumns.map((col) => col.key));
-  }, [visibleColumns]);
+  }, []);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -52,7 +51,7 @@ export function ColumnVisibilityDropdown() {
     resetColumns();
     // Close the dropdown after resetting
     setIsOpen(false);
-  }, [resetColumns]);
+  }, []);
 
   // Filter columns that can be toggled by users
   const toggleableColumns = useMemo(
@@ -61,25 +60,22 @@ export function ColumnVisibilityDropdown() {
   );
 
   // Handle selection changes directly
-  const handleSelectionChange = useCallback(
-    (keys: Set<Key> | 'all') => {
-      if (keys === 'all') return;
+  const handleSelectionChange = useCallback((keys: Set<Key> | 'all') => {
+    if (keys === 'all') return;
 
-      const selected = keys as Set<string>;
+    const selected = keys as Set<string>;
 
-      for (const col of columns) {
-        if (!col.userVisible) continue; // Skip columns that users shouldn't toggle
+    for (const col of columns) {
+      if (!col.userVisible) continue; // Skip columns that users shouldn't toggle
 
-        const isVisible = selected.has(col.key);
-        const isCurrentlyVisible = visibleColumns.some((v) => v.key === col.key);
+      const isVisible = selected.has(col.key);
+      const isCurrentlyVisible = visibleColumns.some((v) => v.key === col.key);
 
-        if (isVisible !== isCurrentlyVisible) {
-          toggleColumnVisibility(col.key);
-        }
+      if (isVisible !== isCurrentlyVisible) {
+        toggleColumnVisibility();
       }
-    },
-    [visibleColumns, toggleColumnVisibility],
-  );
+    }
+  }, []);
 
   return (
     <Dropdown

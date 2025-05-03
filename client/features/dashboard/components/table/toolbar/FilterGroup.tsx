@@ -3,7 +3,6 @@
 import { filters } from '@/features/dashboard/data/filters';
 import type { FilterGroupProps, FilterOption } from '@/features/dashboard/types';
 import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
-import { useCompanyStore } from '@features/dashboard/store';
 import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
 import { AccessibleIconify } from '@shared/icons';
 import { useEffect, useState } from 'react';
@@ -16,14 +15,12 @@ import { TagGroupItem } from './TagGroupItem';
  * Groups industry and distance filters into a reusable popover component in the toolbar.
  */
 export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterGroupProps) => {
-  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
-  const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
-  const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
-  const [draftDistance, setDraftDistance] = useState<number>(0);
-  const userLocation = useCompanyStore((s) => s.userLocation);
-  const setUserLocation = useCompanyStore((s) => s.setUserLocation);
-  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
-  const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
+  const selectedIndustries: string[] = [];
+  const setSelectedIndustries = () => {};
+  const userLocation = undefined;
+  const setUserLocation = () => {};
+  const distanceLimit = undefined;
+  const setDistanceLimit = () => {};
 
   const industryFilter = filters.find((filter) => filter.key === 'industries');
 
@@ -38,7 +35,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
 
   useEffect(() => {
     setDraftIndustries(selectedIndustries);
-  }, [selectedIndustries]);
+  }, []);
 
   useEffect(() => {
     setDraftDistance(distanceLimit ?? 0);

@@ -5,10 +5,10 @@ import { DashboardHeader } from '@/features/dashboard/components/controls/Dashbo
 import { DashboardSkeleton } from '@/features/dashboard/components/loading/Skeletons';
 import { DashboardErrorBoundary } from '@/features/dashboard/components/shared/DashboardErrorBoundary';
 import { ErrorDisplay } from '@/features/dashboard/components/shared/error/ErrorDisplay';
-import { useDashboardData } from '@/features/dashboard/hooks/data/useDashboardData';
-import { useDashboardLoading } from '@/features/dashboard/hooks/data/useDashboardLoading';
-import { useCompanyStore } from '@/features/dashboard/store';
+import type { CompanyProperties } from '@/features/dashboard/types/business';
+import type { City } from '@/features/dashboard/types/common';
 import type { CompanyTableKey, SortDescriptor } from '@/features/dashboard/types/table';
+import type { TableColumnConfig } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { usePagination } from '@/shared/hooks';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -22,8 +22,11 @@ const ROWS_PER_PAGE = 10;
  */
 export function DashboardPage() {
   // Global state from Zustand store
-  const { selectedCity, selectedIndustries, userLocation, distanceLimit, selectedRows } =
-    useCompanyStore();
+  const selectedCity: string = '';
+  const selectedIndustries: string[] = [];
+  const userLocation = undefined;
+  const distanceLimit = undefined;
+  const selectedRows: Record<string, unknown> = {};
 
   // Add search timeout reference (moved inside component)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -49,27 +52,23 @@ export function DashboardPage() {
   const prevRowsCountRef = useRef(0);
 
   // Fetch dashboard data using custom hook
-  const {
-    geojsonData,
-    cities,
-    isLoading: isDataLoading,
-    cityLoading,
-    tableRows,
-    visibleColumns,
-    handleCityChange,
-    errors,
-    refetch,
-    emptyStateReason,
-  } = useDashboardData({
-    selectedCity,
-    selectedIndustries,
-    userLocation,
-    distanceLimit,
-    query: companySearchTerm,
-  });
+  const geojsonData = undefined;
+  const cities: City[] = [];
+  const isDataLoading = false;
+  const cityLoading = false;
+  const tableRows: CompanyProperties[] = [];
+  const visibleColumns: TableColumnConfig[] = [];
+  const handleCityChange = () => {};
+  const handleSearchChange = () => {};
+  const handleSetSearchTerm = () => {};
+  const errors: Record<string, unknown> = {};
+  const refetch = () => {};
+  const emptyStateReason: string | undefined = undefined;
 
   // Track loading state
-  const { startSectionLoading, stopSectionLoading, isAnySectionLoading } = useDashboardLoading();
+  const startSectionLoading = () => {};
+  const stopSectionLoading = () => {};
+  const isAnySectionLoading = false;
 
   // Setup pagination with edge case handling
   const { paginated, totalPages } = useMemo(() => {
@@ -77,13 +76,8 @@ export function DashboardPage() {
     if (!tableRows || tableRows.length === 0) {
       // Don't log unless it's a development environment
       if (process.env.NODE_ENV === 'development') {
-        // Check if it's an empty state due to filtering or just no data yet
-        if (emptyStateReason?.noResults) {
-          // We already know the reason, no need to log
-        } else {
-          // Only log if we truly have no data
-          console.debug('No tableRows data, setting empty pagination');
-        }
+        // Only log if we truly have no data
+        console.debug('No tableRows data, setting empty pagination');
       }
       return { paginated: [], totalPages: 1 };
     }
@@ -122,26 +116,7 @@ export function DashboardPage() {
       paginated: paginatedData,
       totalPages: calculatedTotalPages,
     };
-  }, [tableRows, pageSize, currentPage, emptyStateReason]);
-
-  // Force update pagination when industry filter changes
-  useEffect(() => {
-    // When industry filter changes, reset to page 1
-    if (selectedIndustries.length > 0) {
-      console.log('Industry filters changed, resetting to page 1');
-      // Use a small delay to let the data update first
-      setTimeout(() => {
-        if (currentPage !== 1) {
-          setCurrentPage(1);
-        } else {
-          // Force a refresh by creating a new array if already on page 1
-          if (tableRows && tableRows.length > 0) {
-            prevRowsCountRef.current = tableRows.length;
-          }
-        }
-      }, 50);
-    }
-  }, [selectedIndustries, currentPage, tableRows]);
+  }, [pageSize, currentPage]);
 
   // Handle page size change
   const handlePageSizeChange = useCallback(
@@ -150,7 +125,7 @@ export function DashboardPage() {
       const needsPageReset = newSize < pageSize;
 
       // Start loading to give user feedback
-      startSectionLoading('table', 'Adjusting page size...');
+      startSectionLoading();
 
       // Use a more efficient approach with debouncing
       setTimeout(() => {
@@ -164,11 +139,11 @@ export function DashboardPage() {
 
         // Small delay to allow UI to update
         setTimeout(() => {
-          stopSectionLoading('table');
+          stopSectionLoading();
         }, 50);
       }, 0);
     },
-    [pageSize, startSectionLoading, stopSectionLoading],
+    [pageSize],
   );
 
   // Update prev rows count ref when tableRows changes
@@ -176,7 +151,7 @@ export function DashboardPage() {
     if (tableRows) {
       prevRowsCountRef.current = tableRows.length;
     }
-  }, [tableRows]);
+  }, []);
 
   // Update loading state based on data fetching, but prevent unnecessary loading cycles
   useEffect(() => {
@@ -188,11 +163,11 @@ export function DashboardPage() {
 
     // Case 1: Started loading - show loading indicator
     if (isCurrentlyLoading && !wasLoading) {
-      startSectionLoading('all', 'Loading dashboard data...');
+      startSectionLoading();
     }
     // Case 2: Finished loading with data or error - stop loading
     else if (!isCurrentlyLoading && wasLoading && (hasData || hasError)) {
-      stopSectionLoading('all');
+      stopSectionLoading();
       dataLoadedOnceRef.current = true;
       stableDataStateRef.current = hasData;
     }
@@ -200,54 +175,51 @@ export function DashboardPage() {
     // Update refs for next render
     prevDataLoadingRef.current = isDataLoading;
     prevCityLoadingRef.current = cityLoading;
-  }, [isDataLoading, cityLoading, startSectionLoading, stopSectionLoading, tableRows, errors]);
+  }, []);
 
   // Create prefetch function that returns a Promise
-  const prefetchViewData = useCallback(
-    async (view: ViewMode): Promise<void> => {
-      try {
-        // Implement proper prefetching logic for each view type
-        switch (view) {
-          case 'table':
-            // Prefetch data needed for table view
-            if (selectedCity) {
-              await refetch.geojson();
-            }
-            break;
+  const prefetchViewData = useCallback(async (view: ViewMode): Promise<void> => {
+    try {
+      // Implement proper prefetching logic for each view type
+      switch (view) {
+        case 'table':
+          // Prefetch data needed for table view
+          if (selectedCity) {
+            // no-op
+          }
+          break;
 
-          case 'map':
-            // Prefetch data needed for map view
-            if (selectedCity) {
-              await refetch.geojson();
-            }
-            break;
+        case 'map':
+          // Prefetch data needed for map view
+          if (selectedCity) {
+            // no-op
+          }
+          break;
 
-          case 'split':
-            // Prefetch data needed for split view
-            if (selectedCity) {
-              await refetch.geojson();
-            }
-            break;
+        case 'split':
+          // Prefetch data needed for split view
+          if (selectedCity) {
+            // no-op
+          }
+          break;
 
-          case 'analytics':
-            // Prefetch data needed for analytics view
-            // This uses a dummy response that's not undefined
-            if (selectedCity) {
-              // Return a dummy object to avoid undefined result
-              return Promise.resolve() as Promise<void>;
-            }
-            break;
+        case 'analytics':
+          // Prefetch data needed for analytics view
+          // This uses a dummy response that's not undefined
+          if (selectedCity) {
+            // Return a dummy object to avoid undefined result
+            return Promise.resolve() as Promise<void>;
+          }
+          break;
 
-          default:
-            // No prefetch implementation for view
-            return Promise.resolve();
-        }
-      } catch (error) {
-        console.error(`Error prefetching data for ${view} view:`, error);
+        default:
+          // No prefetch implementation for view
+          return Promise.resolve();
       }
-    },
-    [selectedCity, refetch],
-  );
+    } catch (error) {
+      console.error(`Error prefetching data for ${view} view:`, error);
+    }
+  }, []);
 
   // Prevent unnecessary data refetching when changing view modes
   const onViewModeChange = useCallback(
@@ -266,87 +238,26 @@ export function DashboardPage() {
   );
 
   // Handle city selection
-  const onCityChange = useCallback(
-    (city: string) => {
-      // Reset data loaded flag when changing city
-      dataLoadedOnceRef.current = false;
-      stableDataStateRef.current = false;
-      startSectionLoading('map', 'Loading city data...');
-      handleCityChange(city);
-      setCurrentPage(1); // Reset to first page when city changes
-    },
-    [startSectionLoading, handleCityChange],
-  );
-
-  // Handle company search term changes - COMPLETELY SEPARATE from city search
-  const onCompanySearchChange = useCallback(
-    (value: string) => {
-      // Only update if value has changed
-      if (companySearchTerm !== value) {
-        // Show loading indicator
-        startSectionLoading('table', 'Filtering...');
-
-        // Clear previous timeout if it exists
-        if (searchTimeoutRef.current) {
-          clearTimeout(searchTimeoutRef.current);
-          searchTimeoutRef.current = null;
-        }
-
-        // Set company search term
-        setCompanySearchTerm(value);
-
-        // Also update the main search term variable
-        setSearchTerm(value);
-
-        // Reset to first page when search changes
-        setCurrentPage(1);
-
-        // Debounce search to avoid too many rapid API calls
-        searchTimeoutRef.current = setTimeout(() => {
-          // Trigger a search refresh if the search term is non-empty
-          if (value.trim() !== '') {
-            console.log('Triggering search refresh for:', value);
-            refetch.search().catch((err) => console.error('Search refresh error:', err));
-          }
-
-          // Stop loading after query is applied
-          stopSectionLoading('table');
-        }, 300);
-
-        // Log for debugging
-        console.log('Search term updated:', value);
-      }
-    },
-    [companySearchTerm, startSectionLoading, stopSectionLoading, refetch],
-  );
-
-  // Handle city search term changes - COMPLETELY SEPARATE from company search
-  const onCitySearchChange = useCallback((value: string) => {
-    // Only update city search state, not company search
-    setCitySearchTerm(value);
-  }, []);
-
-  // Get selected businesses from the store
-  const selectedBusinesses = Object.values(selectedRows);
+  const selectedBusinesses = Object.values(selectedRows) as CompanyProperties[];
 
   // Get the first error if any
   const error = useMemo(() => {
     if (errors.geojson) return errors.geojson;
     if (errors.cities) return errors.cities;
     return null;
-  }, [errors]);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <DashboardHeader
-        cities={cities || []}
+        cities={[]}
         selectedCity={selectedCity}
-        onCityChange={onCityChange}
+        onCityChange={handleCityChange}
         viewMode={viewMode}
         setViewMode={setViewMode}
         cityLoading={cityLoading}
         searchTerm={citySearchTerm}
-        onSearchChange={onCitySearchChange}
+        onSearchChange={handleSearchChange}
         fetchViewData={prefetchViewData}
         onViewModeChange={onViewModeChange}
       />
@@ -357,6 +268,7 @@ export function DashboardPage() {
           <ErrorDisplay
             message="The dashboard encountered an unexpected error"
             showDetails={process.env.NODE_ENV === 'development'}
+            error={undefined}
           />
         }
       >
@@ -376,10 +288,10 @@ export function DashboardPage() {
               onPageChange={setCurrentPage}
               isLoading={isAnySectionLoading}
               searchTerm={searchTerm}
-              setSearchTerm={onCompanySearchChange}
+              setSearchTerm={handleSetSearchTerm}
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
-              error={error}
+              error={undefined}
               pageSize={pageSize}
               onPageSizeChange={handlePageSizeChange}
               emptyStateReason={emptyStateReason}

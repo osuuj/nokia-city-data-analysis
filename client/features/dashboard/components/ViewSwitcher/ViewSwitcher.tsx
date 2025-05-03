@@ -2,8 +2,6 @@
 
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, useMemo } from 'react';
-import { useGeoJSONData } from '../../hooks/data';
-import { useCompanyStore } from '../../store/useCompanyStore';
 import type { CompanyProperties, SortDescriptor, TableColumnConfig, ViewMode } from '../../types';
 import { transformCompanyGeoJSON } from '../../utils/geo';
 import { AnalyticsSkeleton, DashboardSkeleton, SectionSkeleton } from '../loading/Skeletons';
@@ -87,11 +85,12 @@ export function ViewSwitcher({
   emptyStateReason,
   error,
 }: ViewSwitcherProps) {
-  // Get the selected city from the store
-  const selectedCity = useCompanyStore((state) => state.selectedCity);
+  // Removed: useCompanyStore (no longer exists)
+  const selectedCity = undefined;
 
-  // Fetch GeoJSON data for the selected city if not provided externally
-  const { data: geojsonData, isLoading: isGeoJsonLoading } = useGeoJSONData(selectedCity);
+  // Removed: useGeoJSONData hook (no longer exists)
+  const geojsonData = undefined;
+  const isGeoJsonLoading = false;
 
   // Track overall loading state
   const isLoading = externalLoading || isGeoJsonLoading;

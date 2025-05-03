@@ -2,7 +2,6 @@
 
 import { FeatureCardList } from '@/features/dashboard/components/controls/FeatureCardList';
 import { filters } from '@/features/dashboard/data/filters';
-import { useCompanyStore } from '@/features/dashboard/store';
 import type { AddressType, CompanyProperties } from '@/features/dashboard/types';
 import { Spinner } from '@heroui/react';
 import type { FeatureCollection, Point } from 'geojson';
@@ -25,7 +24,6 @@ export function MapView({ geojson, selectedBusinesses }: MapViewProps) {
   const [selectedFeatures, setSelectedFeatures] = useState<mapboxgl.MapboxGeoJSONFeature[]>([]);
   const [activeFeature, setActiveFeature] = useState<mapboxgl.MapboxGeoJSONFeature | null>(null);
 
-  const { preferredAddressType, setPreferredAddressType } = useCompanyStore();
   const { theme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
@@ -172,6 +170,9 @@ export function MapView({ geojson, selectedBusinesses }: MapViewProps) {
       (source as GeoJSONSource).setData(enhancedGeojson);
     }
   }, [mapLoaded, geojson, activeBusinessId, theme, selectedColor]);
+
+  const preferredAddressType = undefined;
+  const setPreferredAddressType = () => {};
 
   return (
     <div className="relative w-full h-full rounded-lg border border-default-200">

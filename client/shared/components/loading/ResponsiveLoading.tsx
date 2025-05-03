@@ -1,7 +1,7 @@
 'use client';
 
 import type { LoadingPriority, LoadingType } from '@/shared/context/loading/LoadingContext';
-import { useLoading } from '@/shared/hooks/loading/useLoading';
+// Removed: import { useLoading } from '@/shared/hooks/loading/useLoading';
 import { cn } from '@/shared/utils/cn';
 import { Spinner } from '@heroui/react';
 import { memo } from 'react';
@@ -10,11 +10,11 @@ import { SkeletonLoader } from './SkeletonLoader';
 
 interface ResponsiveLoadingProps {
   /**
-   * Override the loading type from context
+   * Override the loading type
    */
   type?: LoadingType;
   /**
-   * Override the loading priority from context
+   * Override the loading priority
    */
   priority?: LoadingPriority;
   /**
@@ -25,44 +25,46 @@ interface ResponsiveLoadingProps {
    * Custom loading message
    */
   message?: string;
+  /**
+   * Show loading (controlled)
+   */
+  isLoading?: boolean;
+  /**
+   * Progress (for progress type)
+   */
+  progress?: number;
 }
 
 /**
  * ResponsiveLoading component
  * Adapts its appearance based on loading type and priority
+ * Now controlled via props only (no context)
  */
 function ResponsiveLoadingComponent({
-  type,
-  priority,
+  type = 'spinner',
+  priority = 'auto',
   className,
-  message,
+  message = 'Loading...',
+  isLoading = true,
+  progress = 0,
 }: ResponsiveLoadingProps) {
-  const { isLoading, currentLoadingState } = useLoading();
-
-  // Use props over context values
-  const currentType = type || currentLoadingState?.type || 'spinner';
-  const currentPriority = priority || currentLoadingState?.priority || 'auto';
-  const currentMessage = message || currentLoadingState?.message || 'Loading...';
-
   if (!isLoading) return null;
 
   // Determine size based on priority
-  const size = currentPriority === 'high' ? 'lg' : currentPriority === 'auto' ? 'md' : 'sm';
+  const size = priority === 'high' ? 'lg' : priority === 'auto' ? 'md' : 'sm';
 
   // Render appropriate loading component based on type
-  switch (currentType) {
+  switch (type) {
     case 'overlay':
-      return (
-        <LoadingOverlay visible={true} message={currentMessage} className={cn('z-50', className)} />
-      );
+      return <LoadingOverlay visible={true} message={message} className={cn('z-50', className)} />;
     case 'skeleton':
       return (
         <SkeletonLoader
           className={cn(
             'w-full',
-            currentPriority === 'high' && 'h-32',
-            currentPriority === 'auto' && 'h-24',
-            currentPriority === 'low' && 'h-16',
+            priority === 'high' && 'h-32',
+            priority === 'auto' && 'h-24',
+            priority === 'low' && 'h-16',
             className,
           )}
         />
@@ -77,12 +79,9 @@ function ResponsiveLoadingComponent({
       return (
         <div className="flex flex-col justify-center items-center p-4">
           <div className="w-full max-w-xs bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${currentLoadingState?.progress || 0}%` }}
-            />
+            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }} />
           </div>
-          <p className="mt-2 text-sm text-gray-500">{currentMessage}</p>
+          <p className="mt-2 text-sm text-gray-500">{message}</p>
         </div>
       );
     default:

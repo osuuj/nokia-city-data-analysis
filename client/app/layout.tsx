@@ -2,13 +2,13 @@ import { ErrorMessage } from '@/shared/components/error';
 import { ErrorBoundary } from '@/shared/components/error';
 import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
-import { Providers } from '@shared/providers';
 import '@/shared/styles/base/globals.css';
 import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
 import { GlobalStyles } from '@/shared/components/layout/GlobalStyles';
 import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
 import { BreadcrumbProvider } from '@/shared/context';
 import { LoadingProvider } from '@/shared/context/loading';
+import { QueryProvider } from '@/shared/providers/QueryProvider';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
@@ -90,14 +90,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <ErrorBoundary fallback={<ErrorMessage />}>
             <LoadingProvider>
-              <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
+              <QueryProvider>
                 <BreadcrumbProvider>
                   <ConditionalLayout>
                     <ResponsiveLoading />
                     {children}
                   </ConditionalLayout>
                 </BreadcrumbProvider>
-              </Providers>
+              </QueryProvider>
             </LoadingProvider>
           </ErrorBoundary>
         </ClientLayoutWrapper>
