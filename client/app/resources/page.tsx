@@ -2,9 +2,8 @@
 
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { useResourceCategories } from '@/features/resources/hooks/useResources';
-import { AnimatedBackground } from '@/shared/components/ui/background/AnimatedBackground';
-import { Accordion, AccordionItem } from '@heroui/react';
-import { Skeleton } from '@heroui/react';
+import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
+import { Accordion, AccordionItem, Skeleton } from '@heroui/react';
 import { Icon } from '@iconify/react';
 
 export default function ResourcePage() {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { LoadingPriority, LoadingType } from '@/shared/context/loading/LoadingContext';
+import type { LoadingPriority, LoadingType } from '@/shared/context/LoadingContext';
 // Removed: import { useLoading } from '@/shared/hooks/loading/useLoading';
 import { cn } from '@/shared/utils/cn';
 import { Spinner } from '@heroui/react';

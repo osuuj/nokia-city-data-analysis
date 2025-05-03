@@ -1,9 +1,8 @@
 'use client';
 
 import { AboutErrorBoundary, AboutStory, AboutTeam } from '@/features/about/components';
-import { AnimatedBackground } from '@/shared/components/ui/background/AnimatedBackground';
+import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
 import { useTheme } from 'next-themes';
-import React from 'react';
 
 /**
  * About page component that displays the team story and team members.

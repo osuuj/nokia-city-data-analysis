@@ -1,4 +1,4 @@
-import { AnimatedBackground } from '@/shared/components/ui/background/AnimatedBackground';
+import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
 
 /**
  * Component displayed when no resources are available.

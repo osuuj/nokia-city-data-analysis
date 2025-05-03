@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import { ThemeSwitch } from '@/shared/components/ui/theme';
+import { ThemeSwitch } from '@/shared/components/ui/ThemeSwitch';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
 import Breadcrumbs from './Breadcrumbs';
