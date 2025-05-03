@@ -1,7 +1,7 @@
 // ProjectDetailClient.tsx
 'use client';
 
-import { TeamMemberGrid } from '@/shared/components/team';
+import { TeamMemberGrid } from '@/features/about/components/team';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ErrorMessage } from '@shared/components/error';
@@ -10,7 +10,6 @@ import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useState } from 'react';
-import { projectsData } from '../data/sampleProjects';
 import type { Project } from '../types';
 
 // Loading components for better UX

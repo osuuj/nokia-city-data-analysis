@@ -5,7 +5,7 @@
  */
 
 // UI Components
-export { ThemeSwitch, AnimatedBackground } from './ui';
+export { AnimatedBackground, ThemeSwitch } from './ui';
 
 // Error Components
 export * from './error';
@@ -17,7 +17,7 @@ export * from './loading';
 export * from './data';
 
 // Team Components
-export * from './team';
+export * from '../../features/about/components/team';
 
 // Form Components
 export * from './forms';
