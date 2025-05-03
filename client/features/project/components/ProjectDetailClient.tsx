@@ -1,17 +1,14 @@
 // ProjectDetailClient.tsx
 'use client';
 
-import { TeamMemberGrid } from '@/features/about/components';
 import { AnimatedBackground } from '@/shared/components/ui';
-import { Button, Card, CardBody } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { ErrorMessage } from '@shared/components/error';
 import { useBreadcrumb } from '@shared/context';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useScroll, useTransform } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useState } from 'react';
 import type { Project } from '../types';
-import { ProjectDetailHero, ProjectOverview } from './ui';
+import { ProjectCallToAction, ProjectDetailHero, ProjectOverview, ProjectTeamSection } from './ui';
 
 // Loading placeholder component
 const CardSkeleton = () => (
@@ -107,46 +104,31 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
 
         {/* Tech Stack Section - Lazy Loaded */}
         {project.tags && project.tags.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            aria-labelledby="tech-stack-heading"
-          >
+          <section aria-labelledby="tech-stack-heading" className="tech-stack-section">
             <h2 className="text-2xl font-semibold mb-6" id="tech-stack-heading">
               Technologies
             </h2>
             <Suspense fallback={<CardSkeleton />}>
               <TechStackShowcase tags={project.tags} />
             </Suspense>
-          </motion.section>
+          </section>
         )}
 
         {/* Gallery Section - Lazy Loaded */}
         {galleryItems.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            aria-labelledby="gallery-heading"
-          >
+          <section aria-labelledby="gallery-heading" className="gallery-section">
             <h2 className="text-2xl font-semibold mb-6" id="gallery-heading">
               Gallery
             </h2>
             <Suspense fallback={<CardSkeleton />}>
               <GalleryViewer items={galleryItems} />
             </Suspense>
-          </motion.section>
+          </section>
         )}
 
         {/* Timeline Section - Lazy Loaded */}
         {project.timeline && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            aria-labelledby="timeline-heading"
-          >
+          <section aria-labelledby="timeline-heading" className="timeline-section">
             <h2 className="text-2xl font-semibold mb-6" id="timeline-heading">
               Project Timeline
             </h2>
@@ -159,66 +141,18 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
                 }
               />
             </Suspense>
-          </motion.section>
+          </section>
         )}
 
         {/* Team Section */}
-        {project.team && project.team.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            aria-labelledby="team-heading"
-          >
-            <h2 className="text-2xl font-semibold mb-6" id="team-heading">
-              Project Team
-            </h2>
-            <TeamMemberGrid
-              team={project.team.map((name, index) => ({
-                id: `team-member-${index}`,
-                name,
-                jobTitle: 'Team Member',
-                bio: `Team member for ${project.title}`,
-                portfolioLink: '#',
-                avatarSrc: `/api/avatar?seed=${encodeURIComponent(name)}`,
-              }))}
-            />
-          </motion.section>
-        )}
+        <ProjectTeamSection
+          team={project.team || []}
+          projectTitle={project.title}
+          isLoading={isLoading}
+        />
 
         {/* Call to Action */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          aria-labelledby="cta-heading"
-        >
-          <Card className="border-b-1 border-divider bg-gradient-to-r from-default-100 via-primary-100 to-secondary-100 px-6 py-2">
-            <CardBody className="py-6">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div>
-                  <h2
-                    className="text-2xl font-bold mb-2 text-black dark:text-white"
-                    id="cta-heading"
-                  >
-                    Interested in this project?
-                  </h2>
-                  <p className="text-default-600 dark:text-gray-300">
-                    Learn more about how we can help you with similar initiatives.
-                  </p>
-                </div>
-                <Button
-                  className="bg-primary text-white"
-                  startContent={<Icon icon="lucide:message-circle" />}
-                  href="/contact"
-                  as="a"
-                >
-                  Get in touch
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
-        </motion.section>
+        <ProjectCallToAction isLoading={isLoading} />
       </div>
     </main>
   );

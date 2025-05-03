@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProjectCategory, ProjectStatus } from './index';
+import { ProjectCategory, ProjectStatus } from './enums';
 
 /**
  * Zod schemas for project data validation

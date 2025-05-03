@@ -4,3 +4,5 @@ export { default as TimelineSection } from './TimelineSection';
 export { ProjectGridSkeleton, ProjectDetailSkeleton } from './ProjectSkeleton';
 export { ProjectDetailHero } from './ProjectDetailHero';
 export { ProjectOverview } from './ProjectOverview';
+export { ProjectCallToAction } from './ProjectCallToAction';
+export { ProjectTeamSection } from './ProjectTeamSection';
