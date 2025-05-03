@@ -38,7 +38,6 @@ export function LoadingOverlay({
   visible = true,
   message = 'Loading...',
   className,
-  blur = true,
   zIndex = 50,
 }: LoadingOverlayProps) {
   if (!visible) return null;
