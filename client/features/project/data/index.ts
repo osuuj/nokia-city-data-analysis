@@ -4,7 +4,9 @@
  * This file exports all data-related functionality for the project feature.
  */
 
-export { projectApi } from './projectApi';
-export { useProjects, useProject } from './useProjects';
+export { projectsData } from './sampleProjects';
+
+// Re-export hooks from the hooks directory to maintain backwards compatibility
+export { useProjects, useProject } from '../hooks/useProjects';
 
 // Add data fetching functions here as they are created

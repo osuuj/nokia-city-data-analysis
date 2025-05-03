@@ -1,11 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  CACHE_OPTIMIZATION,
-  CACHE_RULES,
-  CACHE_TIMES,
-  invalidateProjectCache,
-  prefetchProject,
-} from '../config/cache';
+import { useQuery } from '@tanstack/react-query';
 import { projectsData } from '../data/sampleProjects';
 import type { Project } from '../types';
 
@@ -56,17 +49,11 @@ const getProjectById = (id: string): Project | undefined => {
  * ```
  */
 export function useProjects() {
-  const queryClient = useQueryClient();
-
   return useQuery({
     queryKey: projectKeys.lists(),
     queryFn: () => getProjects(),
-    ...CACHE_TIMES.STATIC, // Use static cache settings for project list
-    ...CACHE_RULES,
-    retry: CACHE_OPTIMIZATION.retry.count,
-    retryDelay: CACHE_OPTIMIZATION.retry.delay,
-    refetchOnWindowFocus: CACHE_OPTIMIZATION.backgroundRefetch.enabled,
-    refetchInterval: CACHE_OPTIMIZATION.backgroundRefetch.interval,
+    staleTime: Number.POSITIVE_INFINITY, // Static data doesn't get stale
+    gcTime: Number.POSITIVE_INFINITY, // Don't garbage collect this data
   });
 }
 
@@ -82,7 +69,9 @@ export function useProjects() {
  * ```
  */
 export function useProject(id: string) {
-  const queryClient = useQueryClient();
+  // Return empty result for empty id to prevent unnecessary queries
+  if (!id) return { data: undefined, isLoading: false, isError: false, error: null };
+
   const initialData = projectsData.find((p) => p.id === id);
 
   return useQuery({
@@ -95,49 +84,11 @@ export function useProject(id: string) {
       return project;
     },
     initialData,
-    ...CACHE_TIMES.STATIC, // Use static cache settings for project details
-    ...CACHE_RULES,
-    retry: CACHE_OPTIMIZATION.retry.count,
-    retryDelay: CACHE_OPTIMIZATION.retry.delay,
-    refetchOnWindowFocus: CACHE_OPTIMIZATION.backgroundRefetch.enabled,
-    refetchInterval: CACHE_OPTIMIZATION.backgroundRefetch.interval,
+    staleTime: Number.POSITIVE_INFINITY, // Static data doesn't get stale
+    gcTime: Number.POSITIVE_INFINITY, // Don't garbage collect this data
+    enabled: !!id, // Only run query if id is provided
   });
 }
 
-/**
- * Hook to prefetch project data
- *
- * @returns Function to prefetch a project by ID
- *
- * @example
- * ```tsx
- * const prefetch = usePrefetchProject();
- * // Prefetch on hover
- * <div onMouseEnter={() => prefetch('project-id')}>
- *   Project Card
- * </div>
- * ```
- */
-export function usePrefetchProject() {
-  const queryClient = useQueryClient();
-  return (projectId: string) => prefetchProject(queryClient, projectId);
-}
-
-/**
- * Hook to invalidate project cache
- *
- * @returns Function to invalidate project cache by ID or all projects
- *
- * @example
- * ```tsx
- * const invalidate = useInvalidateProjectCache();
- * // Invalidate specific project
- * invalidate('project-id');
- * // Invalidate all projects
- * invalidate();
- * ```
- */
-export function useInvalidateProjectCache() {
-  const queryClient = useQueryClient();
-  return (projectId?: string) => invalidateProjectCache(queryClient, projectId);
-}
+// Prefetch and invalidate functions are removed as they're not needed
+// with the simplified caching approach for static data

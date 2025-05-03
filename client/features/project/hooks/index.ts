@@ -6,5 +6,4 @@
 
 // Add hooks here as they are created
 
-export { useProjectFeature } from './useProjectFeature';
-export { useProjects } from './useProjects';
+export { useProjects, useProject } from './useProjects';
