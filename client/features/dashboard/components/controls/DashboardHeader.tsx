@@ -1,4 +1,4 @@
-import { CitySearch } from '@/features/dashboard/components/controls/CitySearch';
+import { CitySearch } from '@/features/dashboard/components/common/CitySearch';
 import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import React, { useMemo } from 'react';
