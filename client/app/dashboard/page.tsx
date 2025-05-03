@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardPage } from '@/features/dashboard/components/DashboardPage';
+import { DashboardPage } from '@/features/dashboard';
 
 /**
  * Dashboard page component.

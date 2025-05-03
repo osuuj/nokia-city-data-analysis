@@ -1,27 +1,33 @@
 'use client';
 
+import type {
+  CompanyProperties,
+  TableColumnConfig,
+  TableViewProps,
+} from '@/features/dashboard/types';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import type React from 'react';
 import { Suspense } from 'react';
+import { TableViewComponent } from './TableView';
+import { TableSkeleton } from './skeletons';
 
-// Table view loading component
-const TableViewLoading = () => (
-  <div className="p-4">
-    <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4" />
-    <div className="space-y-2">
-      <div className="h-10 bg-gray-200 rounded animate-pulse" />
-      <div className="h-10 bg-gray-200 rounded animate-pulse" />
-      <div className="h-10 bg-gray-200 rounded animate-pulse" />
-    </div>
-  </div>
-);
-
-interface TableViewProps {
-  // Table specific props will be added here as needed
-  children?: React.ReactNode;
-}
-
-export const TableView: React.FC<TableViewProps> = (props) => {
+// Adapter component to bridge between old and new structure during refactoring
+export const TableView: React.FC<TableViewProps> = ({
+  data,
+  columns,
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading,
+  searchTerm,
+  setSearchTerm,
+  sortDescriptor,
+  setSortDescriptor,
+  pageSize,
+  onPageSizeChange,
+  emptyStateReason = 'No data available for the selected filters',
+  allFilteredData = [],
+}) => {
   return (
     <ErrorBoundary
       fallback={
@@ -31,13 +37,26 @@ export const TableView: React.FC<TableViewProps> = (props) => {
         />
       }
     >
-      <Suspense fallback={<TableViewLoading />}>
-        <div className="p-4">
-          <h2 className="text-xl font-semibold mb-4">Table View</h2>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            {/* Table component will be rendered here */}
-            {props.children}
-          </div>
+      <Suspense
+        fallback={<TableSkeleton columns={columns.filter((col) => col.visible !== false)} />}
+      >
+        <div className="w-full h-full">
+          <TableViewComponent
+            data={data}
+            columns={columns}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            isLoading={isLoading}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            sortDescriptor={sortDescriptor}
+            setSortDescriptor={setSortDescriptor}
+            pageSize={pageSize}
+            onPageSizeChange={onPageSizeChange}
+            emptyStateReason={emptyStateReason}
+            allFilteredData={allFilteredData}
+          />
         </div>
       </Suspense>
     </ErrorBoundary>

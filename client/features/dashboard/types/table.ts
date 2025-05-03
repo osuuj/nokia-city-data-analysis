@@ -66,6 +66,10 @@ export interface TableViewProps {
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  emptyStateReason?: string;
+  allFilteredData?: CompanyProperties[];
 }
 
 /**

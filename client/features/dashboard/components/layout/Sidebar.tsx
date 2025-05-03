@@ -1,11 +1,11 @@
 import type React from 'react';
 
-interface SidebarProps {
+interface DashboardSidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeView, onViewChange }) => {
   return (
     <aside className="w-64 bg-white shadow-lg">
       <nav className="mt-5 px-2">

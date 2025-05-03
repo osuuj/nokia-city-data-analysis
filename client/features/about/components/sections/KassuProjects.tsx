@@ -2,6 +2,7 @@
 
 import { kassuData } from '@/features/about/data/kassuData';
 import { ProjectCard } from '@/features/project/components';
+import { ProjectCategory, ProjectStatus } from '@/features/project/types';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
@@ -34,6 +35,11 @@ export function KassuProjects() {
               project={{
                 ...project,
                 id: project.title.toLowerCase().replace(/\s+/g, '-'),
+                status: ProjectStatus.Active,
+                category: ProjectCategory.AI,
+                tags: project.tech || [],
+                demoUrl: project.link || 'https://example.com',
+                featured: index === 0,
               }}
             />
           ))}

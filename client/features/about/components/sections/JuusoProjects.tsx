@@ -2,6 +2,7 @@
 
 import { juusoData } from '@/features/about/data/juusoData';
 import { ProjectCard } from '@/features/project/components';
+import { ProjectCategory, ProjectStatus } from '@/features/project/types';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
@@ -34,6 +35,11 @@ export function JuusoProjects() {
               project={{
                 ...project,
                 id: project.title.toLowerCase().replace(/\s+/g, '-'),
+                status: ProjectStatus.Active,
+                category: ProjectCategory.Web,
+                tags: project.tech || [],
+                demoUrl: project.link || 'https://example.com',
+                featured: index === 0, // Make the first project featured
               }}
             />
           ))}

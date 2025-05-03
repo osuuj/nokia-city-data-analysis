@@ -1,7 +1,7 @@
 'use client';
 
 import type { ViewMode } from '@/features/dashboard/types/view';
-import { ThemeSwitch } from '@/shared/components/ui/theme';
+import { ThemeSwitch } from '@/shared/components/ui';
 import {
   Button,
   ButtonGroup,
@@ -16,7 +16,6 @@ import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePrefetch } from '../../../hooks/usePrefetch';
 
 /**
  * Props for the ViewModeToggle component
@@ -76,41 +75,16 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [viewMode, setViewMode, fetchViewData],
   );
 
-  // Create prefetch functions for each view
-  const prefetchTableData = usePrefetch(
-    ['dashboard', 'table', 'data'],
-    async () => {
-      await fetchViewData?.('table');
-      return {}; // Return an empty object to avoid undefined
+  // Prefetch functions for hover state
+  const handlePrefetch = useCallback(
+    (mode: ViewMode) => {
+      if (fetchViewData && mode !== viewMode) {
+        fetchViewData(mode).catch((error) => {
+          console.error(`Error prefetching data for ${mode} view:`, error);
+        });
+      }
     },
-    { enabled: !!fetchViewData },
-  );
-
-  const prefetchSplitData = usePrefetch(
-    ['dashboard', 'split', 'data'],
-    async () => {
-      await fetchViewData?.('split');
-      return {}; // Return an empty object to avoid undefined
-    },
-    { enabled: !!fetchViewData },
-  );
-
-  const prefetchMapData = usePrefetch(
-    ['dashboard', 'map', 'data'],
-    async () => {
-      await fetchViewData?.('map');
-      return {}; // Return an empty object to avoid undefined
-    },
-    { enabled: !!fetchViewData },
-  );
-
-  const prefetchAnalyticsData = usePrefetch(
-    ['dashboard', 'analytics', 'data'],
-    async () => {
-      await fetchViewData?.('analytics');
-      return {}; // Return an empty object to avoid undefined
-    },
-    { enabled: !!fetchViewData },
+    [fetchViewData, viewMode],
   );
 
   // Memoize the GitHub button
@@ -163,7 +137,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         <Button
           className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
           onPress={() => handleViewModeChange('table')}
-          onMouseEnter={prefetchTableData}
+          onMouseEnter={() => handlePrefetch('table')}
         >
           <Icon icon="lucide:list" className="mr-1" />
           Table
@@ -171,7 +145,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         <Button
           className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
           onPress={() => handleViewModeChange('map')}
-          onMouseEnter={prefetchMapData}
+          onMouseEnter={() => handlePrefetch('map')}
         >
           <Icon icon="lucide:map" className="mr-1" />
           Map
@@ -179,7 +153,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         <Button
           className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
           onPress={() => handleViewModeChange('split')}
-          onMouseEnter={prefetchSplitData}
+          onMouseEnter={() => handlePrefetch('split')}
         >
           <Icon icon="lucide:layout-dashboard" className="mr-1" />
           Split
@@ -187,7 +161,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         <Button
           className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
           onPress={() => handleViewModeChange('analytics')}
-          onMouseEnter={prefetchAnalyticsData}
+          onMouseEnter={() => handlePrefetch('analytics')}
         >
           <Icon icon="lucide:bar-chart-2" className="mr-1" />
           Analytics

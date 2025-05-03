@@ -1,8 +1,8 @@
 'use client';
 
+import type { TeamMember } from '@/features/about/types';
 import { motion } from 'framer-motion';
 import React from 'react';
-import type { TeamMember } from '../types';
 import { TeamMemberCard } from './TeamMemberCard';
 
 interface TeamMemberGridProps {

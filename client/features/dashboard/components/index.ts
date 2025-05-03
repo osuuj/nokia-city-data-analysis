@@ -4,25 +4,18 @@
  * Centralizes exports from all dashboard components for easier imports.
  */
 
-// Main components
-export * from './DashboardPage';
-export * from './DashboardError';
-export * from './DashboardFooter';
-export * from './DashboardSidebar';
-export * from './PrimaryDashboardHeader';
+// Layout components are now exported through layout directory
+export * from './layout';
 
-// Views are now exported through their own directory structure
+// Views are exported through their own directory structure
 export * from './views';
 
-// Common components
+// Common components (including DashboardPage)
 export * from './common';
 
-// Since we've moved the analytics components to the views structure,
-// we should no longer export from these directories directly.
-// The components are now available through the './views' export.
+// Controls
+export * from './controls/ViewModeToggle';
 
-// Not exporting these to avoid duplicate exports with views
-// export * from './layout/Sidebar';
-// export * from './map';
-// export * from './table';
-// export * from './shared';
+// Since we've moved components to their proper locations,
+// we should no longer export from these deprecated paths.
+// The components are now available through the proper exports.

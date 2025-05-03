@@ -1,23 +1,28 @@
 'use client';
 
+import type { AddressType, CompanyProperties } from '@/features/dashboard/types';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import type { FeatureCollection, Point } from 'geojson';
 import type React from 'react';
 import { Suspense } from 'react';
+import { MapViewComponent } from './MapView';
 
 // Map view loading component
 const MapViewLoading = () => (
-  <div className="p-4">
-    <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4" />
-    <div className="h-64 bg-gray-200 rounded animate-pulse" />
+  <div className="w-full h-full flex items-center justify-center">
+    <div className="text-center">
+      <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4 mx-auto" />
+      <div className="h-64 w-full max-w-3xl bg-gray-200 rounded animate-pulse" />
+    </div>
   </div>
 );
 
 interface MapViewProps {
-  // Map specific props will be added here as needed
-  children?: React.ReactNode;
+  geojson: FeatureCollection<Point, CompanyProperties & { addressType?: AddressType }>;
+  selectedBusinesses?: CompanyProperties[];
 }
 
-export const MapView: React.FC<MapViewProps> = (props) => {
+export const MapView: React.FC<MapViewProps> = ({ geojson, selectedBusinesses = [] }) => {
   return (
     <ErrorBoundary
       fallback={
@@ -28,12 +33,8 @@ export const MapView: React.FC<MapViewProps> = (props) => {
       }
     >
       <Suspense fallback={<MapViewLoading />}>
-        <div className="p-4">
-          <h2 className="text-xl font-semibold mb-4">Map View</h2>
-          <div className="h-[600px] bg-gray-50 border border-gray-200 rounded-lg">
-            {/* Map component will be rendered here */}
-            {props.children}
-          </div>
+        <div className="w-full h-full">
+          <MapViewComponent geojson={geojson} selectedBusinesses={selectedBusinesses} />
         </div>
       </Suspense>
     </ErrorBoundary>

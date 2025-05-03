@@ -1,10 +1,10 @@
 'use client';
 
+import type { Skill, TeamMember } from '@/features/about/types';
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import type { Skill, TeamMember } from '../../types';
 
 interface TeamMemberCardProps {
   member?: TeamMember;
