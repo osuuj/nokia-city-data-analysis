@@ -1,19 +1,21 @@
-import type { Error as ApiError } from '@/features/dashboard/types';
 import { ErrorBoundary } from '@/shared/components/error';
 import { ErrorMessage } from '@/shared/components/error';
+import type React from 'react';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
   IndustryDistributionCard,
   TopCitiesCard,
 } from '../views/AnalyticsView/cards';
-import type { CityComparisonCardProps } from '../views/AnalyticsView/cards/CityComparisonCard';
-import type { IndustriesByCityCardProps } from '../views/AnalyticsView/cards/IndustriesByCityCard';
-import type { IndustryDistributionCardProps } from '../views/AnalyticsView/cards/IndustryDistributionCard';
-import type { TopCitiesCardProps } from '../views/AnalyticsView/cards/TopCitiesCard';
 
-// Define a simple ErrorWithApi type since the original is no longer available
-type ErrorWithApi = Error | ApiError | null;
+// Define a simple error type instead of importing it
+type ErrorWithApi = Error | null;
+
+// Define component props types
+type IndustryDistributionCardProps = React.ComponentProps<typeof IndustryDistributionCard>;
+type IndustriesByCityCardProps = React.ComponentProps<typeof IndustriesByCityCard>;
+type CityComparisonCardProps = React.ComponentProps<typeof CityComparisonCard>;
+type TopCitiesCardProps = React.ComponentProps<typeof TopCitiesCard>;
 
 // Error boundary wrapper for IndustryDistributionCard
 export const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCardProps) => (

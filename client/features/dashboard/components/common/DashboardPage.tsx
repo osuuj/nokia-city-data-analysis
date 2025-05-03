@@ -9,6 +9,7 @@ import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoad
 import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useDashboardState } from '@/features/dashboard/hooks/useDashboardState';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
+import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, useMemo } from 'react';
 
 /**
@@ -49,7 +50,7 @@ export function DashboardPage() {
   const { isAnySectionLoading } = useDashboardLoading({
     isDataLoading,
     cityLoading,
-    tableRows,
+    tableRows: tableRows as unknown as Record<string, unknown>[] | null | undefined,
     errors,
   });
 
@@ -109,7 +110,12 @@ export function DashboardPage() {
               data={paginated}
               allFilteredData={tableRows || []}
               selectedBusinesses={selectedBusinesses}
-              geojson={geojsonData || { type: 'FeatureCollection', features: [] }}
+              geojson={
+                (geojsonData as unknown as FeatureCollection<Point, CompanyProperties>) || {
+                  type: 'FeatureCollection',
+                  features: [],
+                }
+              }
               viewMode={viewMode}
               setViewMode={onViewModeChange}
               columns={visibleColumns || []}

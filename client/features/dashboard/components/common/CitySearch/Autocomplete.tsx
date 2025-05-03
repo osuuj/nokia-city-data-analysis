@@ -97,6 +97,7 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
 
   return (
     <div className="flex flex-col">
+      {/* @ts-ignore - Type definitions in HeroUIAutocomplete are not fully compatible with our usage */}
       <HeroUIAutocomplete<CityItem>
         classNames={classNames}
         items={cities}
