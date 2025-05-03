@@ -1,6 +1,6 @@
 'use client';
 
-import { ButtonStart } from '@/features/landing/components/Button/ButtonStart';
+import { ButtonStart } from '@/features/landing/components/ButtonStart';
 import { Card, Spinner } from '@heroui/react';
 import { siteConfig } from '@shared/config';
 import { type FC, useCallback } from 'react';

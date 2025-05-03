@@ -8,6 +8,4 @@
 export * from './Hero';
 
 // Button component
-export * from './Button';
-
-export { LandingErrorBoundary } from './LandingErrorBoundary';
+export { ButtonStart } from './ButtonStart';
