@@ -1,13 +1,13 @@
 'use client';
 
+import { AnimatedSkillBar } from '@/features/about/components/AnimatedSkillBar';
+import AnimatedText from '@/features/about/components/AnimatedText';
 import { TestimonialCard } from '@/features/about/components/TestimonialCard';
 import { ContactForm } from '@/shared/components/forms';
 import { Header } from '@/shared/components/layout';
 import { ProjectCard } from '@/shared/components/projects';
 import { TimelineItem } from '@/shared/components/timeline';
-import { AnimatedText } from '@/shared/components/ui';
-import { AnimatedSkillBar } from '@/shared/components/ui';
-import { ParticleBackground } from '@/shared/components/ui/background';
+import { ParticleBackground } from '@/shared/components/ui';
 import { useThemeContext } from '@/shared/context/ThemeContext';
 import { Avatar, Button, Card, CardBody, Divider, Link, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';

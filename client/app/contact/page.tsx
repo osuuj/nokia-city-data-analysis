@@ -3,7 +3,7 @@
 import { ContactErrorBoundary } from '@/features/contact/components/ContactErrorBoundary';
 import { ContactForm } from '@/features/contact/components/ContactForm';
 import { ContactFormSkeleton } from '@/features/contact/components/ContactFormSkeleton';
-import { AnimatedBackground } from '@/shared/components/ui/background';
+import { AnimatedBackground } from '@/shared/components/ui';
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';

@@ -2,10 +2,10 @@
 'use client';
 
 import { TeamMemberGrid } from '@/features/about/components/team';
+import { AnimatedBackground } from '@/shared/components/ui';
 import { Badge, Button, Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { ErrorMessage } from '@shared/components/error';
-import { AnimatedBackground } from '@shared/components/ui/background';
 import { useBreadcrumb } from '@shared/context';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import dynamic from 'next/dynamic';
