@@ -1,17 +1,8 @@
 /**
  * Contact Feature
  *
- * This file exports all components, hooks, and utilities for the contact feature.
+ * This module exports reusable UI components for the contact feature.
  */
 
-// Components
+// Export components
 export * from './components';
-
-// Hooks
-export * from './hooks';
-
-// Types
-export * from './types';
-
-// Data
-export * from './data';
