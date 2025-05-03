@@ -13,5 +13,3 @@ export {
   getResourcesByTag,
   resourceKeys,
 } from './useResources';
-
-export { useVirtualizedResources } from './useVirtualizedResources';
