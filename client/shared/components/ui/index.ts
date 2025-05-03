@@ -1,4 +1,3 @@
-export { ThemeSwitch } from './theme';
-export { AnimatedBackground } from './background';
-export { AnimatedSkillBar } from '../../../features/about/components/AnimatedSkillBar';
-export { default as AnimatedText } from '../../../features/about/components/AnimatedText';
+export { ThemeSwitch } from './ThemeSwitch';
+export { AnimatedBackground } from './AnimatedBackground';
+export { default as ParticleBackground } from './ParticleBackground';
