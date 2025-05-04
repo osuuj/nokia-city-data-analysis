@@ -88,13 +88,8 @@ export function DashboardPage() {
       if (seen.has(row.business_id)) return false;
       seen.add(row.business_id);
 
-      // Validate addresses
-      const visiting = row.addresses?.['Visiting address'];
-      const postal = row.addresses?.['Postal address'];
-      const hasValidAddress =
-        (visiting?.latitude && visiting?.longitude) || (postal?.latitude && postal?.longitude);
-
-      return hasValidAddress;
+      // No longer validate coordinates - return all unique companies
+      return true;
     });
   }, [companies]);
 

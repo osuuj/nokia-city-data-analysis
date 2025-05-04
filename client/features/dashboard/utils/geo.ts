@@ -1,10 +1,13 @@
 import type {
-  AddressType,
+  AddressType as CompanyAddressType,
   CompanyFeatureWithAddressType,
   CompanyProperties,
   Coordinates,
 } from '@/features/dashboard/types/business';
 import type { Feature, FeatureCollection, Point } from 'geojson';
+
+// Extended address type that includes 'Default' for companies without coordinates
+export type AddressType = CompanyAddressType | 'Default';
 
 /**
  * Calculates distance in kilometers between two coordinates explicitly
@@ -102,20 +105,36 @@ export function transformCompanyGeoJSON(
   for (const feature of geojson.features) {
     const props = feature.properties;
 
-    // Skip features with valid geometry already
-    if (feature.geometry?.coordinates) {
+    // Get both address types
+    const visiting = props.addresses?.['Visiting address'];
+    const postal = props.addresses?.['Postal address'];
+
+    // Check if addresses are the same (based on coordinates)
+    const sameAddress =
+      visiting?.latitude === postal?.latitude &&
+      visiting?.longitude === postal?.longitude &&
+      visiting?.latitude !== undefined &&
+      visiting?.longitude !== undefined;
+
+    // Case 1: If addresses are the same, use postal address
+    if (sameAddress && postal?.latitude && postal?.longitude) {
       features.push({
-        ...feature,
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [postal.longitude, postal.latitude],
+        },
         properties: {
           ...props,
-          addressType: 'Visiting address',
+          addressType: 'Postal address',
         },
       });
       continue;
     }
 
-    // Try to create feature from visiting address
-    const visiting = props.addresses?.['Visiting address'];
+    // Case 2: If addresses are different, add both (if they have coordinates)
+
+    // Add visiting address
     if (visiting?.latitude && visiting?.longitude) {
       features.push({
         type: 'Feature',
@@ -130,8 +149,7 @@ export function transformCompanyGeoJSON(
       });
     }
 
-    // Try to create feature from postal address
-    const postal = props.addresses?.['Postal address'];
+    // Add postal address
     if (postal?.latitude && postal?.longitude) {
       features.push({
         type: 'Feature',
@@ -144,6 +162,11 @@ export function transformCompanyGeoJSON(
           addressType: 'Postal address',
         },
       });
+    }
+
+    // If neither address has coordinates (should not happen based on your description)
+    if (!visiting?.latitude && !visiting?.longitude && !postal?.latitude && !postal?.longitude) {
+      console.warn(`Company ${props.company_name} has no valid coordinates`);
     }
   }
 
@@ -163,3 +186,5 @@ export function transformCompanyGeoJSON(
 export function coordinatesEqual(a: Coordinates, b: Coordinates): boolean {
   return a.latitude === b.latitude && a.longitude === b.longitude;
 }
+
+// This file handles GeoJSON transformations for the dashboard map view
