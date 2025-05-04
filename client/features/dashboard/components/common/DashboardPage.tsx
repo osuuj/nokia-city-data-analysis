@@ -5,9 +5,7 @@ import { DashboardErrorBoundary } from '@/features/dashboard/components/common/e
 import { ErrorDisplay } from '@/features/dashboard/components/common/error/ErrorDisplay';
 import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
 import { DashboardHeader } from '@/features/dashboard/components/layout/DashboardHeader';
-import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
-import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
-import { useDashboardState } from '@/features/dashboard/hooks/useDashboardState';
+import { useDashboardStore } from '@/features/dashboard/store/useDashboardStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, useMemo } from 'react';
@@ -15,82 +13,33 @@ import { Suspense, useMemo } from 'react';
 /**
  * DashboardPage
  * Main entry point for the dashboard feature.
- * Uses custom hooks for state management and data fetching.
+ * Refactored to use Zustand global state management.
  */
 export function DashboardPage() {
-  // Use custom hooks for state management
-  const {
-    searchTerm,
-    citySearchTerm,
-    currentPage,
-    pageSize,
-    sortDescriptor,
-    viewMode,
-    selectedCity,
-    selectedRows,
-    tableRows,
-    isDataLoading,
-    cityLoading,
-    visibleColumns,
-    geojsonData,
-    emptyStateReason,
-    errors,
+  // Get dashboard state from Zustand store
+  const viewMode = useDashboardStore((state) => state.activeView);
+  const setViewMode = useDashboardStore((state) => state.setActiveView);
+  const selectedCompanies = useDashboardStore((state) => state.selectedCompanies);
+  const isDataLoading = useDashboardStore((state) => state.isDataLoading);
 
-    setCurrentPage,
-    setSortDescriptor,
-    handleSetSearchTerm,
-    handleCityChange,
-    handleCitySearchChange,
-    handlePageSizeChange,
-    prefetchViewData,
-    onViewModeChange,
-  } = useDashboardState();
-
-  // Use loading hook
-  const { isAnySectionLoading } = useDashboardLoading({
-    isDataLoading,
-    cityLoading,
-    tableRows: tableRows as unknown as Record<string, unknown>[] | null | undefined,
-    errors,
-  });
-
-  // Use pagination hook
-  const { paginated, totalPages } = useDashboardPagination({
-    tableRows,
-    currentPage,
-    pageSize,
-    setCurrentPage,
-  });
-
-  // Handle selected businesses
+  // Selected businesses as array
   const selectedBusinesses = useMemo<CompanyProperties[]>(() => {
-    return Object.values(selectedRows || {});
-  }, [selectedRows]);
+    return Object.values(selectedCompanies);
+  }, [selectedCompanies]);
 
-  // Get the first error if any
-  const error = useMemo<Error | null>(() => {
-    if (errors?.geojson) {
-      return errors.geojson as Error;
-    }
-    if (errors?.cities) {
-      return errors.cities as Error;
-    }
-    return null;
-  }, [errors]);
+  // TODO: Implement these functions
+  const prefetchViewData = async (view: typeof viewMode) => {
+    console.log(`Prefetching data for view: ${view}`);
+    // Implementation will come in future refactoring
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <DashboardHeader
-        cities={[]}
-        selectedCity={selectedCity}
-        onCityChange={handleCityChange}
         viewMode={viewMode}
-        setViewMode={onViewModeChange}
-        cityLoading={cityLoading}
-        searchTerm={citySearchTerm}
-        onSearchChange={handleCitySearchChange}
+        setViewMode={setViewMode}
         fetchViewData={prefetchViewData}
-        onViewModeChange={onViewModeChange}
+        onViewModeChange={setViewMode}
       />
 
       <DashboardErrorBoundary
@@ -104,35 +53,7 @@ export function DashboardPage() {
         }
       >
         <Suspense fallback={<DashboardSkeleton />}>
-          {/* Always render content if a city is selected or we have data */}
-          {(tableRows?.length > 0 || isDataLoading || cityLoading || selectedCity) && (
-            <ViewSwitcher
-              data={paginated}
-              allFilteredData={tableRows || []}
-              selectedBusinesses={selectedBusinesses}
-              geojson={
-                (geojsonData as unknown as FeatureCollection<Point, CompanyProperties>) || {
-                  type: 'FeatureCollection',
-                  features: [],
-                }
-              }
-              viewMode={viewMode}
-              setViewMode={onViewModeChange}
-              columns={visibleColumns || []}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              isLoading={isAnySectionLoading}
-              searchTerm={searchTerm}
-              setSearchTerm={handleSetSearchTerm}
-              sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor}
-              error={error}
-              pageSize={pageSize}
-              onPageSizeChange={handlePageSizeChange}
-              emptyStateReason={emptyStateReason}
-            />
-          )}
+          {/* ViewSwitcher will be added in a future refactoring step */}
         </Suspense>
       </DashboardErrorBoundary>
     </div>

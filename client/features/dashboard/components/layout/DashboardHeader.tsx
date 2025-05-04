@@ -1,4 +1,4 @@
-import { CitySearch } from '@/features/dashboard/components/common/CitySearch';
+import { CitySearchContainer } from '@/features/dashboard/components/common/CitySearch/CitySearchContainer';
 import { ViewModeToggle } from '@/features/dashboard/components/controls/ViewModeToggle';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import React, { useMemo } from 'react';
@@ -6,29 +6,17 @@ import React, { useMemo } from 'react';
 interface DashboardHeaderProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  cities: string[];
-  selectedCity: string;
-  onCityChange: (city: string) => void;
-  cityLoading: boolean;
-  searchTerm: string;
-  onSearchChange: (term: string) => void;
   fetchViewData?: (view: ViewMode) => Promise<void>;
   onViewModeChange?: (view: ViewMode) => void;
 }
 
 /**
  * DashboardHeader component for the top controls of the dashboard
- * Extracted from the dashboard page for better separation of concerns
+ * Refactored to use CitySearchContainer which connects to our global state
  */
 export const DashboardHeader = React.memo(function DashboardHeader({
   viewMode,
   setViewMode,
-  cities,
-  selectedCity,
-  onCityChange,
-  cityLoading,
-  searchTerm,
-  onSearchChange,
   fetchViewData,
   onViewModeChange,
 }: DashboardHeaderProps) {
@@ -46,21 +34,14 @@ export const DashboardHeader = React.memo(function DashboardHeader({
     [viewMode, setViewMode, onViewModeChange, fetchViewData],
   );
 
-  // Memoize the city search section - now always shows
+  // Memoize the city search section - now using the container component
   const citySearchSection = useMemo(() => {
     return (
       <div className="flex items-center mt-4 w-full max-w-xs">
-        <CitySearch
-          cities={cities}
-          selectedCity={selectedCity}
-          onCityChange={onCityChange}
-          isLoading={cityLoading}
-          searchTerm={searchTerm}
-          onSearchChange={onSearchChange}
-        />
+        <CitySearchContainer />
       </div>
     );
-  }, [cities, selectedCity, onCityChange, cityLoading, searchTerm, onSearchChange]);
+  }, []);
 
   return (
     <div className="flex flex-col gap-2">
