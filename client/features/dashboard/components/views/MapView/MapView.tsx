@@ -1,12 +1,12 @@
 'use client';
 
+import { useMapTheme } from '@/features/dashboard/hooks/useMapTheme';
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
-import { useTheme } from 'next-themes';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxMap from 'react-map-gl/mapbox';
@@ -25,8 +25,12 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   > | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
-  const { theme } = useTheme();
-  const prevThemeRef = useRef(theme);
+
+  // Use our custom map theme hook
+  const { mapStyle, textColor, isDark } = useMapTheme();
+
+  // Store theme state in a ref to track changes
+  const themeChangeRef = useRef(isDark);
 
   // Get selected keys directly from store for immediate reactivity
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -49,24 +53,11 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     };
   }, [geojson, hasSelections, selectedKeys]);
 
-  // Reset mapLoaded when theme changes
-  useEffect(() => {
-    if (prevThemeRef.current !== theme) {
-      setMapLoaded(false);
-      prevThemeRef.current = theme;
-    }
-  }, [theme]);
-
   // Use the environment variable or a fallback for development
   const mapboxToken =
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
     // Temporary fallback token - should be replaced with your own token
     'pk.eyJ1Ijoic3VwZXJqdXVzbyIsImEiOiJjbW00dnJueTcxeHZmM3FxbXgyYmgyaHg2In0.nNFxwPP_XXLKQrfmUFoTdw';
-
-  const mapStyle =
-    theme === 'dark'
-      ? 'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq'
-      : 'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
 
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
@@ -86,15 +77,15 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       'light' in colorConfig &&
       'dark' in colorConfig
     ) {
-      return theme === 'dark' ? colorConfig.dark : colorConfig.light;
+      return isDark ? colorConfig.dark : colorConfig.light;
     }
     return '#FAFAFA'; // fallback yellow
-  }, [activeFeature, theme]);
+  }, [activeFeature, isDark]);
 
   // Add theme-dependent text color for clusters
   const clusterTextColor = useMemo(() => {
-    return theme === 'dark' ? '#ffffff' : '#000000';
-  }, [theme]);
+    return textColor;
+  }, [textColor]);
 
   const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
     const map = mapRef.current?.getMap();
@@ -129,6 +120,34 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       setActiveFeature(null);
     }
   };
+
+  // Handle map load event
+  const handleMapLoad = () => {
+    setMapLoaded(true);
+  };
+
+  // Update ref when theme changes
+  useEffect(() => {
+    if (themeChangeRef.current !== isDark) {
+      themeChangeRef.current = isDark;
+      setMapLoaded(false);
+
+      // Short timeout to ensure map reloads with new theme
+      const timer = setTimeout(() => {
+        if (mapRef.current?.getMap()) {
+          setMapLoaded(true);
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isDark]);
+
+  // Reset map when component mounts
+  useEffect(() => {
+    // Initial load
+    setMapLoaded(false);
+  }, []);
 
   // Update map when filteredGeojson changes
   useEffect(() => {
@@ -272,13 +291,13 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   return (
     <div className="relative w-full h-full">
       <MapboxMap
-        key={theme}
+        key={isDark ? 'dark' : 'light'}
         ref={mapRef}
         initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
         style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
         mapStyle={mapStyle}
         mapboxAccessToken={mapboxToken}
-        onLoad={() => setMapLoaded(true)}
+        onLoad={handleMapLoad}
         onClick={handleMapClick}
         interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
       />
@@ -289,7 +308,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           activeFeature={activeFeature}
           onSelect={setActiveFeature}
           selectedColor={selectedColor}
-          theme={theme}
+          theme={isDark ? 'dark' : 'light'}
           flyTo={(coords: [number, number], addressType?: string) =>
             flyTo(coords, activeFeature?.properties.business_id, addressType)
           }

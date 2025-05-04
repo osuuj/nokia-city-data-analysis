@@ -71,13 +71,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {`
             (function() {
               try {
-                const theme = localStorage.getItem('theme') || 'dark';
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                // Get the theme from localStorage or use system preference
                 const savedTheme = localStorage.getItem('theme');
-                const finalTheme = savedTheme || systemTheme;
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                const finalTheme = savedTheme || systemTheme || 'dark';
+                
+                // Apply theme immediately to prevent flash
                 document.documentElement.setAttribute('data-theme', finalTheme);
+                document.documentElement.classList.add(finalTheme);
+                
+                // Add class to prevent transition during page load
+                document.documentElement.classList.add('theme-transition-disabled');
+                
+                // Re-enable transitions after page load
+                window.addEventListener('load', () => {
+                  // Small delay to ensure styles are applied
+                  setTimeout(() => {
+                    document.documentElement.classList.remove('theme-transition-disabled');
+                  }, 100);
+                });
+                
+                // Setup a theme change observer for external theme changes
+                window.addEventListener('storage', (event) => {
+                  if (event.key === 'theme') {
+                    const newTheme = event.newValue || 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    document.documentElement.classList.remove('light', 'dark');
+                    document.documentElement.classList.add(newTheme);
+                  }
+                });
               } catch (e) {
+                // If localStorage is not available, default to dark theme
                 document.documentElement.setAttribute('data-theme', 'dark');
+                document.documentElement.classList.add('dark');
               }
             })();
           `}

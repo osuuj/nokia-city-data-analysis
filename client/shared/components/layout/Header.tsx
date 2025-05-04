@@ -17,6 +17,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { ThemeSwitch } from '@/shared/components/ui/ThemeSwitch';
+import { useLoading } from '@/shared/context/LoadingContext';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
 import Breadcrumbs from './Breadcrumbs';
@@ -38,13 +39,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
+  const loading = useLoading();
 
   // Set mounted state after hydration to prevent mismatch
   useEffect(() => {
@@ -56,7 +57,7 @@ export const Header = () => {
   // Check if we're on dashboard page
   const isDashboardPage = currentPathname === '/dashboard';
 
-  // Prefetch cities data
+  // Get the query param
   const { data: cities } = useQuery({
     queryKey: ['cities'],
     queryFn: () => fetch(`${BASE_URL}/api/v1/cities`).then((res) => res.json()),
@@ -94,18 +95,40 @@ export const Header = () => {
     return currentPathname.startsWith(path);
   };
 
+  // When data is ready, stop any loading indicators
+  useEffect(() => {
+    if (isDataReady && isNavigatingToDashboard) {
+      setIsNavigatingToDashboard(false);
+    }
+  }, [isDataReady, isNavigatingToDashboard]);
+
+  // Reset navigation states when pathname changes
+  useEffect(() => {
+    if (currentPathname === '/dashboard' && isNavigatingToDashboard) {
+      // If we've reached the dashboard, stop the navigation loading state
+      setIsNavigatingToDashboard(false);
+    }
+  }, [currentPathname, isNavigatingToDashboard]);
+
   // Handle item click for immediate visual feedback
   const handleItemClick = (href: string) => {
     // Set clicked item for visual feedback
     setClickedItem(href);
 
-    // Special handling for Home link
+    // Special handling for Dashboard link
     if (href === '/dashboard') {
-      setShowLoadingOverlay(true);
+      // Start the global loading indicator
+      const loadingId = loading?.startLoading({
+        message: 'Loading dashboard data...',
+        type: 'overlay',
+      });
+
       setIsNavigatingToDashboard(true);
       router.push('/dashboard');
+
       return;
     }
+
     // For other links, navigate immediately
     router.push(href);
 
@@ -114,29 +137,6 @@ export const Header = () => {
       setClickedItem(null);
     }, 300);
   };
-
-  // Remove scroll-related effects
-  useEffect(() => {
-    // Hide loading overlay when data is ready
-    if (isDataReady && showLoadingOverlay) {
-      setShowLoadingOverlay(false);
-    }
-  }, [isDataReady, showLoadingOverlay]);
-
-  // Reset navigation states when pathname changes
-  useEffect(() => {
-    // Handle both dashboard navigation and landing page navigation
-    if ((isNavigatingToDashboard && currentPathname === '/dashboard') || currentPathname === '/') {
-      // Hide loading overlay immediately when reaching dashboard or landing page
-      setShowLoadingOverlay(false);
-      setIsNavigatingToDashboard(false);
-    }
-
-    // This ensures the loading overlay is never shown when navigating to the landing page
-    if (currentPathname === '/') {
-      setShowLoadingOverlay(false);
-    }
-  }, [currentPathname, isNavigatingToDashboard]);
 
   // Add effect to handle body overflow when menu is open
   useEffect(() => {
@@ -179,7 +179,9 @@ export const Header = () => {
             : 'bg-background/90 backdrop-blur-md text-foreground'
         } ${isMenuOpen ? 'shadow-md' : ''}`}
       >
-        {isMounted && showLoadingOverlay && <LoadingOverlay message="Loading data..." />}
+        {isMounted && loading?.isLoading && (
+          <LoadingOverlay message={loading.currentLoadingState?.message || 'Loading...'} />
+        )}
 
         <Navbar
           maxWidth="2xl"

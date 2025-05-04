@@ -69,7 +69,8 @@ export const HeroContent: FC<HeroContentProps> = ({ isLoading, videoError, onSta
           {isLoading ? (
             <div className="flex flex-col items-center justify-center" aria-live="polite">
               <Spinner size="lg" color="primary" aria-label="Loading" />
-              <p className="mt-2 text-sm">Loading data...</p>
+              <p className="mt-2 text-sm">Preparing dashboard data...</p>
+              <p className="mt-1 text-xs text-default-500">This may take a moment</p>
             </div>
           ) : (
             <ButtonStart

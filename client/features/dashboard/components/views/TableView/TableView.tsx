@@ -5,6 +5,7 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
 import {
   Pagination,
+  type Selection,
   Table,
   TableBody,
   TableCell,
@@ -81,6 +82,26 @@ export function TableView({
     [setSortDescriptor],
   );
 
+  // Handle table selection change (adapter for different type systems)
+  const handleSelectionChange = useCallback(
+    (selection: Selection) => {
+      // Convert HeroUI Selection to a standard Set<string>
+      if (selection === 'all') {
+        setSelectedKeys('all', allFilteredData);
+      } else {
+        // Convert Set<Key> to Set<string>
+        const stringKeys = new Set<string>();
+        for (const key of selection) {
+          if (typeof key === 'string') {
+            stringKeys.add(key);
+          }
+        }
+        setSelectedKeys(stringKeys);
+      }
+    },
+    [setSelectedKeys, allFilteredData],
+  );
+
   // Render a placeholder of similar size during SSR to prevent layout shift
   if (!isMounted) {
     return (
@@ -129,7 +150,7 @@ export function TableView({
         }}
         selectionMode="multiple"
         selectedKeys={selectedKeys}
-        onSelectionChange={setSelectedKeys}
+        onSelectionChange={handleSelectionChange}
       >
         <TableHeader>
           {displayColumns.map((column: TableColumnConfig) => (

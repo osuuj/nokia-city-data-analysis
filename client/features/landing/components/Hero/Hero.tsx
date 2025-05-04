@@ -1,5 +1,6 @@
 'use client';
 
+import { useLoading } from '@/shared/context/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
@@ -29,6 +30,7 @@ export const Hero = (): JSX.Element => {
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const loading = useLoading();
 
   // Use useEffect to set isClient and mounted to true after hydration
   useEffect(() => {
@@ -36,10 +38,33 @@ export const Hero = (): JSX.Element => {
     setMounted(true);
   }, []);
 
+  // Monitor global loading state and sync with local state
+  useEffect(() => {
+    if (loading?.isLoading && !isLoading) {
+      setIsLoading(true);
+    } else if (!loading?.isLoading && isLoading && !shouldNavigate) {
+      setIsLoading(false);
+    }
+  }, [loading?.isLoading, isLoading, shouldNavigate]);
+
   const handleStartExploring = useCallback(() => {
+    // Start both the global loading indicator and local loading state
+    const loadingId =
+      loading?.startLoading({
+        message: 'Loading dashboard...',
+        type: 'overlay',
+      }) || '';
     setIsLoading(true);
     setShouldNavigate(true);
-  }, []);
+
+    // Navigate to dashboard
+    router.push('/dashboard');
+
+    // This will be cleaned up by the useEffect when pathname changes
+    return () => {
+      if (loadingId) loading?.stopLoading(loadingId);
+    };
+  }, [loading, router]);
 
   const handleDataReady = useCallback(() => {
     if (shouldNavigate) {

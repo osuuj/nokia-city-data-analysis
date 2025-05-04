@@ -110,14 +110,43 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       try {
         setIsChanging(true);
         setError(null);
+
+        // Add class to disable transitions during theme change
+        document.documentElement.classList.add('theme-transition-disabled');
+
+        // Apply theme
         setNextTheme(theme);
+
+        // Apply theme directly to DOM for immediate effect
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+
+        // Store in localStorage for persistence
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('theme', theme);
+
+          // Dispatch storage event to notify other components
+          try {
+            const storageEvent = new StorageEvent('storage', {
+              key: 'theme',
+              newValue: theme,
+              oldValue: localStorage.getItem('theme'),
+              storageArea: localStorage,
+            });
+            window.dispatchEvent(storageEvent);
+          } catch (e) {
+            console.error('Failed to dispatch storage event:', e);
+          }
+        }
       } catch (err) {
         setError(`Failed to set theme: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
-        // Use a small timeout to simulate theme change completion
+        // Small timeout to re-enable transitions after theme is applied
         setTimeout(() => {
           setIsChanging(false);
-        }, 300);
+          document.documentElement.classList.remove('theme-transition-disabled');
+        }, 100);
       }
     },
     [setNextTheme],

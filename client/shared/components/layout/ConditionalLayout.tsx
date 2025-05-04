@@ -2,6 +2,7 @@
 
 import { Footer, Header } from '@/shared/components/layout';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 /**
  * ConditionalLayout
@@ -13,10 +14,23 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
   const pathname = usePathname();
   const isDashboardPage = pathname?.startsWith('/dashboard') ?? false;
 
+  // Add dashboard class to body for dashboard pages
+  useEffect(() => {
+    if (isDashboardPage) {
+      document.body.classList.add('dashboard-page');
+    } else {
+      document.body.classList.remove('dashboard-page');
+    }
+
+    return () => {
+      document.body.classList.remove('dashboard-page');
+    };
+  }, [isDashboardPage]);
+
   return (
     <>
       {!isDashboardPage && <Header />}
-      {children}
+      <main className={isDashboardPage ? 'dashboard-main' : ''}>{children}</main>
       {!isDashboardPage && <Footer />}
     </>
   );

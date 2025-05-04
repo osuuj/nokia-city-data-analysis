@@ -117,7 +117,8 @@ interface LoadingProviderProps {
 
 // Add a function to detect if we're handling navigation to or from the landing page
 const isLandingNavigation = (pathname: string): boolean => {
-  return pathname === '/' || pathname === '/dashboard';
+  // We want to show loading for these navigations now, so return false
+  return false;
 };
 
 /**
