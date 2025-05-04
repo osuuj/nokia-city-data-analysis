@@ -4,7 +4,18 @@ import { useEffect } from 'react';
 import useSWR from 'swr';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Preloader fetch error for ${url}:`, error);
+    return null; // Return null instead of throwing to avoid breaking the component
+  }
+};
 
 /**
  * Preloader component
@@ -13,15 +24,19 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
  */
 export function Preloader() {
   // Prefetch cities data
-  const { data: cities } = useSWR<string[]>(`${BASE_URL}/api/v1/cities`, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // Cache for 5 minutes
-    suspense: false,
-  });
+  const { data: cities, error: citiesError } = useSWR<string[]>(
+    `${BASE_URL}/api/v1/cities`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 300000, // Cache for 5 minutes
+      suspense: false,
+    },
+  );
 
   // Prefetch initial company data (using a default city)
-  const { data: companies } = useSWR(
+  const { data: companies, error: companiesError } = useSWR(
     `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
     fetcher,
     {
@@ -32,6 +47,16 @@ export function Preloader() {
     },
   );
 
+  // Log errors if they occur
+  useEffect(() => {
+    if (citiesError) {
+      console.error('Failed to prefetch cities:', citiesError);
+    }
+    if (companiesError) {
+      console.error('Failed to prefetch companies:', companiesError);
+    }
+  }, [citiesError, companiesError]);
+
   // Prefetch additional data for other cities to improve initial load
   useEffect(() => {
     if (cities && cities.length > 0) {
@@ -40,7 +65,12 @@ export function Preloader() {
       for (const city of topCities) {
         if (city !== 'Helsinki') {
           fetch(`${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`)
-            .then((res) => res.json())
+            .then((res) => {
+              if (!res.ok) {
+                throw new Error(`Failed to prefetch data for ${city}: ${res.status}`);
+              }
+              return res.json();
+            })
             .catch((err) => console.error(`Failed to prefetch data for ${city}:`, err));
         }
       }

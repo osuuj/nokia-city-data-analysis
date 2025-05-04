@@ -3,7 +3,9 @@
 import { AnalyticsView } from '@/features/dashboard/components/views/AnalyticsView';
 import { MapView } from '@/features/dashboard/components/views/MapView';
 import { TableView } from '@/features/dashboard/components/views/TableView';
+import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewSwitcherProps } from '@/features/dashboard/types/view';
+import type { Dispatch, SetStateAction } from 'react';
 
 /**
  * ViewSwitcher
@@ -40,7 +42,7 @@ export function ViewSwitcher({
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           sortDescriptor={sortDescriptor}
-          setSortDescriptor={setSortDescriptor}
+          setSortDescriptor={setSortDescriptor as Dispatch<SetStateAction<SortDescriptor>>}
         />
       )}
 
@@ -64,7 +66,7 @@ export function ViewSwitcher({
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor}
+              setSortDescriptor={setSortDescriptor as Dispatch<SetStateAction<SortDescriptor>>}
             />
           </div>
           {geojson && (

@@ -10,10 +10,10 @@ export const sectionItems: SidebarItem[] = [
     title: 'Overview',
     items: [
       {
-        key: 'home',
-        href: '/home',
-        icon: 'solar:home-bold',
-        title: 'Home',
+        key: 'dashboard',
+        href: '/dashboard',
+        icon: 'solar:widget-bold',
+        title: 'Dashboard',
       },
       {
         key: 'project',
@@ -32,6 +32,7 @@ export const sectionItems: SidebarItem[] = [
         href: '/about',
         icon: 'solar:ghost-smile-bold',
         title: 'About Us',
+        // Uncomment to enable nested navigation
         // type: SidebarItemType.Nest,
         // items: [
         //   {

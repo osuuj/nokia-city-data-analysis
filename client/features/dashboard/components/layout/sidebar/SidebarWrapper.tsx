@@ -39,7 +39,7 @@ export const SidebarWrapper = () => {
   };
 
   return (
-    <aside
+    <nav
       className={cn(
         'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
         {
@@ -47,10 +47,11 @@ export const SidebarWrapper = () => {
           'w-16 items-center px-2 py-6': isCompact,
         },
       )}
+      aria-label="Main Navigation"
     >
       {/* Top: Logo + collapse toggle */}
       <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
-        <Link href="/" className="flex h-10 w-10 items-center justify-center">
+        <Link href="/dashboard" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
         </Link>
 
@@ -61,11 +62,14 @@ export const SidebarWrapper = () => {
               variant="light"
               className="ml-auto h-9 w-9 text-default-500"
               onPress={handleToggle}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               <Icon
                 icon="solar:sidebar-minimalistic-outline"
                 className="text-default-500"
                 width={18}
+                aria-hidden="true"
               />
             </Button>
           </Tooltip>
@@ -76,7 +80,7 @@ export const SidebarWrapper = () => {
 
       {/* Middle: Sidebar */}
       <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
-        <Sidebar defaultSelectedKey="home" isCompact={isCompact} items={sectionItems} />
+        <Sidebar defaultSelectedKey="dashboard" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
       <Spacer y={2} />
@@ -122,16 +126,19 @@ export const SidebarWrapper = () => {
               variant="light"
               className="mt-2 h-10 w-10 text-default-500"
               onPress={handleToggle}
+              aria-expanded={!isCollapsed}
+              aria-label="Expand sidebar"
             >
               <Icon
                 icon="solar:sidebar-minimalistic-outline"
                 className="text-default-500"
                 width={18}
+                aria-hidden="true"
               />
             </Button>
           </Tooltip>
         )}
       </div>
-    </aside>
+    </nav>
   );
 };

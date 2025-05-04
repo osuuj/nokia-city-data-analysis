@@ -1,5 +1,7 @@
 import { useTheme } from 'next-themes';
+import { useMemo } from 'react';
 
+// Define color types
 export type ThemeColorType =
   | 'primary'
   | 'secondary'
@@ -10,93 +12,75 @@ export type ThemeColorType =
   | 'barFill'
   | 'otherIndustry';
 
+// Theme colors by theme type
+type ThemeColors = {
+  [key in ThemeColorType]: string;
+};
+
 // Define a more specific type for the filter config
-interface BaseFilterOption {
+export interface FilterOption {
   value: string;
   title: string;
   color?: string | { light: string; dark: string } | Record<string, string>;
 }
 
-interface BaseFilterConfig {
+export interface FilterConfig {
   key: string;
-  options?: BaseFilterOption[];
+  options?: FilterOption[];
 }
 
+/**
+ * Custom hook for chart theme colors
+ * Returns theme-aware color functions and values
+ */
 export const useChartTheme = () => {
-  const { theme } = useTheme();
-  const currentTheme = theme as 'light' | 'dark' | undefined;
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = (resolvedTheme || theme) as 'light' | 'dark' | undefined;
+
+  // Memoize theme colors to prevent unnecessary rerenders
+  const themeColors: ThemeColors = useMemo(() => {
+    const isDark = currentTheme === 'dark';
+    return {
+      primary: isDark ? '#FFFFFF' : '#000000', // Text, labels
+      secondary: isDark ? '#A0A0A0' : '#666666', // Axis ticks, secondary text
+      grid: isDark ? '#52525b' : '#a1a1aa', // Grid lines
+      tooltipBg: isDark ? '#27272a' : '#FFFFFF', // Tooltip background
+      tooltipBorder: isDark ? '#3f3f46' : '#e4e4e7', // Tooltip border
+      cursorFill: isDark ? 'rgba(100, 100, 100, 0.5)' : 'rgba(200, 200, 200, 0.5)', // Tooltip cursor fill
+      barFill: isDark ? '#8884d8' : '#8884d8', // Default bar fill (Recharts default purple)
+      otherIndustry: isDark ? '#71717a' : '#a1a1aa', // Color for 'Others' category
+    };
+  }, [currentTheme]);
 
   const getThemedColor = (type: ThemeColorType): string => {
-    if (currentTheme === 'dark') {
-      switch (type) {
-        case 'primary':
-          return '#FFFFFF'; // Text, labels
-        case 'secondary':
-          return '#A0A0A0'; // Axis ticks, secondary text
-        case 'grid':
-          return '#52525b'; // Grid lines (zinc-600)
-        case 'tooltipBg':
-          return '#27272a'; // Tooltip background (zinc-800)
-        case 'tooltipBorder':
-          return '#3f3f46'; // Tooltip border (zinc-700)
-        case 'cursorFill':
-          return 'rgba(100, 100, 100, 0.5)'; // Tooltip cursor fill
-        case 'barFill':
-          return '#8884d8'; // Default bar fill (Recharts default purple)
-        case 'otherIndustry':
-          return '#71717a'; // Color for 'Others' category (zinc-500)
-        default:
-          return '#FFFFFF'; // Default fallback for dark
-      }
-    }
-    // Light theme (or default)
-    switch (type) {
-      case 'primary':
-        return '#000000'; // Text, labels
-      case 'secondary':
-        return '#666666'; // Axis ticks, secondary text
-      case 'grid':
-        return '#a1a1aa'; // Grid lines (zinc-400)
-      case 'tooltipBg':
-        return '#FFFFFF'; // Tooltip background (white)
-      case 'tooltipBorder':
-        return '#e4e4e7'; // Tooltip border (zinc-200)
-      case 'cursorFill':
-        return 'rgba(200, 200, 200, 0.5)'; // Tooltip cursor fill
-      case 'barFill':
-        return '#8884d8'; // Default bar fill (Recharts default purple)
-      case 'otherIndustry':
-        return '#a1a1aa'; // Color for 'Others' category (zinc-400)
-      default:
-        return '#000000'; // Default fallback for light
-    }
+    return themeColors[type];
   };
 
   return {
     currentTheme,
     getThemedColor,
-    textColor: getThemedColor('primary'),
-    secondaryTextColor: getThemedColor('secondary'),
-    gridColor: getThemedColor('grid'),
-    tooltipBgColor: getThemedColor('tooltipBg'),
-    tooltipBorderColor: getThemedColor('tooltipBorder'),
-    cursorFillColor: getThemedColor('cursorFill'),
-    barFillColor: getThemedColor('barFill'),
-    otherIndustryColor: getThemedColor('otherIndustry'),
+    textColor: themeColors.primary,
+    secondaryTextColor: themeColors.secondary,
+    gridColor: themeColors.grid,
+    tooltipBgColor: themeColors.tooltipBg,
+    tooltipBorderColor: themeColors.tooltipBorder,
+    cursorFillColor: themeColors.cursorFill,
+    barFillColor: themeColors.barFill,
+    otherIndustryColor: themeColors.otherIndustry,
   };
 };
 
-// Update the getThemedIndustryColor function to use the specific types
+/**
+ * Get industry-specific color based on the current theme
+ */
 export const getThemedIndustryColor = (
   industryName: string,
   industryKey: string | undefined, // e.g., 'A', 'B', 'Other'
-  filtersConfig: BaseFilterConfig[], // Use specific type instead of any[]
+  filtersConfig: FilterConfig[],
   theme: 'light' | 'dark' | undefined,
 ): string => {
   const industryFilter = filtersConfig.find((f) => f.key === 'industries');
-  const option = industryFilter?.options?.find(
-    (opt: BaseFilterOption) => opt.value === industryKey,
-  );
+  const option = industryFilter?.options?.find((opt: FilterOption) => opt.value === industryKey);
 
   // Default color if not found
   const defaultColor = theme === 'dark' ? '#A0A0A0' : '#666666';

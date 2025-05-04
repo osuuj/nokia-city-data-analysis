@@ -28,7 +28,7 @@ export function DashboardPage() {
   const searchParams = useSearchParams();
 
   // Get the query param
-  const query = decodeURIComponent(searchParams.get('city') || '');
+  const query = searchParams ? decodeURIComponent(searchParams.get('city') || '') : '';
 
   const {
     selectedCity,
