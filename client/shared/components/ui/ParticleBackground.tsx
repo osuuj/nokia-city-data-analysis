@@ -1,11 +1,18 @@
 'use client';
 
+import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 const ParticleBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -21,7 +28,7 @@ const ParticleBackground: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!canvasRef.current || dimensions.width === 0) return;
+    if (!canvasRef.current || dimensions.width === 0 || !mounted) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -30,8 +37,12 @@ const ParticleBackground: React.FC = () => {
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
 
-    // Softer white color
-    const particleColor = 'rgba(255, 255, 255, 0.6)';
+    // Use different colors based on theme
+    const particleColor =
+      resolvedTheme === 'dark'
+        ? 'rgba(255, 255, 255, 0.6)' // White for dark mode
+        : 'rgba(50, 50, 100, 0.5)'; // Dark blue for light mode
+
     const particleCount = Math.min(Math.floor(dimensions.width * 0.04), 80); // Slightly fewer particles
 
     let particles: {
@@ -111,7 +122,12 @@ const ParticleBackground: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [dimensions]);
+  }, [dimensions, resolvedTheme, mounted]);
+
+  // For SSR, return empty div until mounted
+  if (!mounted) {
+    return <div className="fixed inset-0 z-10 pointer-events-none" />;
+  }
 
   return (
     <canvas
@@ -121,6 +137,7 @@ const ParticleBackground: React.FC = () => {
         opacity: 0.5,
         background: 'transparent',
       }}
+      key={`particle-canvas-${resolvedTheme}`} // Force re-render on theme change
     />
   );
 };

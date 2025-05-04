@@ -12,7 +12,7 @@ interface FeatureCardListProps {
   activeFeature: Feature<Point, CompanyProperties> | null;
   onSelect: (feature: Feature<Point, CompanyProperties>) => void;
   selectedColor: string;
-  theme?: string;
+  isDark?: boolean;
   flyTo?: (coords: [number, number], addressType?: string) => void;
 }
 
@@ -35,7 +35,7 @@ interface AddressMap {
 
 export function FeatureCardList({
   features,
-  theme = 'light',
+  isDark = false,
   onSelect,
   flyTo,
 }: FeatureCardListProps) {
@@ -152,7 +152,7 @@ export function FeatureCardList({
           onPress={() => setIsCollapsed(false)}
         >
           <Image
-            src={`/industries-${theme}/${useMultiIcon ? 'multi' : letter}.svg`}
+            src={`/industries-${isDark ? 'dark' : 'light'}/${useMultiIcon ? 'multi' : letter}.svg`}
             alt="industry"
             width={isMobile ? 18 : 24}
             height={isMobile ? 18 : 24}
@@ -227,7 +227,7 @@ export function FeatureCardList({
                           style={{ width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}
                         >
                           <Image
-                            src={`/industries-${theme}/${letter}.svg`}
+                            src={`/industries-${isDark ? 'dark' : 'light'}/${letter}.svg`}
                             alt="industry"
                             width={isMobile ? 16 : 20}
                             height={isMobile ? 16 : 20}
@@ -248,7 +248,7 @@ export function FeatureCardList({
                 <div className="flex items-start gap-2">
                   <div className="bg-default-100 p-1.5 rounded-md flex items-center justify-center mt-1">
                     <Image
-                      src={`/industries-${theme}/${selectedFeature.properties.industry_letter || 'broken'}.svg`}
+                      src={`/industries-${isDark ? 'dark' : 'light'}/${selectedFeature.properties.industry_letter || 'broken'}.svg`}
                       alt="industry"
                       width={isMobile ? 18 : 24}
                       height={isMobile ? 18 : 24}

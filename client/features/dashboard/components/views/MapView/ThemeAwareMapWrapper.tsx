@@ -13,13 +13,13 @@ interface ThemeAwareMapWrapperProps {
  */
 export const ThemeAwareMapWrapper = ({ children }: ThemeAwareMapWrapperProps) => {
   const { isDark } = useMapTheme();
-  const [key, setKey] = useState(isDark ? 'dark-map' : 'light-map');
+  const [key, setKey] = useState(`map-${isDark ? 'dark' : 'light'}-${Date.now()}`);
 
   // Listen for theme change events to force remount
   useEffect(() => {
     const handleThemeChange = () => {
       const theme = document.documentElement.getAttribute('data-theme');
-      setKey(theme === 'dark' ? 'dark-map' : 'light-map');
+      setKey(`map-${theme === 'dark' ? 'dark' : 'light'}-${Date.now()}`);
       console.log('Map wrapper detected theme change, forcing remount', theme);
     };
 
@@ -34,7 +34,7 @@ export const ThemeAwareMapWrapper = ({ children }: ThemeAwareMapWrapperProps) =>
 
   // Update key when isDark changes (from hook)
   useEffect(() => {
-    setKey(isDark ? 'dark-map' : 'light-map');
+    setKey(`map-${isDark ? 'dark' : 'light'}-${Date.now()}`);
   }, [isDark]);
 
   return (

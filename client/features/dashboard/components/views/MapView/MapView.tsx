@@ -293,7 +293,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     <div className="relative w-full h-full">
       <ThemeAwareMapWrapper>
         <MapboxMap
-          key={isDark ? 'dark' : 'light'}
+          key={`mapbox-${isDark ? 'dark' : 'light'}`}
           ref={mapRef}
           initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
           style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
@@ -311,7 +311,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           activeFeature={activeFeature}
           onSelect={setActiveFeature}
           selectedColor={selectedColor}
-          theme={isDark ? 'dark' : 'light'}
+          isDark={isDark}
           flyTo={(coords: [number, number], addressType?: string) =>
             flyTo(coords, activeFeature?.properties.business_id, addressType)
           }

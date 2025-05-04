@@ -32,8 +32,27 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
     setMounted(true);
   }, []);
 
+  // Dispatch theme change event when theme changes
+  useEffect(() => {
+    if (mounted && resolvedTheme) {
+      // Dispatch a custom event that components can listen for
+      document.dispatchEvent(
+        new CustomEvent('themechange', {
+          detail: { theme: resolvedTheme },
+        }),
+      );
+    }
+  }, [resolvedTheme, mounted]);
+
   const toggleTheme = useCallback(() => {
-    setTheme(resolvedTheme === 'light' ? 'dark' : 'light');
+    const newTheme = resolvedTheme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+
+    // Update localStorage directly for immediate access by other components
+    localStorage.setItem('theme', newTheme);
+
+    // Update data-theme attribute for immediate visual feedback
+    document.documentElement.setAttribute('data-theme', newTheme);
   }, [resolvedTheme, setTheme]);
 
   // Render a placeholder with the same dimensions during SSR

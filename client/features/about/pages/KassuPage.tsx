@@ -10,15 +10,21 @@ import {
 } from '@/features/about/components/sections';
 import { Header } from '@/shared/components/layout';
 import { ParticleBackground } from '@/shared/components/ui';
-import { useThemeContext } from '@/shared/context/ThemeContext';
-import React, { useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import React, { useEffect, useState } from 'react';
 
 /**
  * KassuPage component that renders Kassu's profile
  * Uses a modular component approach with sections
  */
 export default function KassuPage() {
-  const { theme } = useThemeContext();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state to handle SSR
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Scroll to section on load if hash is present
   useEffect(() => {
@@ -36,8 +42,22 @@ export default function KassuPage() {
     }
   }, []);
 
+  // Add listener for theme changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      // Force re-render on theme change
+      setMounted((prevMounted) => !prevMounted);
+      setTimeout(() => setMounted(true), 0);
+    };
+
+    document.addEventListener('themechange', handleThemeChange);
+    return () => {
+      document.removeEventListener('themechange', handleThemeChange);
+    };
+  }, []);
+
   return (
-    <>
+    <div key={`kassu-page-${resolvedTheme}`}>
       <Header />
       <ParticleBackground />
 
@@ -58,6 +78,6 @@ export default function KassuPage() {
 
       {/* Contact Section */}
       <KassuContact />
-    </>
+    </div>
   );
 }

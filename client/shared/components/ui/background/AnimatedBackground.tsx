@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import React from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * AnimatedBackground
@@ -11,6 +11,16 @@ import React from 'react';
  */
 export const AnimatedBackground = () => {
   const { resolvedTheme: theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // If not mounted yet, return an empty div with the same sizing
+  if (!mounted) {
+    return <div className="fixed inset-0 z-0" />;
+  }
 
   // Define gradient colors based on theme
   const gradientStart = theme === 'dark' ? 'rgba(50, 50, 80, 0.5)' : 'rgba(240, 240, 255, 0.7)';
@@ -20,6 +30,7 @@ export const AnimatedBackground = () => {
     <>
       {/* Primary animated layer */}
       <motion.div
+        key={`primary-${theme}`} // Force remount when theme changes
         className="fixed inset-0 z-0"
         animate={{
           background: [
@@ -39,6 +50,7 @@ export const AnimatedBackground = () => {
 
       {/* Secondary animated layer */}
       <motion.div
+        key={`secondary-${theme}`} // Force remount when theme changes
         className="fixed inset-0 z-0 opacity-50"
         animate={{
           background: [

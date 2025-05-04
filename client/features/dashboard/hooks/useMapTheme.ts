@@ -41,6 +41,16 @@ export function useMapTheme(): MapTheme {
     return resolvedTheme || 'dark';
   }, [resolvedTheme]);
 
+  // Update theme state when resolvedTheme changes
+  useEffect(() => {
+    if (resolvedTheme && resolvedTheme !== prevThemeRef.current) {
+      console.log('Theme changed from hook:', resolvedTheme);
+      setIsDark(resolvedTheme === 'dark');
+      prevThemeRef.current = resolvedTheme;
+      setForceUpdate((prev) => prev + 1);
+    }
+  }, [resolvedTheme]);
+
   // Handle direct theme change events
   const handleThemeChange = useCallback(() => {
     const newTheme = getCurrentTheme();
