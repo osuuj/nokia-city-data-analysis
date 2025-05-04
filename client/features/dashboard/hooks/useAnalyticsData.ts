@@ -6,12 +6,6 @@ import type {
   TransformedDistribution,
   TransformedIndustriesByCity,
 } from '@/features/dashboard/types/analytics';
-import {
-  getIndustryKeyFromName,
-  getStandardIndustryName,
-  getThemedIndustryColor,
-  isOtherIndustry,
-} from '@/features/dashboard/utils/theme';
 import { useCallback, useMemo, useState } from 'react';
 
 /**
@@ -28,8 +22,10 @@ interface UseAnalyticsDataResult {
 
   // Industry Distribution Card data
   distributionData: TransformedDistribution[];
+  getIndustryKeyFromName: (name: string) => string | undefined;
+  potentialOthers: string[];
   industryNameMap: Map<string, string>;
-  getThemedColor: (name: string) => string;
+  getThemedIndustryColor: (name: string, theme?: 'light' | 'dark') => string;
   selectedCities: string[];
   pieChartFocusCity: string | null;
   onPieFocusChange: (city: string | null) => void;
@@ -70,7 +66,12 @@ export function useAnalyticsData(): UseAnalyticsDataResult {
   // Industries By City data
   const industriesByCityData = useMemo<TransformedIndustriesByCity[]>(() => [], []);
 
-  // Industry name mapping
+  // Utility functions
+  const getIndustryKeyFromName = useCallback((name: string) => {
+    const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return normalizedName || undefined;
+  }, []);
+
   const industryNameMap = useMemo(() => {
     const map = new Map<string, string>();
     map.set('technology', 'Technology');
@@ -81,13 +82,24 @@ export function useAnalyticsData(): UseAnalyticsDataResult {
     return map;
   }, []);
 
-  // Get themed color for an industry
-  const getThemedColor = useCallback(
-    (name: string) => getThemedIndustryColor(name, currentTheme),
-    [currentTheme],
+  const potentialOthers = useMemo(() => ['Other', 'Miscellaneous'], []);
+
+  const getThemedIndustryColor = useCallback(
+    (name: string, theme: 'light' | 'dark' = currentTheme) => {
+      const colors: Record<string, { light: string; dark: string }> = {
+        technology: { light: '#4361ee', dark: '#4cc9f0' },
+        healthcare: { light: '#f72585', dark: '#ff85a1' },
+        education: { light: '#7209b7', dark: '#9d4edd' },
+        manufacturing: { light: '#3a0ca3', dark: '#7678ed' },
+        other: { light: '#4895ef', dark: '#a5c9f1' },
+      };
+
+      const key = getIndustryKeyFromName(name) || 'other';
+      return colors[key]?.[theme] || colors.other[theme];
+    },
+    [currentTheme, getIndustryKeyFromName],
   );
 
-  // Handle pie chart focus change
   const onPieFocusChange = useCallback((city: string | null) => {
     setPieChartFocusCity(city);
   }, []);
@@ -98,8 +110,10 @@ export function useAnalyticsData(): UseAnalyticsDataResult {
     currentTheme,
     topCitiesData,
     distributionData,
+    getIndustryKeyFromName,
+    potentialOthers,
     industryNameMap,
-    getThemedColor,
+    getThemedIndustryColor,
     selectedCities,
     pieChartFocusCity,
     onPieFocusChange,

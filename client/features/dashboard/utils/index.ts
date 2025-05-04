@@ -8,4 +8,3 @@ export * from './lazyLoading';
 export * from './performance';
 export * from './math';
 export * from './singleton';
-export * from './theme';
