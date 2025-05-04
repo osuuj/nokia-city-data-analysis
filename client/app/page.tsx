@@ -1,5 +1,6 @@
 import { Hero } from '@/features/landing/components/Hero/Hero';
-import { ErrorBoundary } from '@/shared/components/error';
+import { LandingErrorBoundary } from '@/features/landing/components/LandingErrorBoundary';
+import { Preloader } from '@/shared/components/data/Preloader';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
@@ -23,12 +24,12 @@ export const metadata: Metadata = {
  */
 export default function LandingPage(): JSX.Element {
   return (
-    <ErrorBoundary>
-      <Suspense fallback={null}>
+    <LandingErrorBoundary>
+      <Suspense fallback={<Preloader />}>
         <section className="relative flex flex-col items-center justify-center gap-4 py-8 md:py-10">
           <Hero />
         </section>
       </Suspense>
-    </ErrorBoundary>
+    </LandingErrorBoundary>
   );
 }

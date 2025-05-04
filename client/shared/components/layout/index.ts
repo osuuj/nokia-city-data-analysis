@@ -9,4 +9,3 @@ export { Footer } from './Footer';
 export { Header } from './Header';
 export { ConditionalLayout } from './ConditionalLayout';
 export { ClientLayoutWrapper } from './ClientLayoutWrapper';
-export { GlobalStyles } from './GlobalStyles';

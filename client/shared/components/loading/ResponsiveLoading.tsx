@@ -1,97 +1,71 @@
 'use client';
 
-import type { LoadingPriority, LoadingType } from '@/shared/context/LoadingContext';
-// Removed: import { useLoading } from '@/shared/hooks/loading/useLoading';
-import { cn } from '@/shared/utils/cn';
+import { useLoading } from '@/shared/context/loading';
 import { Spinner } from '@heroui/react';
-import { memo } from 'react';
-import { LoadingOverlay } from './LoadingOverlay';
-import { SkeletonLoader } from './SkeletonLoader';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface ResponsiveLoadingProps {
-  /**
-   * Override the loading type
-   */
-  type?: LoadingType;
-  /**
-   * Override the loading priority
-   */
-  priority?: LoadingPriority;
-  /**
-   * Additional CSS classes
-   */
-  className?: string;
-  /**
-   * Custom loading message
-   */
-  message?: string;
-  /**
-   * Show loading (controlled)
-   */
-  isLoading?: boolean;
-  /**
-   * Progress (for progress type)
-   */
-  progress?: number;
+  /** Minimum loading time in ms to avoid flickering */
+  minLoadingTime?: number;
 }
 
 /**
- * ResponsiveLoading component
- * Adapts its appearance based on loading type and priority
- * Now controlled via props only (no context)
+ * ResponsiveLoading component that displays a loading indicator
+ * when navigating between pages or when a loading state is active.
+ *
+ * @param props - Component props
+ * @returns JSX.Element | null
  */
-function ResponsiveLoadingComponent({
-  type = 'spinner',
-  priority = 'auto',
-  className,
-  message = 'Loading...',
-  isLoading = true,
-  progress = 0,
-}: ResponsiveLoadingProps) {
-  if (!isLoading) return null;
+export const ResponsiveLoading = ({ minLoadingTime = 300 }: ResponsiveLoadingProps) => {
+  const [showLoading, setShowLoading] = useState(false);
+  const [latestPathname, setLatestPathname] = useState<string>('');
+  const currentPathname = usePathname() || '';
+  const loading = useLoading();
 
-  // Determine size based on priority
-  const size = priority === 'high' ? 'lg' : priority === 'auto' ? 'md' : 'sm';
+  // Track navigation changes
+  useEffect(() => {
+    if (latestPathname && latestPathname !== currentPathname) {
+      setShowLoading(true);
 
-  // Render appropriate loading component based on type
-  switch (type) {
-    case 'overlay':
-      return <LoadingOverlay visible={true} message={message} className={cn('z-50', className)} />;
-    case 'skeleton':
-      return (
-        <SkeletonLoader
-          className={cn(
-            'w-full',
-            priority === 'high' && 'h-32',
-            priority === 'auto' && 'h-24',
-            priority === 'low' && 'h-16',
-            className,
-          )}
-        />
-      );
-    case 'spinner':
-      return (
-        <div className="flex justify-center items-center p-4">
-          <Spinner size={size} />
-        </div>
-      );
-    case 'progress':
-      return (
-        <div className="flex flex-col justify-center items-center p-4">
-          <div className="w-full max-w-xs bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="mt-2 text-sm text-gray-500">{message}</p>
-        </div>
-      );
-    default:
-      return (
-        <div className="flex justify-center items-center p-4">
-          <Spinner size="lg" />
-        </div>
-      );
-  }
-}
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, minLoadingTime);
 
-// Memoize the component to prevent unnecessary re-renders
-export const ResponsiveLoading = memo(ResponsiveLoadingComponent);
+      return () => clearTimeout(timer);
+    }
+
+    // Update latest pathname after initial render
+    if (currentPathname && !latestPathname) {
+      setLatestPathname(currentPathname);
+    } else if (currentPathname !== latestPathname) {
+      setLatestPathname(currentPathname);
+    }
+  }, [currentPathname, latestPathname, minLoadingTime]);
+
+  // Also show when loading context is active
+  useEffect(() => {
+    if (loading?.isLoading) {
+      setShowLoading(true);
+    } else if (!loading?.isLoading && showLoading) {
+      const timer = setTimeout(() => {
+        setShowLoading(false);
+      }, minLoadingTime);
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading?.isLoading, minLoadingTime, showLoading]);
+
+  if (!showLoading) return null;
+
+  return (
+    <div className="fixed top-0 left-0 w-full z-[9999] flex justify-center pt-4 pointer-events-none">
+      <div className="bg-background/80 backdrop-blur-md shadow-md rounded-full py-1 px-4 flex items-center gap-2">
+        <Spinner size="sm" color="primary" />
+        <span className="text-sm text-default-700 dark:text-default-400">
+          {loading?.currentLoadingState?.message || 'Loading...'}
+        </span>
+      </div>
+    </div>
+  );
+};

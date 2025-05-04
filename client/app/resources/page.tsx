@@ -4,7 +4,7 @@ import { ResourceCard } from '@/features/resources/components';
 import { ResourcesSkeleton } from '@/features/resources/components';
 import { useResourceCategories } from '@/features/resources/hooks';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
-import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
+import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Accordion, AccordionItem } from '@heroui/react';
 import { Icon } from '@iconify/react';
 

@@ -79,39 +79,6 @@ interface ThemeProviderProps {
 }
 
 /**
- * Apply theme to DOM and synchronize all systems
- */
-export const applyThemeToDOM = (theme: 'light' | 'dark') => {
-  // Update DOM
-  document.documentElement.setAttribute('data-theme', theme);
-  document.documentElement.classList.remove('light', 'dark');
-  document.documentElement.classList.add(theme);
-
-  // Update localStorage
-  localStorage.setItem('theme', theme);
-
-  // Force map reloads if they exist
-  const mapElements = document.querySelectorAll('.mapboxgl-map');
-  for (const map of mapElements) {
-    map.setAttribute('data-theme', theme);
-  }
-
-  // Broadcast theme change event for components that need to react
-  try {
-    // Custom event for direct listeners
-    const themeChangeEvent = new CustomEvent('themechange', {
-      detail: { theme },
-    });
-    document.dispatchEvent(themeChangeEvent);
-
-    // Storage event for cross-tab synchronization
-    window.dispatchEvent(new Event('storage'));
-  } catch (e) {
-    console.error('Error dispatching theme events', e);
-  }
-};
-
-/**
  * Theme provider component
  * Provides theme context to the application
  *
@@ -131,40 +98,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [mounted, setMounted] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(
-    defaultTheme as 'light' | 'dark',
-  );
 
   // Set mounted state when component mounts
   useEffect(() => {
     setMounted(true);
-
-    // Get existing theme from DOM/localStorage
-    const storedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    const domTheme = document.documentElement.getAttribute('data-theme') as 'light' | 'dark';
-    const initialTheme = storedTheme || domTheme || 'dark';
-
-    console.log('ThemeProvider: Initial theme detection', {
-      storedTheme,
-      domTheme,
-      initialTheme,
-    });
-
-    setCurrentTheme(initialTheme);
-    applyThemeToDOM(initialTheme);
-
-    // Listen for changes from other sources
-    const handleStorageChange = () => {
-      const newTheme = localStorage.getItem('theme') as 'light' | 'dark';
-      if (newTheme && newTheme !== currentTheme) {
-        console.log('ThemeProvider: Theme change from storage', { newTheme });
-        setCurrentTheme(newTheme);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [currentTheme]);
+  }, []);
 
   // Handle theme change with error handling
   const setTheme = useCallback(
@@ -172,33 +110,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       try {
         setIsChanging(true);
         setError(null);
-
-        // Add class to disable transitions during theme change
-        document.documentElement.classList.add('theme-transition-disabled');
-
-        // Apply theme using next-themes
         setNextTheme(theme);
-
-        // Apply theme directly to DOM
-        const effectiveTheme =
-          theme === 'system'
-            ? window.matchMedia('(prefers-color-scheme: dark)').matches
-              ? 'dark'
-              : 'light'
-            : (theme as 'light' | 'dark');
-
-        applyThemeToDOM(effectiveTheme);
-        setCurrentTheme(effectiveTheme);
-
-        console.log('ThemeProvider: Theme set', { theme, effectiveTheme });
       } catch (err) {
         setError(`Failed to set theme: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
-        // Small timeout to re-enable transitions after theme is applied
+        // Use a small timeout to simulate theme change completion
         setTimeout(() => {
           setIsChanging(false);
-          document.documentElement.classList.remove('theme-transition-disabled');
-        }, 100);
+        }, 300);
       }
     },
     [setNextTheme],
@@ -206,9 +125,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Toggle between light and dark themes
   const toggleTheme = useCallback(() => {
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    const newTheme = resolvedTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-  }, [currentTheme, setTheme]);
+  }, [resolvedTheme, setTheme]);
 
   // Reset theme to system default
   const resetTheme = useCallback(() => {
@@ -223,7 +142,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   return (
     <ThemeContext.Provider
       value={{
-        theme: currentTheme as ThemeType,
+        theme: (resolvedTheme as ThemeType) || defaultTheme,
         setTheme,
         isLoading: !mounted,
         isChanging,

@@ -1,4 +1,4 @@
-import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
+import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Skeleton } from '@heroui/react';
 
 /**

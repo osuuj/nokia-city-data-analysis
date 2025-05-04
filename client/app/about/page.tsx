@@ -1,7 +1,7 @@
 'use client';
 
 import { AboutErrorBoundary, AboutStory, AboutTeam } from '@/features/about/components';
-import { AnimatedBackground } from '@/shared/components/ui/AnimatedBackground';
+import { AnimatedBackground } from '@/shared/components/ui/background';
 import { useTheme } from 'next-themes';
 
 /**

@@ -1,3 +1,3 @@
-export { ThemeSwitch } from './ThemeSwitch';
-export { AnimatedBackground } from './AnimatedBackground';
+export * from './background';
+export * from './theme';
 export { default as ParticleBackground } from './ParticleBackground';

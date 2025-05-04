@@ -1,7 +1,7 @@
 'use client';
 
 import type { ViewMode } from '@/features/dashboard/types/view';
-import { ThemeSwitchFix } from '@/shared/components/ui/ThemeSwitchFix';
+import { ThemeSwitch } from '@/shared/components/ui/theme';
 import { Button, ButtonGroup } from '@heroui/react';
 import { siteConfig } from '@shared/config';
 import { GithubIcon } from '@shared/icons';
@@ -60,7 +60,7 @@ export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
         >
           <GithubIcon className="text-default-700" />
         </Button>
-        <ThemeSwitchFix />
+        <ThemeSwitch />
       </div>
     </div>
   );

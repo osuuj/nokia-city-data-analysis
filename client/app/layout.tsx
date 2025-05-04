@@ -1,15 +1,12 @@
-import { ErrorMessage } from '@/shared/components/error';
-import { ErrorBoundary } from '@/shared/components/error';
+import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
+import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
+import { BreadcrumbProvider } from '@/shared/context';
+import { LoadingProvider } from '@/shared/context/loading/LoadingContext';
+import '@/shared/styles/globals.css';
 import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
-import '@/shared/styles/globals.css';
-import '@/shared/styles/theme-defaults.css';
-import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
-import { GlobalStyles } from '@/shared/components/layout/GlobalStyles';
-import { BreadcrumbProvider } from '@/shared/context';
-import { LoadingProvider } from '@/shared/context';
-import { ThemeProvider } from '@/shared/context';
-import { QueryProvider } from '@/shared/providers/QueryProvider';
+import { Providers } from '@shared/providers';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
@@ -67,53 +64,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Theme loader script with simplified approach */}
+        {/* Theme loader script to prevent flicker */}
         <Script id="theme-loader" strategy="beforeInteractive">
           {`
             (function() {
               try {
-                // Get the theme from localStorage or use system preference
-                const savedTheme = localStorage.getItem('theme');
                 const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                const finalTheme = savedTheme || systemTheme || 'dark';
-                
-                // Only add theme classes - don't try to change colors now
+                const savedTheme = localStorage.getItem('theme');
+                const finalTheme = savedTheme || systemTheme;
                 document.documentElement.setAttribute('data-theme', finalTheme);
-                document.documentElement.classList.add(finalTheme);
-                
-                // Setup a simple storage listener for cross-tab sync
-                window.addEventListener('storage', function(e) {
-                  if (e.key === 'theme') {
-                    const newTheme = e.newValue || 'dark';
-                    document.documentElement.setAttribute('data-theme', newTheme);
-                    document.documentElement.classList.remove('light', 'dark');
-                    document.documentElement.classList.add(newTheme);
-                  }
-                });
               } catch (e) {
-                // If localStorage is not available, default to dark theme
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.documentElement.classList.add('dark');
               }
             })();
           `}
         </Script>
       </head>
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
-        <div className="theme-background-layer" />
         <ClientLayoutWrapper>
-          {/* Global styles in a client component */}
-          <GlobalStyles />
-
           <ErrorBoundary fallback={<ErrorMessage />}>
             <LoadingProvider>
-              <QueryProvider>
-                <ThemeProvider>
-                  <BreadcrumbProvider>
-                    <ConditionalLayout>{children}</ConditionalLayout>
-                  </BreadcrumbProvider>
-                </ThemeProvider>
-              </QueryProvider>
+              <Providers themeProps={{ attribute: 'data-theme', defaultTheme: 'dark' }}>
+                <BreadcrumbProvider>
+                  <ConditionalLayout>
+                    <ResponsiveLoading />
+                    {children}
+                  </ConditionalLayout>
+                </BreadcrumbProvider>
+              </Providers>
             </LoadingProvider>
           </ErrorBoundary>
         </ClientLayoutWrapper>

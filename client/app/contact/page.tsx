@@ -1,7 +1,7 @@
 'use client';
 
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
-import { AnimatedBackground } from '@/shared/components/ui';
+import { AnimatedBackground } from '@/shared/components/ui/background';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
