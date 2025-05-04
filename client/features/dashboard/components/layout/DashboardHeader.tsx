@@ -35,7 +35,7 @@ export const DashboardHeader = React.memo(function DashboardHeader({
   // Memoize the view mode toggle section
   const viewModeToggleSection = useMemo(
     () => (
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between w-full">
         <ViewModeToggle
           viewMode={viewMode}
           setViewMode={onViewModeChange || setViewMode}
@@ -43,17 +43,13 @@ export const DashboardHeader = React.memo(function DashboardHeader({
         />
       </div>
     ),
-    [viewMode, setViewMode, fetchViewData, onViewModeChange],
+    [viewMode, setViewMode, onViewModeChange, fetchViewData],
   );
 
-  // Memoize the city search section
+  // Memoize the city search section - now always shows
   const citySearchSection = useMemo(() => {
-    if (viewMode === 'map' || viewMode === 'analytics') {
-      return null;
-    }
-
     return (
-      <div className="flex items-center">
+      <div className="flex items-center mt-4 w-full max-w-xs">
         <CitySearch
           cities={cities}
           selectedCity={selectedCity}
@@ -64,10 +60,10 @@ export const DashboardHeader = React.memo(function DashboardHeader({
         />
       </div>
     );
-  }, [viewMode, cities, selectedCity, onCityChange, cityLoading, searchTerm, onSearchChange]);
+  }, [cities, selectedCity, onCityChange, cityLoading, searchTerm, onSearchChange]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {viewModeToggleSection}
       {citySearchSection}
     </div>

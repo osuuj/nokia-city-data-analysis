@@ -11,9 +11,10 @@ import type { ViewMode } from '../../../types';
 export interface ViewModeToggleProps {
   viewMode: ViewMode;
   setViewMode: (view: ViewMode) => void;
+  fetchViewData?: (view: ViewMode) => Promise<void>;
 }
 
-export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
+export function ViewModeToggle({ viewMode, setViewMode, fetchViewData }: ViewModeToggleProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   // Set mounted state after hydration to prevent mismatch
@@ -26,10 +27,18 @@ export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
     (key: string | number) => {
       if (setViewMode && typeof setViewMode === 'function') {
         console.log(`Changing view mode to: ${key}`);
+
+        // If fetchViewData is provided, call it with the new view mode
+        if (fetchViewData) {
+          fetchViewData(key as ViewMode).catch((error) => {
+            console.error(`Failed to fetch data for view: ${key}`, error);
+          });
+        }
+
         setViewMode(key as ViewMode);
       }
     },
-    [setViewMode],
+    [setViewMode, fetchViewData],
   );
 
   // Memoize the GitHub button
