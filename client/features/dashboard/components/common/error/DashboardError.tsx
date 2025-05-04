@@ -1,5 +1,5 @@
+import type { DashboardError as DashboardErrorType } from '@/features/dashboard/types/common';
 import type React from 'react';
-import type { DashboardError as DashboardErrorType } from '../types/common';
 
 interface DashboardErrorProps {
   error: DashboardErrorType;

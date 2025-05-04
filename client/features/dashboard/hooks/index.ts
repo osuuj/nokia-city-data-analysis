@@ -1,4 +1,6 @@
 // Export all hooks from the dashboard feature
-export { useCitySearch } from './useCitySearch';
-export { useTableData } from './useTableData';
-export { useMapData } from './useMapData';
+export * from './useCitySearch';
+export * from './useTableData';
+export * from './useMapData';
+export * from './useDashboard';
+export * from './useAnalyticsData';

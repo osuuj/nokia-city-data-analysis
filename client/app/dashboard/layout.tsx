@@ -1,7 +1,7 @@
 'use client';
 
-import { DashboardFooter } from '@/features/dashboard';
 import { SidebarWrapper } from '@/features/dashboard/components/common/layout/sidebar/SidebarWrapper';
+import { DashboardFooter } from '@/features/dashboard/components/layout';
 import { ErrorBoundary } from '@/shared/components/error';
 import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
 import { Suspense } from 'react';

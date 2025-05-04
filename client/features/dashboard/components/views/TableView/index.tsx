@@ -1,15 +1,31 @@
 'use client';
 
+import { useTableData } from '@/features/dashboard/hooks/useTableData';
 import type {
   CompanyProperties,
+  CompanyTableKey,
+  SortDescriptor as HookSortDescriptor,
   TableColumnConfig,
   TableViewProps,
 } from '@/features/dashboard/types';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import type React from 'react';
-import { Suspense } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { TableViewComponent } from './TableView';
 import { TableSkeleton } from './skeletons';
+
+// Define UI-specific types for the component
+type UIDirection = 'ascending' | 'descending';
+
+// Type guards to ensure correct conversion
+const isUIDirection = (direction: unknown): direction is UIDirection => {
+  return direction === 'ascending' || direction === 'descending';
+};
+
+// Convert UI direction to hook direction
+const convertToHookDirection = (uiDirection: UIDirection): 'asc' | 'desc' => {
+  return uiDirection === 'ascending' ? 'asc' : 'desc';
+};
 
 // Adapter component to bridge between old and new structure during refactoring
 export const TableView: React.FC<TableViewProps> = ({
@@ -28,6 +44,107 @@ export const TableView: React.FC<TableViewProps> = ({
   emptyStateReason = 'No data available for the selected filters',
   allFilteredData = [],
 }) => {
+  // Internal state to track search term
+  const [internalSearchTerm, setInternalSearchTerm] = useState(searchTerm);
+
+  // Ensure UI direction is properly typed and create a memoized hook descriptor
+  const initialHookSortDescriptor = useMemo(() => {
+    const uiDirection = isUIDirection(sortDescriptor.direction)
+      ? sortDescriptor.direction
+      : 'ascending';
+
+    return {
+      column: sortDescriptor.column,
+      direction: convertToHookDirection(uiDirection),
+    } as HookSortDescriptor;
+  }, [sortDescriptor]);
+
+  // Use the enhanced useTableData hook
+  const {
+    paginatedData,
+    filteredData,
+    currentPage: hookCurrentPage,
+    totalPages: hookTotalPages,
+    isLoading: hookIsLoading,
+    setCurrentPage,
+    setPageSize,
+    updateSortDescriptor,
+    error,
+  } = useTableData({
+    data: allFilteredData,
+    pageSize,
+    searchTerm: internalSearchTerm,
+    sortDescriptor: initialHookSortDescriptor,
+    useUrlParams: true,
+  });
+
+  // Handle search changes
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setInternalSearchTerm(value);
+      setSearchTerm(value);
+    },
+    [setSearchTerm],
+  );
+
+  // Custom sort handler that avoids the type issues
+  const handleSortChange = useCallback(
+    (column: string) => {
+      // Type casting for safety
+      const columnKey = column as CompanyTableKey;
+
+      // Determine the current direction in UI terms
+      const currentDirection = isUIDirection(sortDescriptor.direction)
+        ? sortDescriptor.direction
+        : 'ascending';
+
+      // Get the new direction in UI terms
+      const newDirection: UIDirection =
+        columnKey === sortDescriptor.column
+          ? currentDirection === 'ascending'
+            ? 'descending'
+            : 'ascending'
+          : 'ascending';
+
+      // Update the hook's internal state
+      updateSortDescriptor({
+        column: columnKey,
+        direction: newDirection === 'ascending' ? 'asc' : 'desc',
+      });
+
+      // Update external state with UI direction for backward compatibility
+      setSortDescriptor({
+        column: columnKey,
+        direction: newDirection,
+      });
+    },
+    [sortDescriptor, setSortDescriptor, updateSortDescriptor],
+  );
+
+  // Handle page changes
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      // Update external state for backward compatibility
+      if (onPageChange) {
+        onPageChange(page);
+      }
+    },
+    [onPageChange, setCurrentPage],
+  );
+
+  // Handle page size changes
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      // Update external state for backward compatibility
+      if (onPageSizeChange) {
+        onPageSizeChange(size);
+      }
+    },
+    [onPageSizeChange, setPageSize],
+  );
+
   return (
     <ErrorBoundary
       fallback={
@@ -42,20 +159,20 @@ export const TableView: React.FC<TableViewProps> = ({
       >
         <div className="w-full h-full">
           <TableViewComponent
-            data={data}
+            data={paginatedData}
             columns={columns}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-            isLoading={isLoading}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
+            currentPage={hookCurrentPage}
+            totalPages={hookTotalPages}
+            onPageChange={handlePageChange}
+            isLoading={hookIsLoading || isLoading}
+            searchTerm={internalSearchTerm}
+            setSearchTerm={handleSearchChange}
             sortDescriptor={sortDescriptor}
-            setSortDescriptor={setSortDescriptor}
+            setSortDescriptor={handleSortChange}
             pageSize={pageSize}
-            onPageSizeChange={onPageSizeChange}
-            emptyStateReason={emptyStateReason}
-            allFilteredData={allFilteredData}
+            onPageSizeChange={handlePageSizeChange}
+            emptyStateReason={error ? error.message : emptyStateReason}
+            allFilteredData={filteredData}
           />
         </div>
       </Suspense>

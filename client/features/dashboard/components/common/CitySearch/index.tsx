@@ -17,6 +17,7 @@ interface CitySearchProps {
 /**
  * CitySearch component for searching and selecting cities
  * Uses the useCitySearch hook for logic separation
+ * Enhanced with accessibility features and better keyboard navigation
  */
 export const CitySearch = React.memo(function CitySearch({
   cities,
@@ -34,6 +35,8 @@ export const CitySearch = React.memo(function CitySearch({
     handleKeyDown,
     handleClear,
     handleLocalSearchChange,
+    activeIndex,
+    highlightedCity,
   } = useCitySearch({
     cities,
     selectedCity,
@@ -46,7 +49,7 @@ export const CitySearch = React.memo(function CitySearch({
   const selectionIndicator = useMemo(() => {
     if (selectedCity && selectionMade) {
       return (
-        <div className="flex items-center text-xs text-success-500 mt-1">
+        <div className="flex items-center text-xs text-success-500 mt-1" aria-live="polite">
           <Icon icon="lucide:check-circle" className="mr-1" width={12} />
           <span>{selectedCity} selected</span>
         </div>
@@ -67,6 +70,8 @@ export const CitySearch = React.memo(function CitySearch({
       onKeyDown={handleKeyDown}
       showSelectionIndicator={true}
       selectionIndicator={selectionIndicator}
+      activeIndex={activeIndex}
+      highlightedCity={highlightedCity}
     />
   );
 });

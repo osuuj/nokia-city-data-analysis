@@ -1,8 +1,18 @@
 'use client';
 
-import type { DashboardLoadingSection } from '@/features/dashboard/hooks/data/useDashboardLoading';
 import { LoadingSpinner, SkeletonLoader } from '@/shared/components/loading';
 import { cn } from '@/shared/utils/cn';
+
+/**
+ * Dashboard sections that can be in a loading state
+ */
+export type DashboardLoadingSection =
+  | 'header'
+  | 'map'
+  | 'table'
+  | 'filters'
+  | 'stats'
+  | 'analytics';
 
 interface SectionLoaderProps {
   /**
@@ -54,6 +64,8 @@ export function SectionLoader({
         return 'h-12';
       case 'stats':
         return 'h-24';
+      case 'analytics':
+        return 'h-[450px]';
       default:
         return 'h-32';
     }
@@ -64,12 +76,10 @@ export function SectionLoader({
     switch (section) {
       case 'header':
       case 'filters':
-        return 'w-full';
       case 'map':
-        return 'w-full';
       case 'table':
-        return 'w-full';
       case 'stats':
+      case 'analytics':
         return 'w-full';
       default:
         return 'w-full';

@@ -1,12 +1,12 @@
-import { ErrorBoundary } from '@/shared/components/error';
-import { ErrorMessage } from '@/shared/components/error';
-import type React from 'react';
 import {
   CityComparisonCard,
   IndustriesByCityCard,
   IndustryDistributionCard,
   TopCitiesCard,
-} from '../views/AnalyticsView/cards';
+} from '@/features/dashboard/components/views/AnalyticsView/cards';
+import { ErrorBoundary } from '@/shared/components/error';
+import { ErrorMessage } from '@/shared/components/error';
+import type React from 'react';
 
 // Define a simple error type instead of importing it
 type ErrorWithApi = Error | null;

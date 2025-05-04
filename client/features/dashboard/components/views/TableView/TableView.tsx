@@ -195,17 +195,20 @@ export const TableViewComponent: React.FC<TableViewComponentProps> = React.memo(
     const handleSortChange = useCallback(
       (column: string) => {
         setSortDescriptor((prev) => {
-          if (prev.column === column) {
+          const columnKey = column as CompanyTableKey;
+
+          if (prev.column === columnKey) {
             // Toggle direction if same column
             return {
-              column,
-              direction: prev.direction === 'ascending' ? 'descending' : 'ascending',
+              column: columnKey,
+              direction: prev.direction === 'asc' ? 'desc' : 'asc',
             };
           }
+
           // Default to ascending if new column
           return {
-            column,
-            direction: 'ascending',
+            column: columnKey,
+            direction: 'asc',
           };
         });
       },
@@ -325,9 +328,7 @@ export const TableViewComponent: React.FC<TableViewComponentProps> = React.memo(
               className="min-w-16"
             >
               {pageSizeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
+                <SelectItem key={option.value}>{option.label}</SelectItem>
               ))}
             </Select>
           </div>
