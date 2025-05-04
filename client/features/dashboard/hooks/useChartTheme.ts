@@ -10,18 +10,16 @@ export type ThemeColorType =
   | 'barFill'
   | 'otherIndustry';
 
-// Define expected structure for filter options and the config
-interface FilterOption {
+// Define a more specific type for the filter config
+interface BaseFilterOption {
   value: string;
   title: string;
-  color?: { light: string; dark: string };
-  // Add other potential properties if known
+  color?: string | { light: string; dark: string } | Record<string, string>;
 }
 
-interface FilterConfigItem {
+interface BaseFilterConfig {
   key: string;
-  options?: FilterOption[];
-  // Add other potential properties if known
+  options?: BaseFilterOption[];
 }
 
 export const useChartTheme = () => {
@@ -88,23 +86,34 @@ export const useChartTheme = () => {
   };
 };
 
-// Function to get specific industry color based on theme (extracted for reusability if needed outside the hook/component)
+// Update the getThemedIndustryColor function to use the specific types
 export const getThemedIndustryColor = (
   industryName: string,
   industryKey: string | undefined, // e.g., 'A', 'B', 'Other'
-  filtersConfig: FilterConfigItem[], // Use defined type
+  filtersConfig: BaseFilterConfig[], // Use specific type instead of any[]
   theme: 'light' | 'dark' | undefined,
 ): string => {
-  const industryFilter = filtersConfig.find((f: FilterConfigItem) => f.key === 'industries');
-  const option = industryFilter?.options?.find((opt: FilterOption) => opt.value === industryKey);
+  const industryFilter = filtersConfig.find((f) => f.key === 'industries');
+  const option = industryFilter?.options?.find(
+    (opt: BaseFilterOption) => opt.value === industryKey,
+  );
 
   // Default color if not found
   const defaultColor = theme === 'dark' ? '#A0A0A0' : '#666666';
 
-  // Check if color has the expected structure
-  const colorConfig = option?.color as { light: string; dark: string } | undefined;
-  if (colorConfig?.light && colorConfig?.dark) {
-    return theme === 'dark' ? colorConfig.dark : colorConfig.light;
+  // Check if color has the expected structure as an object with light/dark properties
+  if (
+    option?.color &&
+    typeof option.color === 'object' &&
+    'light' in option.color &&
+    'dark' in option.color
+  ) {
+    return theme === 'dark' ? option.color.dark : option.color.light;
+  }
+
+  // If color is a direct string value
+  if (option?.color && typeof option.color === 'string') {
+    return option.color;
   }
 
   // Fallback for "Others" or if color not defined/invalid

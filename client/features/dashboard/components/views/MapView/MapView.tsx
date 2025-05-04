@@ -7,7 +7,7 @@ import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxMap from 'react-map-gl/mapbox';
 import { FeatureCardList } from './FeatureCardList';
@@ -30,22 +30,16 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   // Use our custom map theme hook
   const { mapStyle, textColor, isDark } = useMapTheme();
 
-  // Store theme state in a ref to track changes
-  const themeChangeRef = useRef(isDark);
-
   // Get selected keys directly from store for immediate reactivity
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
   const hasSelections = selectedKeys.size > 0;
 
-  // Filter geojson based on selectedBusinesses if they exist, or selectedKeys from store
+  // Filter geojson based on selected keys from store
   const filteredGeojson = useMemo(() => {
-    // If there are no selections, show all markers
     if (!hasSelections) {
       return geojson;
     }
 
-    // Create a set of selected IDs for faster lookup
-    // Use selectedKeys directly from store for immediate reactivity
     return {
       ...geojson,
       features: geojson.features.filter((feature) =>
@@ -57,12 +51,11 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   // Use the environment variable or a fallback for development
   const mapboxToken =
     process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
-    // Temporary fallback token - should be replaced with your own token
     'pk.eyJ1Ijoic3VwZXJqdXVzbyIsImEiOiJjbW00dnJueTcxeHZmM3FxbXgyYmgyaHg2In0.nNFxwPP_XXLKQrfmUFoTdw';
 
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
-  // Get color for the industry, ensuring it's always a string based on current theme
+  // Get color for the industry based on current theme
   const selectedColor = useMemo(() => {
     const industryLetter = activeFeature?.properties?.industry_letter;
     const colorConfig = filters
@@ -80,15 +73,11 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     ) {
       return isDark ? colorConfig.dark : colorConfig.light;
     }
-    return '#FAFAFA'; // fallback yellow
+    return '#FAFAFA'; // fallback color
   }, [activeFeature, isDark]);
 
-  // Add theme-dependent text color for clusters
-  const clusterTextColor = useMemo(() => {
-    return textColor;
-  }, [textColor]);
-
-  const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+  // Handle map click event
+  const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
@@ -120,44 +109,48 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       setSelectedFeatures([]);
       setActiveFeature(null);
     }
-  };
+  }, []);
 
-  // Handle map load event
-  const handleMapLoad = () => {
+  // Handle map load event with improved error handling
+  const handleMapLoad = useCallback(() => {
     console.log('Map loaded event fired');
     const map = mapRef.current?.getMap();
 
-    if (map) {
-      // Specifically handle the style.load event
-      // This is the critical event for theme changes
-      const onStyleLoad = () => {
-        console.log('Map style.load event fired');
+    if (!map) {
+      console.error('Map reference not available');
+      return;
+    }
+
+    // Clean up existing listener first
+    map.off('style.load', () => {});
+
+    // Add style.load listener with proper error handling
+    const onStyleLoad = () => {
+      console.log('Map style.load event fired');
+      try {
         // Set a timeout to ensure the style is fully processed
         setTimeout(() => {
           console.log('Setting mapLoaded = true after style load');
           setMapLoaded(true);
         }, 200);
-      };
-
-      // First remove any existing listeners to prevent duplicates
-      map.off('style.load', onStyleLoad);
-
-      // Then add the style.load listener
-      map.on('style.load', onStyleLoad);
-
-      // If the style is already loaded, trigger immediately
-      if (map.isStyleLoaded()) {
-        console.log('Style already loaded, setting mapLoaded = true immediately');
-        setMapLoaded(true);
-      } else {
-        console.log('Style not yet loaded, waiting for style.load event');
+      } catch (error) {
+        console.error('Error in style.load handler:', error);
       }
-    }
-  };
+    };
 
-  // This effect manages cleaning up map event listeners
+    map.on('style.load', onStyleLoad);
+
+    // If the style is already loaded, trigger immediately
+    if (map.isStyleLoaded()) {
+      console.log('Style already loaded, setting mapLoaded = true immediately');
+      setMapLoaded(true);
+    } else {
+      console.log('Style not yet loaded, waiting for style.load event');
+    }
+  }, []);
+
+  // Clean up map event listeners
   useEffect(() => {
-    // Clean up function that removes event listeners when component unmounts
     return () => {
       const map = mapRef.current?.getMap();
       if (map) {
@@ -167,20 +160,13 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     };
   }, []);
 
-  // Update ref when theme changes
+  // Reset mapLoaded when theme changes
   useEffect(() => {
-    themeChangeRef.current = isDark;
-    // Reset mapLoaded to prepare for the new map instance
-    setMapLoaded(false);
-  }, [isDark]);
-
-  // Reset map when component mounts
-  useEffect(() => {
-    // Initial load - reset state
+    console.log('Theme changed, resetting mapLoaded state');
     setMapLoaded(false);
   }, []);
 
-  // Update map when filteredGeojson changes
+  // Update map sources and layers when data or theme changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
@@ -203,43 +189,47 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     updateMapSources(map);
 
     function updateMapSources(map: mapboxgl.Map) {
-      const coordMap = new Map<string, number>();
-      for (const feature of filteredGeojson.features) {
-        const coords = feature.geometry.coordinates.join(',');
-        coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
-      }
-
-      const taggedGeojson: FeatureCollection<
-        Point,
-        CompanyProperties & { isOverlapping: boolean; isActive: boolean }
-      > = {
-        ...filteredGeojson,
-        features: filteredGeojson.features.map((feature) => {
-          const coords = feature.geometry.coordinates.join(',');
-          const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
-          const isActive = feature.properties.business_id === activeBusinessId;
-
-          if (isActive) {
-            console.log('[Map] Highlighting feature:', feature.properties.company_name);
-          }
-
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              isOverlapping,
-              isActive,
-              industry_letter: feature.properties.industry_letter || 'broken',
-            },
-          };
-        }),
-      };
-
       try {
+        // Count overlapping markers
+        const coordMap = new Map<string, number>();
+        for (const feature of filteredGeojson.features) {
+          const coords = feature.geometry.coordinates.join(',');
+          coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
+        }
+
+        // Tag features with overlap status and active state
+        const taggedGeojson: FeatureCollection<
+          Point,
+          CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+        > = {
+          ...filteredGeojson,
+          features: filteredGeojson.features.map((feature) => {
+            const coords = feature.geometry.coordinates.join(',');
+            const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+            const isActive = feature.properties.business_id === activeBusinessId;
+
+            if (isActive) {
+              console.log('[Map] Highlighting feature:', feature.properties.company_name);
+            }
+
+            return {
+              ...feature,
+              properties: {
+                ...feature.properties,
+                isOverlapping,
+                isActive,
+                industry_letter: feature.properties.industry_letter || 'broken',
+              },
+            };
+          }),
+        };
+
+        // Source and layer setup
         const sourceId = 'visiting-companies';
         const existingSource = map.getSource(sourceId);
 
         if (!existingSource) {
+          // Initial source and layer creation
           map.addSource(sourceId, {
             type: 'geojson',
             data: taggedGeojson,
@@ -248,66 +238,15 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
             clusterRadius: 50,
           });
 
-          map.addLayer({
-            id: 'cluster-count-layer',
-            type: 'symbol',
-            source: sourceId,
-            filter: ['has', 'point_count'],
-            layout: {
-              'text-field': ['get', 'point_count_abbreviated'],
-              'text-size': 14,
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            },
-            paint: {
-              'text-color': clusterTextColor,
-            },
-          });
-
-          map.addLayer({
-            id: 'multi-marker-icons',
-            type: 'symbol',
-            source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], true],
-            layout: {
-              'icon-image': 'multi',
-              'icon-size': 1.4,
-              'icon-allow-overlap': true,
-            },
-          });
-
-          map.addLayer({
-            id: 'company-icons',
-            type: 'symbol',
-            source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], false],
-            layout: {
-              'icon-image': ['get', 'industry_letter'],
-              'icon-size': 1.4,
-              'icon-allow-overlap': true,
-            },
-          });
-
-          map.addLayer({
-            id: 'active-marker-highlight',
-            type: 'circle',
-            source: sourceId,
-            filter: ['==', ['get', 'isActive'], true],
-            paint: {
-              'circle-radius': 25,
-              'circle-color': selectedColor as string, // Type assertion needed for Mapbox
-              'circle-opacity': 0.25,
-              'circle-blur': 0.2,
-              'circle-stroke-color': '#333',
-              'circle-stroke-width': 1,
-            },
-          });
-
-          map.moveLayer('active-marker-highlight', 'company-icons');
+          // Add all required layers
+          addMapLayers(map, sourceId, textColor, selectedColor as string);
         } else {
+          // Update existing source and style properties
           (existingSource as GeoJSONSource).setData(taggedGeojson);
 
+          // Update theme-dependent properties
           if (map.getLayer('cluster-count-layer')) {
-            map.setPaintProperty('cluster-count-layer', 'text-color', clusterTextColor);
+            map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
           }
 
           if (map.getLayer('active-marker-highlight')) {
@@ -322,29 +261,102 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         console.error('Error updating map:', error);
       }
     }
-  }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, clusterTextColor]);
+  }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, textColor]);
 
-  const flyTo = (coords: [number, number], targetBusinessId?: string, addressType?: string) => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-
-    map.flyTo({ center: coords, zoom: 14, duration: 800 });
-
-    // Attempt to find the feature that matches the coordinates and address type
-    const matching = filteredGeojson.features.find((f) => {
-      const [lng, lat] = f.geometry.coordinates;
-      const matchesCoords = lng === coords[0] && lat === coords[1];
-      const matchesId = targetBusinessId ? f.properties.business_id === targetBusinessId : true;
-      const matchesType = addressType ? f.properties.addressType === addressType : true;
-
-      return matchesCoords && matchesId && matchesType;
+  // Extract layer creation to a separate function for clarity
+  const addMapLayers = (
+    map: mapboxgl.Map,
+    sourceId: string,
+    textColor: string,
+    highlightColor: string,
+  ) => {
+    // Cluster count layer
+    map.addLayer({
+      id: 'cluster-count-layer',
+      type: 'symbol',
+      source: sourceId,
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': ['get', 'point_count_abbreviated'],
+        'text-size': 14,
+        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      },
+      paint: {
+        'text-color': textColor,
+      },
     });
 
-    if (matching) {
-      setActiveFeature(matching);
-      setSelectedFeatures([matching]);
-    }
+    // Multiple markers at same location
+    map.addLayer({
+      id: 'multi-marker-icons',
+      type: 'symbol',
+      source: sourceId,
+      filter: ['==', ['get', 'isOverlapping'], true],
+      layout: {
+        'icon-image': 'multi',
+        'icon-size': 1.4,
+        'icon-allow-overlap': true,
+      },
+    });
+
+    // Individual company markers
+    map.addLayer({
+      id: 'company-icons',
+      type: 'symbol',
+      source: sourceId,
+      filter: ['==', ['get', 'isOverlapping'], false],
+      layout: {
+        'icon-image': ['get', 'industry_letter'],
+        'icon-size': 1.4,
+        'icon-allow-overlap': true,
+      },
+    });
+
+    // Highlight for active marker
+    map.addLayer({
+      id: 'active-marker-highlight',
+      type: 'circle',
+      source: sourceId,
+      filter: ['==', ['get', 'isActive'], true],
+      paint: {
+        'circle-radius': 25,
+        'circle-color': highlightColor,
+        'circle-opacity': 0.25,
+        'circle-blur': 0.2,
+        'circle-stroke-color': '#333',
+        'circle-stroke-width': 1,
+      },
+    });
+
+    // Ensure highlight appears below the markers
+    map.moveLayer('active-marker-highlight', 'company-icons');
   };
+
+  // Fly to a location on the map
+  const flyTo = useCallback(
+    (coords: [number, number], addressType?: string) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      map.flyTo({ center: coords, zoom: 14, duration: 800 });
+
+      // Attempt to find the feature that matches the coordinates and address type
+      const matching = filteredGeojson.features.find((f) => {
+        const [lng, lat] = f.geometry.coordinates;
+        const matchesCoords = lng === coords[0] && lat === coords[1];
+        const matchesId = activeBusinessId ? f.properties.business_id === activeBusinessId : true;
+        const matchesType = addressType ? f.properties.addressType === addressType : true;
+
+        return matchesCoords && matchesId && matchesType;
+      });
+
+      if (matching) {
+        setActiveFeature(matching);
+        setSelectedFeatures([matching]);
+      }
+    },
+    [filteredGeojson.features, activeBusinessId],
+  );
 
   return (
     <div className="relative w-full h-full">
@@ -369,9 +381,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           onSelect={setActiveFeature}
           selectedColor={selectedColor}
           isDark={isDark}
-          flyTo={(coords: [number, number], addressType?: string) =>
-            flyTo(coords, activeFeature?.properties.business_id, addressType)
-          }
+          flyTo={flyTo}
         />
       )}
     </div>

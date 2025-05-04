@@ -1,3 +1,4 @@
+import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import type React from 'react';
 import {
   Legend,
@@ -10,43 +11,6 @@ import {
   Tooltip,
 } from 'recharts';
 
-// ADD BACK getThemedColor helper
-const getThemedColor = (
-  theme: string | undefined,
-  type: 'primary' | 'secondary' | 'grid' | 'tooltipBg' | 'tooltipBorder',
-) => {
-  if (theme === 'dark') {
-    switch (type) {
-      case 'primary':
-        return '#FFFFFF';
-      case 'secondary':
-        return '#A0A0A0';
-      case 'grid':
-        return '#52525b'; // Lighter grid for dark
-      case 'tooltipBg':
-        return '#27272a';
-      case 'tooltipBorder':
-        return '#3f3f46';
-      default:
-        return '#FFFFFF';
-    }
-  }
-  switch (type) {
-    case 'primary':
-      return '#000000';
-    case 'secondary':
-      return '#666666';
-    case 'grid':
-      return '#a1a1aa'; // Darker grid for light
-    case 'tooltipBg':
-      return '#FFFFFF';
-    case 'tooltipBorder':
-      return '#e4e4e7';
-    default:
-      return '#000000';
-  }
-};
-
 // Define the expected data structure for this component
 interface ChartDataItem {
   industry: string; // Industry display name (or 'Others')
@@ -54,19 +18,16 @@ interface ChartDataItem {
 }
 
 interface CityComparisonProps {
-  data: ChartDataItem[]; // USE: Correctly defined type
+  data: ChartDataItem[];
   currentTheme?: 'light' | 'dark';
 }
 
 export const CityComparison: React.FC<CityComparisonProps> = ({ data, currentTheme = 'light' }) => {
   const cities = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'industry') : [];
 
-  // ADD BACK themed color constants
-  const textColor = getThemedColor(currentTheme, 'primary');
-  const secondaryTextColor = getThemedColor(currentTheme, 'secondary');
-  const gridColor = getThemedColor(currentTheme, 'grid');
-  const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
-  const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
+  // Use shared chart theme hook
+  const { textColor, secondaryTextColor, gridColor, tooltipBgColor, tooltipBorderColor } =
+    useChartTheme();
 
   if (!data || data.length === 0 || cities.length === 0) {
     // Return null or a placeholder/message component

@@ -1,5 +1,6 @@
 'use client';
 
+import { getThemedIndustryColor, useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { filters } from '@/features/dashboard/utils/filters'; // Import filters config
 import {
   Autocomplete,
@@ -16,7 +17,6 @@ import {
   Tooltip,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -81,8 +81,8 @@ interface FilterItem {
 }
 
 export const AnalyticsView: React.FC = () => {
-  const { theme } = useTheme();
-  const currentTheme = theme as 'light' | 'dark' | undefined;
+  // Use useChartTheme to get currentTheme
+  const { currentTheme } = useChartTheme();
 
   // State for selected cities - Limit to 5
   const [selectedCities, setSelectedCities] = useState<Set<string>>(new Set());
@@ -130,25 +130,9 @@ export const AnalyticsView: React.FC = () => {
   }, []);
 
   // Get the correct color based on theme and industry display name
-  const getThemedIndustryColor = (industryName: string, theme: string | undefined): string => {
+  const getIndustryColor = (industryName: string): string => {
     const industryKey = getIndustryKeyFromName(industryName);
-    const industryFilter = filters.find((f: FilterItem) => f.key === 'industries');
-    const option = industryFilter?.options?.find((opt) => opt.value === industryKey);
-
-    // Default color if not found
-    const defaultColor = theme === 'dark' ? '#A0A0A0' : '#666666';
-
-    // Check if color has the expected structure
-    const colorConfig = option?.color as { light: string; dark: string } | undefined;
-    if (colorConfig?.light && colorConfig?.dark) {
-      return theme === 'dark' ? colorConfig.dark : colorConfig.light;
-    }
-
-    // Fallback for "Others" or if color not defined/invalid
-    if (industryName === OTHER_CATEGORY_DISPLAY_NAME) {
-      return theme === 'dark' ? '#71717a' : '#a1a1aa'; // zinc-500 / zinc-400
-    }
-    return defaultColor;
+    return getThemedIndustryColor(industryName, industryKey, filters, currentTheme);
   };
 
   // Determine URL for Industry Distribution fetch
@@ -604,11 +588,10 @@ export const AnalyticsView: React.FC = () => {
             ) : distributionFetchUrl && selectedIndustryDisplayNames.size > 0 ? (
               <IndustryDistribution
                 data={filteredIndustryDistributionData}
-                currentTheme={currentTheme}
                 getIndustryKeyFromName={getIndustryKeyFromName}
                 potentialOthers={potentialOthersIndustries}
                 industryNameMap={industryNameMap}
-                getThemedIndustryColor={getThemedIndustryColor}
+                getThemedIndustryColor={getIndustryColor}
               />
             ) : selectedCities.size > 1 && !pieChartFocusCity ? (
               <p className="text-center text-default-500">Select a city from the dropdown above.</p>
@@ -634,10 +617,9 @@ export const AnalyticsView: React.FC = () => {
             ) : selectedIndustryDisplayNames.size > 0 ? (
               <CityIndustryBars
                 data={filteredIndustriesByCityData}
-                currentTheme={currentTheme}
                 getIndustryKeyFromName={getIndustryKeyFromName}
                 potentialOthers={potentialOthersIndustries}
-                getThemedIndustryColor={getThemedIndustryColor}
+                getThemedIndustryColor={getIndustryColor}
               />
             ) : (
               <p className="text-center text-default-500">Select industries to view details.</p>
@@ -655,7 +637,7 @@ export const AnalyticsView: React.FC = () => {
             {loadingCityComparison ? (
               <Spinner />
             ) : selectedIndustryDisplayNames.size > 0 ? (
-              <CityComparison data={filteredCityComparisonData} currentTheme={currentTheme} />
+              <CityComparison data={filteredCityComparisonData} />
             ) : (
               <p className="text-center text-default-500">Select industries to compare cities.</p>
             )}
@@ -672,7 +654,7 @@ export const AnalyticsView: React.FC = () => {
             {loadingTopCities ? (
               <Spinner />
             ) : topCitiesData && topCitiesData.length > 0 ? (
-              <TopCitiesChart data={topCitiesData} currentTheme={currentTheme} />
+              <TopCitiesChart data={topCitiesData} />
             ) : (
               <p className="text-center text-default-500">Could not load top cities data.</p>
             )}

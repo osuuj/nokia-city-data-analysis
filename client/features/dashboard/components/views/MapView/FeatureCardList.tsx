@@ -33,6 +33,35 @@ interface AddressMap {
   [key: string]: AddressDetail | undefined;
 }
 
+interface CompanyPropertiesWithWebsite extends CompanyProperties {
+  website: string;
+}
+
+interface CompanyPropertiesWithIndustry extends CompanyProperties {
+  industry_description: string;
+}
+
+/**
+ * Type guard function to check if the properties include a valid website
+ */
+function hasValidWebsite(
+  properties: CompanyProperties,
+): properties is CompanyPropertiesWithWebsite {
+  return typeof properties.website === 'string' && properties.website.trim().length > 0;
+}
+
+/**
+ * Type guard function to check if the properties include a valid industry description
+ */
+function hasValidIndustryDescription(
+  properties: CompanyProperties,
+): properties is CompanyPropertiesWithIndustry {
+  return (
+    typeof properties.industry_description === 'string' &&
+    properties.industry_description.trim().length > 0
+  );
+}
+
 export function FeatureCardList({
   features,
   isDark = false,
@@ -321,9 +350,9 @@ export function FeatureCardList({
                     );
                   })()}
 
-                  {(!isCompact || !isMobile) && (
-                    <>
-                      {selectedFeature.properties.industry_description && (
+                  {(!isCompact || !isMobile) && selectedFeature && (
+                    <div className="space-y-2">
+                      {hasValidIndustryDescription(selectedFeature.properties) && (
                         <div className="mt-2">
                           <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
                             Industry
@@ -334,7 +363,7 @@ export function FeatureCardList({
                         </div>
                       )}
 
-                      {selectedFeature.properties.website && (
+                      {hasValidWebsite(selectedFeature.properties) && (
                         <div className="mt-2">
                           <div className="text-xs md:text-sm font-semibold text-default-700 uppercase mb-1">
                             Website
@@ -352,7 +381,7 @@ export function FeatureCardList({
                           </div>
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                 </ScrollShadow>
 

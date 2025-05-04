@@ -1,3 +1,4 @@
+import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import type React from 'react';
 import { useMemo } from 'react';
 import {
@@ -11,47 +12,6 @@ import {
   YAxis,
 } from 'recharts';
 
-// ADD BACK getThemedColor helper
-const getThemedColor = (
-  theme: string | undefined,
-  type: 'primary' | 'secondary' | 'grid' | 'tooltipBg' | 'tooltipBorder' | 'barFill',
-) => {
-  if (theme === 'dark') {
-    switch (type) {
-      case 'primary':
-        return '#FFFFFF';
-      case 'secondary':
-        return '#A0A0A0';
-      case 'grid':
-        return '#52525b'; // Lighter grid for dark
-      case 'tooltipBg':
-        return '#27272a';
-      case 'tooltipBorder':
-        return '#3f3f46';
-      case 'barFill':
-        return '#8884d8';
-      default:
-        return '#FFFFFF';
-    }
-  }
-  switch (type) {
-    case 'primary':
-      return '#000000';
-    case 'secondary':
-      return '#666666';
-    case 'grid':
-      return '#a1a1aa'; // Darker grid for light
-    case 'tooltipBg':
-      return '#FFFFFF';
-    case 'tooltipBorder':
-      return '#e4e4e7';
-    case 'barFill':
-      return '#8884d8';
-    default:
-      return '#000000';
-  }
-};
-
 // Define the expected data structure for this component
 interface ChartDataItem {
   city: string;
@@ -59,18 +19,20 @@ interface ChartDataItem {
 }
 
 interface TopCitiesChartProps {
-  data: ChartDataItem[]; // USE: Correctly defined type
+  data: ChartDataItem[];
   currentTheme?: 'light' | 'dark';
 }
 
 export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentTheme = 'light' }) => {
-  // ADD BACK themed color constants
-  const textColor = getThemedColor(currentTheme, 'primary');
-  const secondaryTextColor = getThemedColor(currentTheme, 'secondary');
-  const gridColor = getThemedColor(currentTheme, 'grid');
-  const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
-  const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
-  const barFillColor = getThemedColor(currentTheme, 'barFill'); // Keep using for bar fill
+  // Use shared chart theme hook
+  const {
+    textColor,
+    secondaryTextColor,
+    gridColor,
+    tooltipBgColor,
+    tooltipBorderColor,
+    barFillColor,
+  } = useChartTheme();
 
   const optimizedData = useMemo(() => {
     return data.slice(0, 10).map((item) => ({

@@ -1,3 +1,4 @@
+import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { Tooltip } from '@heroui/react';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
@@ -11,46 +12,6 @@ import {
   YAxis,
 } from 'recharts';
 import type { Payload } from 'recharts/types/component/DefaultLegendContent';
-
-const getThemedColor = (
-  theme: string | undefined,
-  type: 'primary' | 'secondary' | 'grid' | 'tooltipBg' | 'tooltipBorder' | 'cursorFill',
-) => {
-  if (theme === 'dark') {
-    switch (type) {
-      case 'primary':
-        return '#FFFFFF';
-      case 'secondary':
-        return '#A0A0A0';
-      case 'grid':
-        return '#52525b'; // Lighter grid for dark (zinc-600)
-      case 'tooltipBg':
-        return '#27272a';
-      case 'tooltipBorder':
-        return '#3f3f46';
-      case 'cursorFill':
-        return 'rgba(100, 100, 100, 0.5)';
-      default:
-        return '#FFFFFF';
-    }
-  }
-  switch (type) {
-    case 'primary':
-      return '#000000';
-    case 'secondary':
-      return '#666666';
-    case 'grid':
-      return '#a1a1aa'; // Darker grid for light (zinc-400)
-    case 'tooltipBg':
-      return '#FFFFFF';
-    case 'tooltipBorder':
-      return '#e4e4e7';
-    case 'cursorFill':
-      return 'rgba(200, 200, 200, 0.5)';
-    default:
-      return '#000000';
-  }
-};
 
 interface CityIndustryBarsData {
   city: string;
@@ -73,6 +34,7 @@ interface CustomLegendProps {
   onMouseLeave?: (industryName: string) => void;
   activeIndustry: string | null;
   potentialOthers: string[];
+  textColor: string;
 }
 
 const RenderCustomLegend = (props: CustomLegendProps) => {
@@ -84,9 +46,9 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
     onMouseLeave,
     activeIndustry,
     potentialOthers,
+    textColor,
   } = props;
   const folder = theme === 'dark' ? 'industries-dark' : 'industries-light';
-  const textColor = getThemedColor(theme, 'primary');
 
   if (!payload) return null;
 
@@ -206,6 +168,15 @@ export const CityIndustryBars: React.FC<CityIndustryBarsProps> = ({
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  const {
+    textColor,
+    secondaryTextColor,
+    tooltipBgColor,
+    tooltipBorderColor,
+    gridColor: gridStrokeColor,
+    cursorFillColor,
+  } = useChartTheme();
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -226,13 +197,6 @@ export const CityIndustryBars: React.FC<CityIndustryBarsProps> = ({
   const handleIndustryLeave = useCallback(() => {
     setActiveIndustry(null);
   }, []);
-
-  const textColor = getThemedColor(currentTheme, 'primary');
-  const secondaryTextColor = getThemedColor(currentTheme, 'secondary');
-  const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
-  const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
-  const gridStrokeColor = getThemedColor(currentTheme, 'grid');
-  const cursorFillColor = getThemedColor(currentTheme, 'cursorFill');
 
   if (!data || data.length === 0) {
     return (
@@ -304,6 +268,7 @@ export const CityIndustryBars: React.FC<CityIndustryBarsProps> = ({
                 onMouseLeave={handleIndustryLeave}
                 activeIndustry={activeIndustry}
                 potentialOthers={potentialOthers}
+                textColor={textColor}
               />
             )}
           />

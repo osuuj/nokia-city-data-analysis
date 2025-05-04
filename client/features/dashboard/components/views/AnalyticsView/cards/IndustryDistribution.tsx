@@ -1,3 +1,4 @@
+import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { Tooltip } from '@heroui/react';
 import React, { useState, useEffect } from 'react';
 import {
@@ -9,34 +10,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { Payload } from 'recharts/types/component/DefaultLegendContent';
-
-const getThemedColor = (
-  theme: string | undefined,
-  type: 'primary' | 'tooltipBg' | 'tooltipBorder',
-) => {
-  if (theme === 'dark') {
-    switch (type) {
-      case 'primary':
-        return '#FFFFFF';
-      case 'tooltipBg':
-        return '#27272a';
-      case 'tooltipBorder':
-        return '#3f3f46';
-      default:
-        return '#FFFFFF';
-    }
-  }
-  switch (type) {
-    case 'primary':
-      return '#000000';
-    case 'tooltipBg':
-      return '#FFFFFF';
-    case 'tooltipBorder':
-      return '#e4e4e7';
-    default:
-      return '#000000';
-  }
-};
 
 interface ChartDataItem {
   name: string;
@@ -64,6 +37,7 @@ interface CustomizedPieLabelProps {
   name: string;
   value: number;
   theme?: 'light' | 'dark';
+  textColor: string;
 }
 
 const RADIAN = Math.PI / 180;
@@ -78,7 +52,7 @@ const renderCustomizedPieLabel = ({
   index,
   name,
   value,
-  theme,
+  textColor,
 }: CustomizedPieLabelProps) => {
   if (percent < 0.08) return null;
 
@@ -93,7 +67,7 @@ const renderCustomizedPieLabel = ({
     <text
       x={x}
       y={y}
-      fill={getThemedColor(theme, 'primary')}
+      fill={textColor}
       textAnchor={textAnchor}
       dominantBaseline="central"
       fontSize={10}
@@ -115,7 +89,7 @@ interface CustomLegendProps {
 const RenderCustomLegend = (props: CustomLegendProps) => {
   const { payload, theme, getIndustryKeyFromName, potentialOthers, industryNameMap, data } = props;
   const folder = theme === 'dark' ? 'industries-dark' : 'industries-light';
-  const textColor = getThemedColor(theme, 'primary');
+  const { textColor } = useChartTheme();
 
   if (!payload) return null;
 
@@ -275,6 +249,7 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
   getThemedIndustryColor,
 }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { textColor, tooltipBgColor, tooltipBorderColor } = useChartTheme();
 
   useEffect(() => {
     setIsTransitioning(true);
@@ -289,10 +264,6 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
       </div>
     );
   }
-
-  const textColor = getThemedColor(currentTheme, 'primary');
-  const tooltipBgColor = getThemedColor(currentTheme, 'tooltipBg');
-  const tooltipBorderColor = getThemedColor(currentTheme, 'tooltipBorder');
 
   const fallbackContent = (
     <div className="flex items-center justify-center h-full text-default-500">
@@ -321,7 +292,7 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
                 dataKey="value"
                 nameKey="name"
                 labelLine={false}
-                label={(props) => renderCustomizedPieLabel({ ...props, theme: currentTheme })}
+                label={(props) => renderCustomizedPieLabel({ ...props, textColor })}
               >
                 {data.map((entry, index) => (
                   <Cell
