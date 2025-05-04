@@ -1,0 +1,31 @@
+/* Default dark theme styles applied immediately to prevent flash */
+:root {
+  color-scheme: dark;
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+html {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+#__next {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.page-transition {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Disable transitions initially */
+* {
+  transition: none !important;
+} 
