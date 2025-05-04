@@ -59,37 +59,6 @@ export function requestBrowserLocation(): Promise<Coordinates> {
 }
 
 /**
- * Filters companies explicitly within a specified distance from user's location.
- *
- * @param data - List of companies to filter.
- * @param userLocation - User's geolocation.
- * @param maxDistanceKm - Maximum distance in kilometers.
- * @returns Filtered list of companies within the distance.
- */
-export function filterByDistance(
-  data: CompanyProperties[],
-  userLocation: Coordinates,
-  maxDistanceKm: number,
-): CompanyProperties[] {
-  return data.filter((company) => {
-    const visiting = company.addresses?.['Visiting address'];
-    if (!visiting) return false;
-
-    // Check for valid coordinates before calculating distance
-    if (typeof visiting.latitude !== 'number' || typeof visiting.longitude !== 'number') {
-      return false;
-    }
-
-    const distance = getDistanceInKm(userLocation, {
-      latitude: visiting.latitude,
-      longitude: visiting.longitude,
-    });
-
-    return distance <= maxDistanceKm;
-  });
-}
-
-/**
  * Transform company GeoJSON data to add address type information and handle companies
  * with missing or invalid geometries by using postal address when available
  *

@@ -8,6 +8,7 @@ import type {
 
 /**
  * @function getVisibleColumns
+ * Returns only the visible columns based on the visible property
  */
 export function getVisibleColumns(columns: TableColumnConfig[]): TableColumnConfig[] {
   return columns.filter((column) => column.visible);
@@ -15,6 +16,7 @@ export function getVisibleColumns(columns: TableColumnConfig[]): TableColumnConf
 
 /**
  * @function sortCompanies
+ * Sorts companies by the specified column and direction
  */
 export const sortCompanies = (
   data: CompanyProperties[],
@@ -58,6 +60,7 @@ export const sortCompanies = (
 
 /**
  * @function applySearchFilter
+ * Filters companies by name containing the search term
  */
 export const applySearchFilter = (
   data: CompanyProperties[],
@@ -69,6 +72,7 @@ export const applySearchFilter = (
 
 /**
  * @function applyIndustryFilter
+ * Filters companies by matching industry letters
  */
 export const applyIndustryFilter = (
   data: CompanyProperties[],
@@ -84,6 +88,7 @@ export const applyIndustryFilter = (
 
 /**
  * @function getCellValue
+ * Get the display value for a cell based on its column key and address type
  */
 export function getCellValue(
   item: CompanyProperties,
