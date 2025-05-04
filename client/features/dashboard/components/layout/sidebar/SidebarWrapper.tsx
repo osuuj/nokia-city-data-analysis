@@ -1,10 +1,9 @@
 'use client';
 
+import { OsuujLogo } from '@/shared/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { OsuujLogo } from '@shared/icons';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
@@ -19,8 +18,6 @@ export const SidebarWrapper = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const router = useRouter();
 
   // Set mounted state after hydration
   useEffect(() => {
@@ -41,34 +38,21 @@ export const SidebarWrapper = () => {
     setIsCollapsed((prev) => !prev);
   };
 
-  // Handle navigation to home page
-  const handleHomeNavigation = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsNavigating(true);
-    router.push('/');
-  };
-
   return (
     <aside
       className={cn(
-        'relative flex h-full flex-col border-r border-divider transition-all duration-300',
+        'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
         {
-          'w-72 md:w-64 sm:w-20 p-6': !isCompact,
-          'w-20 p-4': isCompact,
+          'w-72 md:w-52 sm:w-5 px-4': !isCompact,
+          'w-16 items-center px-2 py-6': isCompact,
         },
       )}
     >
       {/* Top: Logo + collapse toggle */}
-      <div className={cn('flex items-center', { 'justify-center': isCompact })}>
-        <button
-          type="button"
-          onClick={handleHomeNavigation}
-          className="flex h-10 w-10 items-center justify-center outline-none focus:outline-none border-none bg-transparent cursor-pointer"
-          aria-label="Go to home page"
-          disabled={isNavigating}
-        >
+      <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
+        <Link href="/" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
-        </button>
+        </Link>
 
         {showCollapseButton && (
           <Tooltip content="Collapse sidebar" placement="right">
@@ -88,33 +72,23 @@ export const SidebarWrapper = () => {
         )}
       </div>
 
-      <Spacer y={4} />
+      <Spacer y={2} />
 
       {/* Middle: Sidebar */}
-      <ScrollShadow className="h-full max-h-full">
-        <Sidebar defaultSelectedKey="dashboard" isCompact={isCompact} items={sectionItems} />
+      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
+        <Sidebar defaultSelectedKey="home" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
-      <Spacer y={4} />
+      <Spacer y={2} />
 
       {/* Bottom: Help + expand toggle */}
-      <div
-        className={cn('mt-auto flex flex-col gap-2', {
-          'items-center': isCompact,
-        })}
-      >
+      <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
-          <Link
-            href="/resources"
-            className={cn('w-full', {
-              'flex justify-center': isCompact,
-            })}
-          >
+          <Link href="/resources" className="w-full">
             <Button
-              fullWidth={!isCompact}
-              className={cn('truncate text-default-500 hover:text-foreground', {
-                'justify-center w-10 h-10': isCompact,
-                'justify-start': !isCompact,
+              fullWidth
+              className={cn('justify-start truncate text-default-500 hover:text-foreground', {
+                'justify-center': isCompact,
               })}
               isIconOnly={isCompact}
               startContent={
@@ -123,7 +97,6 @@ export const SidebarWrapper = () => {
                     className="text-default-500"
                     icon="solar:info-circle-line-duotone"
                     width={24}
-                    height={24}
                   />
                 )
               }
@@ -134,7 +107,6 @@ export const SidebarWrapper = () => {
                   className="text-default-500"
                   icon="solar:info-circle-line-duotone"
                   width={24}
-                  height={24}
                 />
               ) : (
                 'Help & Information'
@@ -148,14 +120,13 @@ export const SidebarWrapper = () => {
             <Button
               isIconOnly
               variant="light"
-              className="flex items-center justify-center h-10 w-10 text-default-500"
+              className="mt-2 h-10 w-10 text-default-500"
               onPress={handleToggle}
             >
               <Icon
                 icon="solar:sidebar-minimalistic-outline"
                 className="text-default-500"
                 width={18}
-                height={18}
               />
             </Button>
           </Tooltip>

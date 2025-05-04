@@ -1,235 +1,273 @@
 'use client';
 
-import { FeatureCardList } from '@/features/dashboard/components/controls/FeatureCardList';
-import type { AddressType, CompanyProperties } from '@/features/dashboard/types';
-import { Spinner } from '@heroui/react';
-import type { FeatureCollection, Point } from 'geojson';
+import type { CompanyProperties } from '@/features/dashboard/types/business';
+import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
+import { filters } from '@/features/dashboard/utils/filters';
+import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { useTheme } from 'next-themes';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { MapMouseEvent, MapRef } from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxMap from 'react-map-gl/mapbox';
+import { FeatureCardList } from './FeatureCardList';
 
-export interface MapViewComponentProps {
-  geojson: FeatureCollection<Point, CompanyProperties & { addressType?: AddressType }>;
+export interface MapViewProps {
+  geojson: FeatureCollection<Point, CompanyProperties>;
   selectedBusinesses?: CompanyProperties[];
 }
 
-export function MapViewComponent({ geojson, selectedBusinesses = [] }: MapViewComponentProps) {
-  const mapRef = useRef<MapRef>(null);
+export const MapView = ({ geojson }: MapViewProps) => {
+  const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
+  const [activeFeature, setActiveFeature] = useState<Feature<
+    Point,
+    CompanyProperties & { addressType?: string }
+  > | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [selectedFeatures, setSelectedFeatures] = useState<
-    Array<{
-      geometry: Point;
-      properties: CompanyProperties & { addressType?: AddressType };
-    }>
-  >([]);
-  const [activeFeature, setActiveFeature] = useState<{
-    geometry: Point;
-    properties: CompanyProperties & { addressType?: AddressType };
-  } | null>(null);
-
-  // Get theme from next-themes
+  const mapRef = useRef<MapRef | null>(null);
   const { theme } = useTheme();
+  const prevThemeRef = useRef(theme);
 
-  // Get mapbox token from env
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-  // Set map style based on theme
-  const mapStyle = useMemo(() => {
-    return theme === 'dark'
-      ? 'mapbox://styles/mapbox/dark-v11'
-      : 'mapbox://styles/mapbox/light-v11';
+  // Reset mapLoaded when theme changes
+  useEffect(() => {
+    if (prevThemeRef.current !== theme) {
+      setMapLoaded(false);
+      prevThemeRef.current = theme;
+    }
   }, [theme]);
 
-  // Selected color based on theme
-  const selectedColor = theme === 'dark' ? '#2DD4BF' : '#0EA5E9';
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-  // Update map when geojson changes
-  useEffect(() => {
-    if (!mapRef.current || !mapLoaded) return;
+  const mapStyle =
+    theme === 'dark'
+      ? 'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq'
+      : 'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
 
-    // Update GeoJSON source
-    const map = mapRef.current.getMap();
-    const source = map.getSource('companies') as GeoJSONSource | undefined;
+  const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
-    if (source) {
-      source.setData(geojson);
+  // Get color for the industry, ensuring it's always a string based on current theme
+  const selectedColor = useMemo(() => {
+    const industryLetter = activeFeature?.properties?.industry_letter;
+    const colorConfig = filters
+      .find((filter: Filter) => filter.key === 'industries')
+      ?.options?.find((option: FilterOption) => option.value === industryLetter)?.color;
+
+    if (typeof colorConfig === 'string') {
+      return colorConfig;
+    }
+    if (
+      colorConfig &&
+      typeof colorConfig === 'object' &&
+      'light' in colorConfig &&
+      'dark' in colorConfig
+    ) {
+      return theme === 'dark' ? colorConfig.dark : colorConfig.light;
+    }
+    return '#FAFAFA'; // fallback yellow
+  }, [activeFeature, theme]);
+
+  // Add theme-dependent text color for clusters
+  const clusterTextColor = useMemo(() => {
+    return theme === 'dark' ? '#ffffff' : '#000000';
+  }, [theme]);
+
+  const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
+    }) as unknown as Feature<Point, CompanyProperties & { cluster_id?: number }>[];
+
+    if (features.length > 0) {
+      const clicked = features[0];
+
+      if ('cluster_id' in clicked.properties && clicked.properties.cluster_id !== undefined) {
+        const source = map.getSource('visiting-companies') as GeoJSONSource;
+        const clusterId = clicked.properties.cluster_id;
+
+        if (clusterId == null) return;
+
+        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err || !clicked.geometry || zoom == null) return;
+          const [lng, lat] = clicked.geometry.coordinates as [number, number];
+          map.easeTo({ center: [lng, lat], zoom: zoom ?? 10, duration: 500 });
+        });
+        return;
+      }
+
+      console.log('[Click] Set activeFeature:', clicked.properties.company_name);
+      setSelectedFeatures(features);
+      setActiveFeature(clicked);
     } else {
-      // Add source and layers on first load
-      map.addSource('companies', {
+      setSelectedFeatures([]);
+      setActiveFeature(null);
+    }
+  };
+
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded || !geojson) return;
+
+    const coordMap = new Map<string, number>();
+    for (const feature of geojson.features) {
+      const coords = feature.geometry.coordinates.join(',');
+      coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
+    }
+
+    const taggedGeojson: FeatureCollection<
+      Point,
+      CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+    > = {
+      ...geojson,
+      features: geojson.features.map((feature) => {
+        const coords = feature.geometry.coordinates.join(',');
+        const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+        const isActive = feature.properties.business_id === activeBusinessId;
+
+        if (isActive) {
+          console.log('[Map] Highlighting feature:', feature.properties.company_name);
+        }
+
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            isOverlapping,
+            isActive,
+            industry_letter: feature.properties.industry_letter || 'broken',
+          },
+        };
+      }),
+    };
+
+    const sourceId = 'visiting-companies';
+    const existingSource = map.getSource(sourceId);
+
+    if (!existingSource) {
+      map.addSource(sourceId, {
         type: 'geojson',
-        data: geojson,
+        data: taggedGeojson,
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
       });
 
-      // Add company points layer
-      map.addLayer({
-        id: 'company-icons',
-        type: 'circle',
-        source: 'companies',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': [
-            'case',
-            [
-              'in',
-              ['get', 'business_id'],
-              ['literal', selectedBusinesses.map((b) => b.business_id)],
-            ],
-            selectedColor,
-            theme === 'dark' ? '#94A3B8' : '#64748B',
-          ],
-          'circle-radius': 6,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': theme === 'dark' ? '#1E293B' : '#F8FAFC',
-        },
-      });
-
-      // Add cluster layer
-      map.addLayer({
-        id: 'clusters',
-        type: 'circle',
-        source: 'companies',
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': theme === 'dark' ? '#334155' : '#CBD5E1',
-          'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
-          'circle-stroke-width': 1,
-          'circle-stroke-color': theme === 'dark' ? '#1E293B' : '#F8FAFC',
-        },
-      });
-
-      // Add cluster count layer
       map.addLayer({
         id: 'cluster-count-layer',
         type: 'symbol',
-        source: 'companies',
+        source: sourceId,
         filter: ['has', 'point_count'],
         layout: {
-          'text-field': '{point_count_abbreviated}',
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-size': 14,
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
         },
         paint: {
-          'text-color': theme === 'dark' ? '#E2E8F0' : '#1E293B',
+          'text-color': clusterTextColor,
         },
       });
-    }
-  }, [geojson, mapLoaded, selectedBusinesses, selectedColor, theme]);
 
-  // Handle map click - show popup for company or expand cluster
-  const handleMapClick = (event: MapMouseEvent) => {
+      map.addLayer({
+        id: 'multi-marker-icons',
+        type: 'symbol',
+        source: sourceId,
+        filter: ['==', ['get', 'isOverlapping'], true],
+        layout: {
+          'icon-image': 'multi',
+          'icon-size': 1.4,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      map.addLayer({
+        id: 'company-icons',
+        type: 'symbol',
+        source: sourceId,
+        filter: ['==', ['get', 'isOverlapping'], false],
+        layout: {
+          'icon-image': ['get', 'industry_letter'],
+          'icon-size': 1.4,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      map.addLayer({
+        id: 'active-marker-highlight',
+        type: 'circle',
+        source: sourceId,
+        filter: ['==', ['get', 'isActive'], true],
+        paint: {
+          'circle-radius': 25,
+          'circle-color': selectedColor as string, // Type assertion needed for Mapbox
+          'circle-opacity': 0.25,
+          'circle-blur': 0.2,
+          'circle-stroke-color': '#333',
+          'circle-stroke-width': 1,
+        },
+      });
+
+      map.moveLayer('active-marker-highlight', 'company-icons');
+    } else {
+      (existingSource as GeoJSONSource).setData(taggedGeojson);
+
+      if (map.getLayer('cluster-count-layer')) {
+        map.setPaintProperty('cluster-count-layer', 'text-color', clusterTextColor);
+      }
+
+      if (map.getLayer('active-marker-highlight')) {
+        map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor as string);
+      }
+    }
+  }, [mapLoaded, geojson, activeBusinessId, selectedColor, clusterTextColor]);
+
+  const flyTo = (coords: [number, number], targetBusinessId?: string, addressType?: string) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    const features = map.queryRenderedFeatures(event.point, {
-      layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer', 'clusters'],
+    map.flyTo({ center: coords, zoom: 14, duration: 800 });
+
+    // Attempt to find the feature that matches the coordinates and address type
+    const matching = geojson.features.find((f) => {
+      const [lng, lat] = f.geometry.coordinates;
+      const matchesCoords = lng === coords[0] && lat === coords[1];
+      const matchesId = targetBusinessId ? f.properties.business_id === targetBusinessId : true;
+      const matchesType = addressType ? f.properties.addressType === addressType : true;
+
+      return matchesCoords && matchesId && matchesType;
     });
 
-    if (!features.length) {
-      setSelectedFeatures([]);
-      setActiveFeature(null);
-      return;
-    }
-
-    const feature = features[0];
-
-    // Handle cluster click
-    if (feature.properties?.cluster_id) {
-      const clusterId = feature.properties.cluster_id;
-      const source = map.getSource('companies') as GeoJSONSource;
-
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err || zoom === null || zoom === undefined) return;
-
-        map.easeTo({
-          center: (feature.geometry as Point).coordinates as [number, number],
-          zoom: zoom + 1,
-        });
-      });
-      return;
-    }
-
-    // Handle company click
-    if (feature.properties?.business_id) {
-      const featuresToShow = features
-        .filter((f) => f.properties?.business_id)
-        .map((f) => ({
-          geometry: f.geometry as Point,
-          properties: f.properties as CompanyProperties & { addressType?: AddressType },
-        }));
-
-      setSelectedFeatures(featuresToShow);
-      setActiveFeature(featuresToShow[0]);
+    if (matching) {
+      setActiveFeature(matching);
+      setSelectedFeatures([matching]);
     }
   };
 
   return (
-    <div className="relative w-full h-full rounded-lg border border-default-200">
-      {!mapLoaded && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-default-100/80 backdrop-blur">
-          <Spinner size="lg" color="primary" />
-        </div>
-      )}
-
-      {mapboxToken ? (
-        <MapboxMap
-          ref={mapRef}
-          initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
-          style={{ width: '100%', height: '100%' }}
-          mapStyle={mapStyle}
-          mapboxAccessToken={mapboxToken}
-          onLoad={() => setMapLoaded(true)}
-          onClick={handleMapClick}
-          interactiveLayerIds={[
-            'company-icons',
-            'multi-marker-icons',
-            'cluster-count-layer',
-            'clusters',
-          ]}
-          attributionControl={false}
-        />
-      ) : (
-        <div className="p-4">Missing Mapbox token</div>
-      )}
+    <div className="relative w-full h-full">
+      <MapboxMap
+        key={theme}
+        ref={mapRef}
+        initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
+        style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
+        mapStyle={mapStyle}
+        mapboxAccessToken={mapboxToken}
+        onLoad={() => setMapLoaded(true)}
+        onClick={handleMapClick}
+        interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
+      />
 
       {selectedFeatures.length > 0 && (
         <FeatureCardList
-          features={selectedFeatures.map((f) => ({
-            type: 'Feature',
-            geometry: f.geometry,
-            properties: f.properties,
-          }))}
-          activeFeature={
-            activeFeature
-              ? {
-                  type: 'Feature',
-                  geometry: activeFeature.geometry,
-                  properties: activeFeature.properties,
-                }
-              : null
-          }
-          onSelect={(f) => {
-            const match = selectedFeatures.find(
-              (sf) => sf.properties.business_id === f.properties.business_id,
-            );
-            if (match) setActiveFeature(match);
-          }}
-          theme={theme || 'light'}
-          flyTo={(coordinates) => {
-            if (mapRef.current) {
-              mapRef.current.getMap().flyTo({
-                center: coordinates as [number, number],
-                zoom: 15,
-              });
-            }
-          }}
+          features={selectedFeatures}
+          activeFeature={activeFeature}
+          onSelect={setActiveFeature}
           selectedColor={selectedColor}
+          theme={theme}
+          flyTo={(coords: [number, number], addressType?: string) =>
+            flyTo(coords, activeFeature?.properties.business_id, addressType)
+          }
         />
       )}
     </div>
   );
-}
+};

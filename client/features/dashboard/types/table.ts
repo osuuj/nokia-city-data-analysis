@@ -1,12 +1,23 @@
+import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AddressKey } from './address';
-import type { CompanyProperties } from './business';
 
 /**
  * @typedef DirectCompanyKey
  * @description Keys that exist directly on the CompanyProperties interface.
  */
 export type DirectCompanyKey = keyof CompanyProperties;
+
+/**
+ * @typedef AddressKey
+ * @description Keys derived from nested 'Visiting' or 'Postal' addresses inside CompanyProperties.
+ */
+export type AddressKey =
+  | 'street'
+  | 'building_number'
+  | 'postal_code'
+  | 'city'
+  | 'entrance'
+  | 'address_type';
 
 /**
  * @typedef CompanyTableKey
@@ -23,7 +34,7 @@ export type CompanyTableKey = DirectCompanyKey | AddressKey;
  * @property userVisible {boolean} - Can users toggle this column's visibility?
  */
 export interface TableColumnConfig {
-  key: CompanyTableKey;
+  key: string;
   label: string;
   visible: boolean;
   userVisible: boolean;
@@ -36,7 +47,7 @@ export interface TableColumnConfig {
  * @property direction {'asc' | 'desc'} - The sort direction.
  */
 export interface SortDescriptor {
-  column: CompanyTableKey;
+  column: string;
   direction: 'asc' | 'desc';
 }
 
@@ -55,10 +66,6 @@ export interface TableViewProps {
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
-  pageSize?: number;
-  onPageSizeChange?: (pageSize: number) => void;
-  emptyStateReason?: string;
-  allFilteredData?: CompanyProperties[];
 }
 
 /**
@@ -94,6 +101,7 @@ export interface SearchInputProps {
 export interface FilterGroupProps {
   useLocation: boolean;
   setUseLocation: Dispatch<SetStateAction<boolean>>;
+  address: string;
   setAddress: Dispatch<SetStateAction<string>>;
 }
 

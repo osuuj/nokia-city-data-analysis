@@ -1,122 +1,105 @@
 'use client';
 
+import { columns } from '@/features/dashboard/config/columns';
+import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type {
-  CompanyTableKey,
   SortDescriptor,
+  SortDropdownProps,
   TableColumnConfig,
-} from '@/features/dashboard/types';
+} from '@/features/dashboard/types/table';
+import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
-import { Icon } from '@iconify/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
-interface SortDropdownProps {
-  sortDescriptor: SortDescriptor;
-  setSortDescriptor: (value: SortDescriptor) => void;
-  columns: TableColumnConfig[];
-  'aria-label'?: string;
-}
+import React, { useEffect, useState } from 'react';
 
 /**
- * SortDropdown component
- * A dropdown menu for selecting which column to sort by and in what direction
+ * SortDropdown
+ * A dropdown menu to apply column sorting logic in the table.
  */
-export function SortDropdown({
-  sortDescriptor,
-  setSortDescriptor,
-  columns,
-  'aria-label': ariaLabel,
-}: SortDropdownProps) {
+export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdownProps) {
+  const visibleColumns = columns.filter((col: TableColumnConfig) => col.visible);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Filter only visible columns for sorting
-  const visibleColumns = useMemo(() => {
-    return columns.filter((col) => col.visible !== false);
-  }, [columns]);
-
-  // Get the current sort direction icon
-  const getSortIcon = useCallback(() => {
-    if (!sortDescriptor.column) return 'lucide:arrow-up-down';
-    return sortDescriptor.direction === 'asc' ? 'lucide:arrow-up' : 'lucide:arrow-down';
-  }, [sortDescriptor]);
-
-  // Get the current sort label
-  const getSortLabel = useCallback(() => {
-    if (!sortDescriptor.column) return 'Sort';
-    // Find column label by key
-    const columnLabel =
-      visibleColumns.find((col) => col.key === sortDescriptor.column)?.label ||
-      sortDescriptor.column;
-    return `${columnLabel} (${sortDescriptor.direction === 'asc' ? '↑' : '↓'})`;
-  }, [sortDescriptor, visibleColumns]);
-
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  }, []);
-
-  // Close dropdown when window is resized
+  // Close dropdown on window resize
   useEffect(() => {
     const handleResize = () => {
-      setIsOpen(false);
+      if (isOpen) {
+        setIsOpen(false);
+      }
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Memoize values to prevent unnecessary re-renders
-  const sortIcon = useMemo(() => getSortIcon(), [getSortIcon]);
-  const sortLabel = useMemo(() => getSortLabel(), [getSortLabel]);
+  }, [isOpen]);
 
   return (
     <Dropdown
       isOpen={isOpen}
       onOpenChange={setIsOpen}
-      placement="bottom-end"
-      shouldFlip={true}
-      onKeyDown={handleKeyDown}
+      classNames={{
+        base: 'focus:outline-none focus:ring-0',
+        trigger: 'focus:outline-none focus:ring-0',
+        content: 'focus:outline-none focus:ring-0',
+      }}
     >
       <DropdownTrigger>
         <Button
+          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
-          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200 transition-colors duration-200"
-          startContent={<Icon icon={sortIcon} className="text-default-500" width={16} />}
-          aria-label={ariaLabel || `Sort: ${sortLabel}`}
+          startContent={
+            <AccessibleIconify
+              icon="solar:sort-linear"
+              width={16}
+              className="text-default-400"
+              ariaLabel="Sort"
+            />
+          }
+          aria-label="Sort columns"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
         >
-          <span className="hidden xs:inline-block text-xs truncate max-w-[80px]">{sortLabel}</span>
+          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Sort</span>
         </Button>
       </DropdownTrigger>
 
       <DropdownMenu
-        aria-label="Sort options"
-        className="max-h-[400px] overflow-y-auto"
-        onAction={(key) => {
-          const [column, direction] = String(key).split('-');
-          setSortDescriptor({
-            column: column as CompanyTableKey,
-            direction: direction === 'ascending' ? 'asc' : 'desc',
-          });
-          setIsOpen(false);
+        aria-label="Sort columns"
+        selectionMode="single"
+        selectedKeys={[sortDescriptor.column]}
+        className="p-1 focus:outline-none focus:ring-0"
+        classNames={{
+          base: 'text-left min-w-[150px] focus:outline-none focus:ring-0',
+        }}
+        onSelectionChange={(keys) => {
+          const key = Array.from(keys)[0] as string;
+          setSortDescriptor((prev: SortDescriptor) => ({
+            column: key,
+            direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
+          }));
         }}
       >
-        {visibleColumns.flatMap((column) => [
+        {visibleColumns.map((item: TableColumnConfig) => (
           <DropdownItem
-            key={`${column.key}-ascending`}
-            className="text-xs py-1"
-            aria-label={`Sort ${column.label} ascending`}
+            key={item.key}
+            className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+            textValue={item.label}
+            aria-label={`Sort by ${item.label} ${sortDescriptor.column === item.key ? (sortDescriptor.direction === 'asc' ? 'ascending' : 'descending') : ''}`}
           >
-            {column.label} (ascending)
-          </DropdownItem>,
-          <DropdownItem
-            key={`${column.key}-descending`}
-            className="text-xs py-1"
-            aria-label={`Sort ${column.label} descending`}
-          >
-            {column.label} (descending)
-          </DropdownItem>,
-        ])}
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{item.label}</span>
+              {sortDescriptor.column === item.key && (
+                <AccessibleIconify
+                  icon={
+                    sortDescriptor.direction === 'asc'
+                      ? 'solar:arrow-up-linear'
+                      : 'solar:arrow-down-linear'
+                  }
+                  width={12}
+                  className="text-default-400"
+                  ariaLabel={`${sortDescriptor.direction === 'asc' ? 'Ascending' : 'Descending'} order`}
+                />
+              )}
+            </div>
+          </DropdownItem>
+        ))}
       </DropdownMenu>
     </Dropdown>
   );

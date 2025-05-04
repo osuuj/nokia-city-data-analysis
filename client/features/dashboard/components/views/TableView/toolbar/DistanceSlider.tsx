@@ -1,15 +1,15 @@
 'use client';
 
-import type { DistanceSliderProps } from '@/features/dashboard/types';
+import type { DistanceSliderProps } from '@/features/dashboard/types/filters';
 import { clampValue } from '@/features/dashboard/utils/number';
 import { Input, Slider, cn } from '@heroui/react';
 import React, { useCallback, useMemo } from 'react';
 
-const DistanceSliderPip: React.FC<{
-  index: number;
-  totalPips: number;
-  isInRange: boolean;
-}> = ({ index, totalPips, isInRange }) => {
+const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange: boolean }> = ({
+  index,
+  totalPips,
+  isInRange,
+}) => {
   const height = `${clampValue((index / totalPips) * 100, 0, 100)}%`;
 
   return (
@@ -80,22 +80,6 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
               thumb: 'h-3 w-3 xs:h-3 xs:w-3 sm:h-4 sm:w-4',
             }}
           />
-        </div>
-
-        {/* Manual distance input */}
-        <div className="flex items-center gap-2 mt-1">
-          <Input
-            type="number"
-            size="sm"
-            value={value.toString()}
-            onChange={(e) => onInputValueChange(e.target.value)}
-            min={minValue}
-            max={maxValue}
-            step={step}
-            className="w-16 text-[10px] xs:text-xs sm:text-sm"
-            aria-label="Enter distance manually"
-          />
-          <span className="text-[10px] xs:text-xs sm:text-sm text-default-500">km</span>
         </div>
       </div>
     );

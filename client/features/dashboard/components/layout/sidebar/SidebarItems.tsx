@@ -10,10 +10,10 @@ export const sectionItems: SidebarItem[] = [
     title: 'Overview',
     items: [
       {
-        key: 'dashboard',
-        href: '/dashboard',
+        key: 'home',
+        href: '/home',
         icon: 'solar:home-bold',
-        title: 'Dashboard',
+        title: 'Home',
       },
       {
         key: 'project',

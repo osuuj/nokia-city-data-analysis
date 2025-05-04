@@ -1,13 +1,17 @@
+'use client';
+
 /**
- * DashboardFooter
- * A minimal footer variant used on the `/dashboard` route.
+ * Dashboard footer component
  */
-export const DashboardFooter = () => {
+export function DashboardFooter() {
   return (
-    <footer className="text-center">
-      <p className="text-default-500 text-small">
-        © {new Date().getFullYear()} <strong>Osuuj</strong>. All rights reserved.
-      </p>
+    <footer className="w-full py-3 px-4 border-t border-divider bg-background flex items-center justify-between">
+      <div className="text-sm text-default-500">
+        © {new Date().getFullYear()} Nokia City Data Analysis
+      </div>
+      <div className="text-sm text-default-500">
+        <span>Version 1.0.0</span>
+      </div>
     </footer>
   );
-};
+}

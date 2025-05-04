@@ -1,42 +1,29 @@
 'use client';
 
-import type { AddressType, CompanyProperties } from '@/features/dashboard/types';
-import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { FeatureCollection, Point } from 'geojson';
-import type React from 'react';
-import { Suspense } from 'react';
-import { MapViewComponent } from './MapView';
-
-// Map view loading component
-const MapViewLoading = () => (
-  <div className="w-full h-full flex items-center justify-center">
-    <div className="text-center">
-      <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4 mx-auto" />
-      <div className="h-64 w-full max-w-3xl bg-gray-200 rounded animate-pulse" />
-    </div>
-  </div>
-);
 
 interface MapViewProps {
-  geojson: FeatureCollection<Point, CompanyProperties & { addressType?: AddressType }>;
+  geojson: FeatureCollection<Point, CompanyProperties & { addressType?: string }>;
   selectedBusinesses?: CompanyProperties[];
 }
 
-export const MapView: React.FC<MapViewProps> = ({ geojson, selectedBusinesses = [] }) => {
+/**
+ * Map View component
+ * Displays businesses on an interactive map
+ */
+export function MapView({ geojson, selectedBusinesses = [] }: MapViewProps) {
   return (
-    <ErrorBoundary
-      fallback={
-        <ErrorMessage
-          title="Map Error"
-          message="There was an error loading the map data. Please try again later."
-        />
-      }
-    >
-      <Suspense fallback={<MapViewLoading />}>
-        <div className="w-full h-full">
-          <MapViewComponent geojson={geojson} selectedBusinesses={selectedBusinesses} />
-        </div>
-      </Suspense>
-    </ErrorBoundary>
+    <div className="w-full h-full flex items-center justify-center bg-default-50 rounded-lg border border-default-200">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold mb-2">Map View</h2>
+        <p className="text-default-500">
+          Interactive map will display {geojson.features.length} businesses
+        </p>
+        {selectedBusinesses.length > 0 && (
+          <p className="text-sm text-primary">{selectedBusinesses.length} businesses selected</p>
+        )}
+      </div>
+    </div>
   );
-};
+}

@@ -1,148 +1,102 @@
 'use client';
 
-import type { CompanyTableKey, TableColumnConfig } from '@/features/dashboard/types';
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownSection,
-  DropdownTrigger,
-} from '@heroui/react';
-import { Icon } from '@iconify/react';
-import { type Key, useCallback, useEffect, useMemo, useState } from 'react';
-
-interface ColumnVisibilityDropdownProps {
-  columns: TableColumnConfig[];
-  visibleColumnKeys: Set<CompanyTableKey>;
-  onVisibilityChange: (keys: Set<CompanyTableKey>) => void;
-}
+import { columns } from '@/features/dashboard/config/columns';
+import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
+import type { TableColumnConfig } from '@/features/dashboard/types/table';
+import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import React, { useEffect, useState } from 'react';
 
 /**
- * ColumnVisibilityDropdown component
- * A dropdown menu that lets users toggle column visibility in the table
+ * ColumnVisibilityDropdown
+ * A dropdown menu that lets the user toggle column visibility on the table.
  */
-export function ColumnVisibilityDropdown({
-  columns,
-  visibleColumnKeys,
-  onVisibilityChange,
-}: ColumnVisibilityDropdownProps) {
+export function ColumnVisibilityDropdown() {
+  const visibleColumns = useCompanyStore(
+    (state: { visibleColumns: TableColumnConfig[] }) => state.visibleColumns,
+  );
+  const toggleColumnVisibility = useCompanyStore(
+    (state: { toggleColumnVisibility: (key: string) => void }) => state.toggleColumnVisibility,
+  );
   const [isOpen, setIsOpen] = useState(false);
 
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  }, []);
-
-  // Close dropdown when window is resized
+  // Close dropdown on window resize
   useEffect(() => {
     const handleResize = () => {
-      setIsOpen(false);
+      if (isOpen) {
+        setIsOpen(false);
+      }
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isOpen]);
 
-  // Filter columns that can be toggled by users
-  const toggleableColumns = useMemo(
-    () => columns.filter((col) => col.userVisible !== false),
-    [columns],
-  );
-
-  // Default visibility - all toggleable columns are visible
-  const defaultVisibleKeys = useMemo(() => {
-    return new Set(toggleableColumns.map((col) => col.key));
-  }, [toggleableColumns]);
-
-  // Handle resetting columns to default
-  const handleResetColumns = useCallback(() => {
-    onVisibilityChange(defaultVisibleKeys);
-    setIsOpen(false);
-  }, [defaultVisibleKeys, onVisibilityChange]);
-
-  // Handle selection changes
-  const handleSelectionChange = useCallback(
-    (keys: Set<Key> | 'all') => {
-      if (keys === 'all') return;
-
-      // Convert the generic Key type to our specific CompanyTableKey type
-      const selectedKeys = new Set<CompanyTableKey>();
-      for (const key of keys) {
-        selectedKeys.add(key as CompanyTableKey);
-      }
-
-      onVisibilityChange(selectedKeys);
-    },
-    [onVisibilityChange],
-  );
-
-  // Determine if the dropdown should show an "active" state
-  const isActive = useMemo(() => {
-    // If not all toggleable columns are visible, the dropdown is in an active state
-    return visibleColumnKeys.size !== toggleableColumns.length;
-  }, [visibleColumnKeys.size, toggleableColumns.length]);
+  const selectedKeys = new Set<string>(visibleColumns.map((col: TableColumnConfig) => col.key));
 
   return (
     <Dropdown
       isOpen={isOpen}
       onOpenChange={setIsOpen}
       closeOnSelect={false}
-      placement="bottom-end"
-      shouldFlip={true}
-      onKeyDown={handleKeyDown}
+      classNames={{
+        base: 'focus:outline-none focus:ring-0',
+        trigger: 'focus:outline-none focus:ring-0',
+        content: 'focus:outline-none focus:ring-0',
+      }}
     >
       <DropdownTrigger>
         <Button
-          className={`
-            bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 hover:bg-default-200
-            transition-colors duration-200
-            ${isActive ? 'bg-primary-100 text-primary-800' : ''}
-          `}
+          className="bg-default-100 text-default-800 min-w-0 px-2 sm:px-3 focus:outline-none focus:ring-0 hover:bg-default-200 active:bg-default-300 active:outline-none active:ring-0"
           size="sm"
           startContent={
-            <Icon
-              icon="lucide:columns"
+            <AccessibleIconify
+              icon="solar:sort-horizontal-linear"
               width={16}
-              className={isActive ? 'text-primary-500' : 'text-default-500'}
+              className="text-default-400"
+              ariaLabel="Toggle columns"
             />
           }
           aria-label="Toggle column visibility"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
         >
-          <span className="hidden xs:inline-block text-xs">
-            Columns {isActive ? `(${visibleColumnKeys.size}/${toggleableColumns.length})` : ''}
-          </span>
+          <span className="hidden xs:inline-block text-[10px] xs:text-xs sm:text-sm">Columns</span>
         </Button>
       </DropdownTrigger>
 
       <DropdownMenu
-        className="min-w-[180px] max-w-[250px]"
+        classNames={{
+          base: 'text-left min-w-[180px] focus:outline-none focus:ring-0',
+          list: 'max-h-[300px] overflow-y-auto',
+        }}
         disallowEmptySelection
         aria-label="Toggle column visibility"
-        selectedKeys={visibleColumnKeys}
+        selectedKeys={selectedKeys}
         selectionMode="multiple"
-        onSelectionChange={handleSelectionChange}
+        onSelectionChange={(keys) => {
+          const selected = keys as Set<string>;
+          for (const col of columns) {
+            const isVisible = selected.has(col.key);
+            const isCurrentlyVisible = visibleColumns.some(
+              (v: TableColumnConfig) => v.key === col.key,
+            );
+            if (isVisible !== isCurrentlyVisible) {
+              toggleColumnVisibility(col.key);
+            }
+          }
+        }}
       >
-        <DropdownSection aria-label="Columns">
-          {toggleableColumns.map((column) => (
-            <DropdownItem key={column.key} className="text-xs py-1 h-8">
-              {column.label}
+        {columns
+          .filter((col: TableColumnConfig) => col.userVisible !== false)
+          .map((item: TableColumnConfig) => (
+            <DropdownItem
+              key={item.key}
+              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+              aria-label={`${item.label} column ${selectedKeys.has(item.key) ? 'visible' : 'hidden'}`}
+            >
+              {item.label}
             </DropdownItem>
           ))}
-        </DropdownSection>
-
-        <DropdownSection aria-label="Actions">
-          <DropdownItem key="divider" className="h-px bg-default-200 my-1 p-0" isReadOnly />
-          <DropdownItem
-            key="reset"
-            className="text-xs py-1 h-8 text-primary-500 font-medium"
-            onPress={handleResetColumns}
-          >
-            Reset to Default
-          </DropdownItem>
-        </DropdownSection>
       </DropdownMenu>
     </Dropdown>
   );

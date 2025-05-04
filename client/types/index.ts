@@ -1,3 +1,19 @@
+export type { IconSvgProps } from '@/shared/types';
+
+/**
+ * Coordinates type
+ * Represents a geographical point with latitude and longitude
+ */
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * Address types available in company data
+ */
+export type AddressType = 'Visiting address' | 'Postal address';
+
 /**
  * Company Properties interface
  * Defines the structure of company data from the API
@@ -37,20 +53,6 @@ export interface CompanyProperties {
 
   [key: string]: unknown;
 }
-
-/**
- * Coordinates type
- * Represents a geographical point with latitude and longitude
- */
-export interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-/**
- * Address types available in company data
- */
-export type AddressType = 'Visiting address' | 'Postal address';
 
 /**
  * Extended GeoJSON feature properties with address type

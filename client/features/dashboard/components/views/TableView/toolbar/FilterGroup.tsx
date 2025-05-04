@@ -1,11 +1,24 @@
 'use client';
 
-import { filters } from '@/features/dashboard/data/filters';
-import type { FilterGroupProps, FilterOption } from '@/features/dashboard/types';
+import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
+import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
+import type { FilterGroupProps } from '@/features/dashboard/types/table';
+import { filters } from '@/features/dashboard/utils/filters';
 import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
-import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
-import { AccessibleIconify } from '@shared/icons';
-import { useEffect, useState } from 'react';
+import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
+import {
+  Button,
+  CheckboxGroup,
+  Divider,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Input,
+  Switch,
+  Tooltip,
+} from '@heroui/react';
+import React, { useEffect, useState } from 'react';
 import { DistanceSlider } from './DistanceSlider';
 import { PopoverFilterWrapper } from './PopoverFilterWrapper';
 import { TagGroupItem } from './TagGroupItem';
@@ -14,31 +27,27 @@ import { TagGroupItem } from './TagGroupItem';
  * FilterGroup
  * Groups industry and distance filters into a reusable popover component in the toolbar.
  */
-export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterGroupProps) => {
-  const selectedIndustries: string[] = [];
-  const setSelectedIndustries = (industries: string[]) => {
-    // Implementation would go here
-    console.log('Selected industries:', industries);
-  };
-  const userLocation = undefined;
-  const setUserLocation = (location: { latitude: number; longitude: number } | null) => {
-    // Implementation would go here
-    console.log('Setting user location:', location);
-  };
-  const distanceLimit = undefined;
-  const setDistanceLimit = (distance: number) => {
-    // Implementation would go here
-    console.log('Setting distance limit:', distance);
-  };
-
-  // State for draft values
-  const [draftIndustries, setDraftIndustries] = useState<string[]>([]);
+export const FilterGroup = ({
+  useLocation,
+  setUseLocation,
+  address,
+  setAddress,
+}: FilterGroupProps) => {
+  const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
+  const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
+  const toggleIndustry = useCompanyStore((s) => s.toggleIndustry);
+  const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
   const [draftDistance, setDraftDistance] = useState<number>(0);
+  const userLocation = useCompanyStore((s) => s.userLocation);
+  const setUserLocation = useCompanyStore((s) => s.setUserLocation);
+  const distanceLimit = useCompanyStore((s) => s.distanceLimit);
+  const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
 
-  const industryFilter = filters.find((filter) => filter.key === 'industries');
+  const industryFilter = filters.find((filter: Filter) => filter.key === 'industries');
 
   // For mobile screens, use a dropdown instead of popovers
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [showMobileMenu, setShowMobileMenu] = useState<string | null>(null);
 
   useEffect(() => {
     if (useLocation) {
@@ -48,7 +57,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
 
   useEffect(() => {
     setDraftIndustries(selectedIndustries);
-  }, []);
+  }, [selectedIndustries]);
 
   useEffect(() => {
     setDraftDistance(distanceLimit ?? 0);
@@ -57,10 +66,12 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
   const handleGetLocation = async () => {
     try {
       const coords = await requestBrowserLocation();
+      console.log('User location:', coords);
       setUserLocation(coords);
       setUseLocation(true);
     } catch (error) {
       // Handle the error gracefully without showing an alert
+      console.log('Location access denied by user');
       setUseLocation(false);
       setUserLocation(null);
     }
@@ -68,24 +79,14 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
 
   // Unified view for both mobile and desktop
   return (
-    <div className="flex items-center gap-1 sm:gap-2  whitespace-nowrap">
+    <div className="flex items-center gap-1 whitespace-nowrap">
       {/* Industry Filter */}
       <Tooltip content="Filter by industry" placement="bottom">
         <div>
           <PopoverFilterWrapper
             title="Industry"
-            onApply={() => {
-              if (draftIndustries.length !== selectedIndustries.length) {
-                setTimeout(() => {
-                  setSelectedIndustries(draftIndustries);
-                }, 50);
-              } else {
-                setSelectedIndustries(draftIndustries);
-              }
-            }}
-            onCancel={() => {
-              setDraftIndustries(selectedIndustries);
-            }}
+            onApply={() => setSelectedIndustries(draftIndustries)}
+            onCancel={() => setDraftIndustries(selectedIndustries)}
             icon="lucide:tag"
             maxWidth={isMobile ? '280px' : undefined}
           >
@@ -118,7 +119,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
         </div>
       </Tooltip>
 
-      <Divider className="hidden sm:block h-4 xs:h-5" orientation="vertical" />
+      <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
 
       {/* Distance Filter */}
       <Tooltip content="Filter by distance" placement="bottom">
@@ -145,6 +146,7 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
                       await handleGetLocation();
                     } catch (error) {
                       // If location access is denied, the popover will be closed by the onCancel handler
+                      console.log('Location access denied by user');
                     }
                   } else {
                     setUseLocation(false);
@@ -168,17 +170,16 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
               )}
 
               {useLocation && userLocation && (
-                <div className="flex flex-col gap-1">
-                  <DistanceSlider
-                    aria-label="Distance Filter"
-                    minValue={0}
-                    maxValue={30}
-                    step={1}
-                    value={draftDistance}
-                    onChange={(val) => setDraftDistance(val as number)}
-                    className="py-1 text-[10px] xs:text-xs sm:text-sm w-full"
-                  />
-                </div>
+                <DistanceSlider
+                  aria-label="Distance Filter"
+                  minValue={0}
+                  maxValue={30}
+                  step={1}
+                  value={draftDistance}
+                  onChange={(val: number) => setDraftDistance(val)}
+                  className="py-1 text-[10px] xs:text-xs sm:text-sm"
+                  tooltipContent="Adjust distance range"
+                />
               )}
             </div>
           </PopoverFilterWrapper>

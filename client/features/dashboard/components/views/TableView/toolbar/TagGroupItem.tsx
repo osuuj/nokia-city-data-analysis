@@ -1,6 +1,6 @@
 'use client';
 
-import type { TagGroupItemProps } from '@/features/dashboard/types';
+import type { TagGroupItemProps } from '@/features/dashboard/types/filters';
 import { Chip, VisuallyHidden, cn, useCheckbox } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React from 'react';
