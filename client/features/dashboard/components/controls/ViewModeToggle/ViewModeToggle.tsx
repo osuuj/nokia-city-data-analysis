@@ -1,90 +1,35 @@
 'use client';
 
-import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui';
-import {
-  Button,
-  ButtonGroup,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tab,
-  Tabs,
-  Tooltip,
-} from '@heroui/react';
+import { siteConfig } from '@/shared/config';
+import { GithubIcon } from '@/shared/icons';
+import { Button, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { siteConfig } from '@shared/config/site';
-import { GithubIcon } from '@shared/icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ViewMode } from '../../../types';
 
-/**
- * Props for the ViewModeToggle component
- */
-interface ViewModeToggleProps {
-  /** Current view mode */
+export interface ViewModeToggleProps {
   viewMode: ViewMode;
-  /** Callback to change the view mode */
-  setViewMode: (mode: ViewMode) => void;
-  /** Function to fetch data for a specific view */
-  fetchViewData?: (view: ViewMode) => Promise<void>;
+  setViewMode: (view: ViewMode) => void;
 }
 
-/**
- * ViewModeToggle component
- * Provides controls for switching between different view modes (table, map, analytics)
- * and includes theme switching and GitHub link.
- */
-export const ViewModeToggle = React.memo(function ViewModeToggle({
-  viewMode,
-  setViewMode,
-  fetchViewData,
-}: ViewModeToggleProps) {
+export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   // Set mounted state after hydration to prevent mismatch
   useEffect(() => {
     setIsMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 480);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Create a directly callable function that handles both prefetching and view mode setting
-  const handleViewModeChange = useCallback(
-    (mode: ViewMode) => {
-      console.log(`Changing view mode to: ${mode} (current: ${viewMode})`);
-
-      // Only process if the mode is different
-      if (mode !== viewMode) {
-        // Prefetch data if available
-        if (fetchViewData) {
-          fetchViewData(mode).catch((error) => {
-            console.error(`Error prefetching data for ${mode} view:`, error);
-          });
-        }
-
-        // Set the view mode
-        setViewMode(mode);
+  // Use callback for handle selection to avoid issues
+  const handleSelectionChange = useCallback(
+    (key: string | number) => {
+      if (setViewMode && typeof setViewMode === 'function') {
+        console.log(`Changing view mode to: ${key}`);
+        setViewMode(key as ViewMode);
       }
     },
-    [viewMode, setViewMode, fetchViewData],
-  );
-
-  // Prefetch functions for hover state
-  const handlePrefetch = useCallback(
-    (mode: ViewMode) => {
-      if (fetchViewData && mode !== viewMode) {
-        fetchViewData(mode).catch((error) => {
-          console.error(`Error prefetching data for ${mode} view:`, error);
-        });
-      }
-    },
-    [fetchViewData, viewMode],
+    [setViewMode],
   );
 
   // Memoize the GitHub button
@@ -117,56 +62,57 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [githubButton],
   );
 
-  // If not mounted yet, show a placeholder to avoid hydration mismatch
-  if (!isMounted) {
-    return (
-      <div className="flex items-center justify-between w-full">
-        <div className="flex space-x-1 h-9 items-center">
-          <div className="w-20 h-7 bg-default-100 rounded-md" />
-          <div className="w-20 h-7 bg-default-100 rounded-md" />
-          <div className="w-20 h-7 bg-default-100 rounded-md" />
-          <div className="w-20 h-7 bg-default-100 rounded-md" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-between w-full">
-      <ButtonGroup variant="flat" size="sm" fullWidth>
-        <Button
-          className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('table')}
-          onMouseEnter={() => handlePrefetch('table')}
-        >
-          <Icon icon="lucide:list" className="mr-1" />
-          Table
-        </Button>
-        <Button
-          className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('map')}
-          onMouseEnter={() => handlePrefetch('map')}
-        >
-          <Icon icon="lucide:map" className="mr-1" />
-          Map
-        </Button>
-        <Button
-          className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('split')}
-          onMouseEnter={() => handlePrefetch('split')}
-        >
-          <Icon icon="lucide:layout-dashboard" className="mr-1" />
-          Split
-        </Button>
-        <Button
-          className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('analytics')}
-          onMouseEnter={() => handlePrefetch('analytics')}
-        >
-          <Icon icon="lucide:bar-chart-2" className="mr-1" />
-          Analytics
-        </Button>
-      </ButtonGroup>
+      <Tabs
+        aria-label="View mode options"
+        selectedKey={viewMode}
+        onSelectionChange={handleSelectionChange}
+        classNames={{
+          tabList: 'gap-1.5 sm:gap-2',
+          cursor: 'w-full bg-primary',
+          tab: 'max-w-fit px-2 sm:px-3 h-9',
+          tabContent:
+            'group-data-[selected=true]:text-primary-foreground dark:group-data-[selected=true]:text-primary',
+        }}
+      >
+        <Tab
+          key="table"
+          title={
+            <div className="flex items-center gap-1.5">
+              <Icon icon="lucide:list" width={18} height={18} />
+              <span className="text-sm">Table</span>
+            </div>
+          }
+        />
+        <Tab
+          key="map"
+          title={
+            <div className="flex items-center gap-1.5">
+              <Icon icon="lucide:map" width={18} height={18} />
+              <span className="text-sm">Map</span>
+            </div>
+          }
+        />
+        <Tab
+          key="split"
+          title={
+            <div className="flex items-center gap-1.5">
+              <Icon icon="lucide:layout-dashboard" width={18} height={18} />
+              <span className="text-sm">Split</span>
+            </div>
+          }
+        />
+        <Tab
+          key="analytics"
+          title={
+            <div className="flex items-center gap-1.5">
+              <Icon icon="lucide:bar-chart-2" width={18} height={18} />
+              <span className="text-sm">Analytics</span>
+            </div>
+          }
+        />
+      </Tabs>
 
       {desktopControls}
 
@@ -188,4 +134,4 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
       </div>
     </div>
   );
-});
+}

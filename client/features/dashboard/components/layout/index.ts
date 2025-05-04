@@ -1,3 +1,3 @@
-export { DashboardFooter } from './Footer';
-export { PrimaryDashboardHeader } from './Header';
-export { DashboardSidebar } from './Sidebar';
+export { DashboardFooter } from './DashboardFooter';
+export { DashboardHeader } from './DashboardHeader';
+export { Sidebar as DashboardSidebar } from './sidebar/Sidebar';

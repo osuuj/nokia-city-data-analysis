@@ -6,5 +6,5 @@
 
 export { PaginationControls } from './PaginationControls';
 export { FeatureCardList } from './FeatureCardList';
-export { DashboardHeader } from './DashboardHeader';
+export { DashboardHeader } from '../layout/DashboardHeader';
 export { ViewModeToggle } from './ViewModeToggle';

@@ -4,7 +4,7 @@ import { ViewSwitcher } from '@/features/dashboard/components/common/ViewSwitche
 import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error/DashboardErrorBoundary';
 import { ErrorDisplay } from '@/features/dashboard/components/common/error/ErrorDisplay';
 import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
-import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
+import { DashboardHeader } from '@/features/dashboard/components/layout/DashboardHeader';
 import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
 import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useDashboardState } from '@/features/dashboard/hooks/useDashboardState';
