@@ -147,9 +147,33 @@ export function DashboardPage() {
   // Show loading overlay only during initial data fetch
   const isInitialLoading = cityLoading && cities.length === 0;
 
+  // Check if we have data loading errors
+  const hasDataErrors = !!cityError || !!companyError;
+
+  // Default city if no cities loaded
+  useEffect(() => {
+    if ((!cities || cities.length === 0) && !cityLoading && !selectedCity) {
+      // Set Helsinki as default
+      setSelectedCity('Helsinki');
+      router.replace('/dashboard?city=Helsinki');
+    }
+  }, [cities, cityLoading, router, selectedCity, setSelectedCity]);
+
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
+      {/* Show loading overlay only during initial data loading */}
       {isInitialLoading && <LoadingOverlay message="Loading data..." />}
+
+      {/* Show error message if data couldn't be loaded */}
+      {hasDataErrors && (
+        <div className="w-full py-2 px-4 my-2 bg-danger-100 dark:bg-danger-900/20 border border-danger rounded-lg">
+          <h3 className="text-danger font-semibold">Data Loading Error</h3>
+          <p className="text-sm">
+            There was an error loading data from the API. Using fallback data.
+          </p>
+          {cityError && <p className="text-xs mt-1 text-danger-500">{cityError.message}</p>}
+        </div>
+      )}
 
       <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 

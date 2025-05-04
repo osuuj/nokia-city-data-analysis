@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxMap from 'react-map-gl/mapbox';
 import { FeatureCardList } from './FeatureCardList';
+import { ThemeAwareMapWrapper } from './ThemeAwareMapWrapper';
 
 export interface MapViewProps {
   geojson: FeatureCollection<Point, CompanyProperties>;
@@ -290,17 +291,19 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
   return (
     <div className="relative w-full h-full">
-      <MapboxMap
-        key={isDark ? 'dark' : 'light'}
-        ref={mapRef}
-        initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
-        style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
-        mapStyle={mapStyle}
-        mapboxAccessToken={mapboxToken}
-        onLoad={handleMapLoad}
-        onClick={handleMapClick}
-        interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
-      />
+      <ThemeAwareMapWrapper>
+        <MapboxMap
+          key={isDark ? 'dark' : 'light'}
+          ref={mapRef}
+          initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
+          style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
+          mapStyle={mapStyle}
+          mapboxAccessToken={mapboxToken}
+          onLoad={handleMapLoad}
+          onClick={handleMapClick}
+          interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
+        />
+      </ThemeAwareMapWrapper>
 
       {selectedFeatures.length > 0 && (
         <FeatureCardList

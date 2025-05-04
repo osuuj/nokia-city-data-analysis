@@ -3,6 +3,7 @@ import { ErrorBoundary } from '@/shared/components/error';
 import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
 import '@/shared/styles/globals.css';
+import '@/shared/styles/theme-defaults.css';
 import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
 import { GlobalStyles } from '@/shared/components/layout/GlobalStyles';
 import { BreadcrumbProvider } from '@/shared/context';
@@ -66,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Theme loader script to prevent flicker */}
+        {/* Theme loader script with simplified approach */}
         <Script id="theme-loader" strategy="beforeInteractive">
           {`
             (function() {
@@ -76,25 +77,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 const finalTheme = savedTheme || systemTheme || 'dark';
                 
-                // Apply theme immediately to prevent flash
+                // Only add theme classes - don't try to change colors now
                 document.documentElement.setAttribute('data-theme', finalTheme);
                 document.documentElement.classList.add(finalTheme);
                 
-                // Add class to prevent transition during page load
-                document.documentElement.classList.add('theme-transition-disabled');
-                
-                // Re-enable transitions after page load
-                window.addEventListener('load', () => {
-                  // Small delay to ensure styles are applied
-                  setTimeout(() => {
-                    document.documentElement.classList.remove('theme-transition-disabled');
-                  }, 100);
-                });
-                
-                // Setup a theme change observer for external theme changes
-                window.addEventListener('storage', (event) => {
-                  if (event.key === 'theme') {
-                    const newTheme = event.newValue || 'dark';
+                // Setup a simple storage listener for cross-tab sync
+                window.addEventListener('storage', function(e) {
+                  if (e.key === 'theme') {
+                    const newTheme = e.newValue || 'dark';
                     document.documentElement.setAttribute('data-theme', newTheme);
                     document.documentElement.classList.remove('light', 'dark');
                     document.documentElement.classList.add(newTheme);
@@ -110,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
       </head>
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
+        <div className="theme-background-layer" />
         <ClientLayoutWrapper>
           {/* Global styles in a client component */}
           <GlobalStyles />

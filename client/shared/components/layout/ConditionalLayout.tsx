@@ -1,6 +1,7 @@
 'use client';
 
 import { Footer, Header } from '@/shared/components/layout';
+import { PageTransition } from '@/shared/components/layout/PageTransition';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -28,10 +29,10 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
   }, [isDashboardPage]);
 
   return (
-    <>
+    <PageTransition>
       {!isDashboardPage && <Header />}
       <main className={isDashboardPage ? 'dashboard-main' : ''}>{children}</main>
       {!isDashboardPage && <Footer />}
-    </>
+    </PageTransition>
   );
 };

@@ -17,6 +17,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { ThemeSwitch } from '@/shared/components/ui/ThemeSwitch';
+import { ThemeSwitchFix } from '@/shared/components/ui/ThemeSwitchFix';
 import { useLoading } from '@/shared/context/LoadingContext';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
@@ -268,7 +269,7 @@ export const Header = () => {
                 </Button>
               </NavbarItem>
 
-              <NavbarItem>{isMounted && <ThemeSwitch aria-label="Toggle theme" />}</NavbarItem>
+              <NavbarItem>{isMounted && <ThemeSwitchFix aria-label="Toggle theme" />}</NavbarItem>
             </div>
           </NavbarContent>
 

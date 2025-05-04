@@ -1,8 +1,20 @@
+'use client';
+
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { useQuery } from '@tanstack/react-query';
-import type { FeatureCollection, Point } from 'geojson';
+import type { Feature, FeatureCollection, Point } from 'geojson';
 
+// Default to http://localhost:8000, but allow override via .env
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+// Fallback data in case API is down
+const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
+
+// Empty GeoJSON structure for fallback
+const EMPTY_GEOJSON: FeatureCollection<Point, CompanyProperties> = {
+  type: 'FeatureCollection',
+  features: [],
+};
 
 /**
  * fetchCompanies
@@ -17,31 +29,75 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     return [];
   }
 
-  console.log('📡 Fetching companies from:', city);
-
-  // Updated to use the same endpoint as the working implementation
-  const response = await fetch(
+  console.log(
+    '📡 Fetching companies from:',
+    city,
+    'using URL:',
     `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
-    {
-      // Add credentials and headers if needed by your backend
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
   );
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
+  try {
+    // First try using the configured API URL
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
+        {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-cache',
+          // Add a timeout to prevent hanging requests
+          signal: AbortSignal.timeout(5000),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
+      }
+
+      const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
+      console.log('✅ Companies fetched:', geojsonData);
+
+      // Extract company properties from GeoJSON features
+      return geojsonData.features.map((feature) => feature.properties);
+    } catch (apiError) {
+      console.error('❌ Error with primary API endpoint:', apiError);
+
+      // As fallback, try explicit localhost URL if BASE_URL was something different
+      if (BASE_URL !== 'http://localhost:8000') {
+        try {
+          const fallbackResponse = await fetch(
+            `http://localhost:8000/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
+            {
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              cache: 'no-cache',
+              signal: AbortSignal.timeout(5000),
+            },
+          );
+
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            console.log('✅ Companies fetched from fallback URL:', fallbackData);
+            return fallbackData.features.map(
+              (feature: Feature<Point, CompanyProperties>) => feature.properties,
+            );
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback API also failed:', fallbackError);
+        }
+      }
+
+      // If all API attempts fail, return empty array but don't break the app
+      console.warn('⚠️ Returning empty companies array as fallback');
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Critical error fetching companies:', error);
+    // Don't throw, just return empty array to prevent app from breaking
+    return [];
   }
-
-  const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
-  console.log('✅ Companies fetched:', geojsonData);
-
-  // Extract company properties from GeoJSON features
-  const companies = geojsonData.features.map((feature) => feature.properties);
-
-  return companies;
 };
 
 /**
@@ -51,22 +107,60 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  console.log('📡 Fetching cities...');
-  const response = await fetch(`${BASE_URL}/api/v1/cities`, {
-    // Add credentials and headers if needed by your backend
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  console.log('📡 Fetching cities from URL:', `${BASE_URL}/api/v1/cities`);
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
+  try {
+    // First try using the configured API URL
+    try {
+      const response = await fetch(`${BASE_URL}/api/v1/cities`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache',
+        // Add a timeout to prevent hanging requests
+        signal: AbortSignal.timeout(5000),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
+      }
+
+      const cities = await response.json();
+      console.log('✅ Cities fetched:', cities);
+      return cities;
+    } catch (apiError) {
+      console.error('❌ API error fetching cities:', apiError);
+
+      // Try fallback localhost URL if BASE_URL was something different
+      if (BASE_URL !== 'http://localhost:8000') {
+        try {
+          const fallbackResponse = await fetch('http://localhost:8000/api/v1/cities', {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-cache',
+            signal: AbortSignal.timeout(5000),
+          });
+
+          if (fallbackResponse.ok) {
+            const fallbackCities = await fallbackResponse.json();
+            console.log('✅ Cities fetched from fallback URL:', fallbackCities);
+            return fallbackCities;
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback API also failed:', fallbackError);
+        }
+      }
+
+      // Return hardcoded fallback cities
+      console.warn('⚠️ Returning fallback cities list');
+      return FALLBACK_CITIES;
+    }
+  } catch (error) {
+    console.error('❌ Critical error fetching cities:', error);
+    // Return fallback data instead of throwing
+    return FALLBACK_CITIES;
   }
-
-  const cities = await response.json();
-  console.log('✅ Cities fetched:', cities);
-  return cities;
 };
 
 /**
@@ -79,11 +173,13 @@ export function useFetchCities() {
   return useQuery<string[], Error>({
     queryKey: ['cities'],
     queryFn: fetchCities,
-    staleTime: 1000 * 60 * 5, // 5 minutes (equivalent to SWR's dedupingInterval of 300000)
-    refetchOnWindowFocus: false, // equivalent to SWR's revalidateOnFocus: false
-    refetchOnReconnect: false, // equivalent to SWR's revalidateOnReconnect: false
-    placeholderData: [], // equivalent to SWR's fallbackData
-    keepPreviousData: true, // equivalent to SWR's keepPreviousData
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: FALLBACK_CITIES, // Always provide fallback data
+    // Add retry logic to handle temporary API issues
+    retry: 2,
+    retryDelay: (attempt) => Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000),
   });
 }
 
@@ -99,10 +195,11 @@ export function useFetchCompanies(city: string) {
     queryKey: ['companies', city],
     queryFn: () => fetchCompanies(city),
     enabled: !!city, // only fetch if a city is selected
-    staleTime: 1000 * 60 * 1, // 1 minute (equivalent to SWR's dedupingInterval of 60000)
-    refetchOnWindowFocus: false, // equivalent to SWR's revalidateOnFocus: false
-    refetchOnReconnect: false, // equivalent to SWR's revalidateOnReconnect: false
-    placeholderData: [], // equivalent to SWR's fallbackData
-    keepPreviousData: true, // equivalent to SWR's keepPreviousData
+    staleTime: 1000 * 60 * 1, // 1 minute
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    placeholderData: [], // Provide empty array as placeholder
+    // Add retry logic
+    retry: 2,
   });
 }
