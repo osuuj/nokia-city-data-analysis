@@ -60,7 +60,7 @@ export type IconConfig = {
 };
 
 /**
- * Props passed to the PopoverFilterWrapper component used for filters.
+ * Props passed to the PopoverFilterWrapper component
  */
 export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
   title?: string;
@@ -72,22 +72,14 @@ export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
 };
 
 /**
- * Props for a single tag-style checkbox filter item.
+ * Props for a single tag-style checkbox filter item
  */
 export type TagGroupItemProps = Omit<CheckboxProps, 'icon'> & {
   icon?: string;
 };
 
 /**
- * Props for a color option in a radio group (e.g., selecting a color theme).
- */
-export type ColorRadioItemProps = Omit<RadioProps, 'color'> & {
-  color?: string;
-  tooltip?: string;
-};
-
-/**
- * Props for the DistanceSlider component.
+ * Props for the DistanceSlider component
  */
 export interface DistanceSliderProps {
   value: number;

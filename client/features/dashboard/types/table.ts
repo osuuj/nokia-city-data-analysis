@@ -57,6 +57,7 @@ export interface SortDescriptor {
  */
 export interface TableViewProps {
   data: CompanyProperties[];
+  allFilteredData: CompanyProperties[];
   columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;

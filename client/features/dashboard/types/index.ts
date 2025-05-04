@@ -8,11 +8,7 @@ export * from './view';
 import type { SVGProps } from 'react';
 
 /**
- * Shared props for SVG-based icons across the project.
- * Extends standard SVG attributes with an optional `size` shorthand.
- *
- * @example
- * const Icon = (props: IconSvgProps) => <svg width={props.size} ... />
+ * Shared props for SVG-based icons across the project
  */
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;

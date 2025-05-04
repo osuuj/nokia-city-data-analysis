@@ -6,20 +6,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { type ReactNode, useState } from 'react';
 
-interface DashboardProvidersProps {
+interface QueryProviderProps {
   children: ReactNode;
   themeProps?: object;
 }
 
 /**
- * DashboardProviders
- * Provides all necessary providers for the dashboard feature:
- * - TanStack Query (data fetching) with optimized configuration
+ * Provider component that sets up:
+ * - TanStack Query for data fetching
  * - HeroUI component system
- * - NextThemes (theme management)
- * - Breadcrumb (navigation context)
+ * - Theme management
+ * - Breadcrumb navigation
  */
-export function DashboardProviders({ children, themeProps = {} }: DashboardProvidersProps) {
+export function QueryProvider({ children, themeProps = {} }: QueryProviderProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -42,6 +41,3 @@ export function DashboardProviders({ children, themeProps = {} }: DashboardProvi
     </QueryClientProvider>
   );
 }
-
-// For backward compatibility
-export const QueryProvider = DashboardProviders;

@@ -48,12 +48,14 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
 }: TableViewProps) {
-  // Local state for toolbar components
-  const [useLocation, setUseLocation] = useState(false);
-  const [address, setAddress] = useState('');
+  // Access store values
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
   const setSelectedKeys = useCompanyStore((state) => state.setSelectedKeys);
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
+
+  // Local state for toolbar components
+  const [useLocation, setUseLocation] = useState(false);
+  const [address, setAddress] = useState('');
 
   // To avoid hydration errors, we'll mount the table only on client-side
   const [isMounted, setIsMounted] = useState(false);
@@ -62,16 +64,12 @@ export function TableView({
     setIsMounted(true);
   }, []);
 
-  // Filter columns to only show visible ones
+  // Filter columns to only show visible ones from the store
   const displayColumns = useMemo(() => {
-    // If no visibleColumns from store, fall back to columns with visible=true
-    const columnsToShow =
-      visibleColumns.length > 0 ? visibleColumns : columns.filter((col) => col.visible);
-
-    return columnsToShow;
+    return visibleColumns.length > 0 ? visibleColumns : columns.filter((col) => col.visible);
   }, [columns, visibleColumns]);
 
-  // Handle column sorting manually to avoid i18n errors
+  // Handle column sorting
   const handleSortChange = useCallback(
     (columnKey: string) => {
       setSortDescriptor((prev) => ({
@@ -82,42 +80,39 @@ export function TableView({
     [setSortDescriptor],
   );
 
-  // Handle table selection change (adapter for different type systems)
+  // Handle table selection change
   const handleSelectionChange = useCallback(
     (selection: Selection) => {
-      // Convert HeroUI Selection to a standard Set<string>
       if (selection === 'all') {
         setSelectedKeys('all', allFilteredData);
       } else {
-        // Convert Set<Key> to Set<string>
-        const stringKeys = new Set<string>();
-        for (const key of selection) {
-          if (typeof key === 'string') {
-            stringKeys.add(key);
-          }
-        }
-        setSelectedKeys(stringKeys);
+        setSelectedKeys(new Set(Array.from(selection).map(String)));
       }
     },
     [setSelectedKeys, allFilteredData],
   );
 
-  // Render a placeholder of similar size during SSR to prevent layout shift
+  // Render toolbar with shared props
+  const renderToolbar = () => (
+    <TableToolbar
+      searchTerm={searchTerm}
+      onSearch={setSearchTerm}
+      selectedKeys={selectedKeys}
+      useLocation={useLocation}
+      setUseLocation={setUseLocation}
+      address={address}
+      setAddress={setAddress}
+      sortDescriptor={sortDescriptor}
+      setSortDescriptor={setSortDescriptor}
+      setSelectedKeys={setSelectedKeys}
+    />
+  );
+
+  // Render a placeholder during SSR to prevent layout shift
   if (!isMounted) {
     return (
       <div className="w-full">
-        <TableToolbar
-          searchTerm={searchTerm}
-          onSearch={setSearchTerm}
-          selectedKeys={selectedKeys}
-          useLocation={useLocation}
-          setUseLocation={setUseLocation}
-          address={address}
-          setAddress={setAddress}
-          sortDescriptor={sortDescriptor}
-          setSortDescriptor={setSortDescriptor}
-          setSelectedKeys={setSelectedKeys}
-        />
+        {renderToolbar()}
         <div className="max-h-[600px] min-h-[400px] w-full bg-default-50 rounded-lg animate-pulse" />
         <div className="flex justify-center mt-4">
           <div className="h-10 w-64 bg-default-100 rounded-lg animate-pulse" />
@@ -128,18 +123,7 @@ export function TableView({
 
   return (
     <div className="w-full">
-      <TableToolbar
-        searchTerm={searchTerm}
-        onSearch={setSearchTerm}
-        selectedKeys={selectedKeys}
-        useLocation={useLocation}
-        setUseLocation={setUseLocation}
-        address={address}
-        setAddress={setAddress}
-        sortDescriptor={sortDescriptor}
-        setSortDescriptor={setSortDescriptor}
-        setSelectedKeys={setSelectedKeys}
-      />
+      {renderToolbar()}
 
       <Table
         aria-label="Companies table"
