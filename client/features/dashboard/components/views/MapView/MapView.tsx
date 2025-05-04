@@ -35,7 +35,11 @@ export const MapView = ({ geojson }: MapViewProps) => {
     }
   }, [theme]);
 
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  // Use the environment variable or a fallback for development
+  const mapboxToken =
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+    // Temporary fallback token - should be replaced with your own token
+    'pk.eyJ1Ijoic3VwZXJqdXVzbyIsImEiOiJjbW00dnJueTcxeHZmM3FxbXgyYmgyaHg2In0.nNFxwPP_XXLKQrfmUFoTdw';
 
   const mapStyle =
     theme === 'dark'

@@ -87,12 +87,70 @@ export function filterByDistance(
 }
 
 /**
- * Transform company GeoJSON data to add address type information
+ * Transform company GeoJSON data to add address type information and handle companies
+ * with missing or invalid geometries by using postal address when available
+ *
+ * @param geojson The original GeoJSON data
+ * @returns Enhanced GeoJSON with address type information
  */
 export function transformCompanyGeoJSON(
   geojson: FeatureCollection<Point, CompanyProperties>,
-): FeatureCollection<Point, CompanyProperties & { addressType?: string }> {
-  return geojson;
+): FeatureCollection<Point, CompanyProperties & { addressType?: AddressType }> {
+  const features: Feature<Point, CompanyProperties & { addressType?: AddressType }>[] = [];
+
+  // Process each feature
+  for (const feature of geojson.features) {
+    const props = feature.properties;
+
+    // Skip features with valid geometry already
+    if (feature.geometry?.coordinates) {
+      features.push({
+        ...feature,
+        properties: {
+          ...props,
+          addressType: 'Visiting address',
+        },
+      });
+      continue;
+    }
+
+    // Try to create feature from visiting address
+    const visiting = props.addresses?.['Visiting address'];
+    if (visiting?.latitude && visiting?.longitude) {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [visiting.longitude, visiting.latitude],
+        },
+        properties: {
+          ...props,
+          addressType: 'Visiting address',
+        },
+      });
+    }
+
+    // Try to create feature from postal address
+    const postal = props.addresses?.['Postal address'];
+    if (postal?.latitude && postal?.longitude) {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [postal.longitude, postal.latitude],
+        },
+        properties: {
+          ...props,
+          addressType: 'Postal address',
+        },
+      });
+    }
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
 }
 
 /**
