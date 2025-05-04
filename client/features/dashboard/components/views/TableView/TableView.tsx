@@ -1,9 +1,10 @@
 'use client';
 
+import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
 import {
-  Input,
+  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { TableToolbar } from './toolbar/TableToolbar';
 
 interface TableViewProps {
   data: CompanyProperties[];
@@ -23,7 +27,7 @@ interface TableViewProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
-  setSortDescriptor: (descriptor: SortDescriptor) => void;
+  setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
 }
 
 /**
@@ -32,6 +36,7 @@ interface TableViewProps {
  */
 export function TableView({
   data,
+  allFilteredData,
   columns,
   currentPage,
   totalPages,
@@ -42,17 +47,78 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
 }: TableViewProps) {
+  // Local state for toolbar components
+  const [useLocation, setUseLocation] = useState(false);
+  const [address, setAddress] = useState('');
+  const selectedKeys = useCompanyStore((state) => state.selectedKeys);
+  const setSelectedKeys = useCompanyStore((state) => state.setSelectedKeys);
+  const visibleColumns = useCompanyStore((state) => state.visibleColumns);
+
+  // To avoid hydration errors, we'll mount the table only on client-side
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Filter columns to only show visible ones
+  const displayColumns = useMemo(() => {
+    // If no visibleColumns from store, fall back to columns with visible=true
+    const columnsToShow =
+      visibleColumns.length > 0 ? visibleColumns : columns.filter((col) => col.visible);
+
+    return columnsToShow;
+  }, [columns, visibleColumns]);
+
+  // Handle column sorting manually to avoid i18n errors
+  const handleSortChange = useCallback(
+    (columnKey: string) => {
+      setSortDescriptor((prev) => ({
+        column: columnKey,
+        direction: prev.column === columnKey ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'asc',
+      }));
+    },
+    [setSortDescriptor],
+  );
+
+  // Render a placeholder of similar size during SSR to prevent layout shift
+  if (!isMounted) {
+    return (
+      <div className="w-full">
+        <TableToolbar
+          searchTerm={searchTerm}
+          onSearch={setSearchTerm}
+          selectedKeys={selectedKeys}
+          useLocation={useLocation}
+          setUseLocation={setUseLocation}
+          address={address}
+          setAddress={setAddress}
+          sortDescriptor={sortDescriptor}
+          setSortDescriptor={setSortDescriptor}
+          setSelectedKeys={setSelectedKeys}
+        />
+        <div className="max-h-[600px] min-h-[400px] w-full bg-default-50 rounded-lg animate-pulse" />
+        <div className="flex justify-center mt-4">
+          <div className="h-10 w-64 bg-default-100 rounded-lg animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          type="text"
-          placeholder="Search companies..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-xs"
-        />
-      </div>
+      <TableToolbar
+        searchTerm={searchTerm}
+        onSearch={setSearchTerm}
+        selectedKeys={selectedKeys}
+        useLocation={useLocation}
+        setUseLocation={setUseLocation}
+        address={address}
+        setAddress={setAddress}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+        setSelectedKeys={setSelectedKeys}
+      />
 
       <Table
         aria-label="Companies table"
@@ -61,11 +127,23 @@ export function TableView({
           base: 'max-h-[600px]',
           table: 'min-h-[400px]',
         }}
+        selectionMode="multiple"
+        selectedKeys={selectedKeys}
+        onSelectionChange={setSelectedKeys}
       >
         <TableHeader>
-          {columns.map((column) => (
-            <TableColumn key={column.key} allowsSorting={column.key === sortDescriptor.column}>
-              {column.label}
+          {displayColumns.map((column: TableColumnConfig) => (
+            <TableColumn
+              key={column.key}
+              className="cursor-pointer"
+              onClick={() => handleSortChange(column.key)}
+            >
+              <div className="flex items-center gap-1">
+                {column.label}
+                {sortDescriptor.column === column.key && (
+                  <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
+                )}
+              </div>
             </TableColumn>
           ))}
         </TableHeader>
@@ -73,9 +151,9 @@ export function TableView({
           emptyContent={isLoading ? 'Loading...' : 'No companies found'}
           isLoading={isLoading}
         >
-          {data.map((item, idx) => (
-            <TableRow key={`${item.business_id}-${idx}`}>
-              {columns.map((column) => (
+          {data.map((item) => (
+            <TableRow key={item.business_id}>
+              {displayColumns.map((column: TableColumnConfig) => (
                 <TableCell key={`${item.business_id}-${column.key}`}>
                   {String(item[column.key as keyof typeof item] || '')}
                 </TableCell>
@@ -86,27 +164,16 @@ export function TableView({
       </Table>
 
       <div className="flex justify-center mt-4">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded border"
-          >
-            Previous
-          </button>
-          <span className="px-3 py-1">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            className="px-3 py-1 rounded border"
-          >
-            Next
-          </button>
-        </div>
+        <Pagination
+          total={totalPages}
+          initialPage={currentPage}
+          page={currentPage}
+          onChange={onPageChange}
+          showControls
+          classNames={{
+            cursor: 'bg-primary text-white',
+          }}
+        />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
@@ -16,7 +17,7 @@ export interface MapViewProps {
   selectedBusinesses?: CompanyProperties[];
 }
 
-export const MapView = ({ geojson }: MapViewProps) => {
+export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
   const [activeFeature, setActiveFeature] = useState<Feature<
     Point,
@@ -26,6 +27,27 @@ export const MapView = ({ geojson }: MapViewProps) => {
   const mapRef = useRef<MapRef | null>(null);
   const { theme } = useTheme();
   const prevThemeRef = useRef(theme);
+
+  // Get selected keys directly from store for immediate reactivity
+  const selectedKeys = useCompanyStore((state) => state.selectedKeys);
+  const hasSelections = selectedKeys.size > 0;
+
+  // Filter geojson based on selectedBusinesses if they exist, or selectedKeys from store
+  const filteredGeojson = useMemo(() => {
+    // If there are no selections, show all markers
+    if (!hasSelections) {
+      return geojson;
+    }
+
+    // Create a set of selected IDs for faster lookup
+    // Use selectedKeys directly from store for immediate reactivity
+    return {
+      ...geojson,
+      features: geojson.features.filter((feature) =>
+        selectedKeys.has(feature.properties.business_id),
+      ),
+    };
+  }, [geojson, hasSelections, selectedKeys]);
 
   // Reset mapLoaded when theme changes
   useEffect(() => {
@@ -108,12 +130,13 @@ export const MapView = ({ geojson }: MapViewProps) => {
     }
   };
 
+  // Update map when filteredGeojson changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
-    if (!map || !mapLoaded || !geojson) return;
+    if (!map || !mapLoaded || !filteredGeojson) return;
 
     const coordMap = new Map<string, number>();
-    for (const feature of geojson.features) {
+    for (const feature of filteredGeojson.features) {
       const coords = feature.geometry.coordinates.join(',');
       coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
     }
@@ -122,8 +145,8 @@ export const MapView = ({ geojson }: MapViewProps) => {
       Point,
       CompanyProperties & { isOverlapping: boolean; isActive: boolean }
     > = {
-      ...geojson,
-      features: geojson.features.map((feature) => {
+      ...filteredGeojson,
+      features: filteredGeojson.features.map((feature) => {
         const coords = feature.geometry.coordinates.join(',');
         const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
         const isActive = feature.properties.business_id === activeBusinessId;
@@ -222,7 +245,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
         map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor as string);
       }
     }
-  }, [mapLoaded, geojson, activeBusinessId, selectedColor, clusterTextColor]);
+  }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, clusterTextColor]);
 
   const flyTo = (coords: [number, number], targetBusinessId?: string, addressType?: string) => {
     const map = mapRef.current?.getMap();
@@ -231,7 +254,7 @@ export const MapView = ({ geojson }: MapViewProps) => {
     map.flyTo({ center: coords, zoom: 14, duration: 800 });
 
     // Attempt to find the feature that matches the coordinates and address type
-    const matching = geojson.features.find((f) => {
+    const matching = filteredGeojson.features.find((f) => {
       const [lng, lat] = f.geometry.coordinates;
       const matchesCoords = lng === coords[0] && lat === coords[1];
       const matchesId = targetBusinessId ? f.properties.business_id === targetBusinessId : true;

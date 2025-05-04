@@ -5,9 +5,9 @@ import { fontSans, siteConfig } from '@shared/config';
 import '@/shared/styles/globals.css';
 import { ClientLayoutWrapper } from '@/shared/components/layout/ClientLayoutWrapper';
 import { GlobalStyles } from '@/shared/components/layout/GlobalStyles';
-import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading';
 import { BreadcrumbProvider } from '@/shared/context';
 import { LoadingProvider } from '@/shared/context';
+import { ThemeProvider } from '@/shared/context';
 import { QueryProvider } from '@/shared/providers/QueryProvider';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
@@ -91,12 +91,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ErrorBoundary fallback={<ErrorMessage />}>
             <LoadingProvider>
               <QueryProvider>
-                <BreadcrumbProvider>
-                  <ConditionalLayout>
-                    <ResponsiveLoading />
-                    {children}
-                  </ConditionalLayout>
-                </BreadcrumbProvider>
+                <ThemeProvider>
+                  <BreadcrumbProvider>
+                    <ConditionalLayout>{children}</ConditionalLayout>
+                  </BreadcrumbProvider>
+                </ThemeProvider>
               </QueryProvider>
             </LoadingProvider>
           </ErrorBoundary>

@@ -49,18 +49,9 @@ export function DashboardPage() {
     direction: 'asc',
   });
   const [viewMode, setViewMode] = useState<ViewMode>('table');
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Debounce search term to prevent excessive filtering
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  // Set initial loading to false after a short delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Update selectedCity when query param changes
   useEffect(() => {
@@ -152,6 +143,9 @@ export function DashboardPage() {
       .map((id) => selectedRows[id])
       .filter(Boolean);
   }, [selectedKeys, selectedRows]);
+
+  // Show loading overlay only during initial data fetch
+  const isInitialLoading = cityLoading && cities.length === 0;
 
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">

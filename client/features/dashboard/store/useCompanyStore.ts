@@ -54,6 +54,9 @@ interface CompanyStore {
   setDistanceLimit: (value: number | null) => void;
 }
 
+// Get initially visible columns based on configuration
+const initialVisibleColumns = columns.filter((col) => col.visible);
+
 export const useCompanyStore = create<CompanyStore>((set) => ({
   /** Selected city from search or URL */
   selectedCity: '',
@@ -96,7 +99,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   clearSelection: () => set({ selectedRows: {}, selectedKeys: new Set<string>() }),
 
   /** Column visibility */
-  visibleColumns: columns.filter((col) => col.visible),
+  visibleColumns: initialVisibleColumns,
 
   toggleColumnVisibility: (key: CompanyTableKey) =>
     set((state) => {
@@ -117,7 +120,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
 
   resetColumns: () =>
     set({
-      visibleColumns: columns.filter((col) => col.visible),
+      visibleColumns: initialVisibleColumns,
     }),
 
   /** Industry filtering */

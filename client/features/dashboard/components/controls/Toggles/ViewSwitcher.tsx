@@ -46,7 +46,7 @@ export function ViewSwitcher({
 
       {viewMode === 'map' && geojson && (
         <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
-          <MapView geojson={geojson} />
+          <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
         </div>
       )}
 

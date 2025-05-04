@@ -1,7 +1,7 @@
 'use client';
 
 import { columns } from '@/features/dashboard/config/columns';
-import type { CompanyProperties } from '@/features/dashboard/types/business';
+import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type {
   SortDescriptor,
   SortDropdownProps,
@@ -16,7 +16,8 @@ import React, { useEffect, useState } from 'react';
  * A dropdown menu to apply column sorting logic in the table.
  */
 export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdownProps) {
-  const visibleColumns = columns.filter((col: TableColumnConfig) => col.visible);
+  // Get visibleColumns from the store instead of filtering locally
+  const visibleColumns = useCompanyStore((state) => state.visibleColumns);
   const [isOpen, setIsOpen] = useState(false);
 
   // Close dropdown on window resize
@@ -34,6 +35,7 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
     <Dropdown
       isOpen={isOpen}
       onOpenChange={setIsOpen}
+      closeOnSelect
       classNames={{
         base: 'focus:outline-none focus:ring-0',
         trigger: 'focus:outline-none focus:ring-0',
@@ -46,10 +48,10 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
           size="sm"
           startContent={
             <AccessibleIconify
-              icon="solar:sort-linear"
+              icon="solar:sort-by-time-linear"
               width={16}
               className="text-default-400"
-              ariaLabel="Sort"
+              ariaLabel="Sort by column"
             />
           }
           aria-label="Sort columns"

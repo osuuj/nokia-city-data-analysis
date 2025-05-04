@@ -25,13 +25,13 @@ export const columns: TableColumnConfig[] = [
   {
     key: 'industry_letter',
     label: 'Industry Code',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
     key: 'industry_description',
     label: 'Industry',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
@@ -43,25 +43,25 @@ export const columns: TableColumnConfig[] = [
   {
     key: 'main_business_line_name',
     label: 'Business Line',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
     key: 'street',
     label: 'Street',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
     key: 'postal_code',
     label: 'Postal Code',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
     key: 'city',
     label: 'City',
-    visible: true,
+    visible: false,
     userVisible: true,
   },
   {
