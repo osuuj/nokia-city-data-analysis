@@ -124,29 +124,59 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
   // Handle map load event
   const handleMapLoad = () => {
-    setMapLoaded(true);
+    console.log('Map loaded event fired');
+    const map = mapRef.current?.getMap();
+
+    if (map) {
+      // Specifically handle the style.load event
+      // This is the critical event for theme changes
+      const onStyleLoad = () => {
+        console.log('Map style.load event fired');
+        // Set a timeout to ensure the style is fully processed
+        setTimeout(() => {
+          console.log('Setting mapLoaded = true after style load');
+          setMapLoaded(true);
+        }, 200);
+      };
+
+      // First remove any existing listeners to prevent duplicates
+      map.off('style.load', onStyleLoad);
+
+      // Then add the style.load listener
+      map.on('style.load', onStyleLoad);
+
+      // If the style is already loaded, trigger immediately
+      if (map.isStyleLoaded()) {
+        console.log('Style already loaded, setting mapLoaded = true immediately');
+        setMapLoaded(true);
+      } else {
+        console.log('Style not yet loaded, waiting for style.load event');
+      }
+    }
   };
+
+  // This effect manages cleaning up map event listeners
+  useEffect(() => {
+    // Clean up function that removes event listeners when component unmounts
+    return () => {
+      const map = mapRef.current?.getMap();
+      if (map) {
+        console.log('Cleaning up map event listeners');
+        map.off('style.load', () => {});
+      }
+    };
+  }, []);
 
   // Update ref when theme changes
   useEffect(() => {
-    if (themeChangeRef.current !== isDark) {
-      themeChangeRef.current = isDark;
-      setMapLoaded(false);
-
-      // Short timeout to ensure map reloads with new theme
-      const timer = setTimeout(() => {
-        if (mapRef.current?.getMap()) {
-          setMapLoaded(true);
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
+    themeChangeRef.current = isDark;
+    // Reset mapLoaded to prepare for the new map instance
+    setMapLoaded(false);
   }, [isDark]);
 
   // Reset map when component mounts
   useEffect(() => {
-    // Initial load
+    // Initial load - reset state
     setMapLoaded(false);
   }, []);
 
@@ -155,114 +185,141 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
 
-    const coordMap = new Map<string, number>();
-    for (const feature of filteredGeojson.features) {
-      const coords = feature.geometry.coordinates.join(',');
-      coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
+    // Check if the style is loaded before adding sources
+    if (!map.isStyleLoaded()) {
+      console.log('Map style is not loaded yet, waiting...');
+
+      // Wait for the style to load before adding sources
+      const onStyleLoad = () => {
+        updateMapSources(map);
+        map.off('style.load', onStyleLoad);
+      };
+
+      map.on('style.load', onStyleLoad);
+      return;
     }
 
-    const taggedGeojson: FeatureCollection<
-      Point,
-      CompanyProperties & { isOverlapping: boolean; isActive: boolean }
-    > = {
-      ...filteredGeojson,
-      features: filteredGeojson.features.map((feature) => {
+    // Otherwise, proceed with adding sources
+    updateMapSources(map);
+
+    function updateMapSources(map: mapboxgl.Map) {
+      const coordMap = new Map<string, number>();
+      for (const feature of filteredGeojson.features) {
         const coords = feature.geometry.coordinates.join(',');
-        const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
-        const isActive = feature.properties.business_id === activeBusinessId;
-
-        if (isActive) {
-          console.log('[Map] Highlighting feature:', feature.properties.company_name);
-        }
-
-        return {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            isOverlapping,
-            isActive,
-            industry_letter: feature.properties.industry_letter || 'broken',
-          },
-        };
-      }),
-    };
-
-    const sourceId = 'visiting-companies';
-    const existingSource = map.getSource(sourceId);
-
-    if (!existingSource) {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: taggedGeojson,
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50,
-      });
-
-      map.addLayer({
-        id: 'cluster-count-layer',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-size': 14,
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        },
-        paint: {
-          'text-color': clusterTextColor,
-        },
-      });
-
-      map.addLayer({
-        id: 'multi-marker-icons',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['==', ['get', 'isOverlapping'], true],
-        layout: {
-          'icon-image': 'multi',
-          'icon-size': 1.4,
-          'icon-allow-overlap': true,
-        },
-      });
-
-      map.addLayer({
-        id: 'company-icons',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['==', ['get', 'isOverlapping'], false],
-        layout: {
-          'icon-image': ['get', 'industry_letter'],
-          'icon-size': 1.4,
-          'icon-allow-overlap': true,
-        },
-      });
-
-      map.addLayer({
-        id: 'active-marker-highlight',
-        type: 'circle',
-        source: sourceId,
-        filter: ['==', ['get', 'isActive'], true],
-        paint: {
-          'circle-radius': 25,
-          'circle-color': selectedColor as string, // Type assertion needed for Mapbox
-          'circle-opacity': 0.25,
-          'circle-blur': 0.2,
-          'circle-stroke-color': '#333',
-          'circle-stroke-width': 1,
-        },
-      });
-
-      map.moveLayer('active-marker-highlight', 'company-icons');
-    } else {
-      (existingSource as GeoJSONSource).setData(taggedGeojson);
-
-      if (map.getLayer('cluster-count-layer')) {
-        map.setPaintProperty('cluster-count-layer', 'text-color', clusterTextColor);
+        coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
       }
 
-      if (map.getLayer('active-marker-highlight')) {
-        map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor as string);
+      const taggedGeojson: FeatureCollection<
+        Point,
+        CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+      > = {
+        ...filteredGeojson,
+        features: filteredGeojson.features.map((feature) => {
+          const coords = feature.geometry.coordinates.join(',');
+          const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+          const isActive = feature.properties.business_id === activeBusinessId;
+
+          if (isActive) {
+            console.log('[Map] Highlighting feature:', feature.properties.company_name);
+          }
+
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              isOverlapping,
+              isActive,
+              industry_letter: feature.properties.industry_letter || 'broken',
+            },
+          };
+        }),
+      };
+
+      try {
+        const sourceId = 'visiting-companies';
+        const existingSource = map.getSource(sourceId);
+
+        if (!existingSource) {
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: taggedGeojson,
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50,
+          });
+
+          map.addLayer({
+            id: 'cluster-count-layer',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['has', 'point_count'],
+            layout: {
+              'text-field': ['get', 'point_count_abbreviated'],
+              'text-size': 14,
+              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            },
+            paint: {
+              'text-color': clusterTextColor,
+            },
+          });
+
+          map.addLayer({
+            id: 'multi-marker-icons',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['==', ['get', 'isOverlapping'], true],
+            layout: {
+              'icon-image': 'multi',
+              'icon-size': 1.4,
+              'icon-allow-overlap': true,
+            },
+          });
+
+          map.addLayer({
+            id: 'company-icons',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['==', ['get', 'isOverlapping'], false],
+            layout: {
+              'icon-image': ['get', 'industry_letter'],
+              'icon-size': 1.4,
+              'icon-allow-overlap': true,
+            },
+          });
+
+          map.addLayer({
+            id: 'active-marker-highlight',
+            type: 'circle',
+            source: sourceId,
+            filter: ['==', ['get', 'isActive'], true],
+            paint: {
+              'circle-radius': 25,
+              'circle-color': selectedColor as string, // Type assertion needed for Mapbox
+              'circle-opacity': 0.25,
+              'circle-blur': 0.2,
+              'circle-stroke-color': '#333',
+              'circle-stroke-width': 1,
+            },
+          });
+
+          map.moveLayer('active-marker-highlight', 'company-icons');
+        } else {
+          (existingSource as GeoJSONSource).setData(taggedGeojson);
+
+          if (map.getLayer('cluster-count-layer')) {
+            map.setPaintProperty('cluster-count-layer', 'text-color', clusterTextColor);
+          }
+
+          if (map.getLayer('active-marker-highlight')) {
+            map.setPaintProperty(
+              'active-marker-highlight',
+              'circle-color',
+              selectedColor as string,
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error updating map:', error);
       }
     }
   }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, clusterTextColor]);
