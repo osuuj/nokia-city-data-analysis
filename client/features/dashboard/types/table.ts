@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
+import type { AddressKey } from './address';
 import type { CompanyProperties } from './business';
 
 /**
@@ -6,18 +7,6 @@ import type { CompanyProperties } from './business';
  * @description Keys that exist directly on the CompanyProperties interface.
  */
 export type DirectCompanyKey = keyof CompanyProperties;
-
-/**
- * @typedef AddressKey
- * @description Keys derived from nested 'Visiting' or 'Postal' addresses inside CompanyProperties.
- */
-export type AddressKey =
-  | 'street'
-  | 'building_number'
-  | 'postal_code'
-  | 'city'
-  | 'entrance'
-  | 'address_type';
 
 /**
  * @typedef CompanyTableKey

@@ -39,42 +39,4 @@ export interface ApiResponse<T> {
   status: string;
 }
 
-export interface ErrorWithStatus extends Error {
-  status?: number;
-  code?: string;
-  details?: Record<string, unknown>;
-}
-
-/**
- * Error codes for dashboard errors
- */
-export type ErrorCode =
-  | 'AUTH_ERROR'
-  | 'SERVER_ERROR'
-  | 'VALIDATION_ERROR'
-  | 'NETWORK_ERROR'
-  | 'NOT_FOUND_ERROR'
-  | 'RATE_LIMIT_ERROR'
-  | 'UNKNOWN_ERROR';
-
-/**
- * Structure for API errors
- */
-export interface ApiError {
-  status: number;
-  message: string;
-  errors?: Record<string, string[]>;
-  data?: unknown;
-}
-
-/**
- * Dashboard-specific error structure
- */
-export interface DashboardError {
-  code: ErrorCode;
-  message: string;
-  status: number;
-  details?: unknown;
-}
-
 export type DashboardView = 'overview' | 'analytics' | 'reports' | 'settings';

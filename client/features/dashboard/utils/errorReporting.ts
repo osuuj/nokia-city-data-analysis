@@ -1,28 +1,13 @@
-import type { ApiError } from '@/shared/api/types';
-import { logError, logWarning } from './errorHandling';
+import type { ApiError } from '../types/error';
+import { createSingleton } from './singleton';
 
 /**
  * Error reporting service for centralized error logging and reporting
  * Provides methods for reporting errors, warnings, and info messages
  */
 export class ErrorReportingService {
-  private static instance: ErrorReportingService;
   private isInitialized = false;
   private errorListeners: ((error: unknown, context?: string) => void)[] = [];
-
-  private constructor() {
-    // Private constructor for singleton pattern
-  }
-
-  /**
-   * Get the singleton instance of the error reporting service
-   */
-  public static getInstance(): ErrorReportingService {
-    if (!ErrorReportingService.instance) {
-      ErrorReportingService.instance = new ErrorReportingService();
-    }
-    return ErrorReportingService.instance;
-  }
 
   /**
    * Initialize the error reporting service
@@ -76,10 +61,25 @@ export class ErrorReportingService {
     }
 
     // Log the error
-    logError(normalizedError, undefined, context);
+    this.logError(normalizedError, context, source);
 
     // Send to error service
     this.sendToErrorService(normalizedError, context, source);
+  }
+
+  /**
+   * Log an error with context information
+   */
+  private logError(error: Error, context?: string, source?: string): void {
+    // Log to console in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        `[${new Date().toISOString()}] Error${source ? ` in ${source}` : ''}${
+          context ? ` (${context})` : ''
+        }:`,
+        error,
+      );
+    }
   }
 
   /**
@@ -87,7 +87,7 @@ export class ErrorReportingService {
    */
   public reportWarning(message: string, source?: string, context?: string): void {
     // Log the warning
-    logWarning(message, source, context ? { context } : undefined);
+    this.logWarning(message, source, context);
 
     // Send to monitoring service
     this.sendToMonitoringService({
@@ -96,6 +96,21 @@ export class ErrorReportingService {
       context,
       source,
     });
+  }
+
+  /**
+   * Log a warning message
+   */
+  private logWarning(message: string, source?: string, context?: string): void {
+    // Log to console in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        `[${new Date().toISOString()}] Warning${source ? ` in ${source}` : ''}${
+          context ? ` (${context})` : ''
+        }:`,
+        message,
+      );
+    }
   }
 
   /**
@@ -151,7 +166,9 @@ export class ErrorReportingService {
   private sendToErrorService(error: Error, context?: string, source?: string): void {
     // Here you would typically send to an error reporting service
     // e.g., Sentry, LogRocket, etc.
-    console.error(`[${source || 'Error'}] ${error.message}${context ? ` (${context})` : ''}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`[${source || 'Error'}] ${error.message}${context ? ` (${context})` : ''}`);
+    }
   }
 
   /**
@@ -165,11 +182,16 @@ export class ErrorReportingService {
   }): void {
     // Here you would typically send to a monitoring service
     // e.g., Datadog, New Relic, etc.
-    console.log(
-      `[${data.source || data.level}] ${data.message}${data.context ? ` (${data.context})` : ''}`,
-    );
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `[${data.source || data.level}] ${data.message}${data.context ? ` (${data.context})` : ''}`,
+      );
+    }
   }
 }
 
-// Export a singleton instance
-export const errorReporting = ErrorReportingService.getInstance();
+// Use the singleton factory to create a getter for the error reporting service
+export const getErrorReporting = createSingleton(ErrorReportingService);
+
+// Backward compatibility - provide the instance directly
+export const errorReporting = getErrorReporting();

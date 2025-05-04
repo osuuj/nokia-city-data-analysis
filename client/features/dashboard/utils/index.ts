@@ -6,4 +6,6 @@ export * from './errorReporting';
 export * from './debounce';
 export * from './lazyLoading';
 export * from './performance';
-export * from './number';
+export * from './math';
+export * from './singleton';
+export * from './theme';

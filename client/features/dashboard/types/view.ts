@@ -1,18 +1,43 @@
 import type { FeatureCollection, Point } from 'geojson';
+import type { AddressType } from './address';
 import type { CompanyProperties } from './business';
-import type { TableViewProps } from './table';
 
 /**
  * Defines possible view modes explicitly for displaying company data.
  */
 export type ViewMode = 'table' | 'map' | 'split' | 'analytics';
 
+// Basic props needed from TableViewProps without creating a circular dependency
+interface BaseTableProps {
+  columns: {
+    key: string;
+    label: string;
+    visible: boolean;
+    userVisible: boolean;
+  }[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  sortDescriptor: {
+    column: string;
+    direction: 'asc' | 'desc';
+  };
+  setSortDescriptor: React.Dispatch<
+    React.SetStateAction<{
+      column: string;
+      direction: 'asc' | 'desc';
+    }>
+  >;
+  emptyStateReason?: string;
+}
+
 /**
  * @interface ViewSwitcherProps
  *
  * Props for switching between Table and Map views explicitly.
- *
- * @extends TableViewProps
  *
  * @property data {CompanyProperties[]} - Current page data.
  * @property allFilteredData {CompanyProperties[]} - Complete dataset for filters/selections.
@@ -22,13 +47,10 @@ export type ViewMode = 'table' | 'map' | 'split' | 'analytics';
  * @property pageSize {number} - Number of rows to display per page.
  * @property onPageSizeChange {(pageSize: number) => void} - Callback to handle page size changes.
  */
-export interface ViewSwitcherProps extends Omit<TableViewProps, 'data'> {
+export interface ViewSwitcherProps extends BaseTableProps {
   data: CompanyProperties[];
   allFilteredData: CompanyProperties[];
-  geojson?: FeatureCollection<
-    Point,
-    CompanyProperties & { addressType?: 'Visiting address' | 'Postal address' }
-  >;
+  geojson?: FeatureCollection<Point, CompanyProperties & { addressType?: AddressType }>;
   viewMode: ViewMode;
   selectedBusinesses: CompanyProperties[];
   setViewMode: (mode: ViewMode) => void;

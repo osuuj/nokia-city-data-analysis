@@ -1,28 +1,14 @@
-import type { DashboardError } from '../types/common';
-import { errorReporting } from './errorReporting';
+import type { DashboardError } from '../types/error';
+import { getErrorReporting } from './errorReporting';
+import { createSingleton } from './singleton';
 
 /**
  * Error recovery strategies for different types of errors
  * Provides a centralized way to handle error recovery flows
  */
 export class ErrorRecoveryService {
-  private static instance: ErrorRecoveryService;
   private recoveryStrategies: Map<string, (error: DashboardError) => Promise<boolean>> = new Map();
   private recoveryCallbacks: Map<string, () => Promise<void>> = new Map();
-
-  private constructor() {
-    // Private constructor for singleton pattern
-  }
-
-  /**
-   * Get the singleton instance of the error recovery service
-   */
-  public static getInstance(): ErrorRecoveryService {
-    if (!ErrorRecoveryService.instance) {
-      ErrorRecoveryService.instance = new ErrorRecoveryService();
-    }
-    return ErrorRecoveryService.instance;
-  }
 
   /**
    * Register a recovery strategy for a specific error type
@@ -55,6 +41,8 @@ export class ErrorRecoveryService {
    * @returns A promise that resolves to true if recovery was successful, false otherwise
    */
   public async attemptRecovery(error: DashboardError, errorId?: string): Promise<boolean> {
+    const errorReporting = getErrorReporting();
+
     // Report the error
     errorReporting.reportError(error, 'Error Recovery', 'ErrorRecoveryService');
 
@@ -101,6 +89,8 @@ export class ErrorRecoveryService {
    * @returns A promise that resolves to true if recovery was successful, false otherwise
    */
   private async defaultRecovery(error: DashboardError): Promise<boolean> {
+    const errorReporting = getErrorReporting();
+
     // Default recovery strategies based on error type
     const errorCode = error.code ?? 'UNKNOWN_ERROR';
     switch (errorCode) {
@@ -142,14 +132,18 @@ export class ErrorRecoveryService {
   }
 }
 
-// Export a singleton instance
-export const errorRecovery = ErrorRecoveryService.getInstance();
+// Use the singleton factory to create a getter for the error recovery service
+export const getErrorRecovery = createSingleton(ErrorRecoveryService);
+
+// Backward compatibility - provide the instance directly
+export const errorRecovery = getErrorRecovery();
 
 /**
  * Initialize default recovery strategies
  */
 export function initializeRecoveryStrategies(): void {
-  const service = ErrorRecoveryService.getInstance();
+  const service = getErrorRecovery();
+  const errorReporting = getErrorReporting();
 
   // Register recovery strategies for common error types
   service.registerRecoveryStrategy('NETWORK_ERROR', async (error) => {

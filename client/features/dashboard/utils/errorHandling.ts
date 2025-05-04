@@ -1,7 +1,7 @@
 import type { ErrorInfo } from 'react';
-import type { ApiError, DashboardError } from '../types/common';
-import { errorRecovery } from './errorRecovery';
-import { errorReporting } from './errorReporting';
+import type { ApiError, DashboardError, ErrorCode } from '../types/error';
+import { getErrorRecovery } from './errorRecovery';
+import { getErrorReporting } from './errorReporting';
 
 /**
  * Log levels for error logging
@@ -153,18 +153,13 @@ export function logError(
     additionalInfo,
   };
 
-  // Log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error(
-      `[${context.timestamp}] Error in ${componentName || 'unknown component'}:`,
-      error,
-      errorInfo,
-      additionalInfo,
-    );
-  }
-
-  // Here you would typically send to an error reporting service
-  // e.g., Sentry, LogRocket, etc.
+  // Get the error reporting service
+  const errorReporting = getErrorReporting();
+  errorReporting.reportError(
+    error,
+    componentName,
+    additionalInfo ? JSON.stringify(additionalInfo) : undefined,
+  );
 }
 
 /**
@@ -179,24 +174,13 @@ export function logWarning(
   componentName?: string,
   additionalInfo?: Record<string, unknown>,
 ): void {
-  const context: ErrorContext = {
+  // Get the error reporting service
+  const errorReporting = getErrorReporting();
+  errorReporting.reportWarning(
+    message,
     componentName,
-    timestamp: new Date().toISOString(),
-    url: typeof window !== 'undefined' ? window.location.href : 'server',
-    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
-    additionalInfo,
-  };
-
-  // Log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.warn(
-      `[${context.timestamp}] Warning in ${componentName || 'unknown component'}:`,
-      message,
-      additionalInfo,
-    );
-  }
-
-  // Here you would typically send to a monitoring service
+    additionalInfo ? JSON.stringify(additionalInfo) : undefined,
+  );
 }
 
 /**
@@ -229,11 +213,10 @@ export const handleErrorWithRecovery = async (
   errorId?: string,
 ): Promise<boolean> => {
   const dashboardError = convertToDashboardError(error);
+  const errorReporting = getErrorReporting();
+  const errorRecovery = getErrorRecovery();
 
   // Log the error
-  logError(error instanceof Error ? error : new Error(String(error)), undefined, context);
-
-  // Report the error
   errorReporting.reportError(error, context);
 
   // Attempt recovery

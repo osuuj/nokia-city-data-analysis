@@ -319,7 +319,8 @@ export function useTableData({
               case 'employeeCount':
                 if (Array.isArray(filter.value) && filter.value.length === 2) {
                   const [min, max] = filter.value;
-                  const count = Number((item as CompanyProperties).employee_count) || 0;
+                  const count =
+                    Number((item as unknown as { employee_count?: number }).employee_count) || 0;
                   return count >= min && count <= max;
                 }
                 return true;
