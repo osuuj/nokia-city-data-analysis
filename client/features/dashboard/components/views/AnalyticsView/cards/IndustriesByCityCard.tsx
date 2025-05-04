@@ -1,6 +1,6 @@
 'use client';
 
-import { BaseCard } from '@/features/dashboard/components/shared/BaseCard';
+import { BaseCard } from '@/features/dashboard/components/common/BaseCard';
 import type { TransformedIndustriesByCity } from '@/features/dashboard/types/analytics';
 import type React from 'react';
 import { useMemo } from 'react';

@@ -1,6 +1,10 @@
 'use client';
 
-import type { CompanyProperties, SortDescriptor } from '@/features/dashboard/types';
+import type {
+  CompanyProperties,
+  CompanyTableKey,
+  SortDescriptor,
+} from '@/features/dashboard/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
@@ -211,7 +215,7 @@ export function useTableData({
       const sortDirection = url.searchParams.get('sortDirection');
       if (sortColumn && (sortDirection === 'asc' || sortDirection === 'desc')) {
         setCurrentSortDescriptor({
-          column: sortColumn,
+          column: sortColumn as CompanyTableKey,
           direction: sortDirection,
         });
       }
@@ -315,7 +319,7 @@ export function useTableData({
               case 'employeeCount':
                 if (Array.isArray(filter.value) && filter.value.length === 2) {
                   const [min, max] = filter.value;
-                  const count = Number(item.employee_count) || 0;
+                  const count = Number((item as CompanyProperties).employee_count) || 0;
                   return count >= min && count <= max;
                 }
                 return true;
@@ -396,7 +400,7 @@ export function useTableData({
         }
 
         // Handle numeric fields
-        if (column === 'employee_count') {
+        if (column === ('employee_count' as CompanyTableKey)) {
           const numA = Number(valueA) || 0;
           const numB = Number(valueB) || 0;
           return direction === 'asc' ? numA - numB : numB - numA;

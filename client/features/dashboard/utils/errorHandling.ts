@@ -1,6 +1,5 @@
-import type { ApiError } from '@/shared/api/types';
 import type { ErrorInfo } from 'react';
-import type { DashboardError } from '../types/common';
+import type { ApiError, DashboardError } from '../types/common';
 import { errorRecovery } from './errorRecovery';
 import { errorReporting } from './errorReporting';
 
@@ -102,7 +101,7 @@ export const convertToDashboardError = (error: unknown): DashboardError => {
   const apiError = error as ApiError;
   if (apiError?.status) {
     // Map HTTP status codes to error codes
-    let errorCode = 'UNKNOWN_ERROR';
+    let errorCode: ErrorCode = 'UNKNOWN_ERROR';
 
     if (apiError.status === 401) {
       errorCode = 'AUTH_ERROR';

@@ -1,6 +1,6 @@
 'use client';
 
-import { BaseCard } from '@/features/dashboard/components/shared/BaseCard';
+import { BaseCard } from '@/features/dashboard/components/common/BaseCard';
 import type { TransformedDistribution } from '@/features/dashboard/types/analytics';
 import { Select, SelectItem } from '@heroui/react';
 import { useMemo } from 'react';

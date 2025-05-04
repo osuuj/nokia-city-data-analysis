@@ -1,6 +1,6 @@
 'use client';
 
-import { FadeIn, ScaleIn } from '@/features/dashboard/components/shared/animations';
+import { FadeIn, ScaleIn } from '@/features/dashboard/components/common/animations';
 import type {
   CompanyProperties,
   CompanyTableKey,

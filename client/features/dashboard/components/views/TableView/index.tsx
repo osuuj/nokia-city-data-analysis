@@ -5,6 +5,7 @@ import type {
   CompanyProperties,
   CompanyTableKey,
   SortDescriptor as HookSortDescriptor,
+  SortDescriptor,
   TableColumnConfig,
   TableViewProps,
 } from '@/features/dashboard/types';
@@ -16,6 +17,10 @@ import { TableSkeleton } from './skeletons';
 
 // Define UI-specific types for the component
 type UIDirection = 'ascending' | 'descending';
+interface UISortDescriptor {
+  column: CompanyTableKey;
+  direction: UIDirection;
+}
 
 // Type guards to ensure correct conversion
 const isUIDirection = (direction: unknown): direction is UIDirection => {
@@ -87,7 +92,7 @@ export const TableView: React.FC<TableViewProps> = ({
     [setSearchTerm],
   );
 
-  // Custom sort handler that avoids the type issues
+  // Custom sort handler that handles column clicks
   const handleSortChange = useCallback(
     (column: string) => {
       // Type casting for safety
@@ -109,16 +114,30 @@ export const TableView: React.FC<TableViewProps> = ({
       // Update the hook's internal state
       updateSortDescriptor({
         column: columnKey,
-        direction: newDirection === 'ascending' ? 'asc' : 'desc',
+        direction: convertToHookDirection(newDirection),
       });
 
       // Update external state with UI direction for backward compatibility
       setSortDescriptor({
         column: columnKey,
-        direction: newDirection,
+        direction: newDirection === 'ascending' ? 'asc' : 'desc',
       });
     },
     [sortDescriptor, setSortDescriptor, updateSortDescriptor],
+  );
+
+  // Create a wrapper function that conforms to Dispatch<SetStateAction<SortDescriptor>>
+  const sortDescriptorSetter = useCallback<React.Dispatch<React.SetStateAction<SortDescriptor>>>(
+    (value) => {
+      if (typeof value === 'function') {
+        // Handle functional updates
+        setSortDescriptor(value);
+      } else {
+        // Handle direct value updates
+        setSortDescriptor(value);
+      }
+    },
+    [setSortDescriptor],
   );
 
   // Handle page changes
@@ -168,7 +187,7 @@ export const TableView: React.FC<TableViewProps> = ({
             searchTerm={internalSearchTerm}
             setSearchTerm={handleSearchChange}
             sortDescriptor={sortDescriptor}
-            setSortDescriptor={handleSortChange}
+            setSortDescriptor={sortDescriptorSetter}
             pageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}
             emptyStateReason={error ? error.message : emptyStateReason}

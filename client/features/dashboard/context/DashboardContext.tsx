@@ -4,7 +4,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import type { DashboardError } from '../types';
 
 interface DashboardState {
-  activeView: string;
+  activeView: 'overview' | 'analytics';
   theme: 'light' | 'dark';
   sidebarCollapsed: boolean;
   error: DashboardError | null;
@@ -12,7 +12,7 @@ interface DashboardState {
 }
 
 interface DashboardActions {
-  setActiveView: (view: string) => void;
+  setActiveView: (view: 'overview' | 'analytics') => void;
   setTheme: (theme: 'light' | 'dark') => void;
   toggleSidebar: () => void;
   setError: (error: DashboardError | null) => void;
@@ -31,13 +31,19 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const value: DashboardContextType = {
     state: {
-      activeView: dashboardData.activeView,
+      activeView: dashboardData.state.activeView,
       theme: 'light' as const,
       sidebarCollapsed: false,
-      error: dashboardData.error,
-      isLoading: dashboardData.isLoading,
+      error: null,
+      isLoading: false,
     },
-    actions: dashboardData.actions as DashboardActions,
+    actions: {
+      setActiveView: dashboardData.actions.setActiveView,
+      setTheme: () => {}, // Placeholder
+      toggleSidebar: () => {}, // Placeholder
+      setError: () => {}, // Placeholder
+      setLoading: () => {}, // Placeholder
+    },
   };
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;

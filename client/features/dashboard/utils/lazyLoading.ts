@@ -33,7 +33,7 @@ export function createLazyComponentLoader<T extends ComponentType<any>>(config: 
   const { path, componentName } = config;
 
   // Create the lazy component
-  const LazyComponent = lazy(() => import(`../views/${path}`)) as unknown as T;
+  const LazyComponent = lazy(() => import(`../components/views/${path}`)) as unknown as T;
   LazyComponent.displayName = componentName;
 
   return LazyComponent;
