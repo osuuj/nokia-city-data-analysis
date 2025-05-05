@@ -47,9 +47,10 @@ export const DashboardHeader = React.memo(function DashboardHeader({
     [viewMode, setViewMode],
   );
 
-  // Memoize the city search section
+  // Memoize the city search section - shown for all view modes except analytics
   const citySearchSection = useMemo(() => {
-    if (viewMode === 'map' || viewMode === 'analytics') {
+    // Hide for analytics view as it has its own search
+    if (viewMode === 'analytics') {
       return null;
     }
 
