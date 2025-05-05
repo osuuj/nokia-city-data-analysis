@@ -1,6 +1,8 @@
 'use client';
 
+import { CitySearch } from '@/features/dashboard/components/common/CitySearch';
 import { getThemedIndustryColor, useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
+import { useCitySelection } from '@/features/dashboard/hooks/useCitySelection';
 import { filters } from '@/features/dashboard/utils/filters'; // Import filters config
 import {
   Autocomplete,
@@ -84,37 +86,46 @@ export const AnalyticsView: React.FC = () => {
   // Use useChartTheme to get currentTheme
   const { currentTheme } = useChartTheme();
 
-  // State for selected cities - Limit to 5
-  const [selectedCities, setSelectedCities] = useState<Set<string>>(new Set());
-  // State for pie chart focus city
-  const [pieChartFocusCity, setPieChartFocusCity] = useState<string | null>(null);
-  const [showMaxCityWarning, setShowMaxCityWarning] = useState(false);
-  const [citySearchQuery, setCitySearchQuery] = useState(''); // For Autocomplete input
-  // State for selected industries (store letters: 'A', 'C', etc.)
-  const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
-  const [showMaxIndustryWarning, setShowMaxIndustryWarning] = useState(false);
-
-  // Fetch list of all cities
+  // Move this after allCities is defined
   const { data: allCities = [], isLoading: citiesLoading } = useSWR<string[]>(
     `${BASE_URL}/api/v1/cities`,
     fetcher,
     { fallbackData: [] },
   );
 
-  // Effect to reset pie chart focus city if selection changes
-  useEffect(() => {
-    if (selectedCities.size <= 1) {
-      setPieChartFocusCity(null); // Reset if 0 or 1 city selected
-    } else if (pieChartFocusCity && !selectedCities.has(pieChartFocusCity)) {
-      setPieChartFocusCity(null); // Reset if focus city is no longer selected
-    }
-  }, [selectedCities, pieChartFocusCity]);
+  // Use our custom hook for city selection management
+  const {
+    selectedCities,
+    searchQuery: citySearchQuery,
+    setSearchQuery: setCitySearchQuery,
+    showMaxWarning: showMaxCityWarning,
+    filteredCities: filteredCitiesForSearch,
+    focusedCity: pieChartFocusCity,
+    handleAddCity: handleCitySelectionAdd,
+    handleRemoveCity: handleCitySelectionRemove,
+    handleClearAllCities,
+    handleSetFocusCity: handlePieFocusChange,
+    isAtMaxCities,
+  } = useCitySelection({
+    maxCities: MAX_SELECTED_CITIES,
+    allCities,
+    onSelectionChange: (cities) => {
+      // Any additional logic when cities change
+      if (cities.size <= 1) {
+        handlePieFocusChange(null);
+      }
+    },
+  });
+
+  // State for selected industries (store letters: 'A', 'C', etc.)
+  const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
+  const [showMaxIndustryWarning, setShowMaxIndustryWarning] = useState(false);
 
   // Filter cities for Autocomplete based on search query
   const filteredCitiesForAutocomplete = useMemo(() => {
     return allCities
       .filter((city) => city.toLowerCase().includes(citySearchQuery.toLowerCase()))
-      .map((city) => ({ key: city, label: city })); // Map to objects
+      .map((city) => ({ name: city })); // Use name property instead of key/label
   }, [allCities, citySearchQuery]);
 
   // Create industry letter -> name map
@@ -291,54 +302,6 @@ export const AnalyticsView: React.FC = () => {
     });
   }, [industriesByCityDataAll, selectedIndustryNames, availableSortedIndustries]);
 
-  // Handle adding a city from Autocomplete
-  const handleCitySelectionAdd = (key: React.Key | null) => {
-    // Clear search input only after successful add or if selection is explicitly cleared
-    // setCitySearchQuery(''); // REMOVE from here
-
-    if (typeof key === 'string') {
-      const cityToAdd = key;
-      if (selectedCities.size < MAX_SELECTED_CITIES) {
-        setSelectedCities((prev) => new Set(prev).add(cityToAdd));
-        setShowMaxCityWarning(false);
-        setCitySearchQuery(''); // Clear input AFTER successful addition
-      } else {
-        setShowMaxCityWarning(true);
-        setTimeout(() => setShowMaxCityWarning(false), 3000);
-        // Don't add the city, but also don't clear input if max is reached, let user see what they typed
-      }
-    } else {
-      // Key is null (e.g., user cleared selection from dropdown/input)
-      setCitySearchQuery(''); // Clear input if selection is cleared
-    }
-  };
-
-  // Handle removing a city via Chip close button
-  const handleCitySelectionRemove = (cityToRemove: string) => {
-    setSelectedCities((prev) => {
-      const next = new Set(prev);
-      next.delete(cityToRemove);
-      return next;
-    });
-    setShowMaxCityWarning(false); // Hide warning on removal
-  };
-
-  // Handle clearing all selections
-  const handleClearAllCities = () => {
-    setSelectedCities(new Set());
-    setSelectedIndustryNames([]); // Clear industries when cities cleared
-    setShowMaxCityWarning(false);
-  };
-
-  // Handle changing the focus city for the pie chart
-  const handlePieFocusChange = (key: React.Key | null) => {
-    if (typeof key === 'string') {
-      setPieChartFocusCity(key);
-    } else {
-      setPieChartFocusCity(null); // Handle case where selection is cleared/invalid
-    }
-  };
-
   // Handle industry selection change from Select dropdown
   const handleIndustrySelectionChange = (keys: unknown) => {
     if (!(keys instanceof Set)) return;
@@ -437,52 +400,60 @@ export const AnalyticsView: React.FC = () => {
               placement="bottom"
             >
               <div className="w-full sm:w-auto">
-                <Autocomplete
-                  label="Search & Add Cities"
-                  placeholder="Type to search..."
-                  className="w-full sm:max-w-xs sm:min-w-[250px]"
-                  isLoading={citiesLoading}
-                  items={filteredCitiesForAutocomplete}
-                  inputValue={citySearchQuery}
-                  onInputChange={setCitySearchQuery}
-                  onSelectionChange={handleCitySelectionAdd}
-                  allowsCustomValue={false}
-                >
-                  {(item) => (
-                    <AutocompleteItem key={item.key} textValue={item.label}>
-                      {item.label}
-                    </AutocompleteItem>
+                <div className="flex flex-col gap-2 md:min-w-[280px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-default-600">
+                      Selected Cities ({selectedCities.size}/{MAX_SELECTED_CITIES})
+                    </span>
+                    {selectedCities.size > 0 && (
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        className="h-6 px-2 min-w-0"
+                        onPress={handleClearAllCities}
+                      >
+                        Clear All
+                      </Button>
+                    )}
+                  </div>
+
+                  <CitySearch
+                    cities={filteredCitiesForSearch}
+                    selectedCity=""
+                    onCityChange={handleCitySelectionAdd}
+                    isLoading={citiesLoading}
+                    searchTerm={citySearchQuery}
+                    onSearchChange={setCitySearchQuery}
+                    className={isAtMaxCities ? 'opacity-50 pointer-events-none' : ''}
+                  />
+
+                  {showMaxCityWarning && (
+                    <p className="text-danger text-xs">
+                      Maximum of {MAX_SELECTED_CITIES} cities can be selected.
+                    </p>
                   )}
-                </Autocomplete>
+
+                  {/* Display selected cities as chips */}
+                  {selectedCities.size > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {Array.from(selectedCities).map((city) => (
+                        <Chip
+                          key={city}
+                          onClose={() => handleCitySelectionRemove(city)}
+                          variant="flat"
+                          color="primary"
+                          size="sm"
+                          className="my-1"
+                        >
+                          {city}
+                        </Chip>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </Tooltip>
-            {selectedCities.size > 0 && (
-              <div className="flex flex-wrap items-center gap-1 pt-1 w-full">
-                {Array.from(selectedCities).map((city) => (
-                  <Chip
-                    key={city}
-                    onClose={() => handleCitySelectionRemove(city)}
-                    variant="flat"
-                    size="sm"
-                  >
-                    {city}
-                  </Chip>
-                ))}
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  aria-label="Clear cities"
-                  onPress={handleClearAllCities}
-                  className="ml-auto"
-                >
-                  <Icon icon="lucide:x" width={16} />
-                </Button>
-              </div>
-            )}
-            {showMaxCityWarning && (
-              <p className="text-tiny text-danger">Max {MAX_SELECTED_CITIES} cities allowed.</p>
-            )}
           </div>
 
           {/* Industry selection section - made more responsive */}

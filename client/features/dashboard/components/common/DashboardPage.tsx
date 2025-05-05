@@ -1,11 +1,15 @@
 'use client';
 
-import { ViewModeToggle } from '@/features/dashboard/components/controls/Toggles/ViewModeToggle';
+import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error/DashboardErrorBoundary';
+import { ErrorDisplay } from '@/features/dashboard/components/common/error/ErrorDisplay';
+import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
+import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';
 import { columns as allColumns } from '@/features/dashboard/config/columns';
 import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
+import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useFilteredBusinesses } from '@/features/dashboard/hooks/useFilteredBusinesses';
-import { usePagination } from '@/features/dashboard/hooks/usePagination';
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor } from '@/features/dashboard/types/table';
@@ -13,9 +17,8 @@ import type { ViewMode } from '@/features/dashboard/types/view';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { Autocomplete, AutocompleteItem, type Selection } from '@heroui/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 const ROWS_PER_PAGE = 20;
 
@@ -70,6 +73,14 @@ export function DashboardPage() {
     error: companyError,
   } = useFetchCompanies(selectedCity);
 
+  // Use loading hook to centralize loading states
+  const { isAnySectionLoading, hasSectionErrors } = useDashboardLoading({
+    isDataLoading: isFetching,
+    cityLoading,
+    tableRows: companies,
+    errors: cityError || companyError ? { city: cityError, companies: companyError } : null,
+  });
+
   // Log errors if any
   useEffect(() => {
     if (cityError) {
@@ -104,8 +115,13 @@ export function DashboardPage() {
     isFetching,
   });
 
-  // Pagination
-  const { paginated, totalPages } = usePagination(filteredCompanies, page, ROWS_PER_PAGE);
+  // Pagination using the new hook
+  const { paginated, totalPages } = useDashboardPagination({
+    tableRows: filteredCompanies,
+    currentPage: page,
+    pageSize: ROWS_PER_PAGE,
+    setCurrentPage: setPage,
+  });
 
   // Get filtered cities for autocomplete
   const filteredCities = useMemo(() => {
@@ -154,6 +170,12 @@ export function DashboardPage() {
     }
   }, [cities, cityLoading, router, selectedCity, setSelectedCity]);
 
+  // Handle city change
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    router.replace(`/dashboard?city=${encodeURIComponent(city)}`);
+  };
+
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
       {/* Show loading overlay only during initial data loading */}
@@ -161,57 +183,57 @@ export function DashboardPage() {
 
       {/* Show error message if data couldn't be loaded */}
       {hasDataErrors && (
-        <div className="w-full py-2 px-4 my-2 bg-danger-100 dark:bg-danger-900/20 border border-danger rounded-lg">
-          <h3 className="text-danger font-semibold">Data Loading Error</h3>
-          <p className="text-sm">
-            There was an error loading data from the API. Using fallback data.
-          </p>
-          {cityError && <p className="text-xs mt-1 text-danger-500">{cityError.message}</p>}
-        </div>
+        <ErrorDisplay
+          message="There was an error loading dashboard data."
+          error={cityError || companyError}
+          showDetails={process.env.NODE_ENV === 'development'}
+        />
       )}
 
-      <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
-
-      {viewMode !== 'map' && viewMode !== 'analytics' && (
-        <Autocomplete
-          classNames={{ base: 'md:max-w-xs max-w-[30vw] min-w-[200px]' }}
-          popoverProps={{ classNames: { content: 'max-w-[40vw] md:max-w-xs' } }}
-          items={filteredCities}
-          label="Search by city"
-          variant="underlined"
-          selectedKey={selectedCity}
-          onInputChange={setSearchQuery}
-          onSelectionChange={(key: string | number | null) => {
-            if (typeof key === 'string') {
-              setSelectedCity(key);
-              router.replace(`/dashboard?city=${encodeURIComponent(key)}`);
-            }
-          }}
-          isLoading={cityLoading}
-        >
-          {(item: { name: string }) => (
-            <AutocompleteItem key={item.name}>{item.name}</AutocompleteItem>
-          )}
-        </Autocomplete>
-      )}
-
-      <ViewSwitcher
-        data={paginated}
-        allFilteredData={filteredCompanies}
-        selectedBusinesses={selectedBusinesses}
-        geojson={geojsonData}
+      {/* Dashboard Header with controls */}
+      <DashboardHeader
         viewMode={viewMode}
         setViewMode={setViewMode}
-        columns={allColumns}
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        isLoading={isFetching || cityLoading}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        sortDescriptor={sortDescriptor}
-        setSortDescriptor={setSortDescriptor}
+        cities={filteredCities}
+        selectedCity={selectedCity}
+        onCityChange={handleCityChange}
+        cityLoading={cityLoading}
+        searchTerm={searchQuery}
+        onSearchChange={setSearchQuery}
       />
+
+      <DashboardErrorBoundary
+        componentName="ViewSwitcher"
+        fallback={
+          <ErrorDisplay
+            message="The dashboard encountered an unexpected error"
+            showDetails={process.env.NODE_ENV === 'development'}
+          />
+        }
+      >
+        <Suspense fallback={<DashboardSkeleton />}>
+          {/* Always render content if a city is selected or we have data */}
+          {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) && (
+            <ViewSwitcher
+              data={paginated}
+              allFilteredData={filteredCompanies}
+              selectedBusinesses={selectedBusinesses}
+              geojson={geojsonData}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              columns={allColumns}
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              isLoading={isAnySectionLoading}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              sortDescriptor={sortDescriptor}
+              setSortDescriptor={setSortDescriptor}
+            />
+          )}
+        </Suspense>
+      </DashboardErrorBoundary>
     </div>
   );
 }
