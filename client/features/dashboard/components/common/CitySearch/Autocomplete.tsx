@@ -6,7 +6,7 @@ import {
   Autocomplete as HeroUIAutocomplete,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React, { useMemo, type ReactNode } from 'react';
+import React, { useMemo, useCallback, type ReactNode } from 'react';
 
 // Define the city item type
 interface CityItem {
@@ -27,6 +27,9 @@ interface CityAutocompleteProps extends Omit<AutocompleteProps, 'children' | 'it
   highlightedCity?: string | null;
 }
 
+// Maximum number of items to render in the autocomplete dropdown
+const MAX_RENDERED_ITEMS = 50;
+
 /**
  * Enhanced City Autocomplete component
  * Extracted from CitySearch for better separation of concerns
@@ -46,6 +49,11 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
   highlightedCity,
   ...props
 }: CityAutocompleteProps) {
+  // Limit the number of displayed results to improve performance
+  const limitedCities = useMemo(() => {
+    return cities.slice(0, MAX_RENDERED_ITEMS);
+  }, [cities]);
+
   // Custom endContent to avoid nested button issue
   const endContent = useMemo(() => {
     // Only show the clear button if there's a search term or selection
@@ -110,33 +118,38 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
       return 'No cities found matching your search.';
     }
     if (cities.length > 0) {
-      return `${cities.length} cities found. Use up and down arrow keys to navigate.`;
+      const displayCount = Math.min(cities.length, MAX_RENDERED_ITEMS);
+      const hasMore = cities.length > MAX_RENDERED_ITEMS;
+      return `${cities.length} cities found${hasMore ? `, showing first ${displayCount}` : ''}. Use up and down arrow keys to navigate.`;
     }
     return '';
   }, [cities.length, isLoading, localSearchTerm]);
 
   // Render function for items
-  const renderItem = (item: CityItem) => {
-    const isHighlighted = item.name === highlightedCity;
-    return (
-      <AutocompleteItem
-        key={item.name}
-        textValue={item.name}
-        id={`city-option-${item.name}`}
-        aria-selected={item.name === selectedCity}
-        className={
-          isHighlighted
-            ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-            : ''
-        }
-      >
-        <div className="flex items-center gap-2">
-          <Icon icon="lucide:map-pin" className="text-primary-500" width={16} />
-          <span>{item.name}</span>
-        </div>
-      </AutocompleteItem>
-    );
-  };
+  const renderItem = useCallback(
+    (item: CityItem) => {
+      const isHighlighted = item.name === highlightedCity;
+      return (
+        <AutocompleteItem
+          key={item.name}
+          textValue={item.name}
+          id={`city-option-${item.name}`}
+          aria-selected={item.name === selectedCity}
+          className={
+            isHighlighted
+              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+              : ''
+          }
+        >
+          <div className="flex items-center gap-2">
+            <Icon icon="lucide:map-pin" className="text-primary-500" width={16} />
+            <span>{item.name}</span>
+          </div>
+        </AutocompleteItem>
+      );
+    },
+    [highlightedCity, selectedCity],
+  );
 
   return (
     <div className="flex flex-col">
@@ -148,7 +161,7 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
       {/* @ts-ignore - Type definitions in HeroUIAutocomplete are not fully compatible with our usage */}
       <HeroUIAutocomplete<CityItem>
         classNames={classNames}
-        items={cities}
+        items={limitedCities}
         label={label}
         labelPlacement="outside"
         placeholder={placeholder}

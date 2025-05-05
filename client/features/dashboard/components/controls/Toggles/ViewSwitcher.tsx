@@ -1,7 +1,7 @@
 'use client';
 
 import type { FeatureCollection, Point } from 'geojson';
-import { Suspense, lazy, useMemo } from 'react';
+import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
 import {
   AnalyticsSkeleton,
@@ -71,7 +71,7 @@ const TableView = lazy(() =>
  * ViewSwitcher
  * Controls display of TableView, MapView, or both in split layout.
  */
-export function ViewSwitcher({
+function ViewSwitcherBase({
   data,
   geojson,
   viewMode,
@@ -90,72 +90,93 @@ export function ViewSwitcher({
   pageSize,
   onPageSizeChange,
 }: ViewSwitcherProps) {
-  return (
-    <div className="w-full">
-      {viewMode === 'table' && (
-        <TableView
-          data={data}
-          allFilteredData={allFilteredData}
-          columns={columns}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-          isLoading={isLoading}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          sortDescriptor={sortDescriptor}
-          setSortDescriptor={setSortDescriptor}
-          pageSize={pageSize}
-          onPageSizeChange={onPageSizeChange}
-        />
-      )}
-
-      {viewMode === 'map' && geojson && (
-        <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
-          <Suspense fallback={<SectionSkeleton section="map" />}>
-            <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
-          </Suspense>
-        </div>
-      )}
-
-      {viewMode === 'split' && (
-        <div className="flex flex-col lg:flex-row lg:gap-4">
-          <div className="w-full lg:w-1/2 mb-4 lg:mb-0">
-            <TableView
-              data={data}
-              allFilteredData={allFilteredData}
-              columns={columns}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-              isLoading={isLoading}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor}
-              pageSize={pageSize}
-              onPageSizeChange={onPageSizeChange}
-            />
-          </div>
-          {geojson && (
-            <div className="w-full lg:w-1/2 h-[50vh] sm:h-[55vh] lg:h-auto lg:min-h-[70vh] border border-default-200 rounded-lg">
-              <div className="h-full w-full">
-                <Suspense fallback={<SectionSkeleton section="map" />}>
-                  <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
-                </Suspense>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {viewMode === 'analytics' && (
-        <div className="w-full">
-          <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
-            <AnalyticsView />
-          </Suspense>
-        </div>
-      )}
-    </div>
+  // Memoize the table view rendering to prevent unnecessary re-renders
+  const renderTableView = useCallback(
+    () => (
+      <TableView
+        data={data}
+        allFilteredData={allFilteredData}
+        columns={columns}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        isLoading={isLoading}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
+      />
+    ),
+    [
+      data,
+      allFilteredData,
+      columns,
+      currentPage,
+      totalPages,
+      onPageChange,
+      isLoading,
+      searchTerm,
+      setSearchTerm,
+      sortDescriptor,
+      setSortDescriptor,
+      pageSize,
+      onPageSizeChange,
+    ],
   );
+
+  // Memoize the map view
+  const renderMapView = useCallback(() => {
+    if (!geojson) return null;
+    return (
+      <Suspense fallback={<SectionSkeleton section="map" />}>
+        <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+      </Suspense>
+    );
+  }, [geojson, selectedBusinesses]);
+
+  // Memoize the analytics view
+  const renderAnalyticsView = useCallback(
+    () => (
+      <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
+        <AnalyticsView />
+      </Suspense>
+    ),
+    [],
+  );
+
+  // Memoize the content based on the view mode
+  const content = useMemo(() => {
+    switch (viewMode) {
+      case 'table':
+        return <div className="w-full">{renderTableView()}</div>;
+      case 'map':
+        return geojson ? (
+          <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
+            {renderMapView()}
+          </div>
+        ) : null;
+      case 'split':
+        return (
+          <div className="flex flex-col lg:flex-row lg:gap-4">
+            <div className="w-full lg:w-1/2 mb-4 lg:mb-0">{renderTableView()}</div>
+            {geojson && (
+              <div className="w-full lg:w-1/2 h-[50vh] sm:h-[55vh] lg:h-auto lg:min-h-[70vh] border border-default-200 rounded-lg">
+                <div className="h-full w-full">{renderMapView()}</div>
+              </div>
+            )}
+          </div>
+        );
+      case 'analytics':
+        return <div className="w-full">{renderAnalyticsView()}</div>;
+      default:
+        return null;
+    }
+  }, [viewMode, renderTableView, renderMapView, renderAnalyticsView, geojson]);
+
+  return <div className="w-full">{content}</div>;
 }
+
+// Export a memoized version of the component to prevent unnecessary re-renders
+export const ViewSwitcher = memo(ViewSwitcherBase);

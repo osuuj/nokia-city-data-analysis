@@ -1,6 +1,30 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+// Cache for recent searches
+const SEARCH_CACHE_SIZE = 20;
+const searchCache = new Map<string, { name: string }[]>();
+
+/**
+ * Simple utility to create a debounced version of a function
+ */
+function useDebounce<T extends (...args: unknown[]) => void>(callback: T, delay: number): T {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  return useCallback(
+    (...args: Parameters<T>) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay],
+  ) as T;
+}
 
 interface UseCitySearchProps {
   cities: string[] | { name: string }[];
@@ -20,18 +44,24 @@ export function useCitySearch({
   searchTerm,
   onSearchChange,
 }: UseCitySearchProps) {
-  // Local state
-  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  // Local state - use empty string as default if searchTerm is undefined
+  const [localSearchTerm, setLocalSearchTerm] = useState<string>(searchTerm || '');
   const [selectionMade, setSelectionMade] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [highlightedCity, setHighlightedCity] = useState<string | null>(null);
 
+  // Ref for last filtered cities
+  const lastFilteredCitiesRef = useRef<{ name: string }[]>([]);
+
   // Ensure local search term is synced with external searchTerm
   useEffect(() => {
-    setLocalSearchTerm(searchTerm);
+    setLocalSearchTerm(searchTerm || '');
   }, [searchTerm]);
 
-  // Format cities to the expected format
+  // Create debounced search handler
+  const debouncedSearchChange = useDebounce(onSearchChange, 250);
+
+  // Format cities to the expected format - only process when cities change
   const formattedCities = useMemo(() => {
     return cities.map((city) => {
       if (typeof city === 'string') {
@@ -41,12 +71,44 @@ export function useCitySearch({
     });
   }, [cities]);
 
-  // Filter cities based on search term
+  // Filter cities based on search term with caching
   const filteredCities = useMemo(() => {
-    if (!localSearchTerm) return formattedCities;
-    return formattedCities.filter((city) =>
-      city.name.toLowerCase().includes(localSearchTerm.toLowerCase()),
-    );
+    const searchValue = localSearchTerm || '';
+    if (!searchValue) return formattedCities;
+
+    // Check if we have a cached result
+    const lowerCaseKey = searchValue.toLowerCase();
+
+    if (searchCache.has(lowerCaseKey)) {
+      // Use optional chaining and provide a default empty array
+      const cachedResult = searchCache.get(lowerCaseKey) || [];
+      lastFilteredCitiesRef.current = cachedResult;
+      return cachedResult;
+    }
+
+    // Perform the filtering - using a more optimized string check
+    const result = formattedCities.filter((city) => {
+      // Fast path: direct match at start
+      const cityNameLower = city.name.toLowerCase();
+      if (cityNameLower === lowerCaseKey) return true;
+
+      // Normal path: includes
+      return cityNameLower.includes(lowerCaseKey);
+    });
+
+    // Cache the result
+    if (searchCache.size >= SEARCH_CACHE_SIZE) {
+      // Remove oldest entry if cache is full
+      const firstKey = searchCache.keys().next().value;
+      if (firstKey) {
+        searchCache.delete(firstKey);
+      }
+    }
+    searchCache.set(lowerCaseKey, result);
+
+    // Update last filtered
+    lastFilteredCitiesRef.current = result;
+    return result;
   }, [formattedCities, localSearchTerm]);
 
   // Handle selection change
@@ -62,17 +124,17 @@ export function useCitySearch({
     [onCityChange],
   );
 
-  // Handle local search term change
+  // Handle local search term change with debouncing
   const handleLocalSearchChange = useCallback(
     (value: string) => {
       setLocalSearchTerm(value);
-      onSearchChange(value);
+      debouncedSearchChange(value);
       setSelectionMade(false);
       // Reset active index when search term changes
       setActiveIndex(-1);
       setHighlightedCity(null);
     },
-    [onSearchChange],
+    [debouncedSearchChange],
   );
 
   // Handle clear button click
@@ -87,18 +149,25 @@ export function useCitySearch({
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (filteredCities.length === 0) return;
+      const currentFiltered =
+        lastFilteredCitiesRef.current.length > 0 ? lastFilteredCitiesRef.current : filteredCities;
+
+      if (currentFiltered.length === 0) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const nextIndex = activeIndex < filteredCities.length - 1 ? activeIndex + 1 : 0;
+        const nextIndex = activeIndex < currentFiltered.length - 1 ? activeIndex + 1 : 0;
         setActiveIndex(nextIndex);
-        setHighlightedCity(filteredCities[nextIndex].name);
+        // Use optional chaining and provide a default null value
+        const nextCity = currentFiltered[nextIndex];
+        setHighlightedCity(nextCity ? nextCity.name : null);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const prevIndex = activeIndex > 0 ? activeIndex - 1 : filteredCities.length - 1;
+        const prevIndex = activeIndex > 0 ? activeIndex - 1 : currentFiltered.length - 1;
         setActiveIndex(prevIndex);
-        setHighlightedCity(filteredCities[prevIndex].name);
+        // Use optional chaining and provide a default null value
+        const prevCity = currentFiltered[prevIndex];
+        setHighlightedCity(prevCity ? prevCity.name : null);
       } else if (e.key === 'Enter' && highlightedCity) {
         e.preventDefault();
         onCityChange(highlightedCity);

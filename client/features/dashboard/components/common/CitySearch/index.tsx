@@ -3,7 +3,7 @@
 import { CityAutocomplete } from '@/features/dashboard/components/common/CitySearch/Autocomplete';
 import { useCitySearch } from '@/features/dashboard/hooks/useCitySearch';
 import { Icon } from '@iconify/react';
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 
 interface CitySearchProps {
   /** List of cities to display in the autocomplete */
@@ -36,6 +36,30 @@ export const CitySearch = React.memo(function CitySearch({
   onSearchChange,
   className = '',
 }: CitySearchProps) {
+  // Track if we should process next search - helps prevent expensive processing during typing
+  const shouldProcessRef = useRef(true);
+  const lastSearchTimeRef = useRef(0);
+
+  // Rate limiting for search processing
+  useEffect(() => {
+    const now = Date.now();
+    if (now - lastSearchTimeRef.current < 150) {
+      // If typing fast, don't process every keystroke
+      shouldProcessRef.current = false;
+
+      // Schedule processing after delay
+      const timerId = setTimeout(() => {
+        shouldProcessRef.current = true;
+        lastSearchTimeRef.current = Date.now();
+      }, 200);
+
+      return () => clearTimeout(timerId);
+    }
+
+    shouldProcessRef.current = true;
+    lastSearchTimeRef.current = now;
+  }, []); // Remove searchTerm as it's not needed since we're using refs
+
   const {
     localSearchTerm,
     filteredCities,

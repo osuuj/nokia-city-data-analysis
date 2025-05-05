@@ -3,7 +3,7 @@
 import { Button } from '@heroui/react';
 import clsx from 'clsx';
 import { useTheme } from 'next-themes';
-import { type FC, useCallback, useEffect, useState } from 'react';
+import { type FC, memo, useCallback, useEffect, useState } from 'react';
 
 import { MoonFilledIcon, SunFilledIcon } from '@shared/icons';
 
@@ -23,7 +23,7 @@ export interface ThemeSwitchProps {
  * @example
  * <ThemeSwitch className="ml-2" />
  */
-export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
+const ThemeSwitchBase: FC<ThemeSwitchProps> = ({ className }) => {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -32,18 +32,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
     setMounted(true);
   }, []);
 
-  // Dispatch theme change event when theme changes
-  useEffect(() => {
-    if (mounted && resolvedTheme) {
-      // Dispatch a custom event that components can listen for
-      document.dispatchEvent(
-        new CustomEvent('themechange', {
-          detail: { theme: resolvedTheme },
-        }),
-      );
-    }
-  }, [resolvedTheme, mounted]);
-
+  // Replace the theme change event with a more performant approach
   const toggleTheme = useCallback(() => {
     const newTheme = resolvedTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -53,22 +42,19 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
 
     // Update data-theme attribute for immediate visual feedback
     document.documentElement.setAttribute('data-theme', newTheme);
+
+    // Use a performant approach for theme-dependent components
+    // Instead of dispatching an event which causes extensive re-renders
+    // Components that need theme can read from localStorage or use useTheme hook
   }, [resolvedTheme, setTheme]);
 
-  // Render a placeholder with the same dimensions during SSR
-  if (!mounted) {
-    return (
-      <Button
-        isIconOnly
-        radius="full"
-        variant="light"
-        className={clsx('cursor-pointer transition-opacity hover:opacity-80', className)}
-        aria-label="Theme switch"
-      >
-        <div className="w-[22px] h-[22px]" />
-      </Button>
-    );
-  }
+  // Memoize the button content to prevent unnecessary re-renders
+  const buttonContent = useCallback(() => {
+    if (!mounted) {
+      return <div className="w-[22px] h-[22px]" />;
+    }
+    return resolvedTheme === 'light' ? <MoonFilledIcon size={22} /> : <SunFilledIcon size={22} />;
+  }, [mounted, resolvedTheme]);
 
   return (
     <Button
@@ -79,7 +65,10 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className }) => {
       className={clsx('cursor-pointer transition-opacity hover:opacity-80', className)}
       aria-label={`Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {resolvedTheme === 'light' ? <MoonFilledIcon size={22} /> : <SunFilledIcon size={22} />}
+      {buttonContent()}
     </Button>
   );
 };
+
+// Memoize the entire component to prevent re-renders when parent components re-render
+export const ThemeSwitch = memo(ThemeSwitchBase);

@@ -18,7 +18,7 @@ import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 // Default rows per page
 const DEFAULT_PAGE_SIZE = 20;
@@ -57,6 +57,33 @@ export function DashboardPage() {
 
   // Debounce search term to prevent excessive filtering
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Memoize handlers to prevent recreation on every render
+  const handleCityChange = useCallback(
+    (city: string) => {
+      setSelectedCity(city);
+      router.replace(`/dashboard?city=${encodeURIComponent(city)}`);
+    },
+    [setSelectedCity, router],
+  );
+
+  // Handle page size change with useCallback
+  const handlePageSizeChange = useCallback(
+    (newSize: number) => {
+      // Calculate new page to keep approximately the same records visible
+      const firstItemIndex = (page - 1) * pageSize;
+      const newPage = Math.floor(firstItemIndex / newSize) + 1;
+
+      setPageSize(newSize);
+      setPage(newPage);
+    },
+    [page, pageSize],
+  );
+
+  // Memoize the page change handler
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
 
   // Update selectedCity when query param changes
   useEffect(() => {
@@ -172,21 +199,62 @@ export function DashboardPage() {
     }
   }, [cities, cityLoading, router, selectedCity, setSelectedCity]);
 
-  // Handle city change
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    router.replace(`/dashboard?city=${encodeURIComponent(city)}`);
-  };
+  // Memoize header component to prevent re-renders
+  const dashboardHeader = useMemo(
+    () => (
+      <DashboardHeader
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        cities={filteredCities}
+        selectedCity={selectedCity}
+        onCityChange={handleCityChange}
+        cityLoading={cityLoading}
+        searchTerm={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+    ),
+    [viewMode, filteredCities, selectedCity, handleCityChange, cityLoading, searchQuery],
+  );
 
-  // Handle page size change
-  const handlePageSizeChange = (newSize: number) => {
-    // Calculate new page to keep approximately the same records visible
-    const firstItemIndex = (page - 1) * pageSize;
-    const newPage = Math.floor(firstItemIndex / newSize) + 1;
-
-    setPageSize(newSize);
-    setPage(newPage);
-  };
+  // Memoize view switcher component to prevent re-renders
+  const viewSwitcherComponent = useMemo(
+    () => (
+      <ViewSwitcher
+        data={paginated}
+        allFilteredData={filteredCompanies}
+        selectedBusinesses={selectedBusinesses}
+        geojson={geojsonData}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        columns={allColumns}
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        isLoading={isAnySectionLoading}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+        pageSize={pageSize}
+        onPageSizeChange={handlePageSizeChange}
+      />
+    ),
+    [
+      paginated,
+      filteredCompanies,
+      selectedBusinesses,
+      geojsonData,
+      viewMode,
+      page,
+      totalPages,
+      handlePageChange,
+      isAnySectionLoading,
+      searchTerm,
+      sortDescriptor,
+      pageSize,
+      handlePageSizeChange,
+    ],
+  );
 
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
@@ -203,16 +271,7 @@ export function DashboardPage() {
       )}
 
       {/* Dashboard Header with controls */}
-      <DashboardHeader
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        cities={filteredCities}
-        selectedCity={selectedCity}
-        onCityChange={handleCityChange}
-        cityLoading={cityLoading}
-        searchTerm={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      {dashboardHeader}
 
       <DashboardErrorBoundary
         componentName="ViewSwitcher"
@@ -225,27 +284,8 @@ export function DashboardPage() {
       >
         <Suspense fallback={<DashboardSkeleton />}>
           {/* Always render content if a city is selected or we have data */}
-          {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) && (
-            <ViewSwitcher
-              data={paginated}
-              allFilteredData={filteredCompanies}
-              selectedBusinesses={selectedBusinesses}
-              geojson={geojsonData}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              columns={allColumns}
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              isLoading={isAnySectionLoading}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor}
-              pageSize={pageSize}
-              onPageSizeChange={handlePageSizeChange}
-            />
-          )}
+          {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) &&
+            viewSwitcherComponent}
         </Suspense>
       </DashboardErrorBoundary>
     </div>

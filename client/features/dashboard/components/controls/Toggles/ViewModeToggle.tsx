@@ -117,6 +117,63 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [githubButton],
   );
 
+  // Memoize each button individually to prevent re-renders
+  const TableButton = useMemo(
+    () => (
+      <Button
+        className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
+        onPress={() => handleViewModeChange('table')}
+        onMouseEnter={() => handlePrefetch('table')}
+      >
+        <Icon icon="lucide:list" className="mr-1" />
+        Table
+      </Button>
+    ),
+    [viewMode, handleViewModeChange, handlePrefetch],
+  );
+
+  const MapButton = useMemo(
+    () => (
+      <Button
+        className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
+        onPress={() => handleViewModeChange('map')}
+        onMouseEnter={() => handlePrefetch('map')}
+      >
+        <Icon icon="lucide:map" className="mr-1" />
+        Map
+      </Button>
+    ),
+    [viewMode, handleViewModeChange, handlePrefetch],
+  );
+
+  const SplitButton = useMemo(
+    () => (
+      <Button
+        className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
+        onPress={() => handleViewModeChange('split')}
+        onMouseEnter={() => handlePrefetch('split')}
+      >
+        <Icon icon="lucide:layout-dashboard" className="mr-1" />
+        Split
+      </Button>
+    ),
+    [viewMode, handleViewModeChange, handlePrefetch],
+  );
+
+  const AnalyticsButton = useMemo(
+    () => (
+      <Button
+        className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
+        onPress={() => handleViewModeChange('analytics')}
+        onMouseEnter={() => handlePrefetch('analytics')}
+      >
+        <Icon icon="lucide:bar-chart-2" className="mr-1" />
+        Analytics
+      </Button>
+    ),
+    [viewMode, handleViewModeChange, handlePrefetch],
+  );
+
   // If not mounted yet, show a placeholder to avoid hydration mismatch
   if (!isMounted) {
     return (
@@ -134,38 +191,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   return (
     <div className="flex items-center justify-between w-full">
       <ButtonGroup variant="flat" size="sm" fullWidth>
-        <Button
-          className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('table')}
-          onMouseEnter={() => handlePrefetch('table')}
-        >
-          <Icon icon="lucide:list" className="mr-1" />
-          Table
-        </Button>
-        <Button
-          className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('map')}
-          onMouseEnter={() => handlePrefetch('map')}
-        >
-          <Icon icon="lucide:map" className="mr-1" />
-          Map
-        </Button>
-        <Button
-          className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('split')}
-          onMouseEnter={() => handlePrefetch('split')}
-        >
-          <Icon icon="lucide:layout-dashboard" className="mr-1" />
-          Split
-        </Button>
-        <Button
-          className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
-          onPress={() => handleViewModeChange('analytics')}
-          onMouseEnter={() => handlePrefetch('analytics')}
-        >
-          <Icon icon="lucide:bar-chart-2" className="mr-1" />
-          Analytics
-        </Button>
+        {TableButton}
+        {MapButton}
+        {SplitButton}
+        {AnalyticsButton}
       </ButtonGroup>
 
       {desktopControls}
