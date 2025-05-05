@@ -1,11 +1,71 @@
 'use client';
 
-import { AnalyticsView } from '@/features/dashboard/components/views/AnalyticsView';
-import { MapView } from '@/features/dashboard/components/views/MapView';
-import { TableView } from '@/features/dashboard/components/views/TableView';
-import type { SortDescriptor } from '@/features/dashboard/types/table';
-import type { ViewSwitcherProps } from '@/features/dashboard/types/view';
-import type { Dispatch, SetStateAction } from 'react';
+import type { FeatureCollection, Point } from 'geojson';
+import { Suspense, lazy, useMemo } from 'react';
+import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
+import {
+  AnalyticsSkeleton,
+  DashboardSkeleton,
+  SectionSkeleton,
+} from '../../../components/common/loading/Skeletons';
+import type {
+  CompanyProperties,
+  SortDescriptor,
+  TableColumnConfig,
+  ViewMode,
+} from '../../../types';
+import { transformCompanyGeoJSON } from '../../../utils/geo';
+
+// Define the emptyStateReason type to handle both string and object formats
+type EmptyStateReason =
+  | string
+  | {
+      noResults: boolean;
+      reason: 'distance' | 'industry' | 'search' | 'none';
+      message: string;
+    };
+
+// Define the ViewSwitcherProps type with all required properties
+export interface ViewSwitcherProps {
+  data: CompanyProperties[];
+  allFilteredData: CompanyProperties[];
+  selectedBusinesses?: CompanyProperties[];
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  columns: TableColumnConfig[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  sortDescriptor: SortDescriptor;
+  setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  emptyStateReason?: EmptyStateReason;
+  geojson?: FeatureCollection<Point, CompanyProperties>; // Optional prop for passing GeoJSON directly
+  error?: Error | null; // Added error prop for direct error handling
+}
+
+// Lazy load components for code splitting
+const AnalyticsView = lazy(() =>
+  import('../../views/AnalyticsView').then((module) => ({
+    default: module.AnalyticsView,
+  })),
+);
+
+const MapView = lazy(() =>
+  import('../../views/MapView').then((module) => ({
+    default: module.MapView,
+  })),
+);
+
+const TableView = lazy(() =>
+  import('../../views/TableView').then((module) => ({
+    default: module.TableView,
+  })),
+);
 
 /**
  * ViewSwitcher
@@ -42,13 +102,15 @@ export function ViewSwitcher({
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           sortDescriptor={sortDescriptor}
-          setSortDescriptor={setSortDescriptor as Dispatch<SetStateAction<SortDescriptor>>}
+          setSortDescriptor={setSortDescriptor}
         />
       )}
 
       {viewMode === 'map' && geojson && (
         <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] w-full">
-          <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+          <Suspense fallback={<SectionSkeleton section="map" />}>
+            <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+          </Suspense>
         </div>
       )}
 
@@ -66,13 +128,15 @@ export function ViewSwitcher({
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               sortDescriptor={sortDescriptor}
-              setSortDescriptor={setSortDescriptor as Dispatch<SetStateAction<SortDescriptor>>}
+              setSortDescriptor={setSortDescriptor}
             />
           </div>
           {geojson && (
             <div className="w-full lg:w-1/2 h-[50vh] sm:h-[55vh] lg:h-auto lg:min-h-[70vh] border border-default-200 rounded-lg">
               <div className="h-full w-full">
-                <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+                <Suspense fallback={<SectionSkeleton section="map" />}>
+                  <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+                </Suspense>
               </div>
             </div>
           )}
@@ -81,7 +145,9 @@ export function ViewSwitcher({
 
       {viewMode === 'analytics' && (
         <div className="w-full">
-          <AnalyticsView />
+          <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
+            <AnalyticsView />
+          </Suspense>
         </div>
       )}
     </div>
