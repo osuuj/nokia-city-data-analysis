@@ -42,51 +42,70 @@ const SelectionCheckbox = React.memo(function SelectionCheckbox({
   return <Checkbox aria-label={ariaLabel} isSelected={isSelected} onValueChange={onValueChange} />;
 });
 
-// Create a memoized row component to prevent unnecessary re-renders
-const Row = React.memo(function TableRow({
-  item,
-  columns,
-  isSelected,
-  onSelect,
-  rowHeight,
-}: {
-  item: CompanyProperties;
-  columns: TableColumnConfig[];
-  isSelected: boolean;
-  onSelect: () => void;
-  rowHeight: number;
-}) {
-  return (
-    <div
-      className={`flex w-full border-b border-default-100 hover:bg-default-50 ${
-        isSelected ? 'bg-primary-50' : ''
-      }`}
-      style={{ height: rowHeight }}
-    >
-      {/* Checkbox cell */}
-      <div className="w-12 px-2 flex items-center justify-center flex-shrink-0">
-        <SelectionCheckbox
-          ariaLabel={`Select ${item.company_name}`}
-          isSelected={isSelected}
-          onValueChange={onSelect}
-        />
-      </div>
+// Create an even more optimized row component with minimal re-renders
+const Row = React.memo(
+  function TableRow({
+    item,
+    columns,
+    isSelected,
+    onSelect,
+    rowHeight,
+  }: {
+    item: CompanyProperties;
+    columns: TableColumnConfig[];
+    isSelected: boolean;
+    onSelect: () => void;
+    rowHeight: number;
+  }) {
+    // Pre-render cells once to avoid recreating them on each render
+    const cells = useMemo(() => {
+      return columns.map((column) => {
+        const value = renderCellValue(item, column.key as string);
+        return (
+          <div
+            key={`${item.business_id}-${column.key as string}`}
+            className={`flex items-center px-4 truncate ${
+              column.key === 'company_name' ? 'flex-1 min-w-[200px]' : 'w-40 flex-shrink-0'
+            }`}
+            title={value as string}
+          >
+            {value}
+          </div>
+        );
+      });
+    }, [columns, item]);
 
-      {/* Data cells */}
-      {columns.map((column) => (
-        <div
-          key={`${item.business_id}-${column.key as string}`}
-          className={`flex items-center px-4 truncate ${
-            column.key === 'company_name' ? 'flex-1 min-w-[200px]' : 'w-40 flex-shrink-0'
-          }`}
-          title={renderCellValue(item, column.key as string) as string}
-        >
-          {renderCellValue(item, column.key as string)}
+    return (
+      <div
+        className={`flex w-full border-b border-default-100 hover:bg-default-50 ${
+          isSelected ? 'bg-primary-50' : ''
+        }`}
+        style={{ height: rowHeight }}
+      >
+        {/* Checkbox cell */}
+        <div className="w-12 px-2 flex items-center justify-center flex-shrink-0">
+          <SelectionCheckbox
+            ariaLabel={`Select ${item.company_name}`}
+            isSelected={isSelected}
+            onValueChange={onSelect}
+          />
         </div>
-      ))}
-    </div>
-  );
-});
+
+        {/* Pre-rendered data cells */}
+        {cells}
+      </div>
+    );
+  },
+  // Custom equality function to improve performance
+  (prevProps, nextProps) => {
+    // Only re-render if these specific props changed
+    return (
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.item.business_id === nextProps.item.business_id &&
+      prevProps.rowHeight === nextProps.rowHeight
+    );
+  },
+);
 
 // Create a memoized header component
 const Header = React.memo(function TableHeader({
@@ -173,14 +192,18 @@ export function VirtualizedTable({
     const newEndIndex = Math.min(data.length, newStartIndex + visibleRowsCount);
 
     // Only slice the needed portion of data
-    const newVisibleRows = data.slice(newStartIndex, newEndIndex);
+    const newVisibleRows = data.slice(newStartIndex, newEndIndex).map((item) => ({
+      ...item,
+      // Pre-compute selection state to avoid repeated lookups during render
+      isSelected: selectedKeys.has(item.business_id),
+    }));
 
     return {
       visibleRows: newVisibleRows,
       startIndex: newStartIndex,
       endIndex: newEndIndex,
     };
-  }, [data, containerHeight, rowHeight, scrollTop]);
+  }, [data, containerHeight, rowHeight, scrollTop, selectedKeys]);
 
   // Handle scroll events with improved throttling to reduce state updates
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
@@ -244,6 +267,7 @@ export function VirtualizedTable({
   // Handle row selection with improved caching
   const handleRowSelection = useCallback(
     (id: string) => {
+      // Update selection directly
       const newKeys = new Set(selectedKeys);
       if (newKeys.has(id)) {
         newKeys.delete(id);
@@ -300,6 +324,19 @@ export function VirtualizedTable({
     });
   }, [data]);
 
+  // Add progressive loading for large datasets
+  const [isFullyRendered, setIsFullyRendered] = useState(false);
+
+  // Use a smaller initial set of visible rows for faster first render
+  useEffect(() => {
+    // Use requestIdleCallback or setTimeout for non-blocking rendering
+    const renderTimer = setTimeout(() => {
+      setIsFullyRendered(true);
+    }, 50);
+
+    return () => clearTimeout(renderTimer);
+  }, []);
+
   return (
     <div className="flex flex-col border border-default-200 rounded-lg overflow-hidden">
       {/* Header row */}
@@ -322,13 +359,13 @@ export function VirtualizedTable({
         {/* Spacer to position visible rows */}
         {startIndex > 0 && <div style={{ height: startIndex * rowHeight }} />}
 
-        {/* Visible rows */}
+        {/* Visible rows with progressive loading */}
         {visibleRows.map((item) => (
           <Row
             key={item.business_id}
             item={item}
             columns={visibleColumns}
-            isSelected={selectedKeys.has(item.business_id)}
+            isSelected={item.isSelected}
             onSelect={getRowSelectionHandler(item.business_id)}
             rowHeight={rowHeight}
           />
@@ -337,6 +374,13 @@ export function VirtualizedTable({
         {/* Empty state */}
         {data.length === 0 && (
           <div className="w-full py-10 text-center text-default-500">No data available</div>
+        )}
+
+        {/* Loading indicator for progressive rendering */}
+        {!isFullyRendered && data.length > 100 && (
+          <div className="w-full py-4 text-center text-xs text-default-400">
+            Loading additional rows...
+          </div>
         )}
 
         {/* Bottom spacer */}

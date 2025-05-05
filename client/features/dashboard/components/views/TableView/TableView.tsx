@@ -20,24 +20,8 @@ import type { Dispatch, SetStateAction } from 'react';
 import { VirtualizedTable } from './VirtualizedTable';
 import { TableToolbar } from './toolbar/TableToolbar';
 
-// Page size options
-const PAGE_SIZE_OPTIONS = [
-  { value: '10', label: '10' },
-  { value: '20', label: '20' },
-  { value: '50', label: '50' },
-];
-
-// Maximum allowed page size - for validation
-const MAX_PAGE_SIZE = 50;
-
-// Memoized page size options to prevent recreation
-const MEMOIZED_PAGE_SIZE_OPTIONS = PAGE_SIZE_OPTIONS.map((option) => (
-  <SelectItem key={option.value} textValue={option.label}>
-    {option.label}
-  </SelectItem>
-));
-
-// Threshold for switching to virtualized table
+// Constants for pagination performance tuning
+const FIXED_PAGE_SIZE = 20; // Fixed, performance-optimized page size
 const VIRTUALIZATION_THRESHOLD = 100;
 
 interface TableViewProps {
@@ -52,8 +36,6 @@ interface TableViewProps {
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
-  pageSize?: number;
-  onPageSizeChange?: (size: number) => void;
 }
 
 /**
@@ -72,8 +54,6 @@ export function TableView({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
-  pageSize = 20,
-  onPageSizeChange,
 }: TableViewProps) {
   // Access store values
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -123,33 +103,10 @@ export function TableView({
     [setSelectedKeys, allFilteredData],
   );
 
-  // Handle page size change
-  const handlePageSizeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newSize = Number(e.target.value);
-      // Validate that the size doesn't exceed the maximum
-      const validatedSize = Math.min(newSize, MAX_PAGE_SIZE);
-
-      if (onPageSizeChange && !Number.isNaN(validatedSize)) {
-        onPageSizeChange(validatedSize);
-      }
-    },
-    [onPageSizeChange],
-  );
-
-  // Optimize page size change to reduce component tree updates
-  const handleOptimizedPageSizeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      // Directly call the handler instead of using setTimeout which can cause React DevTools issues
-      handlePageSizeChange(e);
-    },
-    [handlePageSizeChange],
-  );
-
   // Determine if we should use virtualized table
   const shouldUseVirtualizedTable = useMemo(() => {
-    return data.length > VIRTUALIZATION_THRESHOLD || pageSize > VIRTUALIZATION_THRESHOLD;
-  }, [data.length, pageSize]);
+    return data.length > VIRTUALIZATION_THRESHOLD;
+  }, [data.length]);
 
   // Render toolbar with shared props
   const renderToolbar = useCallback(
@@ -196,35 +153,14 @@ export function TableView({
     [currentPage, totalPages, onPageChange],
   );
 
-  // Memoize page size selector to prevent re-renders
-  const renderPageSizeSelector = useCallback(
-    () =>
-      onPageSizeChange && (
-        <div className="flex items-center gap-2 mb-2 md:mb-0 w-1/4">
-          <span className="text-sm whitespace-nowrap">Rows per page:</span>
-          <Select
-            size="sm"
-            selectedKeys={[pageSize.toString()]}
-            onChange={handleOptimizedPageSizeChange}
-            className="min-w-[70px] w-[70px]"
-            classNames={{
-              trigger: 'min-w-[70px] w-[70px]',
-              listbox: 'min-w-[70px]',
-            }}
-          >
-            {MEMOIZED_PAGE_SIZE_OPTIONS}
-          </Select>
-        </div>
-      ),
-    [onPageSizeChange, pageSize, handleOptimizedPageSizeChange],
-  );
-
   // Memoize pagination controls container to prevent re-renders
   const renderPaginationControls = useCallback(
     () => (
       <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
-        {/* Page size selector */}
-        {renderPageSizeSelector()}
+        {/* Information about fixed page size */}
+        <div className="w-1/4 text-xs text-default-500">
+          Showing {FIXED_PAGE_SIZE} rows per page
+        </div>
 
         {/* Centered pagination */}
         <div className="flex justify-center flex-1">{renderPagination()}</div>
@@ -233,7 +169,7 @@ export function TableView({
         <div className="w-1/4" />
       </div>
     ),
-    [renderPageSizeSelector, renderPagination],
+    [renderPagination],
   );
 
   // Render standard table for smaller datasets

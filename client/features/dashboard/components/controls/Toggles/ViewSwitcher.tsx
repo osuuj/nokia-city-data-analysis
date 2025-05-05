@@ -41,8 +41,6 @@ export interface ViewSwitcherProps {
   setSearchTerm: (term: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
-  pageSize?: number;
-  onPageSizeChange?: (pageSize: number) => void;
   emptyStateReason?: string;
   geojson?: FeatureCollection<Point, CompanyProperties>; // Optional prop for passing GeoJSON directly
   error?: Error | null; // Added error prop for direct error handling
@@ -87,8 +85,6 @@ function ViewSwitcherBase({
   setSortDescriptor,
   allFilteredData,
   selectedBusinesses,
-  pageSize,
-  onPageSizeChange,
 }: ViewSwitcherProps) {
   // Memoize the table view rendering to prevent unnecessary re-renders
   const renderTableView = useCallback(
@@ -105,8 +101,6 @@ function ViewSwitcherBase({
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
-        pageSize={pageSize}
-        onPageSizeChange={onPageSizeChange}
       />
     ),
     [
@@ -121,8 +115,6 @@ function ViewSwitcherBase({
       setSearchTerm,
       sortDescriptor,
       setSortDescriptor,
-      pageSize,
-      onPageSizeChange,
     ],
   );
 
