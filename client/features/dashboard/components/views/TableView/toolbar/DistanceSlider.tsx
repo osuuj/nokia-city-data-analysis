@@ -81,6 +81,22 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
             }}
           />
         </div>
+
+        {/* Manual distance input */}
+        <div className="flex items-center gap-2 mt-1">
+          <Input
+            type="number"
+            size="sm"
+            value={value.toString()}
+            onChange={(e) => onInputValueChange(e.target.value)}
+            min={minValue}
+            max={maxValue}
+            step={step}
+            className="w-16 text-[10px] xs:text-xs sm:text-sm"
+            aria-label="Enter distance manually"
+          />
+          <span className="text-[10px] xs:text-xs sm:text-sm text-default-500">km</span>
+        </div>
       </div>
     );
   },

@@ -2,6 +2,7 @@
 
 import type { SearchInputProps } from '@/features/dashboard/types/table';
 import { Input } from '@heroui/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * CustomSearchIcon
@@ -36,22 +37,95 @@ const CustomSearchIcon = ({ width = 16, className = '' }) => (
 
 /**
  * SearchInput
- * A small input used to filter table content by keyword.
+ * A completely isolated input for company search with robust event handling.
  */
 export function SearchInput({ searchTerm, onSearch }: SearchInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+  // Track input value changes
+  const valueChangedRef = useRef(false);
+
+  // Sync with external searchTerm prop, but only if it wasn't changed by this component
+  useEffect(() => {
+    if (!valueChangedRef.current && searchTerm !== localSearchTerm) {
+      setLocalSearchTerm(searchTerm);
+    }
+    valueChangedRef.current = false;
+  }, [searchTerm, localSearchTerm]);
+
+  // Handle form submission
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      // Always prevent default form submission
+      e.preventDefault();
+
+      // Focus the input to keep the user on this control
+      inputRef.current?.focus();
+
+      // Always apply search when submitted via form
+      onSearch(localSearchTerm);
+    },
+    [localSearchTerm, onSearch],
+  );
+
+  // Handle input change
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      valueChangedRef.current = true;
+      setLocalSearchTerm(e.target.value);
+
+      // Apply search on each keystroke for immediate feedback
+      onSearch(e.target.value);
+    },
+    [onSearch],
+  );
+
+  // Submit search on blur
+  const handleBlur = useCallback(() => {
+    // Always apply search on blur
+    onSearch(localSearchTerm);
+  }, [localSearchTerm, onSearch]);
+
+  // Handle keydown events
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Only handle Enter key
+      if (e.key === 'Enter') {
+        e.preventDefault();
+
+        // Apply search when Enter is pressed
+        onSearch(localSearchTerm);
+
+        // Explicitly return false to prevent default behavior
+        return false;
+      }
+    },
+    [localSearchTerm, onSearch],
+  );
+
   return (
-    <Input
-      className="w-auto min-w-[200px] max-w-[300px]"
-      classNames={{
-        base: 'max-w-full',
-        input: 'text-xs md:text-sm truncate',
-        inputWrapper: 'h-8 md:h-9',
-      }}
-      size="sm"
-      placeholder="Search company..."
-      startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
-      value={searchTerm}
-      onChange={(e) => onSearch(e.target.value)}
-    />
+    <div className="w-auto min-w-[200px] max-w-[300px]">
+      <form ref={formRef} onSubmit={handleSubmit} className="w-full">
+        <Input
+          ref={inputRef}
+          className="w-full"
+          classNames={{
+            base: 'max-w-full',
+            input: 'text-xs md:text-sm truncate',
+            inputWrapper: 'h-8 md:h-9',
+          }}
+          size="sm"
+          placeholder="Search company..."
+          startContent={<CustomSearchIcon width={16} className="text-default-400 flex-shrink-0" />}
+          value={localSearchTerm}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          aria-label="Search for companies"
+        />
+      </form>
+    </div>
   );
 }

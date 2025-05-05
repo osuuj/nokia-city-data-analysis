@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
   useDisclosure,
 } from '@heroui/react';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // Define icon configuration type
 type IconConfig = {
@@ -22,6 +22,7 @@ type IconConfig = {
 /**
  * PopoverFilterWrapper
  * A reusable popover component for filters with Apply/Cancel logic, scroll-safe and responsive.
+ * Enhanced with keyboard focus trapping and navigation.
  */
 export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilterWrapperProps>(
   (
@@ -37,6 +38,20 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
     ref,
   ) => {
     const { isOpen, onOpenChange, onClose } = useDisclosure();
+    const [focusableElements, setFocusableElements] = useState<HTMLElement[]>([]);
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // Prevent body scrolling when popover is open
+    useEffect(() => {
+      if (isOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }, [isOpen]);
 
     // Close popover on window resize
     useEffect(() => {
@@ -49,6 +64,48 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
       return () => window.removeEventListener('resize', handleResize);
     }, [isOpen, onClose]);
 
+    // Set up focus trap when popover opens
+    useEffect(() => {
+      if (isOpen && contentRef.current) {
+        // Find all focusable elements
+        const focusable = contentRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        setFocusableElements(Array.from(focusable) as HTMLElement[]);
+
+        // Focus the first element
+        if (focusable.length > 0) {
+          (focusable[0] as HTMLElement).focus();
+        }
+      }
+    }, [isOpen]);
+
+    // Handle keyboard navigation
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        } else if (e.key === 'Tab' && isOpen) {
+          // Implement focus trap
+          const firstFocusable = focusableElements[0];
+          const lastFocusable = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstFocusable) {
+              e.preventDefault();
+              lastFocusable.focus();
+            }
+          } else {
+            if (document.activeElement === lastFocusable) {
+              e.preventDefault();
+              firstFocusable.focus();
+            }
+          }
+        }
+      },
+      [isOpen, onClose, focusableElements],
+    );
+
     // Parse icon configuration
     const iconConfig: IconConfig = typeof icon === 'string' ? { name: icon, width: 16 } : icon;
 
@@ -59,8 +116,11 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
         onOpenChange={onOpenChange}
         {...props}
         placement="bottom-start"
+        onKeyDown={handleKeyDown}
+        shouldBlockScroll={true}
+        shouldFlip={true}
         classNames={{
-          base: 'focus:outline-none focus:ring-0',
+          base: 'focus:outline-none focus:ring-0 z-50',
           trigger: 'focus:outline-none focus:ring-0',
           content: 'focus:outline-none focus:ring-0',
         }}
@@ -94,9 +154,9 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
           role="dialog"
           aria-modal="true"
           aria-label={`${title} filter options`}
-          aria-hidden={false}
+          aria-hidden={!isOpen}
         >
-          <div className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full">
+          <div className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full" ref={contentRef}>
             <h3 className="mb-2 xs:mb-3 text-xs xs:text-sm sm:text-base font-medium">{title}</h3>
             <div className="w-full">{children}</div>
           </div>

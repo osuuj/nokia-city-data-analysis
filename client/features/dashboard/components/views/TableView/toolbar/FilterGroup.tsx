@@ -6,18 +6,7 @@ import type { FilterGroupProps } from '@/features/dashboard/types/table';
 import { filters } from '@/features/dashboard/utils/filters';
 import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
 import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
-import {
-  Button,
-  CheckboxGroup,
-  Divider,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Input,
-  Switch,
-  Tooltip,
-} from '@heroui/react';
+import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
 import React, { useEffect, useState } from 'react';
 import { DistanceSlider } from './DistanceSlider';
 import { PopoverFilterWrapper } from './PopoverFilterWrapper';
@@ -47,7 +36,6 @@ export const FilterGroup = ({
 
   // For mobile screens, use a dropdown instead of popovers
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const [showMobileMenu, setShowMobileMenu] = useState<string | null>(null);
 
   useEffect(() => {
     if (useLocation) {
@@ -66,12 +54,10 @@ export const FilterGroup = ({
   const handleGetLocation = async () => {
     try {
       const coords = await requestBrowserLocation();
-      console.log('User location:', coords);
       setUserLocation(coords);
       setUseLocation(true);
     } catch (error) {
       // Handle the error gracefully without showing an alert
-      console.log('Location access denied by user');
       setUseLocation(false);
       setUserLocation(null);
     }
@@ -146,7 +132,6 @@ export const FilterGroup = ({
                       await handleGetLocation();
                     } catch (error) {
                       // If location access is denied, the popover will be closed by the onCancel handler
-                      console.log('Location access denied by user');
                     }
                   } else {
                     setUseLocation(false);
