@@ -25,8 +25,17 @@ const PAGE_SIZE_OPTIONS = [
   { value: '10', label: '10' },
   { value: '20', label: '20' },
   { value: '50', label: '50' },
-  { value: '100', label: '100' },
 ];
+
+// Maximum allowed page size - for validation
+const MAX_PAGE_SIZE = 50;
+
+// Memoized page size options to prevent recreation
+const MEMOIZED_PAGE_SIZE_OPTIONS = PAGE_SIZE_OPTIONS.map((option) => (
+  <SelectItem key={option.value} textValue={option.label}>
+    {option.label}
+  </SelectItem>
+));
 
 // Threshold for switching to virtualized table
 const VIRTUALIZATION_THRESHOLD = 100;
@@ -100,13 +109,15 @@ export function TableView({
 
   // Handle table selection change
   const handleSelectionChange = useCallback(
-    (selection: Selection | Set<string>) => {
+    (selection: Selection) => {
       if (selection === 'all') {
         setSelectedKeys('all', allFilteredData);
       } else if (selection instanceof Set) {
-        setSelectedKeys(selection);
+        // Convert any non-string keys to strings to ensure type compatibility
+        const stringKeys = new Set(Array.from(selection).map((key) => String(key)));
+        setSelectedKeys(stringKeys);
       } else {
-        setSelectedKeys(new Set(Array.from(selection).map(String)));
+        setSelectedKeys(new Set());
       }
     },
     [setSelectedKeys, allFilteredData],
@@ -116,11 +127,23 @@ export function TableView({
   const handlePageSizeChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newSize = Number(e.target.value);
-      if (onPageSizeChange && !Number.isNaN(newSize)) {
-        onPageSizeChange(newSize);
+      // Validate that the size doesn't exceed the maximum
+      const validatedSize = Math.min(newSize, MAX_PAGE_SIZE);
+
+      if (onPageSizeChange && !Number.isNaN(validatedSize)) {
+        onPageSizeChange(validatedSize);
       }
     },
     [onPageSizeChange],
+  );
+
+  // Optimize page size change to reduce component tree updates
+  const handleOptimizedPageSizeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      // Directly call the handler instead of using setTimeout which can cause React DevTools issues
+      handlePageSizeChange(e);
+    },
+    [handlePageSizeChange],
   );
 
   // Determine if we should use virtualized table
@@ -129,19 +152,176 @@ export function TableView({
   }, [data.length, pageSize]);
 
   // Render toolbar with shared props
-  const renderToolbar = () => (
-    <TableToolbar
-      searchTerm={searchTerm}
-      onSearch={setSearchTerm}
-      selectedKeys={selectedKeys}
-      useLocation={useLocation}
-      setUseLocation={setUseLocation}
-      address={address}
-      setAddress={setAddress}
-      sortDescriptor={sortDescriptor}
-      setSortDescriptor={setSortDescriptor}
-      setSelectedKeys={setSelectedKeys}
-    />
+  const renderToolbar = useCallback(
+    () => (
+      <TableToolbar
+        searchTerm={searchTerm}
+        onSearch={setSearchTerm}
+        selectedKeys={selectedKeys}
+        useLocation={useLocation}
+        setUseLocation={setUseLocation}
+        address={address}
+        setAddress={setAddress}
+        sortDescriptor={sortDescriptor}
+        setSortDescriptor={setSortDescriptor}
+        setSelectedKeys={setSelectedKeys}
+      />
+    ),
+    [
+      searchTerm,
+      setSearchTerm,
+      selectedKeys,
+      useLocation,
+      address,
+      sortDescriptor,
+      setSortDescriptor,
+      setSelectedKeys,
+    ],
+  );
+
+  // Memoize pagination component to prevent re-renders
+  const renderPagination = useCallback(
+    () => (
+      <Pagination
+        total={totalPages}
+        initialPage={currentPage}
+        page={currentPage}
+        onChange={onPageChange}
+        showControls
+        classNames={{
+          cursor: 'bg-primary text-white',
+        }}
+      />
+    ),
+    [currentPage, totalPages, onPageChange],
+  );
+
+  // Memoize page size selector to prevent re-renders
+  const renderPageSizeSelector = useCallback(
+    () =>
+      onPageSizeChange && (
+        <div className="flex items-center gap-2 mb-2 md:mb-0 w-1/4">
+          <span className="text-sm whitespace-nowrap">Rows per page:</span>
+          <Select
+            size="sm"
+            selectedKeys={[pageSize.toString()]}
+            onChange={handleOptimizedPageSizeChange}
+            className="min-w-[70px] w-[70px]"
+            classNames={{
+              trigger: 'min-w-[70px] w-[70px]',
+              listbox: 'min-w-[70px]',
+            }}
+          >
+            {MEMOIZED_PAGE_SIZE_OPTIONS}
+          </Select>
+        </div>
+      ),
+    [onPageSizeChange, pageSize, handleOptimizedPageSizeChange],
+  );
+
+  // Memoize pagination controls container to prevent re-renders
+  const renderPaginationControls = useCallback(
+    () => (
+      <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
+        {/* Page size selector */}
+        {renderPageSizeSelector()}
+
+        {/* Centered pagination */}
+        <div className="flex justify-center flex-1">{renderPagination()}</div>
+
+        {/* Empty div to balance the layout */}
+        <div className="w-1/4" />
+      </div>
+    ),
+    [renderPageSizeSelector, renderPagination],
+  );
+
+  // Render standard table for smaller datasets
+  const renderTableBody = useCallback(() => {
+    // Use windowing approach even for regular tables when dataset is large
+    const shouldUseWindowing = data.length > 50;
+
+    if (shouldUseWindowing) {
+      // Simplified windowing for regular tables (just show current page without virtualization)
+      return (
+        <TableBody
+          emptyContent={isLoading ? 'Loading...' : 'No companies found'}
+          isLoading={isLoading}
+        >
+          {data.map((item, index) => (
+            <TableRow key={item.business_id} className={index % 2 === 0 ? 'bg-default-50' : ''}>
+              {displayColumns.map((column: TableColumnConfig) => (
+                <TableCell key={`${item.business_id}-${column.key}`} className="truncate max-w-xs">
+                  {String(item[column.key as keyof typeof item] || '')}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      );
+    }
+
+    // Traditional approach for smaller datasets
+    return (
+      <TableBody
+        emptyContent={isLoading ? 'Loading...' : 'No companies found'}
+        isLoading={isLoading}
+      >
+        {data.map((item) => (
+          <TableRow key={item.business_id}>
+            {displayColumns.map((column: TableColumnConfig) => (
+              <TableCell key={`${item.business_id}-${column.key}`}>
+                {String(item[column.key as keyof typeof item] || '')}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    );
+  }, [data, displayColumns, isLoading]);
+
+  // Render table header
+  const renderTableHeader = useCallback(
+    () => (
+      <TableHeader>
+        {displayColumns.map((column: TableColumnConfig) => (
+          <TableColumn
+            key={column.key}
+            className="cursor-pointer"
+            onClick={() => handleSortChange(column.key)}
+          >
+            <div className="flex items-center gap-1">
+              {column.label}
+              {sortDescriptor.column === column.key && (
+                <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
+              )}
+            </div>
+          </TableColumn>
+        ))}
+      </TableHeader>
+    ),
+    [displayColumns, handleSortChange, sortDescriptor],
+  );
+
+  // Memoize standard table
+  const renderStandardTable = useCallback(
+    () => (
+      <Table
+        aria-label="Companies table"
+        isHeaderSticky
+        classNames={{
+          base: 'max-h-[600px]',
+          table: 'min-h-[400px]',
+        }}
+        selectionMode="multiple"
+        selectedKeys={selectedKeys}
+        onSelectionChange={handleSelectionChange}
+      >
+        {renderTableHeader()}
+        {renderTableBody()}
+      </Table>
+    ),
+    [selectedKeys, handleSelectionChange, renderTableHeader, renderTableBody],
   );
 
   // Render a placeholder during SSR to prevent layout shift
@@ -172,47 +352,7 @@ export function TableView({
           onSelectionChange={handleSelectionChange}
         />
 
-        <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
-          {/* Page size selector */}
-          {onPageSizeChange && (
-            <div className="flex items-center gap-2 mb-2 md:mb-0 w-1/4">
-              <span className="text-sm whitespace-nowrap">Rows per page:</span>
-              <Select
-                size="sm"
-                selectedKeys={[pageSize.toString()]}
-                onChange={handlePageSizeChange}
-                className="min-w-[70px] w-[70px]"
-                classNames={{
-                  trigger: 'min-w-[70px] w-[70px]',
-                  listbox: 'min-w-[70px]',
-                }}
-              >
-                {PAGE_SIZE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} textValue={option.label}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
-          )}
-
-          {/* Centered pagination */}
-          <div className="flex justify-center flex-1">
-            <Pagination
-              total={totalPages}
-              initialPage={currentPage}
-              page={currentPage}
-              onChange={onPageChange}
-              showControls
-              classNames={{
-                cursor: 'bg-primary text-white',
-              }}
-            />
-          </div>
-
-          {/* Empty div to balance the layout */}
-          <div className="w-1/4" />
-        </div>
+        {renderPaginationControls()}
       </div>
     );
   }
@@ -221,91 +361,8 @@ export function TableView({
   return (
     <div className="w-full">
       {renderToolbar()}
-
-      <Table
-        aria-label="Companies table"
-        isHeaderSticky
-        classNames={{
-          base: 'max-h-[600px]',
-          table: 'min-h-[400px]',
-        }}
-        selectionMode="multiple"
-        selectedKeys={selectedKeys}
-        onSelectionChange={handleSelectionChange}
-      >
-        <TableHeader>
-          {displayColumns.map((column: TableColumnConfig) => (
-            <TableColumn
-              key={column.key}
-              className="cursor-pointer"
-              onClick={() => handleSortChange(column.key)}
-            >
-              <div className="flex items-center gap-1">
-                {column.label}
-                {sortDescriptor.column === column.key && (
-                  <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
-                )}
-              </div>
-            </TableColumn>
-          ))}
-        </TableHeader>
-        <TableBody
-          emptyContent={isLoading ? 'Loading...' : 'No companies found'}
-          isLoading={isLoading}
-        >
-          {data.map((item) => (
-            <TableRow key={item.business_id}>
-              {displayColumns.map((column: TableColumnConfig) => (
-                <TableCell key={`${item.business_id}-${column.key}`}>
-                  {String(item[column.key as keyof typeof item] || '')}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
-        {/* Page size selector */}
-        {onPageSizeChange && (
-          <div className="flex items-center gap-2 mb-2 md:mb-0 w-1/4">
-            <span className="text-sm whitespace-nowrap">Rows per page:</span>
-            <Select
-              size="sm"
-              selectedKeys={[pageSize.toString()]}
-              onChange={handlePageSizeChange}
-              className="min-w-[70px] w-[70px]"
-              classNames={{
-                trigger: 'min-w-[70px] w-[70px]',
-                listbox: 'min-w-[70px]',
-              }}
-            >
-              {PAGE_SIZE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} textValue={option.label}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
-        )}
-
-        {/* Centered pagination */}
-        <div className="flex justify-center flex-1">
-          <Pagination
-            total={totalPages}
-            initialPage={currentPage}
-            page={currentPage}
-            onChange={onPageChange}
-            showControls
-            classNames={{
-              cursor: 'bg-primary text-white',
-            }}
-          />
-        </div>
-
-        {/* Empty div to balance the layout */}
-        <div className="w-1/4" />
-      </div>
+      {renderStandardTable()}
+      {renderPaginationControls()}
     </div>
   );
 }

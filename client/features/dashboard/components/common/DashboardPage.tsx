@@ -22,6 +22,8 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 // Default rows per page
 const DEFAULT_PAGE_SIZE = 20;
+// Maximum allowed page size
+const MAX_PAGE_SIZE = 50;
 
 /**
  * Main dashboard page component
@@ -70,11 +72,14 @@ export function DashboardPage() {
   // Handle page size change with useCallback
   const handlePageSizeChange = useCallback(
     (newSize: number) => {
+      // Enforce maximum page size limit
+      const safeSize = Math.min(newSize, MAX_PAGE_SIZE);
+
       // Calculate new page to keep approximately the same records visible
       const firstItemIndex = (page - 1) * pageSize;
-      const newPage = Math.floor(firstItemIndex / newSize) + 1;
+      const newPage = Math.floor(firstItemIndex / safeSize) + 1;
 
-      setPageSize(newSize);
+      setPageSize(safeSize);
       setPage(newPage);
     },
     [page, pageSize],

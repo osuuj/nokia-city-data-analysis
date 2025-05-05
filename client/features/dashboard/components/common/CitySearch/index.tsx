@@ -40,25 +40,30 @@ export const CitySearch = React.memo(function CitySearch({
   const shouldProcessRef = useRef(true);
   const lastSearchTimeRef = useRef(0);
 
-  // Rate limiting for search processing
+  // Rate limiting for search processing - without any dependencies to prevent re-renders
   useEffect(() => {
-    const now = Date.now();
-    if (now - lastSearchTimeRef.current < 150) {
-      // If typing fast, don't process every keystroke
-      shouldProcessRef.current = false;
+    const checkProcessingRate = () => {
+      const now = Date.now();
+      if (now - lastSearchTimeRef.current < 150) {
+        // If typing fast, don't process every keystroke
+        shouldProcessRef.current = false;
 
-      // Schedule processing after delay
-      const timerId = setTimeout(() => {
+        // Schedule processing after delay
+        setTimeout(() => {
+          shouldProcessRef.current = true;
+          lastSearchTimeRef.current = Date.now();
+        }, 200);
+      } else {
         shouldProcessRef.current = true;
-        lastSearchTimeRef.current = Date.now();
-      }, 200);
+        lastSearchTimeRef.current = now;
+      }
+    };
 
-      return () => clearTimeout(timerId);
-    }
+    // Initial setup
+    checkProcessingRate();
 
-    shouldProcessRef.current = true;
-    lastSearchTimeRef.current = now;
-  }, []); // Remove searchTerm as it's not needed since we're using refs
+    // No cleanup needed as we're not setting up any listeners
+  }, []);
 
   const {
     localSearchTerm,
@@ -78,7 +83,7 @@ export const CitySearch = React.memo(function CitySearch({
     onSearchChange,
   });
 
-  // Current selection indicator
+  // Current selection indicator - memoized to prevent unnecessary re-renders
   const selectionIndicator = useMemo(() => {
     if (selectedCity && selectionMade) {
       return (
@@ -91,23 +96,42 @@ export const CitySearch = React.memo(function CitySearch({
     return null;
   }, [selectedCity, selectionMade]);
 
-  return (
-    <CityAutocomplete
-      cities={filteredCities}
-      selectedCity={selectedCity}
-      onClear={handleClear}
-      isLoading={isLoading}
-      localSearchTerm={localSearchTerm}
-      onInputChange={handleLocalSearchChange}
-      onSelectionChange={handleSelectionChange}
-      onKeyDown={handleKeyDown}
-      showSelectionIndicator={true}
-      selectionIndicator={selectionIndicator}
-      activeIndex={activeIndex}
-      highlightedCity={highlightedCity}
-      className={className}
-    />
+  // Memoize the CityAutocomplete component to prevent unnecessary re-renders
+  const autocompleteComponent = useMemo(
+    () => (
+      <CityAutocomplete
+        cities={filteredCities}
+        selectedCity={selectedCity}
+        onClear={handleClear}
+        isLoading={isLoading}
+        localSearchTerm={localSearchTerm}
+        onInputChange={handleLocalSearchChange}
+        onSelectionChange={handleSelectionChange}
+        onKeyDown={handleKeyDown}
+        showSelectionIndicator={true}
+        selectionIndicator={selectionIndicator}
+        activeIndex={activeIndex}
+        highlightedCity={highlightedCity}
+        className={className}
+      />
+    ),
+    [
+      filteredCities,
+      selectedCity,
+      handleClear,
+      isLoading,
+      localSearchTerm,
+      handleLocalSearchChange,
+      handleSelectionChange,
+      handleKeyDown,
+      selectionIndicator,
+      activeIndex,
+      highlightedCity,
+      className,
+    ],
   );
+
+  return autocompleteComponent;
 });
 
 CitySearch.displayName = 'CitySearch';

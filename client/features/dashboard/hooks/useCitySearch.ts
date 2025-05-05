@@ -7,23 +7,35 @@ const SEARCH_CACHE_SIZE = 20;
 const searchCache = new Map<string, { name: string }[]>();
 
 /**
- * Simple utility to create a debounced version of a function
+ * Simple utility to create a debounced callback
+ * Using a simpler typing approach to avoid TypeScript errors
  */
-function useDebounce<T extends (...args: unknown[]) => void>(callback: T, delay: number): T {
+function useDebounce(fn: (value: string) => void, delay: number) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  return useCallback(
-    (...args: Parameters<T>) => {
+  const debouncedFn = useCallback(
+    (value: string) => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
 
       timerRef.current = setTimeout(() => {
-        callback(...args);
+        fn(value);
       }, delay);
     },
-    [callback, delay],
-  ) as T;
+    [fn, delay],
+  );
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedFn;
 }
 
 interface UseCitySearchProps {
