@@ -20,7 +20,8 @@ import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
-const ROWS_PER_PAGE = 20;
+// Default rows per page
+const DEFAULT_PAGE_SIZE = 20;
 
 /**
  * Main dashboard page component
@@ -47,6 +48,7 @@ export function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'company_name',
     direction: 'asc',
@@ -119,7 +121,7 @@ export function DashboardPage() {
   const { paginated, totalPages } = useDashboardPagination({
     tableRows: filteredCompanies,
     currentPage: page,
-    pageSize: ROWS_PER_PAGE,
+    pageSize: pageSize,
     setCurrentPage: setPage,
   });
 
@@ -176,6 +178,16 @@ export function DashboardPage() {
     router.replace(`/dashboard?city=${encodeURIComponent(city)}`);
   };
 
+  // Handle page size change
+  const handlePageSizeChange = (newSize: number) => {
+    // Calculate new page to keep approximately the same records visible
+    const firstItemIndex = (page - 1) * pageSize;
+    const newPage = Math.floor(firstItemIndex / newSize) + 1;
+
+    setPageSize(newSize);
+    setPage(newPage);
+  };
+
   return (
     <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
       {/* Show loading overlay only during initial data loading */}
@@ -230,6 +242,8 @@ export function DashboardPage() {
               setSearchTerm={setSearchTerm}
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
             />
           )}
         </Suspense>

@@ -43,7 +43,7 @@ export interface ViewSwitcherProps {
   setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
   pageSize?: number;
   onPageSizeChange?: (pageSize: number) => void;
-  emptyStateReason?: EmptyStateReason;
+  emptyStateReason?: string;
   geojson?: FeatureCollection<Point, CompanyProperties>; // Optional prop for passing GeoJSON directly
   error?: Error | null; // Added error prop for direct error handling
 }
@@ -87,6 +87,8 @@ export function ViewSwitcher({
   setSortDescriptor,
   allFilteredData,
   selectedBusinesses,
+  pageSize,
+  onPageSizeChange,
 }: ViewSwitcherProps) {
   return (
     <div className="w-full">
@@ -103,6 +105,8 @@ export function ViewSwitcher({
           setSearchTerm={setSearchTerm}
           sortDescriptor={sortDescriptor}
           setSortDescriptor={setSortDescriptor}
+          pageSize={pageSize}
+          onPageSizeChange={onPageSizeChange}
         />
       )}
 
@@ -129,6 +133,8 @@ export function ViewSwitcher({
               setSearchTerm={setSearchTerm}
               sortDescriptor={sortDescriptor}
               setSortDescriptor={setSortDescriptor}
+              pageSize={pageSize}
+              onPageSizeChange={onPageSizeChange}
             />
           </div>
           {geojson && (
