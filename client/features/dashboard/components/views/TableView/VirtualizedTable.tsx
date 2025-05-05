@@ -1,13 +1,12 @@
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
 import { Checkbox } from '@heroui/react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import React from 'react';
 
 // Constants for virtualization optimization
-const BUFFER_SIZE = 10; // Increased buffer for smoother scrolling
 const ROW_HEIGHT = 48; // Fixed row height for consistent calculations
-const SCROLL_THROTTLE_MS = 16; // ~60fps for scroll updates
 
 interface VirtualizedTableProps {
   data: CompanyProperties[];
@@ -49,13 +48,15 @@ const Row = React.memo(
     columns,
     isSelected,
     onSelect,
-    rowHeight,
+    height,
+    style,
   }: {
     item: CompanyProperties;
     columns: TableColumnConfig[];
     isSelected: boolean;
     onSelect: () => void;
-    rowHeight: number;
+    height: number;
+    style?: React.CSSProperties;
   }) {
     // Pre-render cells once to avoid recreating them on each render
     const cells = useMemo(() => {
@@ -80,7 +81,10 @@ const Row = React.memo(
         className={`flex w-full border-b border-default-100 hover:bg-default-50 ${
           isSelected ? 'bg-primary-50' : ''
         }`}
-        style={{ height: rowHeight }}
+        style={{
+          ...style,
+          height: height,
+        }}
       >
         {/* Checkbox cell */}
         <div className="w-12 px-2 flex items-center justify-center flex-shrink-0">
@@ -102,7 +106,7 @@ const Row = React.memo(
     return (
       prevProps.isSelected === nextProps.isSelected &&
       prevProps.item.business_id === nextProps.item.business_id &&
-      prevProps.rowHeight === nextProps.rowHeight
+      prevProps.height === nextProps.height
     );
   },
 );
@@ -168,98 +172,12 @@ export function VirtualizedTable({
   onSelectionChange,
   rowHeight = ROW_HEIGHT,
 }: VirtualizedTableProps) {
-  const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerHeight, setContainerHeight] = useState(600); // Default height
-  const [containerWidth, setContainerWidth] = useState(1000); // Default width
-
-  // Ref for tracking previous scroll position to avoid unnecessary updates
-  const prevScrollTopRef = useRef(0);
-  const scrollTimeoutRef = useRef<number | null>(null);
 
   // Get only visible columns
   const visibleColumns = useMemo(() => {
     return columns.filter((col) => col.visible !== false);
   }, [columns]);
-
-  // Optimized calculation of visible rows to reduce memory usage for large tables
-  const { visibleRows, startIndex, endIndex } = useMemo(() => {
-    // Calculate visible row count plus buffer
-    const visibleRowsCount = Math.ceil(containerHeight / rowHeight) + BUFFER_SIZE * 2;
-
-    // Calculate start and end indices with buffer
-    const newStartIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - BUFFER_SIZE);
-    const newEndIndex = Math.min(data.length, newStartIndex + visibleRowsCount);
-
-    // Only slice the needed portion of data
-    const newVisibleRows = data.slice(newStartIndex, newEndIndex).map((item) => ({
-      ...item,
-      // Pre-compute selection state to avoid repeated lookups during render
-      isSelected: selectedKeys.has(item.business_id),
-    }));
-
-    return {
-      visibleRows: newVisibleRows,
-      startIndex: newStartIndex,
-      endIndex: newEndIndex,
-    };
-  }, [data, containerHeight, rowHeight, scrollTop, selectedKeys]);
-
-  // Handle scroll events with improved throttling to reduce state updates
-  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    const newScrollTop = event.currentTarget.scrollTop;
-
-    // Skip if the change is too small (< 8px) to be visible
-    if (Math.abs(newScrollTop - prevScrollTopRef.current) < 8) {
-      return;
-    }
-
-    // Clear any pending timeout
-    if (scrollTimeoutRef.current !== null) {
-      window.clearTimeout(scrollTimeoutRef.current);
-    }
-
-    // Set a timeout to update the scroll position after a short delay
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      prevScrollTopRef.current = newScrollTop;
-      setScrollTop(newScrollTop);
-      scrollTimeoutRef.current = null;
-    }, SCROLL_THROTTLE_MS);
-  }, []);
-
-  // Update container dimensions when window resizes
-  useEffect(() => {
-    if (containerRef.current) {
-      const updateDimensions = () => {
-        if (containerRef.current) {
-          setContainerHeight(containerRef.current.clientHeight);
-          setContainerWidth(containerRef.current.clientWidth);
-        }
-      };
-
-      updateDimensions();
-
-      // Use ResizeObserver instead of window resize events for better performance
-      const resizeObserver = new ResizeObserver(updateDimensions);
-      resizeObserver.observe(containerRef.current);
-
-      return () => {
-        if (containerRef.current) {
-          resizeObserver.unobserve(containerRef.current);
-        }
-        resizeObserver.disconnect();
-      };
-    }
-  }, []);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current !== null) {
-        window.clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Cached selection handlers to avoid recreating functions during render
   const selectionHandlersCache = useRef(new Map<string, () => void>());
@@ -299,10 +217,10 @@ export function VirtualizedTable({
         selectionHandlersCache.current.set(id, () => handleRowSelection(id));
       }
 
-      // Return the cached handler
+      // Return the cached handler with proper null check
       const handler = selectionHandlersCache.current.get(id);
+      // This should never happen as we just set it above if it didn't exist
       if (!handler) {
-        // Create a new handler if somehow it's missing (shouldn't happen)
         const newHandler = () => handleRowSelection(id);
         selectionHandlersCache.current.set(id, newHandler);
         return newHandler;
@@ -324,18 +242,13 @@ export function VirtualizedTable({
     });
   }, [data]);
 
-  // Add progressive loading for large datasets
-  const [isFullyRendered, setIsFullyRendered] = useState(false);
-
-  // Use a smaller initial set of visible rows for faster first render
-  useEffect(() => {
-    // Use requestIdleCallback or setTimeout for non-blocking rendering
-    const renderTimer = setTimeout(() => {
-      setIsFullyRendered(true);
-    }, 50);
-
-    return () => clearTimeout(renderTimer);
-  }, []);
+  // TanStack Virtual implementation
+  const rowVirtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => containerRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 5,
+  });
 
   return (
     <div className="flex flex-col border border-default-200 rounded-lg overflow-hidden">
@@ -353,38 +266,44 @@ export function VirtualizedTable({
       <div
         ref={containerRef}
         className="flex-1 overflow-auto w-full"
-        onScroll={handleScroll}
         style={{ height: 'calc(100vh - 350px)', minHeight: '400px' }}
       >
-        {/* Spacer to position visible rows */}
-        {startIndex > 0 && <div style={{ height: startIndex * rowHeight }} />}
+        {/* Virtualized rows container */}
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {/* Only render visible rows */}
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const item = data[virtualRow.index];
 
-        {/* Visible rows with progressive loading */}
-        {visibleRows.map((item) => (
-          <Row
-            key={item.business_id}
-            item={item}
-            columns={visibleColumns}
-            isSelected={item.isSelected}
-            onSelect={getRowSelectionHandler(item.business_id)}
-            rowHeight={rowHeight}
-          />
-        ))}
+            return (
+              <Row
+                key={item.business_id}
+                item={item}
+                columns={visibleColumns}
+                isSelected={selectedKeys.has(item.business_id)}
+                onSelect={getRowSelectionHandler(item.business_id)}
+                height={rowHeight}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              />
+            );
+          })}
+        </div>
 
         {/* Empty state */}
         {data.length === 0 && (
           <div className="w-full py-10 text-center text-default-500">No data available</div>
         )}
-
-        {/* Loading indicator for progressive rendering */}
-        {!isFullyRendered && data.length > 100 && (
-          <div className="w-full py-4 text-center text-xs text-default-400">
-            Loading additional rows...
-          </div>
-        )}
-
-        {/* Bottom spacer */}
-        {endIndex < data.length && <div style={{ height: (data.length - endIndex) * rowHeight }} />}
       </div>
     </div>
   );

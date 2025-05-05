@@ -2,6 +2,7 @@
 
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
+import { DashboardErrorBoundary } from '../../../components/common/error/DashboardErrorBoundary';
 import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
 import {
   AnalyticsSkeleton,
@@ -41,26 +42,28 @@ export interface ViewSwitcherProps {
   setSearchTerm: (term: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: React.Dispatch<React.SetStateAction<SortDescriptor>>;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
   emptyStateReason?: string;
   geojson?: FeatureCollection<Point, CompanyProperties>; // Optional prop for passing GeoJSON directly
   error?: Error | null; // Added error prop for direct error handling
 }
 
-// Lazy load components for code splitting
+// Lazy load components for code splitting - with dynamic import for better Next.js compatibility
 const AnalyticsView = lazy(() =>
-  import('../../views/AnalyticsView').then((module) => ({
+  import('@/features/dashboard/components/views/AnalyticsView/AnalyticsView').then((module) => ({
     default: module.AnalyticsView,
   })),
 );
 
 const MapView = lazy(() =>
-  import('../../views/MapView').then((module) => ({
+  import('@/features/dashboard/components/views/MapView/MapView').then((module) => ({
     default: module.MapView,
   })),
 );
 
 const TableView = lazy(() =>
-  import('../../views/TableView').then((module) => ({
+  import('@/features/dashboard/components/views/TableView/TableView').then((module) => ({
     default: module.TableView,
   })),
 );
@@ -85,6 +88,8 @@ function ViewSwitcherBase({
   setSortDescriptor,
   allFilteredData,
   selectedBusinesses,
+  pageSize,
+  onPageSizeChange,
 }: ViewSwitcherProps) {
   // Memoize the table view rendering to prevent unnecessary re-renders
   const renderTableView = useCallback(
@@ -101,6 +106,8 @@ function ViewSwitcherBase({
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
       />
     ),
     [
@@ -115,25 +122,37 @@ function ViewSwitcherBase({
       setSearchTerm,
       sortDescriptor,
       setSortDescriptor,
+      pageSize,
+      onPageSizeChange,
     ],
   );
 
-  // Memoize the map view
+  // Memoize the map view with better error handling
   const renderMapView = useCallback(() => {
     if (!geojson) return null;
     return (
-      <Suspense fallback={<SectionSkeleton section="map" />}>
-        <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
-      </Suspense>
+      <DashboardErrorBoundary
+        componentName="MapView"
+        fallback={<ErrorDisplay message="Could not load Map View" showDetails={true} />}
+      >
+        <Suspense fallback={<SectionSkeleton section="map" />}>
+          <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+        </Suspense>
+      </DashboardErrorBoundary>
     );
   }, [geojson, selectedBusinesses]);
 
-  // Memoize the analytics view
+  // Memoize the analytics view with better error handling
   const renderAnalyticsView = useCallback(
     () => (
-      <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
-        <AnalyticsView />
-      </Suspense>
+      <DashboardErrorBoundary
+        componentName="AnalyticsView"
+        fallback={<ErrorDisplay message="Could not load Analytics View" showDetails={true} />}
+      >
+        <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
+          <AnalyticsView />
+        </Suspense>
+      </DashboardErrorBoundary>
     ),
     [],
   );

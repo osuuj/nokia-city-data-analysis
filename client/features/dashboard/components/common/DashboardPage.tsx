@@ -18,7 +18,7 @@ import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 // Default rows per page
 const DEFAULT_PAGE_SIZE = 20;
@@ -31,9 +31,12 @@ const MAX_PAGE_SIZE = 50;
  */
 export function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // Fix the searchParams handling
+  const searchParamsData = useSearchParams();
+  // Only use React.use() if the object is not null
+  const searchParams = searchParamsData ? searchParamsData : null;
 
-  // Get the query param
+  // Get the query param safely
   const query = searchParams ? decodeURIComponent(searchParams.get('city') || '') : '';
 
   const {

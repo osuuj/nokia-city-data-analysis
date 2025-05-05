@@ -76,6 +76,15 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     return '#FAFAFA'; // fallback color
   }, [activeFeature, isDark]);
 
+  // Add a data cache reference to preserve GeoJSON across theme changes
+  const dataCache = useRef<{
+    geojson: FeatureCollection<Point, CompanyProperties> | null;
+    markers: Feature<Point, CompanyProperties>[] | null;
+  }>({
+    geojson: null,
+    markers: null,
+  });
+
   // Handle map click event
   const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent) => {
     const map = mapRef.current?.getMap();
@@ -111,9 +120,37 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     }
   }, []);
 
+  // Add a cleanup effect to preserve data during remounts
+  useEffect(() => {
+    // Store original data reference
+    if (filteredGeojson && filteredGeojson.features.length > 0) {
+      dataCache.current.geojson = filteredGeojson;
+    }
+
+    return () => {
+      // This cleanup function runs when component unmounts
+      console.log('MapView unmounting, preserving data state', {
+        features: filteredGeojson?.features.length ?? 0,
+        selectedFeatures: selectedFeatures.length,
+        hasActiveFeature: !!activeFeature,
+      });
+
+      // Cache current state before unmounting
+      if (filteredGeojson) {
+        dataCache.current.geojson = filteredGeojson;
+      }
+      if (selectedFeatures.length > 0) {
+        dataCache.current.markers = selectedFeatures;
+      }
+    };
+  }, [filteredGeojson, selectedFeatures, activeFeature]);
+
   // Handle map load event with improved error handling
   const handleMapLoad = useCallback(() => {
-    console.log('Map loaded event fired');
+    console.log('Map loaded event fired', {
+      cachedData: !!dataCache.current.geojson,
+      selectedMarkers: dataCache.current.markers?.length ?? 0,
+    });
     const map = mapRef.current?.getMap();
 
     if (!map) {
@@ -128,11 +165,24 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     const onStyleLoad = () => {
       console.log('Map style.load event fired');
       try {
-        // Set a timeout to ensure the style is fully processed
-        setTimeout(() => {
-          console.log('Setting mapLoaded = true after style load');
-          setMapLoaded(true);
-        }, 200);
+        // Set mapLoaded to true immediately to trigger data reload
+        setMapLoaded(true);
+
+        // Restore selected features if available in cache
+        if (dataCache.current.markers && dataCache.current.markers.length > 0) {
+          setTimeout(() => {
+            console.log('Restoring selected features after style load');
+            // Fix non-null assertion with proper null check
+            const cachedMarkers = dataCache.current.markers;
+            if (cachedMarkers) {
+              setSelectedFeatures(cachedMarkers);
+              // If there was an active feature, restore it
+              if (activeFeature) {
+                setActiveFeature(activeFeature);
+              }
+            }
+          }, 100);
+        }
       } catch (error) {
         console.error('Error in style.load handler:', error);
       }
@@ -147,7 +197,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     } else {
       console.log('Style not yet loaded, waiting for style.load event');
     }
-  }, []);
+  }, [activeFeature]);
 
   // Clean up map event listeners
   useEffect(() => {
@@ -160,16 +210,66 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     };
   }, []);
 
-  // Reset mapLoaded when theme changes
-  useEffect(() => {
-    console.log('Theme changed, resetting mapLoaded state');
-    setMapLoaded(false);
-  }, []);
+  // Create a handler for theme changes from the wrapper
+  const handleMapThemeChange = useCallback(
+    (newIsDark: boolean) => {
+      console.log('Map received theme change notification:', newIsDark, {
+        dataPresent: !!dataCache.current.geojson,
+        featureCount: dataCache.current.geojson?.features.length ?? 0,
+      });
+
+      // Cache the current data before resetting state
+      if (filteredGeojson && filteredGeojson.features.length > 0) {
+        dataCache.current.geojson = filteredGeojson;
+      }
+      if (selectedFeatures.length > 0) {
+        dataCache.current.markers = selectedFeatures;
+      }
+
+      // Force reload sources on next render
+      setMapLoaded(false);
+
+      // Add a longer timeout to ensure style is fully loaded first
+      const reloadTimer = setTimeout(() => {
+        if (mapRef.current?.getMap()) {
+          console.log('Reloading map sources after theme change with cached data', {
+            dataPresent: !!dataCache.current.geojson,
+            featureCount: dataCache.current.geojson?.features.length ?? 0,
+          });
+
+          // First set map as loaded
+          setMapLoaded(true);
+
+          // Then restore any selected features if they were previously selected
+          if (dataCache.current.markers && dataCache.current.markers.length > 0) {
+            console.log('Restoring selected features from cache', {
+              count: dataCache.current.markers.length,
+            });
+            const cachedMarkers = dataCache.current.markers;
+            if (cachedMarkers) {
+              setSelectedFeatures(cachedMarkers);
+              if (activeFeature) {
+                setActiveFeature(activeFeature);
+              }
+            }
+          }
+        }
+      }, 500); // Increase timeout for more reliable loading
+
+      return () => clearTimeout(reloadTimer);
+    },
+    [filteredGeojson, selectedFeatures, activeFeature],
+  );
 
   // Update map sources and layers when data or theme changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
+
+    console.log('Attempting to update map sources and layers', {
+      isStyleLoaded: map.isStyleLoaded(),
+      hasMarkers: filteredGeojson.features.length,
+    });
 
     // Check if the style is loaded before adding sources
     if (!map.isStyleLoaded()) {
@@ -177,6 +277,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
       // Wait for the style to load before adding sources
       const onStyleLoad = () => {
+        console.log('Style loaded event fired, updating sources');
         updateMapSources(map);
         map.off('style.load', onStyleLoad);
       };
@@ -186,6 +287,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     }
 
     // Otherwise, proceed with adding sources
+    console.log('Map style is loaded, updating sources directly');
     updateMapSources(map);
 
     function updateMapSources(map: mapboxgl.Map) {
@@ -228,6 +330,12 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         const sourceId = 'visiting-companies';
         const existingSource = map.getSource(sourceId);
 
+        console.log('Updating map source', {
+          hasExistingSource: !!existingSource,
+          featureCount: taggedGeojson.features.length,
+          activeBusinessId,
+        });
+
         if (!existingSource) {
           // Initial source and layer creation
           map.addSource(sourceId, {
@@ -241,7 +349,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           // Add all required layers
           addMapLayers(map, sourceId, textColor, selectedColor as string);
         } else {
-          // Update existing source and style properties
+          // Update existing source with new data
           (existingSource as GeoJSONSource).setData(taggedGeojson);
 
           // Update theme-dependent properties
@@ -360,9 +468,9 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
   return (
     <div className="relative w-full h-full">
-      <ThemeAwareMapWrapper>
+      <ThemeAwareMapWrapper onThemeChange={handleMapThemeChange}>
         <MapboxMap
-          key={`mapbox-${isDark ? 'dark' : 'light'}`}
+          key={`mapbox-${isDark ? 'dark' : 'light'}-${mapStyle}`}
           ref={mapRef}
           initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
           style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
@@ -371,12 +479,16 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           onLoad={handleMapLoad}
           onClick={handleMapClick}
           interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
+          preserveDrawingBuffer={true}
+          renderWorldCopies={true}
         />
       </ThemeAwareMapWrapper>
 
-      {selectedFeatures.length > 0 && (
+      {(selectedFeatures.length > 0 || dataCache.current.markers?.length) && (
         <FeatureCardList
-          features={selectedFeatures}
+          features={
+            selectedFeatures.length > 0 ? selectedFeatures : dataCache.current.markers || []
+          }
           activeFeature={activeFeature}
           onSelect={setActiveFeature}
           selectedColor={selectedColor}

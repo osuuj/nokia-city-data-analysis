@@ -5,8 +5,6 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
 import {
   Pagination,
-  Select,
-  SelectItem,
   type Selection,
   Table,
   TableBody,
@@ -17,12 +15,18 @@ import {
 } from '@heroui/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import React from 'react';
 import { VirtualizedTable } from './VirtualizedTable';
 import { TableToolbar } from './toolbar/TableToolbar';
 
-// Constants for pagination performance tuning
-const FIXED_PAGE_SIZE = 20; // Fixed, performance-optimized page size
-const VIRTUALIZATION_THRESHOLD = 100;
+// Lower the threshold to use virtualization more often for better performance
+const VIRTUALIZATION_THRESHOLD = 50;
+
+// Create a memoized toolbar component
+const MemoizedTableToolbar = React.memo(TableToolbar);
+
+// Create a memoized pagination component
+const MemoizedPagination = React.memo(Pagination);
 
 interface TableViewProps {
   data: CompanyProperties[];
@@ -36,6 +40,8 @@ interface TableViewProps {
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
+  pageSize: number;
+  onPageSizeChange?: (size: number) => void;
 }
 
 /**
@@ -54,8 +60,10 @@ export function TableView({
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
+  pageSize,
+  onPageSizeChange,
 }: TableViewProps) {
-  // Access store values
+  // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
   const setSelectedKeys = useCompanyStore((state) => state.setSelectedKeys);
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
@@ -103,27 +111,25 @@ export function TableView({
     [setSelectedKeys, allFilteredData],
   );
 
-  // Determine if we should use virtualized table
+  // Determine if we should use virtualized table - lower threshold for better performance
   const shouldUseVirtualizedTable = useMemo(() => {
     return data.length > VIRTUALIZATION_THRESHOLD;
   }, [data.length]);
 
-  // Render toolbar with shared props
-  const renderToolbar = useCallback(
-    () => (
-      <TableToolbar
-        searchTerm={searchTerm}
-        onSearch={setSearchTerm}
-        selectedKeys={selectedKeys}
-        useLocation={useLocation}
-        setUseLocation={setUseLocation}
-        address={address}
-        setAddress={setAddress}
-        sortDescriptor={sortDescriptor}
-        setSortDescriptor={setSortDescriptor}
-        setSelectedKeys={setSelectedKeys}
-      />
-    ),
+  // Memoized toolbar props to prevent object recreation
+  const toolbarProps = useMemo(
+    () => ({
+      searchTerm,
+      onSearch: setSearchTerm,
+      selectedKeys,
+      useLocation,
+      setUseLocation,
+      address,
+      setAddress,
+      sortDescriptor,
+      setSortDescriptor,
+      setSelectedKeys,
+    }),
     [
       searchTerm,
       setSearchTerm,
@@ -136,112 +142,36 @@ export function TableView({
     ],
   );
 
-  // Memoize pagination component to prevent re-renders
-  const renderPagination = useCallback(
-    () => (
-      <Pagination
-        total={totalPages}
-        initialPage={currentPage}
-        page={currentPage}
-        onChange={onPageChange}
-        showControls
-        classNames={{
-          cursor: 'bg-primary text-white',
-        }}
-      />
-    ),
-    [currentPage, totalPages, onPageChange],
-  );
-
   // Memoize pagination controls container to prevent re-renders
-  const renderPaginationControls = useCallback(
-    () => (
+  const paginationControls = useMemo(() => {
+    return (
       <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
-        {/* Information about fixed page size */}
-        <div className="w-1/4 text-xs text-default-500">
-          Showing {FIXED_PAGE_SIZE} rows per page
-        </div>
+        {/* Information about page size */}
+        <div className="w-1/4 text-xs text-default-500">Showing {pageSize} rows per page</div>
 
         {/* Centered pagination */}
-        <div className="flex justify-center flex-1">{renderPagination()}</div>
+        <div className="flex justify-center flex-1">
+          <MemoizedPagination
+            total={totalPages}
+            initialPage={currentPage}
+            page={currentPage}
+            onChange={onPageChange}
+            showControls
+            classNames={{
+              cursor: 'bg-primary text-white',
+            }}
+          />
+        </div>
 
         {/* Empty div to balance the layout */}
         <div className="w-1/4" />
       </div>
-    ),
-    [renderPagination],
-  );
-
-  // Render standard table for smaller datasets
-  const renderTableBody = useCallback(() => {
-    // Use windowing approach even for regular tables when dataset is large
-    const shouldUseWindowing = data.length > 50;
-
-    if (shouldUseWindowing) {
-      // Simplified windowing for regular tables (just show current page without virtualization)
-      return (
-        <TableBody
-          emptyContent={isLoading ? 'Loading...' : 'No companies found'}
-          isLoading={isLoading}
-        >
-          {data.map((item, index) => (
-            <TableRow key={item.business_id} className={index % 2 === 0 ? 'bg-default-50' : ''}>
-              {displayColumns.map((column: TableColumnConfig) => (
-                <TableCell key={`${item.business_id}-${column.key}`} className="truncate max-w-xs">
-                  {String(item[column.key as keyof typeof item] || '')}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      );
-    }
-
-    // Traditional approach for smaller datasets
-    return (
-      <TableBody
-        emptyContent={isLoading ? 'Loading...' : 'No companies found'}
-        isLoading={isLoading}
-      >
-        {data.map((item) => (
-          <TableRow key={item.business_id}>
-            {displayColumns.map((column: TableColumnConfig) => (
-              <TableCell key={`${item.business_id}-${column.key}`}>
-                {String(item[column.key as keyof typeof item] || '')}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
     );
-  }, [data, displayColumns, isLoading]);
+  }, [currentPage, totalPages, onPageChange, pageSize]);
 
-  // Render table header
-  const renderTableHeader = useCallback(
-    () => (
-      <TableHeader>
-        {displayColumns.map((column: TableColumnConfig) => (
-          <TableColumn
-            key={column.key}
-            className="cursor-pointer"
-            onClick={() => handleSortChange(column.key)}
-          >
-            <div className="flex items-center gap-1">
-              {column.label}
-              {sortDescriptor.column === column.key && (
-                <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
-              )}
-            </div>
-          </TableColumn>
-        ))}
-      </TableHeader>
-    ),
-    [displayColumns, handleSortChange, sortDescriptor],
-  );
-
-  // Memoize standard table
-  const renderStandardTable = useCallback(
-    () => (
+  // Render standard table with memoization
+  const standardTable = useMemo(() => {
+    return (
       <Table
         aria-label="Companies table"
         isHeaderSticky
@@ -253,18 +183,54 @@ export function TableView({
         selectedKeys={selectedKeys}
         onSelectionChange={handleSelectionChange}
       >
-        {renderTableHeader()}
-        {renderTableBody()}
+        <TableHeader>
+          {displayColumns.map((column: TableColumnConfig) => (
+            <TableColumn
+              key={column.key}
+              className="cursor-pointer"
+              onClick={() => handleSortChange(column.key)}
+            >
+              <div className="flex items-center gap-1">
+                {column.label}
+                {sortDescriptor.column === column.key && (
+                  <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
+                )}
+              </div>
+            </TableColumn>
+          ))}
+        </TableHeader>
+
+        <TableBody
+          emptyContent={isLoading ? 'Loading...' : 'No companies found'}
+          isLoading={isLoading}
+        >
+          {data.map((item) => (
+            <TableRow key={item.business_id}>
+              {displayColumns.map((column: TableColumnConfig) => (
+                <TableCell key={`${item.business_id}-${column.key}`} className="truncate max-w-xs">
+                  {String(item[column.key as keyof typeof item] || '')}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
       </Table>
-    ),
-    [selectedKeys, handleSelectionChange, renderTableHeader, renderTableBody],
-  );
+    );
+  }, [
+    data,
+    displayColumns,
+    isLoading,
+    selectedKeys,
+    handleSelectionChange,
+    sortDescriptor,
+    handleSortChange,
+  ]);
 
   // Render a placeholder during SSR to prevent layout shift
   if (!isMounted) {
     return (
       <div className="w-full">
-        {renderToolbar()}
+        <MemoizedTableToolbar {...toolbarProps} />
         <div className="max-h-[600px] min-h-[400px] w-full bg-default-50 rounded-lg animate-pulse" />
         <div className="flex justify-center mt-4">
           <div className="h-10 w-64 bg-default-100 rounded-lg animate-pulse" />
@@ -273,11 +239,11 @@ export function TableView({
     );
   }
 
-  // Render virtualized table for large datasets
+  // Render virtualized table for many rows or always for better performance
   if (shouldUseVirtualizedTable && !isLoading) {
     return (
       <div className="w-full">
-        {renderToolbar()}
+        <MemoizedTableToolbar {...toolbarProps} />
 
         <VirtualizedTable
           data={data}
@@ -288,7 +254,7 @@ export function TableView({
           onSelectionChange={handleSelectionChange}
         />
 
-        {renderPaginationControls()}
+        {paginationControls}
       </div>
     );
   }
@@ -296,9 +262,9 @@ export function TableView({
   // Use standard table for smaller datasets
   return (
     <div className="w-full">
-      {renderToolbar()}
-      {renderStandardTable()}
-      {renderPaginationControls()}
+      <MemoizedTableToolbar {...toolbarProps} />
+      {standardTable}
+      {paginationControls}
     </div>
   );
 }
