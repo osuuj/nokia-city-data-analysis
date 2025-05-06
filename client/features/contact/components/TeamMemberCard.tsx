@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
@@ -40,7 +42,7 @@ export const TeamMemberCard: React.FC<TeamMemberProps> = memo(
     };
 
     return (
-      <Card className="backdrop-blur-md bg-opacity-90">
+      <Card className="backdrop-blur-md bg-opacity-90 transition-colors">
         <CardBody className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24 rounded-full border-2 border-primary overflow-hidden flex-shrink-0">
             <Image

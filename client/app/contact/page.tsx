@@ -1,6 +1,9 @@
+import { ContactPageSkeleton } from '@/features/contact/components';
+import { Suspense } from 'react';
 // Server Component
 import ContactPageWrapper from './contact-client';
 
+// Add explicit metadata export for better SEO
 export const metadata = {
   title: 'Contact Us | Nokia City Data',
   description:
@@ -53,14 +56,17 @@ const teamMembers = [
 /**
  * Contact page component.
  * Server component that passes data to the client component.
+ * Uses Suspense with skeleton loading for improved loading experience.
  */
 export default function ContactPage() {
   return (
-    <ContactPageWrapper
-      teamMembers={teamMembers}
-      email="team@nokiacitydata.com"
-      description="Have questions about our city data analysis projects? Feel free to reach out to our team via email."
-      responseTime="We typically respond to inquiries within 1-2 business days."
-    />
+    <Suspense fallback={<ContactPageSkeleton />}>
+      <ContactPageWrapper
+        teamMembers={teamMembers}
+        email="team@nokiacitydata.com"
+        description="Have questions about our city data analysis projects? Feel free to reach out to our team via email."
+        responseTime="We typically respond to inquiries within 1-2 business days."
+      />
+    </Suspense>
   );
 }

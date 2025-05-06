@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -69,7 +71,7 @@ export const ContactInfo: React.FC<ContactInfoProps> = memo(
 
     return (
       <WrapperComponent {...motionProps} className="mb-12">
-        <Card className="backdrop-blur-md bg-opacity-90">
+        <Card className="backdrop-blur-md bg-opacity-90 transition-colors">
           <CardBody className="p-6">
             <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-4 text-center">
               Get in Touch

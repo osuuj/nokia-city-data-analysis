@@ -1,34 +1,83 @@
-import type React from 'react';
+'use client';
+
+import { Card, CardBody, Skeleton } from '@heroui/react';
+import React from 'react';
 
 /**
  * A lightweight skeleton loading state for the contact page
- * Optimized for performance with minimal DOM elements and animations
+ * Uses the Card components with styling matching the final cards in the contact page
  */
-export const ContactPageSkeleton: React.FC = () => {
+export function ContactPageSkeleton() {
+  // Use the same colors as AnimatedBackground
+  const lightGradientStart = 'rgba(240, 240, 255, 0.7)';
+  const lightGradientEnd = 'rgba(255, 255, 255, 0.5)';
+  // Dark theme colors
+  const darkGradientStart = 'rgba(50, 50, 80, 0.5)';
+  const darkGradientEnd = 'rgba(30, 30, 60, 0.3)';
+
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
-      {/* Simplified static background */}
-      <div className="fixed inset-0 z-0 bg-default-100 dark:bg-default-900" />
+      {/* Background with gradient that exactly matches AnimatedBackground */}
+      <div
+        className="fixed inset-0 z-0 dark:hidden"
+        style={{
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${lightGradientStart}, ${lightGradientEnd})`,
+        }}
+      />
+      <div
+        className="fixed inset-0 z-0 hidden dark:block"
+        style={{
+          backgroundImage: `radial-gradient(circle at 50% 50%, ${darkGradientStart}, ${darkGradientEnd})`,
+        }}
+      />
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Header skeleton */}
-        <div className="w-48 h-10 mx-auto mb-12 bg-default-200 dark:bg-default-800 rounded-md" />
+        {/* Header skeleton with shimmer effect */}
+        <Skeleton className="h-10 w-48 mx-auto mb-12 rounded-md" />
 
-        {/* Team section skeleton - simplified */}
+        {/* Team section skeleton with subtle animation */}
         <div className="mb-16">
-          <div className="w-32 h-8 mx-auto mb-6 bg-default-200 dark:bg-default-800 rounded-md" />
+          <Skeleton className="h-8 w-32 mx-auto mb-6 rounded-md" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Just two boxes instead of complex card structures */}
-            <div className="h-64 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
-            <div className="h-64 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
+            {/* Team member cards with Card components matching final appearance */}
+            <Card className="backdrop-blur-md bg-opacity-90 transition-colors">
+              <CardBody className="flex flex-col items-center gap-4">
+                <Skeleton className="rounded-full w-24 h-24" />
+                <div className="text-center w-full">
+                  <Skeleton className="h-6 w-3/4 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-1/2 mx-auto mb-4" />
+                  <Skeleton className="h-4 w-full mb-2 mx-auto" />
+                  <Skeleton className="h-4 w-full mb-2 mx-auto" />
+                </div>
+              </CardBody>
+            </Card>
+            <Card className="backdrop-blur-md bg-opacity-90 transition-colors">
+              <CardBody className="flex flex-col items-center gap-4">
+                <Skeleton className="rounded-full w-24 h-24" />
+                <div className="text-center w-full">
+                  <Skeleton className="h-6 w-3/4 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-1/2 mx-auto mb-4" />
+                  <Skeleton className="h-4 w-full mb-2 mx-auto" />
+                  <Skeleton className="h-4 w-full mb-2 mx-auto" />
+                </div>
+              </CardBody>
+            </Card>
           </div>
         </div>
 
-        {/* Contact Info skeleton - simplified */}
-        <div className="h-48 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
+        {/* Contact Info skeleton with Card matching final appearance */}
+        <Card className="backdrop-blur-md bg-opacity-90 transition-colors mb-12">
+          <CardBody className="p-6">
+            <Skeleton className="h-6 w-48 mx-auto mb-4" />
+            <Skeleton className="h-4 w-full mx-auto mb-6" />
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Skeleton className="h-6 w-6" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <Skeleton className="h-4 w-64 mx-auto mt-6" />
+          </CardBody>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default ContactPageSkeleton;
+}

@@ -65,6 +65,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Performance optimization - preload critical resources */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+        {/* Improve resource loading for icons */}
+        <link rel="preconnect" href="https://api.iconify.design" />
+        <link rel="dns-prefetch" href="https://api.iconify.design" />
+
+        {/* Preload site icon */}
+        <link rel="preload" href="/icon.png" as="image" />
+
         {/* Theme loader script to prevent flicker */}
         <Script id="theme-loader" strategy="beforeInteractive">
           {`

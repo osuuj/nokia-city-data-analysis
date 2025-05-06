@@ -1,15 +1,41 @@
 import { CACHE_OPTIMIZATION, CACHE_RULES, CACHE_TIMES } from '@/features/project/config/cache';
 import { useQuery } from '@tanstack/react-query';
 import { resourcesData } from '../data/resources';
-import { type Resource, type ResourceCategory, ResourceCategoryData } from '../types';
+import type { Resource, ResourceCategory, ResourceCategoryData } from '../types';
 
 // Define query keys for better cache management
 export const resourceKeys = {
   all: ['resources'] as const,
   categories: () => [...resourceKeys.all, 'categories'] as const,
+  categoryList: () => [...resourceKeys.categories(), 'list'] as const,
   category: (id: ResourceCategory) => [...resourceKeys.categories(), id] as const,
   resource: (id: string) => [...resourceKeys.all, 'resource', id] as const,
+  resourcesByCategory: (categoryId: ResourceCategory) =>
+    [...resourceKeys.all, 'byCategory', categoryId] as const,
 };
+
+/**
+ * Hook to fetch just the category metadata (without resources)
+ * This provides faster initial loading
+ */
+export function useCategoryList() {
+  return useQuery({
+    queryKey: resourceKeys.categoryList(),
+    queryFn: () => {
+      // Return only category metadata without resources for faster loading
+      return resourcesData.categories.map(({ id, title, description, icon }) => ({
+        id,
+        title,
+        description,
+        icon,
+      }));
+    },
+    ...CACHE_TIMES.STATIC,
+    ...CACHE_RULES,
+    retry: CACHE_OPTIMIZATION.retry.count,
+    retryDelay: CACHE_OPTIMIZATION.retry.delay,
+  });
+}
 
 /**
  * Hook to fetch all resource categories
@@ -24,11 +50,24 @@ export function useResourceCategories() {
     retryDelay: CACHE_OPTIMIZATION.retry.delay,
     refetchOnWindowFocus: CACHE_OPTIMIZATION.backgroundRefetch.enabled,
     refetchInterval: CACHE_OPTIMIZATION.backgroundRefetch.interval,
+    // Adding select function to filter out unnecessary data from the network response
+    // and ensuring resources include the category property
+    select: (data) => {
+      // Return only the necessary fields to reduce payload size and ensure proper typing
+      return data.map((category) => ({
+        ...category,
+        resources: category.resources.map((resource) => ({
+          ...resource,
+          // Ensure each resource has the category property
+          category: resource.category || category.id,
+        })),
+      })) as ResourceCategoryData[];
+    },
   });
 }
 
 /**
- * Hook to fetch a specific resource category
+ * Hook to fetch a specific resource category with lazy loading
  */
 export function useResourceCategory(categoryId: ResourceCategory) {
   return useQuery({
@@ -44,8 +83,26 @@ export function useResourceCategory(categoryId: ResourceCategory) {
     ...CACHE_RULES,
     retry: CACHE_OPTIMIZATION.retry.count,
     retryDelay: CACHE_OPTIMIZATION.retry.delay,
-    refetchOnWindowFocus: CACHE_OPTIMIZATION.backgroundRefetch.enabled,
-    refetchInterval: CACHE_OPTIMIZATION.backgroundRefetch.interval,
+    // Only fetch when needed - implement lazy loading
+    enabled: !!categoryId,
+  });
+}
+
+/**
+ * Hook to fetch resources for a specific category with pagination
+ */
+export function useResourcesByCategory(categoryId: ResourceCategory, limit = 10) {
+  return useQuery({
+    queryKey: resourceKeys.resourcesByCategory(categoryId),
+    queryFn: () => {
+      const resources = getResourcesByCategory(categoryId);
+      // Return limited number of resources for faster initial load
+      return resources.slice(0, limit);
+    },
+    ...CACHE_TIMES.STATIC,
+    ...CACHE_RULES,
+    // Only fetch when needed - implement lazy loading
+    enabled: !!categoryId,
   });
 }
 
@@ -69,8 +126,8 @@ export function useResource(resourceId: string) {
     ...CACHE_RULES,
     retry: CACHE_OPTIMIZATION.retry.count,
     retryDelay: CACHE_OPTIMIZATION.retry.delay,
-    refetchOnWindowFocus: CACHE_OPTIMIZATION.backgroundRefetch.enabled,
-    refetchInterval: CACHE_OPTIMIZATION.backgroundRefetch.interval,
+    // Only fetch when needed - implement lazy loading
+    enabled: !!resourceId,
   });
 }
 

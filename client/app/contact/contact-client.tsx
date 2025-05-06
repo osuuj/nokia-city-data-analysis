@@ -3,7 +3,7 @@
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
 import { ContactPageSkeleton } from '@/features/contact/components/ContactPageSkeleton';
 import { AnimatedBackground } from '@/shared/components/ui/background';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 // Types for team member data
 interface SocialLink {
@@ -28,7 +28,7 @@ interface ContactPageWrapperProps {
 
 /**
  * Client-side contact page wrapper component
- * Handles all interactive parts with minimal overhead
+ * Uses the same pattern as project and about pages for consistent transitions
  */
 export default function ContactPageWrapper({
   teamMembers,
@@ -36,14 +36,6 @@ export default function ContactPageWrapper({
   description,
   responseTime,
 }: ContactPageWrapperProps) {
-  // Minimal state - just track if component has mounted
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Simple effect to handle mounting
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   // Memoize the team member cards to avoid re-renders
   const teamMembersList = useMemo(
     () =>
@@ -59,14 +51,9 @@ export default function ContactPageWrapper({
     [teamMembers],
   );
 
-  // Show skeleton until fully mounted to prevent hydration issues
-  if (!isMounted) {
-    return <ContactPageSkeleton />;
-  }
-
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
-      {/* Animated background */}
+      {/* Use the AnimatedBackground directly, just like the project and about pages */}
       <AnimatedBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto">

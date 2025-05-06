@@ -64,9 +64,7 @@ export default function ProjectPage(): JSX.Element {
                 `}
               >
                 {projects.map((project) => (
-                  <Suspense key={project.id} fallback={<ProjectGridSkeleton />}>
-                    <ProjectCard project={project} />
-                  </Suspense>
+                  <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
             </div>

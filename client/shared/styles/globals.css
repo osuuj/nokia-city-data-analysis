@@ -17,6 +17,22 @@
  * }
  */
 
+/* Base body styles to prevent white flash during navigation */
+@layer base {
+  html, body {
+    @apply bg-background transition-colors duration-300;
+  }
+  
+  /* Change the white flashes to a more gradual transition */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    @apply bg-gradient-to-b from-primary/5 via-background/50 to-background/90;
+  }
+}
+
 /* Layout classes */
 .content-main {
   padding-top: 5rem; /* Adds space for the fixed header */
