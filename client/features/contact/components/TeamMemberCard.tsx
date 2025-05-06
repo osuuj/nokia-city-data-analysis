@@ -1,7 +1,7 @@
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import type React from 'react';
 
 interface SocialLink {
@@ -22,62 +22,73 @@ export interface TeamMemberProps {
  *
  * Displays information about a team member including their photo,
  * name, role, email and social links.
+ *
+ * Performance optimized with image optimization, memorization, and
+ * reduced DOM operations.
  */
-export const TeamMemberCard: React.FC<TeamMemberProps> = ({ name, role, email, socialLinks }) => {
-  // Generate file name for team member image
-  const imageName = name.toLowerCase().replace(/\s+/g, '-');
-  const [imageSrc, setImageSrc] = useState(`/images/team/${imageName}.svg`);
+export const TeamMemberCard: React.FC<TeamMemberProps> = memo(
+  ({ name, role, email, socialLinks }) => {
+    // Generate file name for team member image
+    const imageName = name.toLowerCase().replace(/\s+/g, '-');
+    const [imageSrc, setImageSrc] = useState(`/images/team/${imageName}.svg`);
 
-  // Handle image loading error
-  const handleImageError = () => {
-    setImageSrc('/images/default-avatar.svg');
-  };
+    // Handle image loading error
+    const handleImageError = () => {
+      setImageSrc('/images/default-avatar.svg');
+    };
 
-  return (
-    <Card className="backdrop-blur-md bg-opacity-90">
-      <CardBody className="flex flex-col items-center gap-4">
-        <div className="relative w-24 h-24 rounded-full border-2 border-primary overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={name}
-            fill
-            sizes="96px"
-            priority
-            onError={handleImageError}
-            className="object-cover"
-          />
-        </div>
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">{name}</h3>
-          <p className="text-default-500 dark:text-default-400 mb-4">{role}</p>
+    return (
+      <Card className="backdrop-blur-md bg-opacity-90">
+        <CardBody className="flex flex-col items-center gap-4">
+          <div className="relative w-24 h-24 rounded-full border-2 border-primary overflow-hidden flex-shrink-0">
+            <Image
+              src={imageSrc}
+              alt={name}
+              fill
+              sizes="96px"
+              priority
+              onError={handleImageError}
+              className="object-cover"
+              fetchPriority="high"
+              loading="eager"
+            />
+          </div>
+          <div className="text-center w-full">
+            <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">{name}</h3>
+            <p className="text-default-500 dark:text-default-400 mb-4">{role}</p>
 
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Icon icon="lucide:mail" className="text-default-600 dark:text-default-400" />
             <a
               href={`mailto:${email}`}
-              className="text-primary-600 dark:text-primary-400 hover:underline"
+              className="flex items-center justify-center gap-2 mb-2 text-primary-600 dark:text-primary-400 hover:underline"
               aria-label={`Email ${name} at ${email}`}
             >
-              {email}
+              <Icon
+                icon="lucide:mail"
+                className="text-default-600 dark:text-default-400 flex-shrink-0"
+                width={16}
+                height={16}
+              />
+              <span>{email}</span>
             </a>
-          </div>
 
-          {socialLinks.map((link) => (
-            <div key={link.href} className="flex items-center justify-center gap-2 mb-2">
-              <Icon icon={link.icon} />
+            {socialLinks.map((link) => (
               <a
+                key={link.href}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary-600 dark:text-primary-400 hover:underline"
+                className="flex items-center justify-center gap-2 mb-2 text-primary-600 dark:text-primary-400 hover:underline"
                 aria-label={`Visit ${name}'s ${link.label}`}
               >
-                {link.label}
+                <Icon icon={link.icon} width={16} height={16} className="flex-shrink-0" />
+                <span>{link.label}</span>
               </a>
-            </div>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
-  );
-};
+            ))}
+          </div>
+        </CardBody>
+      </Card>
+    );
+  },
+);
+
+TeamMemberCard.displayName = 'TeamMemberCard';
