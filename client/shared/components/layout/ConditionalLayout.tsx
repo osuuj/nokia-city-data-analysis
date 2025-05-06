@@ -31,7 +31,7 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
   return (
     <PageTransition>
       {!isDashboardPage && <Header />}
-      <main className={isDashboardPage ? 'dashboard-main' : ''}>{children}</main>
+      <main className={isDashboardPage ? 'dashboard-main' : 'content-main'}>{children}</main>
       {!isDashboardPage && <Footer />}
     </PageTransition>
   );

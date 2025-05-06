@@ -16,3 +16,8 @@
  *   "css.lint.unknownAtRules": "ignore"
  * }
  */
+
+/* Layout classes */
+.content-main {
+  padding-top: 5rem; /* Adds space for the fixed header */
+}

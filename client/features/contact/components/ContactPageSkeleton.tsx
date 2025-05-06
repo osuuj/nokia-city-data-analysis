@@ -1,3 +1,5 @@
+import { AnimatedBackground } from '@/shared/components/ui/background';
+import { Skeleton } from '@heroui/react';
 import type React from 'react';
 
 /**
@@ -7,53 +9,53 @@ import type React from 'react';
 export const ContactPageSkeleton: React.FC = () => {
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6 animate-pulse">
-      <div className="fixed inset-0 z-0 bg-gray-100 dark:bg-gray-900" />
+      <AnimatedBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Header skeleton */}
-        <div className="w-48 h-10 mx-auto mb-12 bg-gray-300 dark:bg-gray-700 rounded-md" />
+        <Skeleton className="w-48 h-10 mx-auto mb-12" />
 
         {/* Team section skeleton */}
         <div className="mb-16">
-          <div className="w-32 h-8 mx-auto mb-6 bg-gray-300 dark:bg-gray-700 rounded-md" />
+          <Skeleton className="w-32 h-8 mx-auto mb-6" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Team member 1 skeleton */}
-            <div className="p-6 rounded-lg bg-gray-200 dark:bg-gray-800">
+            <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700" />
+                <Skeleton className="w-24 h-24 rounded-full" />
                 <div className="w-full text-center">
-                  <div className="w-32 h-6 mx-auto mb-1 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                  <div className="w-24 h-4 mx-auto mb-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                  <Skeleton className="w-32 h-6 mx-auto mb-1" />
+                  <Skeleton className="w-24 h-4 mx-auto mb-4" />
 
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-4 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                    <div className="w-36 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                    <Skeleton className="w-4 h-4" />
+                    <Skeleton className="w-36 h-4" />
                   </div>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-4 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                    <div className="w-36 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                    <Skeleton className="w-4 h-4" />
+                    <Skeleton className="w-36 h-4" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Team member 2 skeleton */}
-            <div className="p-6 rounded-lg bg-gray-200 dark:bg-gray-800">
+            <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700" />
+                <Skeleton className="w-24 h-24 rounded-full" />
                 <div className="w-full text-center">
-                  <div className="w-32 h-6 mx-auto mb-1 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                  <div className="w-24 h-4 mx-auto mb-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                  <Skeleton className="w-32 h-6 mx-auto mb-1" />
+                  <Skeleton className="w-24 h-4 mx-auto mb-4" />
 
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-4 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                    <div className="w-36 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                    <Skeleton className="w-4 h-4" />
+                    <Skeleton className="w-36 h-4" />
                   </div>
 
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-4 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-                    <div className="w-36 h-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
+                    <Skeleton className="w-4 h-4" />
+                    <Skeleton className="w-36 h-4" />
                   </div>
                 </div>
               </div>
@@ -62,10 +64,10 @@ export const ContactPageSkeleton: React.FC = () => {
         </div>
 
         {/* Contact Info skeleton */}
-        <div className="p-6 rounded-lg bg-gray-200 dark:bg-gray-800">
-          <div className="w-48 h-6 mx-auto mb-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-          <div className="w-full max-w-md h-16 mx-auto mb-4 bg-gray-300 dark:bg-gray-700 rounded-md" />
-          <div className="w-80 h-4 mx-auto bg-gray-300 dark:bg-gray-700 rounded-md" />
+        <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
+          <Skeleton className="w-48 h-6 mx-auto mb-4" />
+          <Skeleton className="w-full max-w-md h-16 mx-auto mb-4" />
+          <Skeleton className="w-80 h-4 mx-auto" />
         </div>
       </div>
     </div>
