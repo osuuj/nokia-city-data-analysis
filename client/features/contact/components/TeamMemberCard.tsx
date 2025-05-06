@@ -1,5 +1,6 @@
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { useEffect, useState } from 'react';
 import type React from 'react';
 
 interface SocialLink {
@@ -20,15 +21,49 @@ export interface TeamMemberProps {
  *
  * Displays information about a team member including their photo,
  * name, role, email and social links.
+ *
+ * Performance optimized: uses static images for mobile devices.
  */
 export const TeamMemberCard: React.FC<TeamMemberProps> = ({ name, role, email, socialLinks }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile for performance optimization
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Generate avatar image path based on device and name
+  const avatarSrc = isMobile
+    ? `/images/team/${name.toLowerCase().replace(/\s+/g, '-')}.jpg`
+    : `/api/avatar?seed=${encodeURIComponent(name)}`;
+
+  // Fallback path in case static image doesn't exist
+  const fallbackAvatar = '/images/default-avatar.jpg';
+
+  // Handle image loading error
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    // Fall back to API if static image fails
+    e.currentTarget.src = `/api/avatar?seed=${encodeURIComponent(name)}`;
+  };
+
   return (
     <Card className="backdrop-blur-md bg-opacity-90">
       <CardBody className="flex flex-col items-center gap-4">
         <img
-          src={`/api/avatar?seed=${encodeURIComponent(name)}`}
+          src={avatarSrc}
           alt={name}
           className="w-24 h-24 rounded-full border-2 border-primary"
+          onError={handleImageError}
+          loading="eager"
+          width={96}
+          height={96}
         />
         <div className="text-center">
           <h3 className="text-xl font-semibold text-default-900 dark:text-default-50">{name}</h3>

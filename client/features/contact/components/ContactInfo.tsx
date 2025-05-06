@@ -1,6 +1,7 @@
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import type React from 'react';
 
 interface ContactInfoProps {
@@ -14,15 +15,38 @@ interface ContactInfoProps {
  *
  * Displays general contact information with an email address
  * and additional information.
+ *
+ * Performance optimized: disables animations on mobile devices.
  */
 export const ContactInfo: React.FC<ContactInfoProps> = ({ email, description, responseTime }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile for performance optimization
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Motion props based on device type
+  const motionProps = isMobile
+    ? {}
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.4 },
+      };
+
+  // Component wrapper based on device type
+  const WrapperComponent = isMobile ? 'div' : motion.div;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-      className="mb-12"
-    >
+    <WrapperComponent {...motionProps} className="mb-12">
       <Card className="backdrop-blur-md bg-opacity-90">
         <CardBody className="p-6">
           <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-4 text-center">
@@ -47,6 +71,6 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({ email, description, re
           )}
         </CardBody>
       </Card>
-    </motion.div>
+    </WrapperComponent>
   );
 };

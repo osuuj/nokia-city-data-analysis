@@ -8,13 +8,25 @@ import { useEffect, useState } from 'react';
  * AnimatedBackground
  * A reusable component that creates an animated gradient background.
  * Used on Resources, About, and Contact pages.
+ *
+ * Performance optimized: uses static backgrounds on mobile devices.
  */
 export const AnimatedBackground = () => {
   const { resolvedTheme: theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Check if mobile device
+    setIsMobile(window.innerWidth <= 768);
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // If not mounted yet, return an empty div with the same sizing
@@ -26,6 +38,20 @@ export const AnimatedBackground = () => {
   const gradientStart = theme === 'dark' ? 'rgba(50, 50, 80, 0.5)' : 'rgba(240, 240, 255, 0.7)';
   const gradientEnd = theme === 'dark' ? 'rgba(30, 30, 60, 0.3)' : 'rgba(255, 255, 255, 0.5)';
 
+  // Static background style for mobile devices
+  const staticBackground = {
+    backgroundImage:
+      theme === 'dark'
+        ? 'radial-gradient(circle at 50% 50%, rgba(50, 50, 80, 0.5), rgba(30, 30, 60, 0.3))'
+        : 'radial-gradient(circle at 50% 50%, rgba(240, 240, 255, 0.7), rgba(255, 255, 255, 0.5))',
+  };
+
+  // For mobile devices, return static background
+  if (isMobile) {
+    return <div className="fixed inset-0 z-0" style={staticBackground} />;
+  }
+
+  // Only use animations on desktop devices
   return (
     <>
       {/* Primary animated layer */}

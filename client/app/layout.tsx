@@ -4,6 +4,7 @@ import { ResponsiveLoading } from '@/shared/components/loading/ResponsiveLoading
 import { BreadcrumbProvider } from '@/shared/context';
 import { LoadingProvider } from '@/shared/context/loading/LoadingContext';
 import '@/shared/styles/globals.css';
+import '@/shared/styles/critical.css';
 import { ConditionalLayout } from '@shared/components/layout';
 import { fontSans, siteConfig } from '@shared/config';
 import { Providers } from '@shared/providers';

@@ -3,16 +3,11 @@
 import { useLoading } from '@/shared/context/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useState } from 'react';
+// Import components directly
+import { HeroContent } from './HeroContent';
 import { HeroSkeleton } from './HeroSkeleton';
-
-// Lazy load the HeroContent and HeroVideo components
-const HeroContent = lazy(() =>
-  import('./HeroContent').then((module) => ({ default: module.HeroContent })),
-);
-const HeroVideo = lazy(() =>
-  import('./HeroVideo').then((module) => ({ default: module.HeroVideo })),
-);
+import { HeroVideo } from './HeroVideo';
 
 /**
  * Hero Component
@@ -26,26 +21,8 @@ export const Hero = (): JSX.Element => {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
-  const [shouldNavigate, setShouldNavigate] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const loading = useLoading();
-
-  // Use useEffect to set isClient and mounted to true after hydration
-  useEffect(() => {
-    setIsClient(true);
-    setMounted(true);
-  }, []);
-
-  // Monitor global loading state and sync with local state
-  useEffect(() => {
-    if (loading?.isLoading && !isLoading) {
-      setIsLoading(true);
-    } else if (!loading?.isLoading && isLoading && !shouldNavigate) {
-      setIsLoading(false);
-    }
-  }, [loading?.isLoading, isLoading, shouldNavigate]);
 
   const handleStartExploring = useCallback(() => {
     // Start both the global loading indicator and local loading state
@@ -55,7 +32,6 @@ export const Hero = (): JSX.Element => {
         type: 'overlay',
       }) || '';
     setIsLoading(true);
-    setShouldNavigate(true);
 
     // Navigate to dashboard
     router.push('/dashboard');
@@ -66,12 +42,6 @@ export const Hero = (): JSX.Element => {
     };
   }, [loading, router]);
 
-  const handleDataReady = useCallback(() => {
-    if (shouldNavigate) {
-      router.push('/dashboard');
-    }
-  }, [shouldNavigate, router]);
-
   const handleVideoError = useCallback(() => {
     setVideoError(true);
   }, []);
@@ -81,22 +51,23 @@ export const Hero = (): JSX.Element => {
 
   return (
     <header
-      className={`relative h-[calc(100vh-16rem)] md:h-[calc(100vh-20rem)] sm:h-[calc(100vh-6rem)] xs:h-[calc(100vh-3rem)] w-full overflow-hidden ${bgColor}`}
+      className={`hero-section relative h-[calc(100vh-16rem)] md:h-[calc(100vh-20rem)] sm:h-[calc(100vh-6rem)] xs:h-[calc(100vh-3rem)] w-full overflow-hidden ${bgColor}`}
       aria-label="Hero section"
+      style={{ minHeight: '400px' }}
     >
-      {/* 🔹 Video Background */}
-      <Suspense fallback={null}>
+      {/* Simple structure: Video at the bottom, content at the top in z-index */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <HeroVideo onVideoError={handleVideoError} />
-      </Suspense>
+      </div>
 
-      {/* 🔹 Hero Content */}
-      <Suspense fallback={<HeroSkeleton />}>
+      {/* Hero content positioned absolutely over the video */}
+      <div className="absolute inset-0 z-30 flex items-center justify-center">
         <HeroContent
           isLoading={isLoading}
           videoError={videoError}
           onStartExploring={handleStartExploring}
         />
-      </Suspense>
+      </div>
     </header>
   );
 };

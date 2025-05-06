@@ -36,16 +36,14 @@ export const HeroContent: FC<HeroContentProps> = ({ isLoading, videoError, onSta
     onStartExploring();
   }, [onStartExploring]);
 
-  // Use the animation hook
-  const { fadeInUpClass, fadeInScaleClass } = useHeroAnimation();
+  // Skip animation for better performance on mobile
+  const fadeInUpClass = 'animate-none';
+  const fadeInScaleClass = 'animate-none';
 
   return (
-    <footer
-      className={`relative z-10 flex h-full flex-col items-center justify-center text-center px-4 sm:px-6 md:px-8 lg:px-12 ${videoError ? 'text-foreground' : 'text-white'}`}
-      aria-label="Hero content"
-    >
+    <div className="w-full h-full flex items-center justify-center p-4" aria-label="Hero content">
       <Card
-        className={`inline-block max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl text-center p-4 sm:p-6 md:p-8 bg-background/80 backdrop-blur-sm ${fadeInScaleClass}`}
+        className={`max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl text-center p-4 sm:p-6 md:p-8 bg-background/90 backdrop-blur-sm shadow-lg ${fadeInScaleClass}`}
         tabIndex={0}
         aria-label="Hero card"
       >
@@ -78,10 +76,11 @@ export const HeroContent: FC<HeroContentProps> = ({ isLoading, videoError, onSta
               href="/dashboard"
               onPress={handleStartExploring}
               aria-label="Start exploring the dashboard"
+              className="text-lg font-medium px-6 py-3"
             />
           )}
         </div>
       </Card>
-    </footer>
+    </div>
   );
 };

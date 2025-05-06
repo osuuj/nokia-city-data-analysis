@@ -4,6 +4,7 @@ import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 /**
  * Contact page component.
@@ -13,6 +14,19 @@ import { useTheme } from 'next-themes';
  */
 export default function ContactPage(): JSX.Element {
   const { resolvedTheme: theme } = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile for performance optimization
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 768);
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Team member data
   const teamMembers = [
@@ -52,27 +66,41 @@ export default function ContactPage(): JSX.Element {
     },
   ];
 
+  // Motion props to use or skip animations based on device
+  const headerMotionProps = isMobile
+    ? {}
+    : {
+        initial: { opacity: 0, y: -20 },
+        animate: { opacity: 1, y: 0 },
+      };
+
+  const contentMotionProps = isMobile
+    ? {}
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { delay: 0.2 },
+      };
+
+  // Component wrappers based on device type
+  const HeaderComponent = isMobile ? 'h1' : motion.h1;
+  const ContentComponent = isMobile ? 'div' : motion.div;
+
   return (
     <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
       {/* Animated background */}
       <AnimatedBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <HeaderComponent
+          {...headerMotionProps}
           className="text-4xl font-bold text-center text-primary mb-12"
         >
           Contact Us
-        </motion.h1>
+        </HeaderComponent>
 
         {/* Team contacts section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-16"
-        >
+        <ContentComponent {...contentMotionProps} className="mb-16">
           <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-6 text-center">
             Our Team
           </h2>
@@ -87,7 +115,7 @@ export default function ContactPage(): JSX.Element {
               />
             ))}
           </div>
-        </motion.div>
+        </ContentComponent>
 
         {/* Contact information */}
         <ContactInfo
