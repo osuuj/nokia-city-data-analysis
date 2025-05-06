@@ -23,8 +23,10 @@ export interface TeamMemberProps {
  * Displays information about a team member including their photo,
  * name, role, email and social links.
  *
- * Performance optimized with image optimization, memorization, and
- * reduced DOM operations.
+ * Performance optimized with:
+ * - Image optimization with proper size and loading attributes
+ * - Memoization to prevent unnecessary re-renders
+ * - Simple error handling
  */
 export const TeamMemberCard: React.FC<TeamMemberProps> = memo(
   ({ name, role, email, socialLinks }) => {
@@ -46,11 +48,11 @@ export const TeamMemberCard: React.FC<TeamMemberProps> = memo(
               alt={name}
               fill
               sizes="96px"
-              priority
               onError={handleImageError}
               className="object-cover"
-              fetchPriority="high"
-              loading="eager"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI0OCIgY3k9IjQ4IiByPSI0OCIgZmlsbD0iI2YxZjFmMSIvPjwvc3ZnPg=="
             />
           </div>
           <div className="text-center w-full">

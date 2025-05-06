@@ -7,3 +7,4 @@
 export * from './TeamMemberCard';
 export * from './ContactInfo';
 export * from './ContactPageSkeleton';
+export * from './ClientContactContent';

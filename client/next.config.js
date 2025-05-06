@@ -17,6 +17,14 @@ const nextConfig = {
         hostname: 'api.dicebear.com',
       },
     ],
+    // Optimized image formats - WebP and AVIF for better performance
+    formats: ['image/webp', 'image/avif'],
+    // Improved quality/size balance
+    minimumCacheTTL: 60,
+    // Device-specific image sizes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    // Image sizes for responsive images
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
   turbopack: {
     // Turbopack configuration (stable API)
@@ -66,6 +74,16 @@ const nextConfig = {
   },
   // Configure a custom build directory
   distDir: process.env.NEXT_CUSTOM_BUILD_DIR || '.next',
+  // Optimize runtime performance
+  reactStrictMode: true,
+  // Optimize text compression
+  compress: true,
+  // Improve loading performance
+  experimental: {
+    optimizeCss: true,
+    // Improved bundle splitting
+    optimizePackageImports: ['framer-motion', '@heroui/react'],
+  },
 };
 
 module.exports = nextConfig;

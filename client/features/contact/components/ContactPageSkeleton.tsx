@@ -1,74 +1,31 @@
-import { AnimatedBackground } from '@/shared/components/ui/background';
-import { Skeleton } from '@heroui/react';
 import type React from 'react';
 
 /**
- * A skeleton loading state for the contact page
- * Displays while the page is being hydrated on the client
+ * A lightweight skeleton loading state for the contact page
+ * Optimized for performance with minimal DOM elements and animations
  */
 export const ContactPageSkeleton: React.FC = () => {
   return (
-    <div className="relative w-full min-h-screen px-4 py-8 md:px-6 animate-pulse">
-      <AnimatedBackground />
+    <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+      {/* Simplified static background */}
+      <div className="fixed inset-0 z-0 bg-default-100 dark:bg-default-900" />
 
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Header skeleton */}
-        <Skeleton className="w-48 h-10 mx-auto mb-12" />
+        <div className="w-48 h-10 mx-auto mb-12 bg-default-200 dark:bg-default-800 rounded-md" />
 
-        {/* Team section skeleton */}
+        {/* Team section skeleton - simplified */}
         <div className="mb-16">
-          <Skeleton className="w-32 h-8 mx-auto mb-6" />
+          <div className="w-32 h-8 mx-auto mb-6 bg-default-200 dark:bg-default-800 rounded-md" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Team member 1 skeleton */}
-            <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
-              <div className="flex flex-col items-center gap-4">
-                <Skeleton className="w-24 h-24 rounded-full" />
-                <div className="w-full text-center">
-                  <Skeleton className="w-32 h-6 mx-auto mb-1" />
-                  <Skeleton className="w-24 h-4 mx-auto mb-4" />
-
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Skeleton className="w-4 h-4" />
-                    <Skeleton className="w-36 h-4" />
-                  </div>
-
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Skeleton className="w-4 h-4" />
-                    <Skeleton className="w-36 h-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Team member 2 skeleton */}
-            <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
-              <div className="flex flex-col items-center gap-4">
-                <Skeleton className="w-24 h-24 rounded-full" />
-                <div className="w-full text-center">
-                  <Skeleton className="w-32 h-6 mx-auto mb-1" />
-                  <Skeleton className="w-24 h-4 mx-auto mb-4" />
-
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Skeleton className="w-4 h-4" />
-                    <Skeleton className="w-36 h-4" />
-                  </div>
-
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Skeleton className="w-4 h-4" />
-                    <Skeleton className="w-36 h-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Just two boxes instead of complex card structures */}
+            <div className="h-64 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
+            <div className="h-64 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
           </div>
         </div>
 
-        {/* Contact Info skeleton */}
-        <div className="p-6 rounded-lg bg-default-50 dark:bg-default-100/10">
-          <Skeleton className="w-48 h-6 mx-auto mb-4" />
-          <Skeleton className="w-full max-w-md h-16 mx-auto mb-4" />
-          <Skeleton className="w-80 h-4 mx-auto" />
-        </div>
+        {/* Contact Info skeleton - simplified */}
+        <div className="h-48 rounded-lg bg-default-200/80 dark:bg-default-800/80" />
       </div>
     </div>
   );
