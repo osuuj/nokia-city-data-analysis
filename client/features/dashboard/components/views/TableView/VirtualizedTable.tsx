@@ -77,7 +77,7 @@ const Row = React.memo(
 
     return (
       <div
-        className={`flex w-full border-b border-default-100 hover:bg-default-50 ${
+        className={`flex w-full border-b border-default-100 @media(hover: hover){hover:bg-default-50} ${
           isSelected ? 'bg-primary-50' : ''
         }`}
         style={{
@@ -154,7 +154,9 @@ const Header = React.memo(function TableHeader({
         >
           <span className="font-medium">{column.label}</span>
           {sortDescriptor.column === column.key && (
-            <span className="ml-1">{sortDescriptor.direction === 'asc' ? '↑' : '↓'}</span>
+            <span className="ml-1 text-primary font-bold">
+              {sortDescriptor.direction === 'asc' ? '↑' : '↓'}
+            </span>
           )}
         </button>
       ))}

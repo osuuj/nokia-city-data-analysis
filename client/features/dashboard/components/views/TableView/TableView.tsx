@@ -195,10 +195,11 @@ export function TableView({
         aria-label="Companies table"
         isHeaderSticky
         classNames={{
-          base: 'max-h-[600px]',
+          base: 'max-h-[680px]',
           table: 'min-h-[400px]',
           th: 'text-xs md:text-sm',
           td: 'text-xs md:text-sm',
+          tr: '@media(hover: hover){hover:bg-default-50} data-[selected=true]:bg-primary-50',
         }}
         selectionMode="multiple"
         selectedKeys={selectedKeys}
@@ -214,7 +215,9 @@ export function TableView({
               <div className="flex items-center gap-1">
                 {column.label}
                 {sortDescriptor.column === column.key && (
-                  <span className="text-xs">{sortDescriptor.direction === 'asc' ? '▲' : '▼'}</span>
+                  <span className="text-xs text-primary font-bold">
+                    {sortDescriptor.direction === 'asc' ? '▲' : '▼'}
+                  </span>
                 )}
               </div>
             </TableColumn>
