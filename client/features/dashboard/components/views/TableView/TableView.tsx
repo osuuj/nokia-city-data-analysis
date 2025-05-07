@@ -40,7 +40,6 @@ interface TableViewProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
-  onPageSizeChange?: (size: number) => void;
 }
 
 /**
@@ -60,7 +59,6 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
   pageSize,
-  onPageSizeChange,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -70,25 +68,12 @@ export function TableView({
   // Local state for toolbar components
   const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
 
   // To avoid hydration errors, we'll mount the table only on client-side
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-
-    // Check if we're on mobile
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
   }, []);
 
   // Filter columns to only show visible ones from the store
@@ -172,8 +157,8 @@ export function TableView({
             onChange={onPageChange}
             showControls
             size="sm"
-            siblings={isMobile ? 0 : 1}
-            boundaries={isMobile ? 0 : 1}
+            siblings={1}
+            boundaries={1}
             className="overflow-x-auto sm:overflow-visible"
             classNames={{
               cursor: 'bg-primary text-white',
@@ -186,7 +171,7 @@ export function TableView({
         <div className="hidden sm:block sm:w-1/4" />
       </div>
     );
-  }, [currentPage, totalPages, onPageChange, pageSize, isMobile]);
+  }, [currentPage, totalPages, onPageChange, pageSize]);
 
   // Render standard table with memoization
   const standardTable = useMemo(() => {

@@ -24,7 +24,6 @@ export const FilterGroup = ({
 }: FilterGroupProps) => {
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
-  const toggleIndustry = useCompanyStore((s) => s.toggleIndustry);
   const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);
   const [draftDistance, setDraftDistance] = useState<number>(0);
   const userLocation = useCompanyStore((s) => s.userLocation);

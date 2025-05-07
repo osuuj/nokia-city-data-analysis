@@ -155,7 +155,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     const map = mapRef.current?.getMap();
 
     if (!map) {
-      logger.error('Map reference not available');
+      logger.warn('Map reference not available');
       return;
     }
 

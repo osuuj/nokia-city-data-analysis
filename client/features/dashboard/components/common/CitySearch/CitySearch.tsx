@@ -77,7 +77,6 @@ export const CitySearch = React.memo(function CitySearch({
     highlightedCity,
   } = useCitySearch({
     cities,
-    selectedCity,
     onCityChange,
     searchTerm,
     onSearchChange,

@@ -37,7 +37,6 @@ export function TableToolbar({
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
-  const isMobile = windowWidth < 640;
 
   // Update window width on resize
   useEffect(() => {

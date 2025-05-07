@@ -232,7 +232,6 @@ export function DashboardPage() {
         selectedBusinesses={selectedBusinesses}
         geojson={geojsonData}
         viewMode={viewMode}
-        setViewMode={setViewMode}
         columns={allColumns}
         currentPage={page}
         totalPages={totalPages}
@@ -243,7 +242,6 @@ export function DashboardPage() {
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
         pageSize={pageSize}
-        onPageSizeChange={handlePageSizeChange}
       />
     ),
     [
@@ -259,7 +257,6 @@ export function DashboardPage() {
       searchTerm,
       sortDescriptor,
       pageSize,
-      handlePageSizeChange,
     ],
   );
 

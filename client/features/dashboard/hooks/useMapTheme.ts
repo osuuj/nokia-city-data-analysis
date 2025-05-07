@@ -17,7 +17,6 @@ export function useMapTheme(): MapTheme {
   const { resolvedTheme } = useTheme();
   const [isDark, setIsDark] = useState(resolvedTheme === 'dark');
   const prevThemeRef = useRef(resolvedTheme);
-  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Mapbox style URLs - light and dark versions
   const lightStyle = 'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
@@ -47,7 +46,6 @@ export function useMapTheme(): MapTheme {
       console.log('Theme changed from hook:', resolvedTheme);
       setIsDark(resolvedTheme === 'dark');
       prevThemeRef.current = resolvedTheme;
-      setForceUpdate((prev) => prev + 1);
     }
   }, [resolvedTheme]);
 
@@ -59,7 +57,6 @@ export function useMapTheme(): MapTheme {
     if (newTheme !== prevThemeRef.current) {
       setIsDark(newTheme === 'dark');
       prevThemeRef.current = newTheme;
-      setForceUpdate((prev) => prev + 1);
     }
   }, [getCurrentTheme]);
 

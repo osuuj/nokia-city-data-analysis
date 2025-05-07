@@ -40,7 +40,6 @@ function useDebounce(fn: (value: string) => void, delay: number) {
 
 interface UseCitySearchProps {
   cities: string[] | { name: string }[];
-  selectedCity?: string;
   onCityChange: (city: string) => void;
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -51,7 +50,6 @@ interface UseCitySearchProps {
  */
 export function useCitySearch({
   cities,
-  selectedCity,
   onCityChange,
   searchTerm,
   onSearchChange,
