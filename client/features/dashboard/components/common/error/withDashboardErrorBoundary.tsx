@@ -1,10 +1,11 @@
 'use client';
 
+import { withErrorBoundary } from '@/shared/components/error';
 import type React from 'react';
-import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 
 /**
  * Options for the withDashboardErrorBoundary HOC
+ * @deprecated Use options from withErrorBoundary in shared/components/error instead
  */
 interface WithDashboardErrorBoundaryOptions {
   /**
@@ -20,10 +21,11 @@ interface WithDashboardErrorBoundaryOptions {
 
 /**
  * Higher-order component that wraps a component with a DashboardErrorBoundary.
+ * @deprecated Use withErrorBoundary from shared/components/error instead
  *
  * @param Component - The component to wrap
  * @param options - Options for the error boundary
- * @returns A component wrapped with DashboardErrorBoundary
+ * @returns A component wrapped with ErrorBoundary
  *
  * @example
  * ```tsx
@@ -37,20 +39,11 @@ export function withDashboardErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   options: WithDashboardErrorBoundaryOptions = {},
 ) {
-  const WithDashboardErrorBoundary: React.FC<P> = (props) => {
-    return (
-      <DashboardErrorBoundary
-        fallback={options.fallback}
-        componentName={options.componentName || Component.displayName || Component.name}
-      >
-        <Component {...props} />
-      </DashboardErrorBoundary>
-    );
-  };
-
-  WithDashboardErrorBoundary.displayName = `WithDashboardErrorBoundary(${
-    Component.displayName || Component.name || 'Component'
-  })`;
-
-  return WithDashboardErrorBoundary;
+  // Use the new withErrorBoundary with compatible options
+  return withErrorBoundary(Component, {
+    componentName: options.componentName,
+    fallback: options.fallback,
+    errorTitle: `Error in ${options.componentName || Component.displayName || Component.name || 'component'}`,
+    errorMessage: 'An error occurred in this component. Please try again.',
+  });
 }

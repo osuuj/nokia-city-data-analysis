@@ -1,6 +1,8 @@
 import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
+import { FeatureErrorBoundary } from '@/shared/components/error';
 import { Tooltip } from '@heroui/react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import {
   Cell,
   Legend,
@@ -218,28 +220,6 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
   );
 };
 
-// Add error boundary for chart components
-class ChartErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
-  }
-}
-
 export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
   data,
   currentTheme = 'light',
@@ -278,7 +258,7 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
           <div className="animate-pulse bg-default-100 rounded-full h-16 w-16" />
         </div>
       ) : (
-        <ChartErrorBoundary fallback={fallbackContent}>
+        <FeatureErrorBoundary featureName="IndustryChart" fallback={fallbackContent}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -328,7 +308,7 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
               />
             </PieChart>
           </ResponsiveContainer>
-        </ChartErrorBoundary>
+        </FeatureErrorBoundary>
       )}
     </div>
   );

@@ -1,7 +1,26 @@
-// Export error handling components
+/**
+ * Dashboard Error Components
+ *
+ * This module re-exports the shared error components and dashboard-specific error utilities.
+ */
+
+// Re-export from shared components
+export {
+  FeatureErrorBoundary,
+  ErrorBoundary,
+  ErrorMessage,
+  withErrorBoundary,
+} from '@/shared/components/error';
+
+// Export dashboard-specific components
+export { ErrorDisplay, DashboardErrorMessage } from './ErrorDisplay';
+
+// Deprecated components (keep for backward compatibility)
 export { DashboardErrorBoundary } from './DashboardErrorBoundary';
-export { DashboardErrorMessage } from './DashboardErrorMessage';
-export { ErrorDisplay } from './ErrorDisplay';
+
+/**
+ * @deprecated Use withErrorBoundary from shared/components/error instead
+ */
 export { withDashboardErrorBoundary } from './withDashboardErrorBoundary';
 
 // Export error related hooks and utilities

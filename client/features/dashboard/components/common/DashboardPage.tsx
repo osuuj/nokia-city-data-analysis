@@ -1,7 +1,6 @@
 'use client';
 
-import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error/DashboardErrorBoundary';
-import { ErrorDisplay } from '@/features/dashboard/components/common/error/ErrorDisplay';
+import { DashboardErrorBoundary, ErrorDisplay } from '@/features/dashboard/components/common/error';
 import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';
@@ -15,6 +14,7 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
+import { FeatureErrorBoundary } from '@/shared/components/error';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -265,37 +265,47 @@ export function DashboardPage() {
   );
 
   return (
-    <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
-      {/* Show loading overlay only during initial data loading */}
-      {isInitialLoading && <LoadingOverlay message="Loading data..." />}
+    <FeatureErrorBoundary
+      featureName="Dashboard"
+      fallback={
+        <ErrorDisplay message="There was an error loading the dashboard. Please try again later." />
+      }
+    >
+      <div className="flex flex-col w-full h-full min-h-screen pb-8">
+        {/* Show loading overlay only during initial data loading */}
+        {isInitialLoading && <LoadingOverlay message="Loading dashboard data..." />}
 
-      {/* Show error message if data couldn't be loaded */}
-      {hasDataErrors && (
-        <ErrorDisplay
-          message="There was an error loading dashboard data."
-          error={cityError || companyError}
-          showDetails={process.env.NODE_ENV === 'development'}
-        />
-      )}
-
-      {/* Dashboard Header with controls */}
-      {dashboardHeader}
-
-      <DashboardErrorBoundary
-        componentName="ViewSwitcher"
-        fallback={
+        {/* Show error message if data couldn't be loaded */}
+        {isAnySectionLoading ? (
+          <DashboardSkeleton />
+        ) : hasDataErrors ? (
           <ErrorDisplay
-            message="The dashboard encountered an unexpected error"
-            showDetails={process.env.NODE_ENV === 'development'}
+            message="There was an error fetching data. Please try again later."
+            error={cityError || companyError}
           />
-        }
-      >
-        <Suspense fallback={<DashboardSkeleton />}>
-          {/* Always render content if a city is selected or we have data */}
-          {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) &&
-            viewSwitcherComponent}
-        </Suspense>
-      </DashboardErrorBoundary>
-    </div>
+        ) : (
+          <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
+            {/* Dashboard Header with controls */}
+            {dashboardHeader}
+
+            <FeatureErrorBoundary
+              featureName="ViewSwitcher"
+              fallback={
+                <ErrorDisplay
+                  message="The dashboard encountered an unexpected error"
+                  showDetails={process.env.NODE_ENV === 'development'}
+                />
+              }
+            >
+              <Suspense fallback={<DashboardSkeleton />}>
+                {/* Always render content if a city is selected or we have data */}
+                {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) &&
+                  viewSwitcherComponent}
+              </Suspense>
+            </FeatureErrorBoundary>
+          </div>
+        )}
+      </div>
+    </FeatureErrorBoundary>
   );
 }

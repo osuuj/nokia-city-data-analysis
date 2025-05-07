@@ -1,55 +1,41 @@
 'use client';
 
-import React from 'react';
+import { FeatureErrorBoundary } from '@/shared/components/error';
+import type React from 'react';
 
+/**
+ * @deprecated Use FeatureErrorBoundary from shared/components/error instead
+ */
 interface DashboardErrorBoundaryProps {
   children: React.ReactNode;
   fallback: React.ReactNode;
   componentName?: string;
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
 /**
  * Error boundary component for the dashboard
  * Catches JavaScript errors anywhere in the child component tree
+ *
+ * @deprecated Use FeatureErrorBoundary from shared/components/error instead
  */
-export class DashboardErrorBoundary extends React.Component<
-  DashboardErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: DashboardErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // Log the error to an error reporting service
-    console.error(`Error in component ${this.props.componentName || 'unknown'}:`, error, errorInfo);
-  }
-
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      // Render fallback UI
-      return this.props.fallback;
-    }
-
-    return this.props.children;
-  }
+export function DashboardErrorBoundary({
+  children,
+  fallback,
+  componentName = 'dashboard',
+}: DashboardErrorBoundaryProps) {
+  return (
+    <FeatureErrorBoundary featureName={componentName} fallback={fallback}>
+      {children}
+    </FeatureErrorBoundary>
+  );
 }
 
 /**
  * Higher-order component that wraps a component with an error boundary
  * @param Component - The component to wrap
  * @param fallback - The fallback UI to show when an error occurs
+ *
+ * @deprecated Use withErrorBoundary from shared/components/error instead
  */
 export function withDashboardErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,

@@ -1,8 +1,8 @@
 'use client';
 
+import { FeatureErrorBoundary } from '@/shared/components/error';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
-import { DashboardErrorBoundary } from '../../../components/common/error/DashboardErrorBoundary';
 import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
 import { AnalyticsSkeleton, SectionSkeleton } from '../../../components/common/loading/Skeletons';
 import type {
@@ -126,28 +126,28 @@ function ViewSwitcherBase({
   const renderMapView = useCallback(() => {
     if (!geojson) return null;
     return (
-      <DashboardErrorBoundary
-        componentName="MapView"
+      <FeatureErrorBoundary
+        featureName="MapView"
         fallback={<ErrorDisplay message="Could not load Map View" showDetails={true} />}
       >
         <Suspense fallback={<SectionSkeleton section="map" />}>
           <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
         </Suspense>
-      </DashboardErrorBoundary>
+      </FeatureErrorBoundary>
     );
   }, [geojson, selectedBusinesses]);
 
   // Memoize the analytics view with better error handling
   const renderAnalyticsView = useCallback(
     () => (
-      <DashboardErrorBoundary
-        componentName="AnalyticsView"
+      <FeatureErrorBoundary
+        featureName="AnalyticsView"
         fallback={<ErrorDisplay message="Could not load Analytics View" showDetails={true} />}
       >
         <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
           <AnalyticsView />
         </Suspense>
-      </DashboardErrorBoundary>
+      </FeatureErrorBoundary>
     ),
     [],
   );

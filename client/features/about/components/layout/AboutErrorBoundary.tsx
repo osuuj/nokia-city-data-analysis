@@ -1,4 +1,4 @@
-import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import { FeatureErrorBoundary } from '@/shared/components/error';
 import type { PropsWithChildren } from 'react';
 
 /**
@@ -7,15 +7,11 @@ import type { PropsWithChildren } from 'react';
  */
 export function AboutErrorBoundary({ children }: PropsWithChildren) {
   return (
-    <ErrorBoundary
-      fallback={
-        <ErrorMessage
-          title="Error Loading About Page"
-          message="There was an error loading the about page content. Please try again later."
-        />
-      }
+    <FeatureErrorBoundary
+      featureName="About"
+      errorMessage="There was an error loading the about page content. Please try again later."
     >
       {children}
-    </ErrorBoundary>
+    </FeatureErrorBoundary>
   );
 }

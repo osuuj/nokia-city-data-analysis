@@ -3,7 +3,7 @@
  * React component that wraps lazy-loaded components with Suspense and ErrorBoundary
  */
 
-import { ErrorBoundary } from '@/shared/components/error';
+import { FeatureErrorBoundary } from '@/shared/components/error';
 import type { ComponentType } from 'react';
 import { Suspense } from 'react';
 import type { LazyLoadConfig } from '../../utils/lazyLoading';
@@ -23,6 +23,8 @@ export interface LazyComponentWrapperConfig extends LazyLoadConfig {
    */
   errorBoundaryProps?: {
     fallback?: React.ReactNode;
+    errorTitle?: string;
+    errorMessage?: string;
     onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   };
 }
@@ -54,15 +56,19 @@ export function createLazyComponent<T extends ComponentType<any>>(
   // Return a component that wraps the lazy component with error boundary and suspense
   return function LazyLoadedComponent(props: React.ComponentProps<T>) {
     return (
-      <ErrorBoundary
+      <FeatureErrorBoundary
+        featureName={componentName}
         fallback={errorBoundaryProps?.fallback}
+        errorTitle={errorBoundaryProps?.errorTitle || `Error in ${componentName}`}
+        errorMessage={
+          errorBoundaryProps?.errorMessage || 'An error occurred while loading this component.'
+        }
         onError={errorBoundaryProps?.onError}
-        ariaLabel={`Error in ${componentName}`}
       >
         <Suspense fallback={fallback || <DefaultLoadingFallback />}>
           <LazyComponent {...props} />
         </Suspense>
-      </ErrorBoundary>
+      </FeatureErrorBoundary>
     );
   };
 }
