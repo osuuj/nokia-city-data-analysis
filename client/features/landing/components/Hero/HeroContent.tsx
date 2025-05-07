@@ -11,8 +11,6 @@ import { type FC, useCallback } from 'react';
 export interface HeroContentProps {
   /** Whether the component is in a loading state */
   isLoading: boolean;
-  /** Whether the video has an error */
-  videoError: boolean;
   /** Callback function to execute when the start button is clicked */
   onStartExploring: () => void;
 }
@@ -30,7 +28,7 @@ export interface HeroContentProps {
  *   onStartExploring={() => console.log('Start exploring')}
  * />
  */
-export const HeroContent: FC<HeroContentProps> = ({ isLoading, videoError, onStartExploring }) => {
+export const HeroContent: FC<HeroContentProps> = ({ isLoading, onStartExploring }) => {
   const handleStartExploring = useCallback(() => {
     onStartExploring();
   }, [onStartExploring]);

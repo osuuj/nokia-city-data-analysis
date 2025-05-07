@@ -1,7 +1,5 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
-
 export interface MapSkeletonProps {
   /**
    * Height of the map skeleton

@@ -42,7 +42,6 @@ export const Header = () => {
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  const isBlurry = false;
   const currentPathname = usePathname() || '';
   const router = useRouter();
 
@@ -53,8 +52,6 @@ export const Header = () => {
 
   // Check if we're on the landing page
   const isLandingPage = currentPathname === '/';
-  // Check if we're on dashboard page
-  const isDashboardPage = currentPathname === '/dashboard';
 
   // Get the query param
   const { data: cities } = useQuery({

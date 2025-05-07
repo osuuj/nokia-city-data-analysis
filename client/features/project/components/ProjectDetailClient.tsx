@@ -49,8 +49,6 @@ interface ProjectDetailClientProps {
  */
 export default function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
   const { setCurrentPageTitle } = useBreadcrumb();
   const [isLoading, setIsLoading] = useState(true);
 

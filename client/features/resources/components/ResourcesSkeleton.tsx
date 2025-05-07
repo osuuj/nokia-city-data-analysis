@@ -1,10 +1,7 @@
 'use client';
 
-import {
-  AnimatedBackgroundSkeleton,
-  HeaderSectionSkeleton,
-  ResourceCardSkeleton,
-} from '@/shared/components/loading';
+import { HeaderSectionSkeleton, ResourceCardSkeleton } from '@/shared/components/loading';
+import { TransitionBackground } from '@/shared/components/ui/background';
 import { Card, CardBody, CardHeader } from '@heroui/react';
 
 /**
@@ -17,7 +14,7 @@ import { Card, CardBody, CardHeader } from '@heroui/react';
  */
 export function ResourcesSkeleton() {
   return (
-    <AnimatedBackgroundSkeleton>
+    <TransitionBackground>
       <div className="px-4 py-8 md:px-6">
         {/* Header skeleton */}
         <HeaderSectionSkeleton titleWidth="w-64" descriptionLines={2} className="mb-10" />
@@ -62,6 +59,6 @@ export function ResourcesSkeleton() {
           </Card>
         </div>
       </div>
-    </AnimatedBackgroundSkeleton>
+    </TransitionBackground>
   );
 }

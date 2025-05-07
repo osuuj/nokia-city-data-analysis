@@ -62,11 +62,7 @@ export const Hero = (): JSX.Element => {
 
       {/* Hero content positioned absolutely over the video */}
       <div className="absolute inset-0 z-30 flex items-center justify-center">
-        <HeroContent
-          isLoading={isLoading}
-          videoError={videoError}
-          onStartExploring={handleStartExploring}
-        />
+        <HeroContent isLoading={isLoading} onStartExploring={handleStartExploring} />
       </div>
     </header>
   );

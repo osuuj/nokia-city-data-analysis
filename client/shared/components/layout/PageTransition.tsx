@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { type ReactNode, Suspense, useEffect, useRef } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -12,8 +12,6 @@ interface PageTransitionProps {
  * Inner component that uses useSearchParams
  */
 function PageTransitionInner({ children }: PageTransitionProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
 
