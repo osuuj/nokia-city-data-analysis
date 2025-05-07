@@ -1,6 +1,6 @@
 'use client';
 
-import { CitySearch } from '@/features/dashboard/components/common/CitySearch';
+import { CitySearch } from '@/features/dashboard/components/common/CitySearch/CitySearch';
 import { getThemedIndustryColor, useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { useCitySelection } from '@/features/dashboard/hooks/useCitySelection';
 import { filters } from '@/features/dashboard/utils/filters'; // Import filters config

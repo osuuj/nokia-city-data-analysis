@@ -1,6 +1,6 @@
 'use client';
 
-import { CitySearch } from '@/features/dashboard/components/common/CitySearch';
+import { CitySearch } from '@/features/dashboard/components/common/CitySearch/CitySearch';
 import { ViewModeToggle } from '@/features/dashboard/components/controls/Toggles/ViewModeToggle';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import React, { useMemo } from 'react';

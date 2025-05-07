@@ -36,7 +36,7 @@ export function Preloader() {
   );
 
   // Prefetch initial company data (using a default city)
-  const { data: companies, error: companiesError } = useSWR(
+  const { error: companiesError } = useSWR(
     `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
     fetcher,
     {

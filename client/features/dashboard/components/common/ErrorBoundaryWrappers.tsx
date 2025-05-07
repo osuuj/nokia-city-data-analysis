@@ -7,9 +7,6 @@ import {
 import { FeatureErrorBoundary } from '@/shared/components/error';
 import type React from 'react';
 
-// Define a simple error type instead of importing it
-type ErrorWithApi = Error | null;
-
 // Define component props types
 type IndustryDistributionProps = React.ComponentProps<typeof IndustryDistribution>;
 type CityIndustryBarsProps = React.ComponentProps<typeof CityIndustryBars>;

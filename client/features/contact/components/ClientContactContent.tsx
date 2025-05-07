@@ -1,7 +1,7 @@
 'use client';
 
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
-import { AnimatedBackgroundSkeleton } from '@/shared/components/loading';
+import { TransitionBackground } from '@/shared/components/ui/background';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { Card, CardBody, Skeleton } from '@heroui/react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -99,7 +99,7 @@ export function ClientContactContent({
   // Show skeleton while client-side code is hydrating
   if (!isMounted) {
     return (
-      <AnimatedBackgroundSkeleton>
+      <TransitionBackground>
         <div className="px-4 py-8 md:px-6">
           {/* Header skeleton with shimmer effect */}
           <Skeleton className="h-10 w-48 mx-auto mb-12 rounded-md" />
@@ -141,7 +141,7 @@ export function ClientContactContent({
             </CardBody>
           </Card>
         </div>
-      </AnimatedBackgroundSkeleton>
+      </TransitionBackground>
     );
   }
 

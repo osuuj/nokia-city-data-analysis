@@ -110,7 +110,7 @@ export function DashboardPage() {
   } = useFetchCompanies(selectedCity);
 
   // Use loading hook to centralize loading states
-  const { isAnySectionLoading, hasSectionErrors } = useDashboardLoading({
+  const { isAnySectionLoading } = useDashboardLoading({
     isDataLoading: isFetching,
     cityLoading,
     tableRows: companies,

@@ -25,9 +25,7 @@ interface DataLoaderProps {
  * Then renders children
  */
 export function DataLoader({ onDataReady, children }: DataLoaderProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [dataReady, setDataReady] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -71,7 +69,6 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
   // Check if data is ready
   useEffect(() => {
     if (cities && companies) {
-      setDataReady(true);
       setIsLoading(false);
       setError(null);
       if (onDataReady) {

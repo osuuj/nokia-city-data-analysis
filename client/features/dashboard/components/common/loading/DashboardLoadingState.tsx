@@ -1,6 +1,6 @@
 'use client';
 
-import { HeaderSectionSkeleton, TableSkeleton } from '@/shared/components/loading';
+import { TableSkeleton } from '@/shared/components/loading';
 
 /**
  * Dashboard loading state component
