@@ -48,12 +48,12 @@ const renderCustomizedPieLabel = ({
   cx,
   cy,
   midAngle,
-  innerRadius,
+  innerRadius: _innerRadius,
   outerRadius,
   percent,
-  index,
-  name,
-  value,
+  index: _index,
+  name: _name,
+  value: _value,
   textColor,
 }: CustomizedPieLabelProps) => {
   if (percent < 0.08) return null;

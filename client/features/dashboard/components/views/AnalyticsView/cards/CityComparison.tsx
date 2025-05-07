@@ -19,10 +19,9 @@ interface ChartDataItem {
 
 interface CityComparisonProps {
   data: ChartDataItem[];
-  currentTheme?: 'light' | 'dark';
 }
 
-export const CityComparison: React.FC<CityComparisonProps> = ({ data, currentTheme = 'light' }) => {
+export const CityComparison: React.FC<CityComparisonProps> = ({ data }) => {
   const cities = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'industry') : [];
 
   // Use shared chart theme hook

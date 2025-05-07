@@ -119,13 +119,6 @@ export const AnalyticsView: React.FC = () => {
   const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
   const [showMaxIndustryWarning, setShowMaxIndustryWarning] = useState(false);
 
-  // Filter cities for Autocomplete based on search query
-  const filteredCitiesForAutocomplete = useMemo(() => {
-    return allCities
-      .filter((city) => city.toLowerCase().includes(citySearchQuery.toLowerCase()))
-      .map((city) => ({ name: city })); // Use name property instead of key/label
-  }, [allCities, citySearchQuery]);
-
   // Create industry letter -> name map
   const industryNameMap = useMemo(() => {
     const map = new Map<string, string>();
