@@ -88,7 +88,7 @@ export function ColumnVisibilityDropdown() {
           size="sm"
           startContent={
             <AccessibleIconify
-              icon="solar:sort-horizontal-linear"
+              icon="solar:widget-linear"
               width={16}
               className={isActive ? 'text-primary-500' : 'text-default-400'}
               ariaLabel="Toggle columns"

@@ -22,7 +22,7 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
 
   // Memoize the current sort direction icon
   const sortIcon = useMemo(() => {
-    return 'solar:sort-by-time-linear';
+    return 'solar:sort-from-bottom-to-top-linear';
   }, []);
 
   // Memoize the sort button aria label for better accessibility

@@ -117,7 +117,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onPress={() => handleViewModeChange('table')}
         onMouseEnter={() => handlePrefetch('table')}
       >
-        <Icon icon="lucide:list" className="mr-1" />
+        <Icon icon="solar:checklist-bold" className="mr-1" />
         {!isMobile && 'Table'}
       </Button>
     ),
@@ -131,7 +131,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onPress={() => handleViewModeChange('map')}
         onMouseEnter={() => handlePrefetch('map')}
       >
-        <Icon icon="lucide:map" className="mr-1" />
+        <Icon icon="solar:point-on-map-bold" className="mr-1" />
         {!isMobile && 'Map'}
       </Button>
     ),
@@ -145,7 +145,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onPress={() => handleViewModeChange('split')}
         onMouseEnter={() => handlePrefetch('split')}
       >
-        <Icon icon="lucide:layout-dashboard" className="mr-1" />
+        <Icon icon="solar:notes-minimalistic-bold" className="mr-1" />
         {!isMobile && 'Split'}
       </Button>
     ),
@@ -159,7 +159,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onPress={() => handleViewModeChange('analytics')}
         onMouseEnter={() => handlePrefetch('analytics')}
       >
-        <Icon icon="lucide:bar-chart-2" className="mr-1" />
+        <Icon icon="solar:chart-2-bold" className="mr-1" />
         {!isMobile && 'Analytics'}
       </Button>
     ),
@@ -196,7 +196,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         <Popover placement="bottom-end">
           <PopoverTrigger>
             <Button isIconOnly variant="light" aria-label="More options">
-              <Icon icon="lucide:more-horizontal" width={20} />
+              <Icon icon="lucide:more-vertical" width={20} />
             </Button>
           </PopoverTrigger>
           <PopoverContent>

@@ -73,7 +73,7 @@ export const FilterGroup = ({
             title="Industry"
             onApply={() => setSelectedIndustries(draftIndustries)}
             onCancel={() => setDraftIndustries(selectedIndustries)}
-            icon="lucide:tag"
+            icon="solar:tag-linear"
             maxWidth={isMobile ? '280px' : undefined}
           >
             <div className="max-h-60 overflow-y-auto transition-all duration-300">
@@ -120,7 +120,7 @@ export const FilterGroup = ({
                 setUseLocation(false);
               }
             }}
-            icon="lucide:map-pin"
+            icon="solar:ruler-linear"
             maxWidth={isMobile ? '280px' : undefined}
           >
             <div className="flex flex-col gap-2">
