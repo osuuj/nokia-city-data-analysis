@@ -14,3 +14,5 @@ export * from './performance';
 export * from './formatting';
 export * from './validation';
 export * from './math';
+
+export { gradientColors, animationTiming } from './backgroundConfig';

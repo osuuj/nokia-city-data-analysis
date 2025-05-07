@@ -1,9 +1,9 @@
 'use client';
 
+import { animationTiming, gradientColors } from '@/shared/utils/backgroundConfig';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { memo, useEffect, useState } from 'react';
-import { animationTiming, gradientColors } from './config';
 
 interface AnimatedBackgroundProps {
   /**

@@ -1,8 +1,8 @@
 'use client';
 
+import { animationTiming, gradientColors } from '@/shared/utils/backgroundConfig';
 import { useTheme } from 'next-themes';
 import { memo, useEffect, useState } from 'react';
-import { animationTiming, gradientColors } from './config';
 
 interface TransitionBackgroundProps {
   /**

@@ -1,7 +1,10 @@
 /**
- * Background configuration and shared styling
+ * Background Theme Configuration
  *
- * This file contains shared styling constants and configurations for background components.
+ * This file contains theme constants for background components including:
+ * - Gradient colors for light and dark themes
+ * - Animation timing configurations for transitions
+ *
  * Use these values to ensure consistency across different background components.
  */
 

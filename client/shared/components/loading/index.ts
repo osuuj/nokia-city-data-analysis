@@ -1,4 +1,4 @@
-export { LoadingProvider, useLoading } from '../../context/LoadingContext';
+export { LoadingProvider, useLoading } from '../../context/loading/LoadingContext';
 export { LoadingOverlay } from './LoadingOverlay';
 export { LoadingSpinner } from './LoadingSpinner';
 export { SkeletonLoader } from './SkeletonLoader';

@@ -6,9 +6,9 @@ This directory contains the client application for the Nokia City Data Analysis 
 
 Comprehensive documentation is available in the following locations:
 
-- [Shared Module Documentation](./shared/@docs/index.md) - Documentation for shared components, hooks, and utilities
-- [Feature Documentation](./shared/@docs/features/) - Documentation for specific features
-- [API Documentation](./shared/api/README.md) - API client and utilities
+- [Main Documentation](./docs/README.md) - Project overview and documentation index
+- [Feature Documentation](./docs/features/README.md) - Documentation for each specific feature
+- [Shared Components Documentation](./docs/shared/README.md) - Documentation for shared components, hooks, and utilities
 
 ## Directory Structure
 
@@ -26,7 +26,10 @@ client/
 │   ├── components/   # Shared UI components
 │   ├── hooks/        # Shared hooks
 │   ├── utils/        # Shared utilities
-│   └── @docs/        # Centralized documentation
+│   └── types/        # Shared type definitions
+├── docs/             # Comprehensive documentation
+│   ├── features/     # Feature-specific documentation
+│   └── shared/       # Shared component documentation
 ├── public/           # Static assets
 ├── scripts/          # Build and development scripts
 └── README.md         # This file
@@ -86,4 +89,4 @@ logger.error('Error messages', errorObject);
 
 ## Best Practices
 
-For detailed best practices, please refer to the [Shared Module Documentation](./shared/@docs/index.md).
+For detailed best practices, please refer to the [Documentation Guidelines](./docs/GUIDELINES.md).

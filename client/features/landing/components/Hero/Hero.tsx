@@ -1,6 +1,6 @@
 'use client';
 
-import { useLoading } from '@/shared/context/LoadingContext';
+import { useLoading } from '@/shared/context/loading/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { Suspense, useCallback, useState } from 'react';

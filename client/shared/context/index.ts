@@ -4,8 +4,8 @@
  */
 
 export { BreadcrumbProvider, useBreadcrumb } from './BreadcrumbContext';
-export { LoadingProvider, useLoading } from './LoadingContext';
-export type { LoadingPriority, LoadingType } from './LoadingContext';
+export { LoadingProvider, useLoading } from './loading/LoadingContext';
+export type { LoadingPriority, LoadingType } from './loading/LoadingContext';
 export { ThemeProvider, useThemeContext } from './ThemeContext';
 
 // Example: export { ThemeProvider, useTheme } from './ThemeContext';

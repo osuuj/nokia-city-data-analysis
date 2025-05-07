@@ -9,5 +9,5 @@ export * from './AnimatedBackground';
 export * from './StaticBackground';
 export * from './TransitionBackground';
 
-// Export configuration for direct use
-export * from './config';
+// Export background configuration from utils
+export { gradientColors, animationTiming } from '@/shared/utils/backgroundConfig';
