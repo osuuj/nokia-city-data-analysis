@@ -1,14 +1,12 @@
 'use client';
 
-/**
- * @deprecated Use ErrorDisplay from @/shared/components/error instead
- * This file is kept for backward compatibility only and will be removed in a future version.
- */
-
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import type { ReactNode } from 'react';
 
 interface ErrorDisplayProps {
+  /** Optional title of the error message */
+  title?: string;
   /** The error message to display */
   message: string;
   /** The error object, if available */
@@ -17,31 +15,52 @@ interface ErrorDisplayProps {
   showDetails?: boolean;
   /** Function to retry the operation that failed */
   onRetry?: () => void;
+  /** Optional loading state for the retry button */
+  isRetrying?: boolean;
+  /** Optional flag to show/hide the retry button */
+  showRetryButton?: boolean;
   /** Additional className for styling */
   className?: string;
+  /** Optional custom icon */
+  icon?: ReactNode;
+  /** Optional aria-label for the error message container */
+  ariaLabel?: string;
 }
 
 /**
  * ErrorDisplay component
- * Shows an error message and optional details
+ * Shows an error message and optional details with retry functionality
  *
- * @deprecated Use ErrorDisplay from @/shared/components/error instead
+ * @example
+ * ```tsx
+ * <ErrorDisplay
+ *   title="Data Loading Error"
+ *   message="Failed to fetch data"
+ *   error={error}
+ *   showDetails={true}
+ *   onRetry={() => refetch()}
+ * />
+ * ```
  */
 export function ErrorDisplay({
+  title = 'Error',
   message,
   error,
   showDetails = false,
   onRetry,
+  isRetrying = false,
+  showRetryButton = true,
   className = '',
+  icon = <Icon icon="solar:danger-triangle-bold" width={48} height={48} />,
+  ariaLabel = 'Error message container',
 }: ErrorDisplayProps) {
   return (
     <div
       className={`flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 text-center rounded-lg border border-danger-200 bg-danger-50 dark:bg-danger-900/10 dark:border-danger-800 ${className}`}
+      aria-label={ariaLabel}
     >
-      <div className="mb-4 text-danger-500">
-        <Icon icon="solar:danger-triangle-bold" width={48} height={48} />
-      </div>
-      <h2 className="text-xl font-bold mb-2">Error</h2>
+      <div className="mb-4 text-danger-500">{icon}</div>
+      <h2 className="text-xl font-bold mb-2">{title}</h2>
       <p className="text-foreground-500 mb-4">{message}</p>
 
       {error && showDetails && (
@@ -62,15 +81,16 @@ export function ErrorDisplay({
         </div>
       )}
 
-      {onRetry && (
+      {showRetryButton && onRetry && (
         <Button
           color="primary"
           variant="flat"
           onPress={onRetry}
           startContent={<Icon icon="solar:refresh-linear" width={16} height={16} />}
           className="mt-4"
+          isDisabled={isRetrying}
         >
-          Try Again
+          {isRetrying ? 'Retrying...' : 'Try Again'}
         </Button>
       )}
     </div>
@@ -78,12 +98,17 @@ export function ErrorDisplay({
 }
 
 /**
- * Creates a simple dashboard error message component
+ * Creates a simple error message component with minimal styling
  * @param message The error message to display
  */
-export function DashboardErrorMessage({ message }: { message: string }) {
+export function SimpleErrorMessage({
+  message,
+  className = '',
+}: { message: string; className?: string }) {
   return (
-    <div className="w-full p-4 bg-danger-50 dark:bg-danger-900/10 border border-danger-200 dark:border-danger-800 rounded-lg">
+    <div
+      className={`w-full p-4 bg-danger-50 dark:bg-danger-900/10 border border-danger-200 dark:border-danger-800 rounded-lg ${className}`}
+    >
       <p className="text-sm text-danger-600 dark:text-danger-400">{message}</p>
     </div>
   );

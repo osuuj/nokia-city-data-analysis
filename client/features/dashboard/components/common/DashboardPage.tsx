@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardErrorBoundary, ErrorDisplay } from '@/features/dashboard/components/common/error';
+import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error';
 import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';
@@ -14,7 +14,7 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
-import { FeatureErrorBoundary } from '@/shared/components/error';
+import { ErrorDisplay, FeatureErrorBoundary } from '@/shared/components/error';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';

@@ -1,9 +1,9 @@
 'use client';
 
 import { FeatureErrorBoundary } from '@/shared/components/error';
+import { ErrorDisplay } from '@/shared/components/error';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
-import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
 import { AnalyticsSkeleton, SectionSkeleton } from '../../../components/common/loading/Skeletons';
 import type {
   CompanyProperties,

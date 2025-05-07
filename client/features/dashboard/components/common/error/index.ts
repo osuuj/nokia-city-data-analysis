@@ -10,10 +10,13 @@ export {
   ErrorBoundary,
   ErrorMessage,
   withErrorBoundary,
+  ErrorDisplay,
+  SimpleErrorMessage,
 } from '@/shared/components/error';
 
-// Export dashboard-specific components
-export { ErrorDisplay, DashboardErrorMessage } from './ErrorDisplay';
+// Export dashboard-specific components - deprecated
+// @deprecated - Use SimpleErrorMessage from shared/components/error instead
+export { DashboardErrorMessage } from './ErrorDisplay';
 
 // Deprecated components (keep for backward compatibility)
 export { DashboardErrorBoundary } from './DashboardErrorBoundary';
