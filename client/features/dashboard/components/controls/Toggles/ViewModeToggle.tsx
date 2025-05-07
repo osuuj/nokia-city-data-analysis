@@ -3,11 +3,11 @@
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui';
 import { logger } from '@/shared/utils/logger';
-import { Button, ButtonGroup, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import { Button, Link, Popover, PopoverContent, PopoverTrigger, Tab, Tabs } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 /**
  * Props for the ViewModeToggle component
@@ -32,18 +32,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   fetchViewData,
 }: ViewModeToggleProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   // Set mounted state after hydration to prevent mismatch
   useEffect(() => {
     setIsMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 480);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Create a directly callable function that handles both prefetching and view mode setting
@@ -79,93 +71,6 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [fetchViewData, viewMode],
   );
 
-  // Memoize the GitHub button
-  const githubButton = useMemo(
-    () => (
-      <Button
-        isIconOnly
-        variant="light"
-        as="a"
-        href={siteConfig.links.github}
-        target="_blank"
-        rel="noreferrer"
-        className="text-default-500 hover:text-default-700 rounded-full"
-        aria-label="View on GitHub"
-      >
-        <GithubIcon className="w-5 h-5" />
-      </Button>
-    ),
-    [],
-  );
-
-  // Memoize the desktop controls
-  const desktopControls = useMemo(
-    () => (
-      <div className="hidden sm:flex items-center gap-3">
-        <ThemeSwitch />
-        {githubButton}
-      </div>
-    ),
-    [githubButton],
-  );
-
-  // Memoize each button individually to prevent re-renders
-  const TableButton = useMemo(
-    () => (
-      <Button
-        className={`${viewMode === 'table' ? 'bg-primary text-white' : 'bg-default-100'}`}
-        onPress={() => handleViewModeChange('table')}
-        onMouseEnter={() => handlePrefetch('table')}
-      >
-        <Icon icon="solar:checklist-bold" className="mr-1" />
-        {!isMobile && 'Table'}
-      </Button>
-    ),
-    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
-  );
-
-  const MapButton = useMemo(
-    () => (
-      <Button
-        className={`${viewMode === 'map' ? 'bg-primary text-white' : 'bg-default-100'}`}
-        onPress={() => handleViewModeChange('map')}
-        onMouseEnter={() => handlePrefetch('map')}
-      >
-        <Icon icon="solar:point-on-map-bold" className="mr-1" />
-        {!isMobile && 'Map'}
-      </Button>
-    ),
-    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
-  );
-
-  const SplitButton = useMemo(
-    () => (
-      <Button
-        className={`${viewMode === 'split' ? 'bg-primary text-white' : 'bg-default-100'}`}
-        onPress={() => handleViewModeChange('split')}
-        onMouseEnter={() => handlePrefetch('split')}
-      >
-        <Icon icon="solar:notes-minimalistic-bold" className="mr-1" />
-        {!isMobile && 'Split'}
-      </Button>
-    ),
-    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
-  );
-
-  const AnalyticsButton = useMemo(
-    () => (
-      <Button
-        className={`${viewMode === 'analytics' ? 'bg-primary text-white' : 'bg-default-100'}`}
-        onPress={() => handleViewModeChange('analytics')}
-        onMouseEnter={() => handlePrefetch('analytics')}
-      >
-        <Icon icon="solar:chart-2-bold" className="mr-1" />
-        {!isMobile && 'Analytics'}
-      </Button>
-    ),
-    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
-  );
-
   // If not mounted yet, show a placeholder to avoid hydration mismatch
   if (!isMounted) {
     return (
@@ -181,32 +86,97 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   }
 
   return (
-    <div className="flex items-center justify-between w-full">
-      <ButtonGroup variant="flat" size="sm" fullWidth>
-        {TableButton}
-        {MapButton}
-        {SplitButton}
-        {AnalyticsButton}
-      </ButtonGroup>
+    <header className="flex flex-col sm:flex-row items-center justify-between w-full transition-all duration-300 border-b border-divider p-2 sm:p-3 md:p-4 gap-2">
+      <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+        {/* View Mode Tabs - Full labels on larger screens, icons only on small screens */}
+        <Tabs
+          selectedKey={viewMode}
+          onSelectionChange={(key) => handleViewModeChange(key as ViewMode)}
+          aria-label="View mode switcher"
+          variant="underlined"
+          classNames={{
+            base: 'w-auto',
+            tabList: 'gap-1 sm:gap-4',
+            tab: 'data-[selected=true]:text-primary',
+            tabContent: 'group-data-[selected=true]:text-primary',
+            cursor: 'bg-primary',
+          }}
+        >
+          <Tab
+            key="table"
+            title={
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Icon icon="solar:checklist-bold" width={16} className="sm:w-5" />
+                <span className="hidden sm:block text-xs sm:text-sm">Table</span>
+              </div>
+            }
+          />
+          <Tab
+            key="map"
+            title={
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Icon icon="solar:point-on-map-bold" width={16} className="sm:w-5" />
+                <span className="hidden sm:block text-xs sm:text-sm">Map</span>
+              </div>
+            }
+          />
+          <Tab
+            key="split"
+            title={
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Icon icon="solar:notes-minimalistic-bold" width={16} className="sm:w-5" />
+                <span className="hidden sm:block text-xs sm:text-sm">Split</span>
+              </div>
+            }
+          />
+          <Tab
+            key="analytics"
+            title={
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Icon icon="solar:chart-2-bold" width={16} className="sm:w-5" />
+                <span className="hidden sm:block text-xs sm:text-sm">Analytics</span>
+              </div>
+            }
+          />
+        </Tabs>
 
-      {desktopControls}
-
-      {/* Show dropdown menu on mobile */}
-      <div className="sm:hidden">
-        <Popover placement="bottom-end">
-          <PopoverTrigger>
-            <Button isIconOnly variant="light" aria-label="More options">
-              <Icon icon="lucide:more-vertical" width={20} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <div className="flex flex-col gap-2 p-2">
-              <ThemeSwitch />
-              {githubButton}
-            </div>
-          </PopoverContent>
-        </Popover>
+        {/* More menu for mobile - contains GitHub and Theme switch */}
+        <div className="block sm:hidden">
+          <Popover placement="bottom-end">
+            <PopoverTrigger>
+              <Button isIconOnly radius="full" variant="light" size="sm" aria-label="More options">
+                <Icon icon="lucide:more-vertical" width={16} />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className="p-2">
+                <div className="flex flex-col gap-2">
+                  <Link
+                    isExternal
+                    href={siteConfig.links.github}
+                    className="flex items-center justify-center"
+                  >
+                    <GithubIcon className="text-default-500" width={16} />
+                  </Link>
+                  <div className="flex items-center justify-center">
+                    <ThemeSwitch aria-label="Toggle theme" />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
-    </div>
+
+      {/* Controls for desktop - GitHub and Theme switch */}
+      <div className="hidden sm:flex items-center gap-2">
+        <Button isIconOnly radius="full" variant="light" size="sm" aria-label="GitHub">
+          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
+            <GithubIcon className="text-default-500" width={16} />
+          </Link>
+        </Button>
+        <ThemeSwitch aria-label="Toggle theme" />
+      </div>
+    </header>
   );
 });
