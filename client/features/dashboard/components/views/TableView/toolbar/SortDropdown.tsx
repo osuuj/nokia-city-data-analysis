@@ -1,6 +1,5 @@
 'use client';
 
-import { columns } from '@/features/dashboard/config/columns';
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type {
   SortDescriptor,

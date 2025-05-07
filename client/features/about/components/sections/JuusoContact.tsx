@@ -1,10 +1,9 @@
 'use client';
 
 import { juusoData } from '@/features/about/data/juusoData';
-import { Button, Link } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function JuusoContact() {
   return (

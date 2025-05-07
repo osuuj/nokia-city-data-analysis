@@ -1,7 +1,6 @@
 'use client';
 
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
-import { ContactPageSkeleton } from '@/features/contact/components/ContactPageSkeleton';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { useMemo } from 'react';
 

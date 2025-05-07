@@ -1,6 +1,6 @@
 import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { Tooltip } from '@heroui/react';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Bar,
   BarChart,

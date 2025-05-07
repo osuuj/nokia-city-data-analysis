@@ -1,7 +1,6 @@
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type {
   CompanyTableKey,
-  DirectCompanyKey,
   SortDescriptor,
   TableColumnConfig,
 } from '@/features/dashboard/types/table';

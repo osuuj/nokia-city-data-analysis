@@ -5,11 +5,11 @@
  */
 
 export {
-  useResourceCategories,
-  useResourceCategory,
-  useResource,
   getAllResources,
   getResourcesByCategory,
   getResourcesByTag,
   resourceKeys,
+  useResource,
+  useResourceCategories,
+  useResourceCategory,
 } from './useResources';

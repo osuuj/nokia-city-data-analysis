@@ -1,6 +1,5 @@
 import type {
   AddressType as CompanyAddressType,
-  CompanyFeatureWithAddressType,
   CompanyProperties,
   Coordinates,
 } from '@/features/dashboard/types/business';

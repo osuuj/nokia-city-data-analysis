@@ -11,5 +11,5 @@ export function MapViewWithTheme(props: MapViewProps) {
   );
 }
 
-export { MapViewWithTheme as MapView };
 export type { MapViewProps } from './MapView';
+export { MapViewWithTheme as MapView };

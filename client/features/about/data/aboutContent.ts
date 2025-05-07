@@ -1,5 +1,3 @@
-import type { Education, Experience, Project, TeamMember } from '../types';
-
 export const aboutStory = {
   title: 'Our Story',
   paragraphs: [

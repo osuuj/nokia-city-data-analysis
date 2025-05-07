@@ -6,7 +6,6 @@ import { ProjectCategory, ProjectStatus } from '@/features/project/types';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function JuusoProjects() {
   return (

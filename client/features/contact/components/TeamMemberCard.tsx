@@ -3,8 +3,8 @@
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
-import { memo, useState } from 'react';
 import type React from 'react';
+import { memo, useState } from 'react';
 
 interface SocialLink {
   icon: string;

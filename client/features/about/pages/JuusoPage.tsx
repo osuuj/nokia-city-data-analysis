@@ -11,7 +11,7 @@ import {
 import { Header } from '@/shared/components/layout';
 import { ParticleBackground } from '@/shared/components/ui';
 import { useTheme } from 'next-themes';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * JuusoPage component that renders Juuso's profile

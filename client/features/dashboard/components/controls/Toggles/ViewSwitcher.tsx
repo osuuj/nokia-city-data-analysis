@@ -4,18 +4,13 @@ import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 import { DashboardErrorBoundary } from '../../../components/common/error/DashboardErrorBoundary';
 import { ErrorDisplay } from '../../../components/common/error/ErrorDisplay';
-import {
-  AnalyticsSkeleton,
-  DashboardSkeleton,
-  SectionSkeleton,
-} from '../../../components/common/loading/Skeletons';
+import { AnalyticsSkeleton, SectionSkeleton } from '../../../components/common/loading/Skeletons';
 import type {
   CompanyProperties,
   SortDescriptor,
   TableColumnConfig,
   ViewMode,
 } from '../../../types';
-import { transformCompanyGeoJSON } from '../../../utils/geo';
 
 // Define the emptyStateReason type to handle both string and object formats
 type EmptyStateReason =

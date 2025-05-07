@@ -1,24 +1,23 @@
 import {
-  CityComparisonCard,
-  IndustriesByCityCard,
-  IndustryDistributionCard,
-  TopCitiesCard,
+  CityComparison,
+  CityIndustryBars,
+  IndustryDistribution,
+  TopCitiesChart,
 } from '@/features/dashboard/components/views/AnalyticsView/cards';
-import { ErrorBoundary } from '@/shared/components/error';
-import { ErrorMessage } from '@/shared/components/error';
+import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import type React from 'react';
 
 // Define a simple error type instead of importing it
 type ErrorWithApi = Error | null;
 
 // Define component props types
-type IndustryDistributionCardProps = React.ComponentProps<typeof IndustryDistributionCard>;
-type IndustriesByCityCardProps = React.ComponentProps<typeof IndustriesByCityCard>;
-type CityComparisonCardProps = React.ComponentProps<typeof CityComparisonCard>;
-type TopCitiesCardProps = React.ComponentProps<typeof TopCitiesCard>;
+type IndustryDistributionProps = React.ComponentProps<typeof IndustryDistribution>;
+type CityIndustryBarsProps = React.ComponentProps<typeof CityIndustryBars>;
+type CityComparisonProps = React.ComponentProps<typeof CityComparison>;
+type TopCitiesChartProps = React.ComponentProps<typeof TopCitiesChart>;
 
-// Error boundary wrapper for IndustryDistributionCard
-export const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistributionCardProps) => (
+// Error boundary wrapper for IndustryDistribution
+export const IndustryDistributionWithErrorBoundary = (props: IndustryDistributionProps) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
@@ -27,16 +26,12 @@ export const IndustryDistributionCardWithErrorBoundary = (props: IndustryDistrib
       />
     }
   >
-    <IndustryDistributionCard {...props} />
+    <IndustryDistribution {...props} />
   </ErrorBoundary>
 );
 
-// Error boundary wrapper for IndustriesByCityCard
-export const IndustriesByCityCardWithErrorBoundary = ({
-  data,
-  error,
-  ...props
-}: IndustriesByCityCardProps & { error: ErrorWithApi }) => (
+// Error boundary wrapper for CityIndustryBars
+export const CityIndustryBarsWithErrorBoundary = (props: CityIndustryBarsProps) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
@@ -45,16 +40,12 @@ export const IndustriesByCityCardWithErrorBoundary = ({
       />
     }
   >
-    <IndustriesByCityCard data={data} error={error} {...props} />
+    <CityIndustryBars {...props} />
   </ErrorBoundary>
 );
 
-// Error boundary wrapper for CityComparisonCard
-export const CityComparisonCardWithErrorBoundary = ({
-  data,
-  error,
-  ...props
-}: CityComparisonCardProps & { error: ErrorWithApi }) => (
+// Error boundary wrapper for CityComparison
+export const CityComparisonWithErrorBoundary = (props: CityComparisonProps) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
@@ -63,16 +54,12 @@ export const CityComparisonCardWithErrorBoundary = ({
       />
     }
   >
-    <CityComparisonCard data={data} error={error} {...props} />
+    <CityComparison {...props} />
   </ErrorBoundary>
 );
 
-// Error boundary wrapper for TopCitiesCard
-export const TopCitiesCardWithErrorBoundary = ({
-  data,
-  error,
-  ...props
-}: TopCitiesCardProps & { error: ErrorWithApi }) => (
+// Error boundary wrapper for TopCitiesChart
+export const TopCitiesChartWithErrorBoundary = (props: TopCitiesChartProps) => (
   <ErrorBoundary
     fallback={
       <ErrorMessage
@@ -81,6 +68,6 @@ export const TopCitiesCardWithErrorBoundary = ({
       />
     }
   >
-    <TopCitiesCard data={data} error={error} {...props} />
+    <TopCitiesChart {...props} />
   </ErrorBoundary>
 );

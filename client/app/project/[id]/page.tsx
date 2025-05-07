@@ -4,8 +4,7 @@ import { ProjectDetailSkeleton } from '@/features/project/components';
 import ProjectDetailClient from '@/features/project/components/ProjectDetailClient';
 import { useProject } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/error';
-import { useEffect } from 'react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 
 interface ProjectDetailPageProps {
   params: Promise<{

@@ -5,8 +5,6 @@ import { getThemedIndustryColor, useChartTheme } from '@/features/dashboard/hook
 import { useCitySelection } from '@/features/dashboard/hooks/useCitySelection';
 import { filters } from '@/features/dashboard/utils/filters'; // Import filters config
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Card,
   CardBody,
@@ -20,7 +18,7 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { CityComparison, CityIndustryBars, IndustryDistribution, TopCitiesChart } from './cards';
 

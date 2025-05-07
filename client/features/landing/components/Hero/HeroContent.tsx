@@ -4,7 +4,6 @@ import { ButtonStart } from '@/features/landing/components/ButtonStart';
 import { Card, Spinner } from '@heroui/react';
 import { siteConfig } from '@shared/config';
 import { type FC, useCallback } from 'react';
-import { useHeroAnimation } from '../../hooks/useHeroAnimation';
 
 /**
  * Props for the HeroContent component.

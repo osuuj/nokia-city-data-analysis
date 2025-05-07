@@ -7,6 +7,6 @@
 export { projectsData } from './sampleProjects';
 
 // Re-export hooks from the hooks directory to maintain backwards compatibility
-export { useProjects, useProject } from '../hooks/useProjects';
+export { useProject, useProjects } from '../hooks/useProjects';
 
 // Add data fetching functions here as they are created

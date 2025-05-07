@@ -13,9 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { VirtualizedTable } from './VirtualizedTable';
 import { TableToolbar } from './toolbar/TableToolbar';
 

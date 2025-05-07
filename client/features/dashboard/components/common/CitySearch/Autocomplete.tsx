@@ -6,7 +6,7 @@ import {
   Autocomplete as HeroUIAutocomplete,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React, { useMemo, useCallback, type ReactNode } from 'react';
+import React, { useCallback, useMemo, type ReactNode } from 'react';
 
 // Define the city item type
 interface CityItem {

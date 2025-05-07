@@ -3,8 +3,8 @@
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { memo, useEffect, useState } from 'react';
 import type React from 'react';
+import { memo, useEffect, useState } from 'react';
 
 interface ContactInfoProps {
   email: string;

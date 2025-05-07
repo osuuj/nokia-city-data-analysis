@@ -4,7 +4,7 @@
  * This file exports UI components for the contact feature.
  */
 
-export * from './TeamMemberCard';
+export * from './ClientContactContent';
 export * from './ContactInfo';
 export * from './ContactPageSkeleton';
-export * from './ClientContactContent';
+export * from './TeamMemberCard';

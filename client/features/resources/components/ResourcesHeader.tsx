@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function ResourcesHeader() {
   return (
     <div className="text-center mb-10">

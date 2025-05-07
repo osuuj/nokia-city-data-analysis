@@ -1,4 +1,4 @@
-import type { CheckboxProps, PopoverProps, RadioProps } from '@heroui/react';
+import type { CheckboxProps, PopoverProps } from '@heroui/react';
 
 /**
  * Enum representing all supported filter types in the UI.

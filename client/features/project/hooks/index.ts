@@ -6,4 +6,4 @@
 
 // Add hooks here as they are created
 
-export { useProjects, useProject } from './useProjects';
+export { useProject, useProjects } from './useProjects';

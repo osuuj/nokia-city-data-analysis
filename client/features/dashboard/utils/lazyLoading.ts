@@ -3,8 +3,8 @@
  * Pure utility functions for lazy loading components without JSX
  */
 
-import { lazy } from 'react';
 import type { ComponentType } from 'react';
+import { lazy } from 'react';
 
 /**
  * Configuration for lazy loading a component

@@ -6,8 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // Updated imports with correct paths
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
-import type { FilterOption } from '@/features/dashboard/types/filters';
-import type { Filter } from '@/features/dashboard/types/filters';
+import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import type { ToolbarProps } from '@/features/dashboard/types/table';
 import { filters } from '@/features/dashboard/utils/filters';
 

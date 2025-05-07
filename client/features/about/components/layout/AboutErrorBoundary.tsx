@@ -1,5 +1,4 @@
-import { ErrorBoundary } from '@/shared/components/error';
-import { ErrorMessage } from '@/shared/components/error';
+import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import type { PropsWithChildren } from 'react';
 
 /**

@@ -5,7 +5,6 @@ import { juusoData } from '@/features/about/data/juusoData';
 import { Avatar, Button, Card, CardBody, Link, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function JuusoHero() {
   return (

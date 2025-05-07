@@ -6,7 +6,7 @@ import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './mobile.css';
 
 // Break down the component for better code splitting

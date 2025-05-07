@@ -1,7 +1,6 @@
 import { CACHE_OPTIMIZATION, CACHE_RULES, CACHE_TIMES } from '@/features/project/config/cache';
 import { useQuery } from '@tanstack/react-query';
 import { teamMembers } from '../data';
-import type { TeamMemberProfile } from '../types';
 
 // Define query keys for better cache management
 export const teamKeys = {

@@ -12,7 +12,7 @@
 
 // Export all modules directly to avoid duplication
 export * from './components';
-export * from './hooks';
-export * from './types';
 export * from './config';
 export * from './data';
+export * from './hooks';
+export * from './types';

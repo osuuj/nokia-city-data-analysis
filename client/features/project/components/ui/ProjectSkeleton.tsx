@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, CardFooter, CardHeader, Chip, Skeleton } from '@heroui/react';
+import { Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
 import { memo, useEffect, useState } from 'react';
 
 /**

@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardBody, Skeleton } from '@heroui/react';
-import React from 'react';
 
 /**
  * A lightweight skeleton loading state for the contact page

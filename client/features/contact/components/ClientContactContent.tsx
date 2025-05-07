@@ -4,7 +4,7 @@ import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
 import { ContactPageSkeleton } from '@/features/contact/components/ContactPageSkeleton';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // Types for team member data
 interface SocialLink {

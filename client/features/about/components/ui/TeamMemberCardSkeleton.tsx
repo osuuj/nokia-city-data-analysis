@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
-import React from 'react';
 
 export function TeamMemberCardSkeleton() {
   return (

@@ -5,7 +5,6 @@ import { TimelineItem } from '@/features/project/components/ui/TimelineItem';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function KassuExperience() {
   return (

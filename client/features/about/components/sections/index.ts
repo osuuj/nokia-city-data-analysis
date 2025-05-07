@@ -9,17 +9,17 @@ export * from './AboutStory';
 export * from './AboutTeam';
 
 // Juuso profile sections
-export * from './JuusoHero';
-export * from './JuusoSkills';
-export * from './JuusoExperience';
-export * from './JuusoProjects';
-export * from './JuusoTestimonials';
 export * from './JuusoContact';
+export * from './JuusoExperience';
+export * from './JuusoHero';
+export * from './JuusoProjects';
+export * from './JuusoSkills';
+export * from './JuusoTestimonials';
 
 // Kassu profile sections
-export * from './KassuHero';
-export * from './KassuSkills';
-export * from './KassuExperience';
-export * from './KassuProjects';
-export * from './KassuTestimonials';
 export * from './KassuContact';
+export * from './KassuExperience';
+export * from './KassuHero';
+export * from './KassuProjects';
+export * from './KassuSkills';
+export * from './KassuTestimonials';

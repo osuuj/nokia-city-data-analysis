@@ -1,6 +1,6 @@
 import { useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { Tooltip } from '@heroui/react';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Cell,
   Legend,

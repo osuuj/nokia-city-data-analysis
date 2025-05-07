@@ -7,7 +7,7 @@ import { filters } from '@/features/dashboard/utils/filters';
 import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
 import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
 import { CheckboxGroup, Divider, Switch, Tooltip } from '@heroui/react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DistanceSlider } from './DistanceSlider';
 import { PopoverFilterWrapper } from './PopoverFilterWrapper';
 import { TagGroupItem } from './TagGroupItem';

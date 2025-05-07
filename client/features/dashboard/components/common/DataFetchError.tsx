@@ -1,6 +1,5 @@
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { Button } from '@heroui/react';
-import { Card } from '@heroui/react';
+import { Button, Card } from '@heroui/react';
 import type React from 'react';
 import { useEffect } from 'react';
 import type { DashboardError, ErrorWithStatus } from '../../types/error';
@@ -65,6 +64,10 @@ export const DataFetchError: React.FC<DataFetchErrorProps> = ({
   const errorWithDetails = error as ErrorWithStatus;
   const hasDetails = 'details' in error || errorWithDetails.details !== undefined;
 
+  // Format details as JSON string if they exist
+  const formattedDetails =
+    hasDetails && errorWithDetails.details ? JSON.stringify(errorWithDetails.details, null, 2) : '';
+
   return (
     <FadeIn duration={0.3}>
       <ErrorShake>
@@ -77,9 +80,9 @@ export const DataFetchError: React.FC<DataFetchErrorProps> = ({
               <h3 className="text-sm font-medium text-red-800">Error loading data</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>{error.message}</p>
-                {hasDetails && errorWithDetails.details && (
+                {hasDetails && formattedDetails && (
                   <pre className="mt-2 overflow-auto rounded bg-red-100 p-2 text-xs">
-                    {JSON.stringify(errorWithDetails.details, null, 2)}
+                    {formattedDetails}
                   </pre>
                 )}
               </div>

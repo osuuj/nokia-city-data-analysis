@@ -3,7 +3,7 @@
 import { Button, Card, CardBody } from '@heroui/react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Suspense, memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import type { Resource } from '../types';
 
 // Lazy load the Icon component to reduce initial load time

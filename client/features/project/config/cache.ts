@@ -1,5 +1,4 @@
 import { QueryClient } from '@tanstack/react-query';
-import { ProjectStatus } from '../types';
 
 /**
  * Cache time presets for different types of data

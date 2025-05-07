@@ -2,8 +2,7 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
 import { Checkbox } from '@heroui/react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // Constants for virtualization optimization
 const ROW_HEIGHT = 48; // Fixed row height for consistent calculations

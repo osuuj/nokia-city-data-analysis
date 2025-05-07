@@ -3,7 +3,7 @@
 import { CityAutocomplete } from '@/features/dashboard/components/common/CitySearch/Autocomplete';
 import { useCitySearch } from '@/features/dashboard/hooks/useCitySearch';
 import { Icon } from '@iconify/react';
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 interface CitySearchProps {
   /** List of cities to display in the autocomplete */

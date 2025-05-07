@@ -3,7 +3,6 @@
 import { TestimonialCard } from '@/features/about/components/ui';
 import { kassuData } from '@/features/about/data/kassuData';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function KassuTestimonials() {
   return (

@@ -1,10 +1,9 @@
 'use client';
 
 import { kassuData } from '@/features/about/data/kassuData';
-import { Button, Link } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function KassuContact() {
   return (

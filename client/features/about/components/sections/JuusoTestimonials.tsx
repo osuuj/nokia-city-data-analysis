@@ -3,7 +3,6 @@
 import { TestimonialCard } from '@/features/about/components/ui';
 import { juusoData } from '@/features/about/data/juusoData';
 import { motion } from 'framer-motion';
-import React from 'react';
 
 export function JuusoTestimonials() {
   return (

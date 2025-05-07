@@ -1,4 +1,3 @@
-import { cn } from '@/shared/utils/cn';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';

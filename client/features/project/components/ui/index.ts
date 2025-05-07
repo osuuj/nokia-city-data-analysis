@@ -1,8 +1,8 @@
 export { default as GalleryViewer } from './GalleryViewer';
-export { default as TechStackShowcase } from './TechStackShowcase';
-export { default as TimelineSection } from './TimelineSection';
-export { ProjectGridSkeleton, ProjectDetailSkeleton } from './ProjectSkeleton';
+export { ProjectCallToAction } from './ProjectCallToAction';
 export { ProjectDetailHero } from './ProjectDetailHero';
 export { ProjectOverview } from './ProjectOverview';
-export { ProjectCallToAction } from './ProjectCallToAction';
+export { ProjectDetailSkeleton, ProjectGridSkeleton } from './ProjectSkeleton';
 export { ProjectTeamSection } from './ProjectTeamSection';
+export { default as TechStackShowcase } from './TechStackShowcase';
+export { default as TimelineSection } from './TimelineSection';

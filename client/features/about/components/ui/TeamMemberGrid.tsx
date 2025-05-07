@@ -2,7 +2,6 @@
 
 import type { TeamMember } from '@/features/about/types';
 import { motion } from 'framer-motion';
-import React from 'react';
 import { TeamMemberCard } from './TeamMemberCard';
 
 interface TeamMemberGridProps {

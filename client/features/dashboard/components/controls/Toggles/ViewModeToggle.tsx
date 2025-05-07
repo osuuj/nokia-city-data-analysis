@@ -3,16 +3,7 @@
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui';
 import { logger } from '@/shared/utils/logger';
-import {
-  Button,
-  ButtonGroup,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tab,
-  Tabs,
-  Tooltip,
-} from '@heroui/react';
+import { Button, ButtonGroup, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { siteConfig } from '@shared/config/site';
 import { GithubIcon } from '@shared/icons';

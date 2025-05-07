@@ -5,6 +5,6 @@
  */
 
 export { Hero, HeroWithSuspense } from './Hero';
-export { HeroSkeleton } from './HeroSkeleton';
 export { HeroContent } from './HeroContent';
+export { HeroSkeleton } from './HeroSkeleton';
 export { HeroVideo } from './HeroVideo';

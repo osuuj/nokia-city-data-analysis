@@ -18,7 +18,7 @@ import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 // Default rows per page
 const DEFAULT_PAGE_SIZE = 20;

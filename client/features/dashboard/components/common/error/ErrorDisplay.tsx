@@ -2,7 +2,6 @@
 
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import React from 'react';
 
 interface ErrorDisplayProps {
   /** The error message to display */
