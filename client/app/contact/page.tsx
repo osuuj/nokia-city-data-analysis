@@ -1,7 +1,7 @@
 import ContactLoadingSkeleton from '@/features/contact/components/ContactLoadingSkeleton';
 import { Suspense } from 'react';
 // Server Component
-import ContactPageWrapper from './contact-client';
+import ContactPageWrapper from '../../features/contact/components/ContactPageWrapper';
 
 // Add explicit metadata export for better SEO
 export const metadata = {
