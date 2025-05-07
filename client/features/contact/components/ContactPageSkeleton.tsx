@@ -1,36 +1,17 @@
 'use client';
 
+import { AnimatedBackgroundSkeleton } from '@/shared/components/loading';
 import { Card, CardBody, Skeleton } from '@heroui/react';
 
 /**
+ * @deprecated - Use shared skeleton components directly in the future
  * A lightweight skeleton loading state for the contact page
- * Uses the Card components with styling matching the final cards in the contact page
+ * Uses AnimatedBackgroundSkeleton for consistent gradient animation
  */
 export function ContactPageSkeleton() {
-  // Use the same colors as AnimatedBackground
-  const lightGradientStart = 'rgba(240, 240, 255, 0.7)';
-  const lightGradientEnd = 'rgba(255, 255, 255, 0.5)';
-  // Dark theme colors
-  const darkGradientStart = 'rgba(50, 50, 80, 0.5)';
-  const darkGradientEnd = 'rgba(30, 30, 60, 0.3)';
-
   return (
-    <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
-      {/* Background with gradient that exactly matches AnimatedBackground */}
-      <div
-        className="fixed inset-0 z-0 dark:hidden"
-        style={{
-          backgroundImage: `radial-gradient(circle at 50% 50%, ${lightGradientStart}, ${lightGradientEnd})`,
-        }}
-      />
-      <div
-        className="fixed inset-0 z-0 hidden dark:block"
-        style={{
-          backgroundImage: `radial-gradient(circle at 50% 50%, ${darkGradientStart}, ${darkGradientEnd})`,
-        }}
-      />
-
-      <div className="relative z-10 max-w-5xl mx-auto">
+    <AnimatedBackgroundSkeleton>
+      <div className="px-4 py-8 md:px-6">
         {/* Header skeleton with shimmer effect */}
         <Skeleton className="h-10 w-48 mx-auto mb-12 rounded-md" />
 
@@ -77,6 +58,6 @@ export function ContactPageSkeleton() {
           </CardBody>
         </Card>
       </div>
-    </div>
+    </AnimatedBackgroundSkeleton>
   );
 }

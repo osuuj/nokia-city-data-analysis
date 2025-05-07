@@ -2,9 +2,10 @@
 
 import { FeatureErrorBoundary } from '@/shared/components/error';
 import { ErrorDisplay } from '@/shared/components/error';
+import { ChartSkeleton } from '@/shared/components/loading';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
-import { AnalyticsSkeleton, SectionSkeleton } from '../../../components/common/loading/Skeletons';
+import { SectionSkeleton } from '../../../components/common/loading/Skeletons';
 import type {
   CompanyProperties,
   SortDescriptor,
@@ -144,7 +145,7 @@ function ViewSwitcherBase({
         featureName="AnalyticsView"
         fallback={<ErrorDisplay message="Could not load Analytics View" showDetails={true} />}
       >
-        <Suspense fallback={<AnalyticsSkeleton type="distribution" />}>
+        <Suspense fallback={<ChartSkeleton chartType="distribution" height="h-[400px]" />}>
           <AnalyticsView />
         </Suspense>
       </FeatureErrorBoundary>

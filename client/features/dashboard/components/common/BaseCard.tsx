@@ -1,9 +1,9 @@
 'use client';
 
+import { ChartSkeleton } from '@/shared/components/loading';
 import { cn } from '@/shared/utils/cn';
 import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
 import React from 'react';
-import { AnalyticsSkeleton } from './loading';
 
 export interface BaseCardProps {
   /** Title of the card */
@@ -31,7 +31,7 @@ export interface BaseCardProps {
   /** Whether to show the divider between header and body */
   showDivider?: boolean;
   /** The type of analytics card */
-  analyticsType?: 'distribution' | 'comparison' | 'trends';
+  analyticsType?: 'distribution' | 'comparison' | 'trends' | 'pieChart' | 'barChart';
 }
 
 /**
@@ -93,13 +93,31 @@ export const BaseCard = React.memo<BaseCardProps>(
     const defaultBodyClass =
       'px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center';
 
+    // Map analytics type to chart type
+    const getChartType = () => {
+      switch (analyticsType) {
+        case 'distribution':
+          return 'distribution';
+        case 'comparison':
+          return 'comparison';
+        case 'trends':
+          return 'line';
+        case 'pieChart':
+          return 'pie';
+        case 'barChart':
+          return 'bar';
+        default:
+          return 'bar';
+      }
+    };
+
     const renderContent = () => {
       if (isLoading) {
         if (loadingComponent) {
           return loadingComponent;
         }
         if (analyticsType) {
-          return <AnalyticsSkeleton type={analyticsType} />;
+          return <ChartSkeleton chartType={getChartType()} height="h-[300px]" showTitle={false} />;
         }
         return (
           <div className="animate-pulse space-y-4 w-full">

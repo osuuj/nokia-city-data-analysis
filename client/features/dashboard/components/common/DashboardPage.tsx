@@ -1,6 +1,5 @@
 'use client';
 
-import { DashboardErrorBoundary } from '@/features/dashboard/components/common/error';
 import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';

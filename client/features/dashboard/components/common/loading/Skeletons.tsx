@@ -17,6 +17,10 @@ const SKELETON_KEYS = {
 };
 
 // Types
+/**
+ * Types of dashboard sections for skeleton loaders
+ * @deprecated - Consider using shared components from @/shared/components/loading
+ */
 export type DashboardSectionType =
   | 'header'
   | 'map'
@@ -26,6 +30,10 @@ export type DashboardSectionType =
   | 'analytics'
   | 'all';
 
+/**
+ * Types of analytics cards for skeleton loaders
+ * @deprecated - Consider using shared components from @/shared/components/loading
+ */
 export type AnalyticsCardType =
   | 'distribution'
   | 'comparison'
@@ -35,16 +43,25 @@ export type AnalyticsCardType =
   | 'barChart';
 
 // Props interfaces
+/**
+ * @deprecated - Consider using shared components from @/shared/components/loading
+ */
 interface BaseSkeleton {
   className?: string;
 }
 
+/**
+ * @deprecated - Consider using shared components from @/shared/components/loading
+ */
 interface SectionSkeletonProps extends BaseSkeleton {
   section: DashboardSectionType;
   message?: string;
   children?: ReactNode;
 }
 
+/**
+ * @deprecated - Consider using shared components from @/shared/components/loading
+ */
 interface AnalyticsSkeletonProps extends BaseSkeleton {
   type: AnalyticsCardType;
 }
@@ -52,6 +69,8 @@ interface AnalyticsSkeletonProps extends BaseSkeleton {
 /**
  * DashboardSkeleton
  * Skeleton loader for the entire dashboard view
+ *
+ * @deprecated - Consider using HeaderSectionSkeleton and other components from @/shared/components/loading
  */
 export function DashboardSkeleton() {
   return (
@@ -86,6 +105,8 @@ export function DashboardSkeleton() {
 /**
  * SectionSkeleton
  * Skeleton loader for a specific dashboard section
+ *
+ * @deprecated - Use HeaderSectionSkeleton from @/shared/components/loading instead
  */
 export function SectionSkeleton({ section, className, message, children }: SectionSkeletonProps) {
   // Determine height based on section
@@ -132,6 +153,8 @@ export function SectionSkeleton({ section, className, message, children }: Secti
 /**
  * TableSkeleton component to show a loading state for table data
  * @param rows Number of skeleton rows to display
+ *
+ * @deprecated - Consider creating a shared TableSkeleton component in @/shared/components/loading
  */
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
@@ -175,6 +198,8 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 /**
  * MapSkeleton component to show a loading state for the map view
+ *
+ * @deprecated - Consider creating a shared MapSkeleton component in @/shared/components/loading
  */
 export function MapSkeleton() {
   return (
@@ -196,6 +221,8 @@ export function MapSkeleton() {
 /**
  * AnalyticsSkeleton component to show a loading state for analytics
  * @param type The type of analytics visualization to show a skeleton for
+ *
+ * @deprecated - Consider creating shared analytics skeleton components in @/shared/components/loading
  */
 export function AnalyticsSkeleton({ type = 'distribution', className }: AnalyticsSkeletonProps) {
   if (type === 'comparison' || type === 'cityComparison') {
@@ -329,7 +356,8 @@ export function AnalyticsSkeleton({ type = 'distribution', className }: Analytic
 
 /**
  * AnalyticsDashboardSkeleton
- * Shows loading state for analytics dashboard with multiple card types
+ *
+ * @deprecated - Consider using shared components from @/shared/components/loading
  */
 export function AnalyticsDashboardSkeleton() {
   return (
@@ -349,11 +377,16 @@ export function AnalyticsDashboardSkeleton() {
 
 /**
  * Skeleton for a section in the dashboard
+ *
+ * @deprecated - Consider using shared components from @/shared/components/loading
  */
 export function SectionLoader({
   height = 'h-[400px]',
   type = 'default',
-}: { height?: string; type?: string }) {
+}: {
+  height?: string;
+  type?: string;
+}) {
   return (
     <div
       className={`flex items-center justify-center w-full ${height} bg-default-50 dark:bg-default-50/5 rounded-lg animate-pulse`}
