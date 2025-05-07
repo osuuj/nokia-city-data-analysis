@@ -1,6 +1,7 @@
 'use client';
 
 import { useBreadcrumb } from '@/shared/context';
+import { capitalizeFirst, formatLabel } from '@/shared/utils/formatting';
 import {
   BreadcrumbItem as HeroBreadcrumbItem,
   Breadcrumbs as HeroBreadcrumbs,
@@ -158,18 +159,12 @@ function getDefaultBreadcrumbItems(pathname: string, currentPageTitle?: string):
         // Use the current page title if available, otherwise use a placeholder
         items.push({ label: currentPageTitle || 'Project Details' });
       } else {
-        // Format the label (capitalize first letter, replace hyphens with spaces)
-        const formattedLabel = segment
-          .split('-')
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-
-        items.push({ label: formattedLabel });
+        // Use shared utility to format the label
+        items.push({ label: formatLabel(segment) });
       }
     } else {
       // For intermediate segments, capitalize and add href
-      const formattedLabel = segment.charAt(0).toUpperCase() + segment.slice(1);
-      items.push({ label: formattedLabel, href: currentPath });
+      items.push({ label: capitalizeFirst(segment), href: currentPath });
     }
   });
 

@@ -7,6 +7,5 @@
 export { AnimatedSkillBar } from './AnimatedSkillBar';
 export { default as AnimatedText } from './AnimatedText';
 export { TeamMemberCard } from './TeamMemberCard';
-export { TeamMemberCardSkeleton } from './TeamMemberCardSkeleton';
 export { TeamMemberGrid } from './TeamMemberGrid';
 export { TestimonialCard } from './TestimonialCard';

@@ -1,4 +1,4 @@
-import { ContactPageSkeleton } from '@/features/contact/components';
+import ContactLoadingSkeleton from '@/features/contact/components/ContactLoadingSkeleton';
 import { Suspense } from 'react';
 // Server Component
 import ContactPageWrapper from './contact-client';
@@ -60,7 +60,7 @@ const teamMembers = [
  */
 export default function ContactPage() {
   return (
-    <Suspense fallback={<ContactPageSkeleton />}>
+    <Suspense fallback={<ContactLoadingSkeleton />}>
       <ContactPageWrapper
         teamMembers={teamMembers}
         email="team@nokiacitydata.com"

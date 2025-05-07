@@ -1,5 +1,6 @@
-import { TeamMemberCard, TeamMemberCardSkeleton } from '@/features/about/components';
+import { TeamMemberCard } from '@/features/about/components';
 import { useTeamMembers } from '@/features/about/hooks';
+import { BasicCardSkeleton } from '@/shared/components/loading';
 
 /**
  * Component that displays the team members section of the About page.
@@ -13,8 +14,18 @@ export function AboutTeam() {
       <div className="grid md:grid-cols-2 gap-6">
         {isLoading ? (
           <>
-            <TeamMemberCardSkeleton />
-            <TeamMemberCardSkeleton />
+            <BasicCardSkeleton
+              withImage={true}
+              withFooter={true}
+              descriptionLines={3}
+              tagCount={3}
+            />
+            <BasicCardSkeleton
+              withImage={true}
+              withFooter={true}
+              descriptionLines={3}
+              tagCount={3}
+            />
           </>
         ) : error ? (
           <div className="col-span-2 text-center text-danger">

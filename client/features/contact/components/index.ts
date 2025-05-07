@@ -6,5 +6,5 @@
 
 export * from './ClientContactContent';
 export * from './ContactInfo';
-export * from './ContactPageSkeleton';
 export * from './TeamMemberCard';
+export { default as ContactLoadingSkeleton } from './ContactLoadingSkeleton';

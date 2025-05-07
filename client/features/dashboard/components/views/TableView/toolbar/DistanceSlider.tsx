@@ -1,7 +1,7 @@
 'use client';
 
 import type { DistanceSliderProps } from '@/features/dashboard/types/filters';
-import { clampValue } from '@/features/dashboard/utils/number';
+import { clamp } from '@/shared/utils/math';
 import { Input, Slider, cn } from '@heroui/react';
 import React, { useCallback, useMemo } from 'react';
 
@@ -10,7 +10,7 @@ const DistanceSliderPip: React.FC<{ index: number; totalPips: number; isInRange:
   totalPips,
   isInRange,
 }) => {
-  const height = `${clampValue((index / totalPips) * 100, 0, 100)}%`;
+  const height = `${clamp((index / totalPips) * 100, 0, 100)}%`;
 
   return (
     <span
@@ -50,7 +50,7 @@ export const DistanceSlider = React.forwardRef<HTMLDivElement, DistanceSliderPro
       (inputValue: string) => {
         const newValue = Number(inputValue);
         if (!Number.isNaN(newValue)) {
-          onChange(clampValue(newValue, minValue, maxValue));
+          onChange(clamp(newValue, minValue, maxValue));
         }
       },
       [onChange, minValue, maxValue],
