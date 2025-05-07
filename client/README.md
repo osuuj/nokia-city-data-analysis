@@ -46,6 +46,35 @@ client/
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Logging
+
+The application uses a centralized logger utility (`shared/utils/logger.ts`) that automatically disables debug and info logs in production.
+
+- In development: All logs are displayed
+- In production: Only warnings and errors are shown
+
+### Enabling Debug Logs in Production
+
+To enable debug logs in production for troubleshooting, add the following to your `.env` file:
+
+```
+NEXT_PUBLIC_DEBUG_MODE=true
+```
+
+### Usage
+
+Replace direct console logs with the logger utility:
+
+```typescript
+import { logger } from '@/shared/utils/logger';
+
+// Different log levels
+logger.debug('Detailed information for debugging');
+logger.info('Informational messages');
+logger.warn('Warning messages');
+logger.error('Error messages', errorObject);
+```
+
 ## Key Technologies
 
 - Next.js 14 (App Router)

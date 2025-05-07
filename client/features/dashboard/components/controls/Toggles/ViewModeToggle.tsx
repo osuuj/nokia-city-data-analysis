@@ -2,6 +2,7 @@
 
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { ThemeSwitch } from '@/shared/components/ui';
+import { logger } from '@/shared/utils/logger';
 import {
   Button,
   ButtonGroup,
@@ -57,14 +58,14 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
   // Create a directly callable function that handles both prefetching and view mode setting
   const handleViewModeChange = useCallback(
     (mode: ViewMode) => {
-      console.log(`Changing view mode to: ${mode} (current: ${viewMode})`);
+      logger.debug(`Changing view mode to: ${mode} (current: ${viewMode})`);
 
       // Only process if the mode is different
       if (mode !== viewMode) {
         // Prefetch data if available
         if (fetchViewData) {
           fetchViewData(mode).catch((error) => {
-            console.error(`Error prefetching data for ${mode} view:`, error);
+            logger.error(`Error prefetching data for ${mode} view:`, error);
           });
         }
 
@@ -80,7 +81,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     (mode: ViewMode) => {
       if (fetchViewData && mode !== viewMode) {
         fetchViewData(mode).catch((error) => {
-          console.error(`Error prefetching data for ${mode} view:`, error);
+          logger.error(`Error prefetching data for ${mode} view:`, error);
         });
       }
     },
@@ -126,10 +127,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onMouseEnter={() => handlePrefetch('table')}
       >
         <Icon icon="lucide:list" className="mr-1" />
-        Table
+        {!isMobile && 'Table'}
       </Button>
     ),
-    [viewMode, handleViewModeChange, handlePrefetch],
+    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
   );
 
   const MapButton = useMemo(
@@ -140,10 +141,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onMouseEnter={() => handlePrefetch('map')}
       >
         <Icon icon="lucide:map" className="mr-1" />
-        Map
+        {!isMobile && 'Map'}
       </Button>
     ),
-    [viewMode, handleViewModeChange, handlePrefetch],
+    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
   );
 
   const SplitButton = useMemo(
@@ -154,10 +155,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onMouseEnter={() => handlePrefetch('split')}
       >
         <Icon icon="lucide:layout-dashboard" className="mr-1" />
-        Split
+        {!isMobile && 'Split'}
       </Button>
     ),
-    [viewMode, handleViewModeChange, handlePrefetch],
+    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
   );
 
   const AnalyticsButton = useMemo(
@@ -168,10 +169,10 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
         onMouseEnter={() => handlePrefetch('analytics')}
       >
         <Icon icon="lucide:bar-chart-2" className="mr-1" />
-        Analytics
+        {!isMobile && 'Analytics'}
       </Button>
     ),
-    [viewMode, handleViewModeChange, handlePrefetch],
+    [viewMode, handleViewModeChange, handlePrefetch, isMobile],
   );
 
   // If not mounted yet, show a placeholder to avoid hydration mismatch

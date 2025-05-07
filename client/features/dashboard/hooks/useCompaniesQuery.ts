@@ -1,6 +1,7 @@
 'use client';
 
 import type { CompanyProperties } from '@/features/dashboard/types/business';
+import { logger } from '@/shared/utils/logger';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 
@@ -25,15 +26,12 @@ const EMPTY_GEOJSON: FeatureCollection<Point, CompanyProperties> = {
  */
 const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
   if (!city) {
-    console.warn('⚠️ City is empty, skipping fetch.');
+    logger.warn('City is empty, skipping fetch.');
     return [];
   }
 
-  console.log(
-    '📡 Fetching companies from:',
-    city,
-    'using URL:',
-    `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
+  logger.info(
+    `Fetching companies from: ${city} using URL: ${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
   );
 
   try {
@@ -57,12 +55,12 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
       }
 
       const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
-      console.log('✅ Companies fetched:', geojsonData);
+      logger.info('Companies fetched:', geojsonData);
 
       // Extract company properties from GeoJSON features
       return geojsonData.features.map((feature) => feature.properties);
     } catch (apiError) {
-      console.error('❌ Error with primary API endpoint:', apiError);
+      logger.error('Error with primary API endpoint:', apiError);
 
       // As fallback, try explicit localhost URL if BASE_URL was something different
       if (BASE_URL !== 'http://localhost:8000') {
@@ -79,22 +77,22 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
 
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
-            console.log('✅ Companies fetched from fallback URL:', fallbackData);
+            logger.info('Companies fetched from fallback URL:', fallbackData);
             return fallbackData.features.map(
               (feature: Feature<Point, CompanyProperties>) => feature.properties,
             );
           }
         } catch (fallbackError) {
-          console.error('❌ Fallback API also failed:', fallbackError);
+          logger.error('Fallback API also failed:', fallbackError);
         }
       }
 
       // If all API attempts fail, return empty array but don't break the app
-      console.warn('⚠️ Returning empty companies array as fallback');
+      logger.warn('Returning empty companies array as fallback');
       return [];
     }
   } catch (error) {
-    console.error('❌ Critical error fetching companies:', error);
+    logger.error('Critical error fetching companies:', error);
     // Don't throw, just return empty array to prevent app from breaking
     return [];
   }
@@ -107,7 +105,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  console.log('📡 Fetching cities from URL:', `${BASE_URL}/api/v1/cities`);
+  logger.info(`Fetching cities from URL: ${BASE_URL}/api/v1/cities`);
 
   try {
     // First try using the configured API URL
@@ -127,10 +125,10 @@ const fetchCities = async (): Promise<string[]> => {
       }
 
       const cities = await response.json();
-      console.log('✅ Cities fetched:', cities);
+      logger.info('Cities fetched:', cities);
       return cities;
     } catch (apiError) {
-      console.error('❌ API error fetching cities:', apiError);
+      logger.error('API error fetching cities:', apiError);
 
       // Try fallback localhost URL if BASE_URL was something different
       if (BASE_URL !== 'http://localhost:8000') {
@@ -144,20 +142,20 @@ const fetchCities = async (): Promise<string[]> => {
 
           if (fallbackResponse.ok) {
             const fallbackCities = await fallbackResponse.json();
-            console.log('✅ Cities fetched from fallback URL:', fallbackCities);
+            logger.info('Cities fetched from fallback URL:', fallbackCities);
             return fallbackCities;
           }
         } catch (fallbackError) {
-          console.error('❌ Fallback API also failed:', fallbackError);
+          logger.error('Fallback API also failed:', fallbackError);
         }
       }
 
       // Return hardcoded fallback cities
-      console.warn('⚠️ Returning fallback cities list');
+      logger.warn('Returning fallback cities list');
       return FALLBACK_CITIES;
     }
   } catch (error) {
-    console.error('❌ Critical error fetching cities:', error);
+    logger.error('Critical error fetching cities:', error);
     // Return fallback data instead of throwing
     return FALLBACK_CITIES;
   }

@@ -71,12 +71,25 @@ export function TableView({
   // Local state for toolbar components
   const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
 
   // To avoid hydration errors, we'll mount the table only on client-side
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Check if we're on mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   // Filter columns to only show visible ones from the store
@@ -145,29 +158,36 @@ export function TableView({
   // Memoize pagination controls container to prevent re-renders
   const paginationControls = useMemo(() => {
     return (
-      <div className="flex flex-wrap md:flex-nowrap items-center mt-4 px-2">
-        {/* Information about page size */}
-        <div className="w-1/4 text-xs text-default-500">Showing {pageSize} rows per page</div>
+      <div className="flex flex-col sm:flex-row items-center mt-4 px-2 gap-2">
+        {/* Information about page size - full width on mobile, 1/4 on larger screens */}
+        <div className="w-full sm:w-1/4 text-xs text-default-500 text-center sm:text-left whitespace-nowrap">
+          Showing {pageSize} rows per page
+        </div>
 
         {/* Centered pagination */}
-        <div className="flex justify-center flex-1">
+        <div className="flex justify-center w-full sm:flex-1">
           <MemoizedPagination
             total={totalPages}
             initialPage={currentPage}
             page={currentPage}
             onChange={onPageChange}
             showControls
+            size="sm"
+            siblings={isMobile ? 0 : 1}
+            boundaries={isMobile ? 0 : 1}
+            className="overflow-x-auto sm:overflow-visible"
             classNames={{
               cursor: 'bg-primary text-white',
+              item: 'text-xs sm:text-sm',
             }}
           />
         </div>
 
-        {/* Empty div to balance the layout */}
-        <div className="w-1/4" />
+        {/* Empty div to balance the layout - hidden on mobile */}
+        <div className="hidden sm:block sm:w-1/4" />
       </div>
     );
-  }, [currentPage, totalPages, onPageChange, pageSize]);
+  }, [currentPage, totalPages, onPageChange, pageSize, isMobile]);
 
   // Render standard table with memoization
   const standardTable = useMemo(() => {
@@ -178,6 +198,8 @@ export function TableView({
         classNames={{
           base: 'max-h-[600px]',
           table: 'min-h-[400px]',
+          th: 'text-xs md:text-sm',
+          td: 'text-xs md:text-sm',
         }}
         selectionMode="multiple"
         selectedKeys={selectedKeys}

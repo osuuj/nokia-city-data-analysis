@@ -5,6 +5,7 @@ import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
+import { logger } from '@/shared/utils/logger';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -111,7 +112,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         return;
       }
 
-      console.log('[Click] Set activeFeature:', clicked.properties.company_name);
+      logger.debug('[Click] Set activeFeature:', clicked.properties.company_name);
       setSelectedFeatures(features);
       setActiveFeature(clicked);
     } else {
@@ -129,7 +130,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
     return () => {
       // This cleanup function runs when component unmounts
-      console.log('MapView unmounting, preserving data state', {
+      logger.debug('MapView unmounting, preserving data state', {
         features: filteredGeojson?.features.length ?? 0,
         selectedFeatures: selectedFeatures.length,
         hasActiveFeature: !!activeFeature,
@@ -147,14 +148,14 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
   // Handle map load event with improved error handling
   const handleMapLoad = useCallback(() => {
-    console.log('Map loaded event fired', {
+    logger.debug('Map loaded event fired', {
       cachedData: !!dataCache.current.geojson,
       selectedMarkers: dataCache.current.markers?.length ?? 0,
     });
     const map = mapRef.current?.getMap();
 
     if (!map) {
-      console.error('Map reference not available');
+      logger.error('Map reference not available');
       return;
     }
 
@@ -163,7 +164,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
     // Add style.load listener with proper error handling
     const onStyleLoad = () => {
-      console.log('Map style.load event fired');
+      logger.debug('Map style.load event fired');
       try {
         // Set mapLoaded to true immediately to trigger data reload
         setMapLoaded(true);
@@ -171,7 +172,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         // Restore selected features if available in cache
         if (dataCache.current.markers && dataCache.current.markers.length > 0) {
           setTimeout(() => {
-            console.log('Restoring selected features after style load');
+            logger.debug('Restoring selected features after style load');
             // Fix non-null assertion with proper null check
             const cachedMarkers = dataCache.current.markers;
             if (cachedMarkers) {
@@ -184,7 +185,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           }, 100);
         }
       } catch (error) {
-        console.error('Error in style.load handler:', error);
+        logger.error('Error in style.load handler:', error);
       }
     };
 
@@ -192,10 +193,10 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
     // If the style is already loaded, trigger immediately
     if (map.isStyleLoaded()) {
-      console.log('Style already loaded, setting mapLoaded = true immediately');
+      logger.debug('Style already loaded, setting mapLoaded = true immediately');
       setMapLoaded(true);
     } else {
-      console.log('Style not yet loaded, waiting for style.load event');
+      logger.debug('Style not yet loaded, waiting for style.load event');
     }
   }, [activeFeature]);
 
@@ -204,7 +205,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     return () => {
       const map = mapRef.current?.getMap();
       if (map) {
-        console.log('Cleaning up map event listeners');
+        logger.debug('Cleaning up map event listeners');
         map.off('style.load', () => {});
       }
     };
@@ -213,7 +214,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   // Create a handler for theme changes from the wrapper
   const handleMapThemeChange = useCallback(
     (newIsDark: boolean) => {
-      console.log('Map received theme change notification:', newIsDark, {
+      logger.debug('Map received theme change notification:', newIsDark, {
         dataPresent: !!dataCache.current.geojson,
         featureCount: dataCache.current.geojson?.features.length ?? 0,
       });
@@ -232,7 +233,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       // Add a longer timeout to ensure style is fully loaded first
       const reloadTimer = setTimeout(() => {
         if (mapRef.current?.getMap()) {
-          console.log('Reloading map sources after theme change with cached data', {
+          logger.debug('Reloading map sources after theme change with cached data', {
             dataPresent: !!dataCache.current.geojson,
             featureCount: dataCache.current.geojson?.features.length ?? 0,
           });
@@ -242,7 +243,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
           // Then restore any selected features if they were previously selected
           if (dataCache.current.markers && dataCache.current.markers.length > 0) {
-            console.log('Restoring selected features from cache', {
+            logger.debug('Restoring selected features from cache', {
               count: dataCache.current.markers.length,
             });
             const cachedMarkers = dataCache.current.markers;
@@ -266,18 +267,18 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
 
-    console.log('Attempting to update map sources and layers', {
+    logger.debug('Attempting to update map sources and layers', {
       isStyleLoaded: map.isStyleLoaded(),
       hasMarkers: filteredGeojson.features.length,
     });
 
     // Check if the style is loaded before adding sources
     if (!map.isStyleLoaded()) {
-      console.log('Map style is not loaded yet, waiting...');
+      logger.debug('Map style is not loaded yet, waiting...');
 
       // Wait for the style to load before adding sources
       const onStyleLoad = () => {
-        console.log('Style loaded event fired, updating sources');
+        logger.debug('Style loaded event fired, updating sources');
         updateMapSources(map);
         map.off('style.load', onStyleLoad);
       };
@@ -287,7 +288,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     }
 
     // Otherwise, proceed with adding sources
-    console.log('Map style is loaded, updating sources directly');
+    logger.debug('Map style is loaded, updating sources directly');
     updateMapSources(map);
 
     function updateMapSources(map: mapboxgl.Map) {
@@ -311,7 +312,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
             const isActive = feature.properties.business_id === activeBusinessId;
 
             if (isActive) {
-              console.log('[Map] Highlighting feature:', feature.properties.company_name);
+              logger.debug('[Map] Highlighting feature:', feature.properties.company_name);
             }
 
             return {
@@ -330,7 +331,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         const sourceId = 'visiting-companies';
         const existingSource = map.getSource(sourceId);
 
-        console.log('Updating map source', {
+        logger.debug('Updating map source', {
           hasExistingSource: !!existingSource,
           featureCount: taggedGeojson.features.length,
           activeBusinessId,
@@ -366,7 +367,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           }
         }
       } catch (error) {
-        console.error('Error updating map:', error);
+        logger.error('Error updating map:', error);
       }
     }
   }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, textColor]);

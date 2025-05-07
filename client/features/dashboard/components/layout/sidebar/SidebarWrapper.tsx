@@ -51,7 +51,7 @@ export const SidebarWrapper = () => {
     >
       {/* Top: Logo + collapse toggle */}
       <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
-        <Link href="/dashboard" className="flex h-10 w-10 items-center justify-center">
+        <Link href="/" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
         </Link>
 

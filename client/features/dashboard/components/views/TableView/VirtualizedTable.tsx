@@ -65,7 +65,7 @@ const Row = React.memo(
         return (
           <div
             key={`${item.business_id}-${column.key as string}`}
-            className={`flex items-center px-4 truncate ${
+            className={`flex items-center px-4 truncate text-xs md:text-sm ${
               column.key === 'company_name' ? 'flex-1 min-w-[200px]' : 'w-40 flex-shrink-0'
             }`}
             title={value as string}
@@ -147,13 +147,13 @@ const Header = React.memo(function TableHeader({
         <button
           type="button"
           key={column.key as string}
-          className={`flex items-center px-4 py-3 cursor-pointer select-none text-left w-full ${
+          className={`flex items-center px-4 py-3 cursor-pointer select-none text-left w-full text-xs md:text-sm ${
             column.key === 'company_name' ? 'flex-1 min-w-[200px]' : 'w-40 flex-shrink-0'
           } ${sortDescriptor.column === column.key ? 'bg-default-100' : ''}`}
           onClick={() => onSortChange(column.key as string)}
           aria-label={`Sort by ${column.label}`}
         >
-          <span className="font-medium text-sm">{column.label}</span>
+          <span className="font-medium">{column.label}</span>
           {sortDescriptor.column === column.key && (
             <span className="ml-1">{sortDescriptor.direction === 'asc' ? '↑' : '↓'}</span>
           )}
@@ -266,7 +266,7 @@ export function VirtualizedTable({
       <div
         ref={containerRef}
         className="flex-1 overflow-auto w-full"
-        style={{ height: 'calc(100vh - 350px)', minHeight: '400px' }}
+        style={{ height: 'min(calc(100vh - 350px), 500px)', minHeight: '300px' }}
       >
         {/* Virtualized rows container */}
         <div
