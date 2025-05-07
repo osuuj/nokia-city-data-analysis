@@ -2,7 +2,7 @@
 
 import { FeatureErrorBoundary } from '@/shared/components/error';
 import { ErrorDisplay } from '@/shared/components/error';
-import { ChartSkeleton } from '@/shared/components/loading';
+import { ChartSkeleton, MapSkeleton } from '@/shared/components/loading';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
 import { SectionSkeleton } from '../../../components/common/loading/Skeletons';
@@ -131,7 +131,7 @@ function ViewSwitcherBase({
         featureName="MapView"
         fallback={<ErrorDisplay message="Could not load Map View" showDetails={true} />}
       >
-        <Suspense fallback={<SectionSkeleton section="map" />}>
+        <Suspense fallback={<MapSkeleton height="h-[400px]" showControls={true} />}>
           <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
         </Suspense>
       </FeatureErrorBoundary>

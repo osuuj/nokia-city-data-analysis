@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardSkeleton } from '@/features/dashboard/components/common/loading/Skeletons';
+import { DashboardLoadingState } from '@/features/dashboard/components/common/loading/DashboardLoadingState';
 import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
 import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';
 import { columns as allColumns } from '@/features/dashboard/config/columns';
@@ -264,47 +264,34 @@ export function DashboardPage() {
   );
 
   return (
-    <FeatureErrorBoundary
-      featureName="Dashboard"
-      fallback={
-        <ErrorDisplay message="There was an error loading the dashboard. Please try again later." />
-      }
-    >
-      <div className="flex flex-col w-full h-full min-h-screen pb-8">
-        {/* Show loading overlay only during initial data loading */}
-        {isInitialLoading && <LoadingOverlay message="Loading dashboard data..." />}
+    <div className="py-6 px-6 md:px-10">
+      {/* Show loading overlay for initial data fetch */}
+      {isInitialLoading && <LoadingOverlay />}
 
-        {/* Show error message if data couldn't be loaded */}
-        {isAnySectionLoading ? (
-          <DashboardSkeleton />
-        ) : hasDataErrors ? (
-          <ErrorDisplay
-            message="There was an error fetching data. Please try again later."
-            error={cityError || companyError}
-          />
-        ) : (
-          <div className="md:p-2 p-1 flex flex-col gap-2 sm:gap-3 md:gap-4">
-            {/* Dashboard Header with controls */}
-            {dashboardHeader}
+      {/* Error view when city or company data fails to load */}
+      {hasDataErrors && !isInitialLoading ? (
+        <FeatureErrorBoundary
+          featureName="Dashboard"
+          fallback={
+            <ErrorDisplay
+              message="There was an error loading the dashboard data."
+              showDetails={true}
+              error={cityError || companyError}
+            />
+          }
+        >
+          <div>Error handled by boundary</div>
+        </FeatureErrorBoundary>
+      ) : (
+        // Main dashboard view
+        <FeatureErrorBoundary featureName="Dashboard" fallback={<DashboardLoadingState />}>
+          {dashboardHeader}
 
-            <FeatureErrorBoundary
-              featureName="ViewSwitcher"
-              fallback={
-                <ErrorDisplay
-                  message="The dashboard encountered an unexpected error"
-                  showDetails={process.env.NODE_ENV === 'development'}
-                />
-              }
-            >
-              <Suspense fallback={<DashboardSkeleton />}>
-                {/* Always render content if a city is selected or we have data */}
-                {(filteredCompanies.length > 0 || isAnySectionLoading || selectedCity) &&
-                  viewSwitcherComponent}
-              </Suspense>
-            </FeatureErrorBoundary>
+          <div className="mt-6">
+            <Suspense fallback={<DashboardLoadingState />}>{viewSwitcherComponent}</Suspense>
           </div>
-        )}
-      </div>
-    </FeatureErrorBoundary>
+        </FeatureErrorBoundary>
+      )}
+    </div>
   );
 }
