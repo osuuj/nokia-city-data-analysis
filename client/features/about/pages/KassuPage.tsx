@@ -11,7 +11,7 @@ import {
 import { Header } from '@/shared/components/layout';
 import { ParticleBackground } from '@/shared/components/ui';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 /**
  * KassuPage component that renders Kassu's profile
@@ -19,12 +19,6 @@ import { useEffect, useState } from 'react';
  */
 export default function KassuPage() {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Set mounted state to handle SSR
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Scroll to section on load if hash is present
   useEffect(() => {
@@ -45,9 +39,7 @@ export default function KassuPage() {
   // Add listener for theme changes
   useEffect(() => {
     const handleThemeChange = () => {
-      // Force re-render on theme change
-      setMounted((prevMounted) => !prevMounted);
-      setTimeout(() => setMounted(true), 0);
+      // No-op since 'mounted' state is removed
     };
 
     document.addEventListener('themechange', handleThemeChange);
