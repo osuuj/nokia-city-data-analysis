@@ -59,18 +59,6 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
     [viewMode, setViewMode, fetchViewData],
   );
 
-  // Prefetch functions for hover state
-  const handlePrefetch = useCallback(
-    (mode: ViewMode) => {
-      if (fetchViewData && mode !== viewMode) {
-        fetchViewData(mode).catch((error) => {
-          logger.error(`Error prefetching data for ${mode} view:`, error);
-        });
-      }
-    },
-    [fetchViewData, viewMode],
-  );
-
   // If not mounted yet, show a placeholder to avoid hydration mismatch
   if (!isMounted) {
     return (

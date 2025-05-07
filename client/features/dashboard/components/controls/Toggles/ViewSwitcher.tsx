@@ -5,22 +5,12 @@ import { ErrorDisplay } from '@/shared/components/error';
 import { ChartSkeleton, MapSkeleton } from '@/shared/components/loading';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
-import { SectionSkeleton } from '../../../components/common/loading/Skeletons';
 import type {
   CompanyProperties,
   SortDescriptor,
   TableColumnConfig,
   ViewMode,
 } from '../../../types';
-
-// Define the emptyStateReason type to handle both string and object formats
-type EmptyStateReason =
-  | string
-  | {
-      noResults: boolean;
-      reason: 'distance' | 'industry' | 'search' | 'none';
-      message: string;
-    };
 
 // Define the ViewSwitcherProps type with all required properties
 export interface ViewSwitcherProps {
