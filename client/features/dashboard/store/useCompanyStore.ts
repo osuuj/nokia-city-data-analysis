@@ -85,7 +85,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedRows: newRows, selectedKeys: newKeys };
     }),
 
-  clearSelection: () => set({ selectedRows: {}, selectedKeys: new Set<string>() }),
+  clearSelection: () => set((_state) => ({ selectedRows: {}, selectedKeys: new Set<string>() })),
 
   // Column visibility
   toggleColumnVisibility: (key: CompanyTableKey) =>
@@ -105,10 +105,10 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { visibleColumns: updatedColumns };
     }),
 
-  resetColumns: () => set({ visibleColumns: initialVisibleColumns }),
+  resetColumns: () => set((_state) => ({ visibleColumns: initialVisibleColumns })),
 
   // Industry filtering
-  setSelectedIndustries: (values: string[]) => set({ selectedIndustries: values }),
+  setSelectedIndustries: (values: string[]) => set((_state) => ({ selectedIndustries: values })),
 
   toggleIndustry: (industry: string) =>
     set((state) => {
@@ -119,9 +119,9 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedIndustries: updated };
     }),
 
-  clearIndustries: () => set({ selectedIndustries: [] }),
+  clearIndustries: () => set((_state) => ({ selectedIndustries: [] })),
 
   // Location filters
-  setUserLocation: (coords) => set({ userLocation: coords }),
-  setDistanceLimit: (value) => set({ distanceLimit: value }),
+  setUserLocation: (coords) => set((_state) => ({ userLocation: coords })),
+  setDistanceLimit: (value) => set((_state) => ({ distanceLimit: value })),
 }));
