@@ -2,7 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ThemeProvider } from 'next-themes';
+import type { Attribute } from 'next-themes';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import type React from 'react';
 
 /**
@@ -22,7 +23,7 @@ const queryClient = new QueryClient({
 interface ProvidersProps {
   children: React.ReactNode;
   themeProps?: {
-    attribute?: string;
+    attribute?: Attribute | Attribute[];
     defaultTheme?: string;
     enableSystem?: boolean;
   };
@@ -41,9 +42,13 @@ export function Providers({ children, themeProps = {} }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute={attribute} defaultTheme={defaultTheme} enableSystem={enableSystem}>
+      <NextThemesProvider
+        attribute={attribute}
+        defaultTheme={defaultTheme}
+        enableSystem={enableSystem}
+      >
         {children}
-      </ThemeProvider>
+      </NextThemesProvider>
       {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools />}
     </QueryClientProvider>
   );

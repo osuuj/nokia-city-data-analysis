@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
 import { siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
-import Breadcrumbs from './Breadcrumbs';
+import Breadcrumbs from '../Breadcrumbs';
 
 const navbarItems = [
   { href: '/dashboard', label: 'Dashboard' },
