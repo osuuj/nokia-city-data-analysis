@@ -13,6 +13,7 @@ const SKELETON_KEYS = {
   TABLE_ROW: 'skeleton-table-row',
   BAR_COMPARISON: 'skeleton-bar-comparison',
   BAR_DISTRIBUTION: 'skeleton-bar-distribution',
+  BAR_CHART: 'bar-chart-skeleton',
 };
 
 // Types
@@ -196,12 +197,10 @@ export function MapSkeleton() {
  * AnalyticsSkeleton component to show a loading state for analytics
  * @param type The type of analytics visualization to show a skeleton for
  */
-export function AnalyticsSkeleton({
-  type = 'distribution',
-}: { type?: 'distribution' | 'comparison' | 'trends' }) {
-  if (type === 'comparison') {
+export function AnalyticsSkeleton({ type = 'distribution', className }: AnalyticsSkeletonProps) {
+  if (type === 'comparison' || type === 'cityComparison') {
     return (
-      <div className="w-full h-[400px] flex flex-col animate-pulse">
+      <div className={`w-full h-[400px] flex flex-col animate-pulse ${className || ''}`}>
         <div className="flex justify-between mb-4">
           <Skeleton className="h-6 w-48 rounded-md" />
           <Skeleton className="h-6 w-24 rounded-md" />
@@ -226,7 +225,7 @@ export function AnalyticsSkeleton({
 
   if (type === 'trends') {
     return (
-      <div className="w-full h-[400px] flex flex-col animate-pulse">
+      <div className={`w-full h-[400px] flex flex-col animate-pulse ${className || ''}`}>
         <div className="flex justify-between mb-4">
           <Skeleton className="h-6 w-48 rounded-md" />
           <Skeleton className="h-6 w-24 rounded-md" />
@@ -255,9 +254,61 @@ export function AnalyticsSkeleton({
     );
   }
 
+  // Handle pie chart type
+  if (type === 'pieChart') {
+    return (
+      <div className={`w-full h-[400px] flex flex-col animate-pulse ${className || ''}`}>
+        <div className="flex justify-between mb-4">
+          <Skeleton className="h-6 w-48 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-md" />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-48 h-48 rounded-full bg-default-200 dark:bg-default-700 relative overflow-hidden">
+            {/* Simulate pie chart segments */}
+            <div
+              className="absolute inset-0"
+              style={{ clipPath: 'polygon(50% 50%, 100% 0, 100% 100%)' }}
+            >
+              <div className="w-full h-full bg-default-300 dark:bg-default-600" />
+            </div>
+            <div className="absolute inset-0" style={{ clipPath: 'polygon(50% 50%, 0 0, 0 100%)' }}>
+              <div className="w-full h-full bg-default-400 dark:bg-default-500" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle bar chart type
+  if (type === 'barChart') {
+    return (
+      <div className={`w-full h-[400px] flex flex-col animate-pulse ${className || ''}`}>
+        <div className="flex justify-between mb-4">
+          <Skeleton className="h-6 w-48 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-md" />
+        </div>
+        <div className="flex-1 flex items-end gap-6 pb-10">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={`${SKELETON_KEYS.BAR_CHART}-${i}`}
+              className="flex-1 flex flex-col items-center gap-2"
+            >
+              <Skeleton
+                className="w-full rounded-t-md"
+                style={{ height: `${Math.random() * 70 + 15}%` }}
+              />
+              <Skeleton className="h-4 w-16 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // Default to distribution
   return (
-    <div className="w-full h-[400px] flex flex-col animate-pulse">
+    <div className={`w-full h-[400px] flex flex-col animate-pulse ${className || ''}`}>
       <div className="flex justify-between mb-4">
         <Skeleton className="h-6 w-48 rounded-md" />
         <Skeleton className="h-6 w-24 rounded-md" />
