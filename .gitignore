@@ -1,6 +1,5 @@
 # Ignore everything in the etl/data/ directory
 etl/data/*
-client/client_2/*
 # Do not ignore the resources directory itself
 !etl/data/resources/
 
