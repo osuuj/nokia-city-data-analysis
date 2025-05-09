@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Union
 
 import ijson
 import pandas as pd
-
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
 from etl.pipeline.data_fetcher import download_and_extract_files
@@ -221,6 +220,7 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
             str(staging_dir),
             entity_name,
             str(resources_dir),
+            config,
         )
 
     logger.info("Cleaning process completed for all entities.")
