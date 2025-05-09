@@ -192,7 +192,12 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
     """
     split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
     processed_dir = Path(config["directory_structure"]["processed_dir"]) / "extracted"
-    cleaned_dir = Path(config["directory_structure"]["processed_dir"]) / "cleaned"
+    cleaned_dir = (
+        Path(config["directory_structure"]["processed_dir"])
+        / "cleaned"
+        / config["snapshot_date"]
+        / config["language"]
+    )
     staging_dir = Path(config["directory_structure"]["processed_dir"]) / "staging"
     resources_dir = Path(config["directory_structure"]["resources_dir"])
     cleaned_dir.mkdir(parents=True, exist_ok=True)

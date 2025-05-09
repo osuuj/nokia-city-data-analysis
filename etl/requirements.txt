@@ -1,6 +1,7 @@
 annotated-types==0.7.0
 bandit==1.8.0
 black==24.10.0
+boto3
 certifi==2024.12.14
 cfgv==3.4.0
 charset-normalizer==3.4.0

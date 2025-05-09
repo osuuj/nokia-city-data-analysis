@@ -9,7 +9,7 @@ from etl.pipeline.transform.cleaning.core.cleaning_utils import (
     normalize_postal_codes,
     remove_invalid_post_codes,
 )
-from etl.utils.file_io import save_to_csv
+from etl.utils.file_io import save_to_csv_and_upload
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,9 +37,14 @@ def match_municipality_codes(df: pd.DataFrame, resources_dir: str) -> pd.DataFra
 
     if "municipality" in df.columns:
         # Create a dictionary for quick lookup
-        municipality_dict = municipality_codes.set_index("code")["city"].to_dict()
-        # Update the city column based on the municipality code
-        df["city"] = df["municipality"].map(municipality_dict)
+        municipality_dict: dict = municipality_codes.set_index("code")["city"].to_dict()
+        if isinstance(municipality_dict, dict):
+            # Update the city column based on the municipality code
+            df["city"] = df["municipality"].map(
+                lambda x: municipality_dict.get(x, None)
+            )
+        else:
+            logger.error("municipality_dict is not a dict. Skipping map operation.")
     else:
         logger.error("Column 'municipality' not found in DataFrame.")
 
@@ -60,7 +65,11 @@ def format_city_names(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_post_offices(
-    df: pd.DataFrame, resources_dir: str, staging_dir: str
+    df: pd.DataFrame,
+    resources_dir: str,
+    staging_dir: str,
+    config: dict,
+    entity_name: str = "post_offices",
 ) -> pd.DataFrame:
     """Clean post office data by running all cleaning functions and save to staging directory.
 
@@ -68,6 +77,8 @@ def clean_post_offices(
         df (pd.DataFrame): Input DataFrame.
         resources_dir (str): Path to the resources directory.
         staging_dir (str): Path to the staging directory.
+        config (dict): Config dictionary for S3 upload.
+        entity_name (str): Name of the entity (default: "post_offices").
 
     Returns:
         pd.DataFrame: Cleaned DataFrame.
@@ -79,8 +90,8 @@ def clean_post_offices(
     df = match_municipality_codes(df, resources_dir)
     # Ensure the staging directory exists
     os.makedirs(staging_dir, exist_ok=True)
-    # Save the cleaned DataFrame to a CSV file in the staging directory
+    # Save the cleaned DataFrame to a CSV file in the staging directory and upload to S3 if enabled
     output_path = f"{staging_dir}/staging_post_offices.csv"
-    save_to_csv(df, output_path)
+    save_to_csv_and_upload(df, output_path, entity_name, config)
 
     return df

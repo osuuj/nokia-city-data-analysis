@@ -2,8 +2,8 @@
 	"pythonVersion": "3.12",
 	"reportMissingTypeStubs": false,
 	"reportMissingImports": false,
-	"venvPath": "./venvs",
-	"venv": "fastapi_env",
+	"venvPath": "../..",
+	"venv": "venvs/fastapi_env",
 	"include": ["backend", "config", "tests"],
 	"exclude": ["db"]
 }

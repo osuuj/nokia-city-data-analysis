@@ -64,4 +64,4 @@ loggers:
 # Root logger
 root:
   level: WARNING
-  handlers: ["console_error"]
+  handlers: ["console_error", "file_standard"]

@@ -8,6 +8,7 @@ connection URL.
 
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 DEFAULT_ENV = "development"
-DEFAULT_CONFIG_FILES = ["db.yml", "directory.yml", "etl.yml", "entities.yml"]
+DEFAULT_CONFIG_FILES = ["directory.yml", "etl.yml", "entities.yml"]
 
 
 def load_yaml(file_path: Path) -> Dict[str, Any]:
@@ -91,6 +92,10 @@ def load_all_configs(config_files: Optional[List[str]] = None) -> Dict[str, Any]
             logger.warning(f"Configuration file not found: {file_path}")
 
     combined_config["env"] = os.getenv("ENV", DEFAULT_ENV)
+    combined_config["language"] = os.getenv("LANGUAGE", "en")
+    combined_config["snapshot_date"] = os.getenv(
+        "SNAPSHOT_DATE", datetime.now().strftime("%Y-%m-%d")
+    )
     return resolve_env_vars(combined_config)
 
 
@@ -103,23 +108,13 @@ def construct_database_url(config: Dict[str, Any]) -> str:
     Returns:
         str: Database connection URL.
     """
-    db_url_local = os.getenv("DATABASE_URL_LOCAL")
-    db_url_docker = os.getenv("DATABASE_URL_DOCKER")
-
-    if os.getenv("ENV") == "development":
-        return (
-            db_url_local
-            if db_url_local
-            else "postgresql://default_user:default_password@localhost:5432/default_db"
-        )
-    else:
-        return (
-            db_url_docker
-            if db_url_docker
-            else "postgresql://default_user:default_password@postgres_db:5432/default_db"
-        )
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        return db_url
+    return "postgresql://default_user:default_password@localhost:5432/default_db"
 
 
 # Main configuration loader
 CONFIG = load_all_configs()
 DATABASE_URL = construct_database_url(CONFIG)
+LOG_TO_FILE = os.getenv("LOG_TO_FILE", "true").lower() == "true"

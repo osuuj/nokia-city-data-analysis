@@ -6,7 +6,7 @@ It ensures data integrity by formatting dates, standardizing text fields, and ha
 
 import pandas as pd
 
-from etl.utils.file_io import save_to_csv
+from etl.utils.file_io import save_to_csv_and_upload
 
 
 def standardize_text_fields(df: pd.DataFrame, columns: list) -> pd.DataFrame:
@@ -60,12 +60,19 @@ def clean_dataset(
     return df
 
 
-def clean_registered_entries(df: pd.DataFrame, output_dir: str) -> None:
+def clean_registered_entries(
+    df: pd.DataFrame,
+    output_dir: str,
+    config: dict,
+    entity_name: str = "registered_entries",
+) -> None:
     """Cleans the registered_entries dataset.
 
     Args:
         df (pd.DataFrame): DataFrame containing the registered entries data.
         output_dir (str): Directory to save the cleaned data.
+        config (dict): Config dictionary for S3 upload.
+        entity_name (str): Name of the entity (default: "registered_entries").
     """
     df = clean_dataset(
         df,
@@ -73,28 +80,45 @@ def clean_registered_entries(df: pd.DataFrame, output_dir: str) -> None:
         ["registration_date", "end_date"],
         ["end_date"],
     )
-    save_to_csv(df, f"{output_dir}/cleaned_registered_entries.csv")
+    save_to_csv_and_upload(
+        df, f"{output_dir}/cleaned_registered_entries.csv", entity_name, config
+    )
 
 
-def clean_company_forms(df: pd.DataFrame, output_dir: str) -> None:
+def clean_company_forms(
+    df: pd.DataFrame, output_dir: str, config: dict, entity_name: str = "company_forms"
+) -> None:
     """Cleans the company_forms dataset.
 
     Args:
         df (pd.DataFrame): DataFrame containing the company forms data.
         output_dir (str): Directory to save the cleaned data.
+        config (dict): Config dictionary for S3 upload.
+        entity_name (str): Name of the entity (default: "company_forms").
     """
     df = clean_dataset(
         df, ["source"], ["registration_date", "end_date"], ["end_date", "business_form"]
     )
-    save_to_csv(df, f"{output_dir}/cleaned_company_forms.csv")
+    save_to_csv_and_upload(
+        df, f"{output_dir}/cleaned_company_forms.csv", entity_name, config
+    )
 
 
-def clean_company_situations(df: pd.DataFrame, output_dir: str) -> None:
+def clean_company_situations(
+    df: pd.DataFrame,
+    output_dir: str,
+    config: dict,
+    entity_name: str = "company_situations",
+) -> None:
     """Cleans the company_situations dataset.
 
     Args:
         df (pd.DataFrame): DataFrame containing the company situations data.
         output_dir (str): Directory to save the cleaned data.
+        config (dict): Config dictionary for S3 upload.
+        entity_name (str): Name of the entity (default: "company_situations").
     """
     df = clean_dataset(df, ["situation_type", "source"], ["registration_date"], [])
-    save_to_csv(df, f"{output_dir}/cleaned_company_situations.csv")
+    save_to_csv_and_upload(
+        df, f"{output_dir}/cleaned_company_situations.csv", entity_name, config
+    )

@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 import pandas as pd
 
-from etl.utils.file_io import save_to_csv
+from etl.utils.file_io import save_to_csv_and_upload
 
 
 def clean_website(url: str) -> str:
@@ -34,7 +34,13 @@ def clean_website(url: str) -> str:
     return url
 
 
-def clean_companies(df: pd.DataFrame, staging_dir: str, output_dir: str) -> None:
+def clean_companies(
+    df: pd.DataFrame,
+    staging_dir: str,
+    output_dir: str,
+    config: dict,
+    entity_name: str = "companies",
+) -> pd.DataFrame:
 
     # Apply website cleaning function
     df["website"] = df["website"].apply(clean_website)
@@ -55,12 +61,18 @@ def clean_companies(df: pd.DataFrame, staging_dir: str, output_dir: str) -> None
     # Filter rows where the `website` column is missing
     df_missing_website = df[df["website"].isna() | (df["website"].str.strip() == "")]
     # Remove the filtered rows from the original DataFrame
-    df = df[~df.index.isin(df_missing_website.index)]
-    # Save the cleaned DataFrame to a file
-    save_to_csv(df, f"{output_dir}/cleaned_companies_website.csv")
-    # Save the filtered rows to another file
-    save_to_csv(
-        df_missing_website, f"{output_dir}/cleaned_companies_missing_website.csv"
+    df = pd.DataFrame(df[~df.index.isin(df_missing_website.index)])
+    # Save the cleaned DataFrame to a file and upload to S3 if enabled
+    save_to_csv_and_upload(
+        df, f"{output_dir}/cleaned_companies_website.csv", entity_name, config
+    )
+    # Save the filtered rows to another file and upload to S3 if enabled
+    save_to_csv_and_upload(
+        df_missing_website,
+        f"{output_dir}/cleaned_companies_missing_website.csv",
+        "cleaned_companies_missing_website",
+        config,
     )
 
     print("Cleaning process completed. Cleaned file saved as 'cleaned_companies.csv'.")
+    return df

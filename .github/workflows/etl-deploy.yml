@@ -1,0 +1,86 @@
+name: Deploy ETL Pipeline to AWS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'etl/**'
+  workflow_dispatch:
+
+jobs:
+  etl-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      ETL_TASK_DEF: ${{ secrets.ETL_TASK_DEF }}
+      ETL_CONTAINER_NAME: ${{ secrets.ETL_CONTAINER_NAME }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      # Add other env vars as needed
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:latest ./etl
+
+      - name: Push Docker image to ECR
+        run: |
+          docker tag $ECR_REPOSITORY:latest ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Run ETL ECS Task
+        run: |
+          aws ecs run-task \
+            --cluster $ECS_CLUSTER \
+            --task-definition $ETL_TASK_DEF \
+            --launch-type FARGATE \
+            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/pipeline/etl_run.py"]}]}'
+
+      - name: Wait for ETL to Finish
+        run: |
+          # Poll ECS for task completion (implement as needed)
+          echo "Waiting for ETL task to finish..."
+          sleep 60
+
+      - name: Run Change Detection ECS Task
+        run: |
+          aws ecs run-task \
+            --cluster $ECS_CLUSTER \
+            --task-definition $ETL_TASK_DEF \
+            --launch-type FARGATE \
+            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/utils/change_detection.py"]}]}'
+
+      - name: Wait for Change Detection to Finish
+        run: |
+          # Poll ECS for task completion (implement as needed)
+          echo "Waiting for change detection task to finish..."
+          sleep 60
+
+      - name: Manual Approval Before Loading
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: user1,user2
+          minimum-approvals: 1
+
+      - name: Run Loader ECS Task
+        run: |
+          aws ecs run-task \
+            --cluster $ECS_CLUSTER \
+            --task-definition $ETL_TASK_DEF \
+            --launch-type FARGATE \
+            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/pipeline/load/load_data.py"]}]}' 
