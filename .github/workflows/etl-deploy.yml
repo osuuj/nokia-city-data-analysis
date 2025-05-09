@@ -48,7 +48,18 @@ jobs:
             --cluster $ECS_CLUSTER \
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
-            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/pipeline/etl_run.py"]}]}'
+            --overrides '{
+              "containerOverrides":[
+                {
+                  "name":"${{ env.ETL_CONTAINER_NAME }}",
+                  "command":["python","etl/pipeline/etl_run.py"],
+                  "environment":[
+                    {"name":"DOWNLOAD_RESOURCES_FROM_S3","value":"true"},
+                    {"name":"S3_BUCKET","value":"osuuj-etl"}
+                  ]
+                }
+              ]
+            }'
 
       - name: Wait for ETL to Finish
         run: |

@@ -1,0 +1,15 @@
+data/resources/*
+node_modules
+.next
+dist
+build
+coverage
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.black.toml
+.isort.cfg
+bandit.yaml
+pyrightconfig.json
+ruff.toml 
