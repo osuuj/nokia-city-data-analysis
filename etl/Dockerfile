@@ -17,7 +17,7 @@ RUN apt-get update && \
 
 COPY . /code
 
-COPY scripts/download_resources.sh /download_resources.sh
+COPY etl/scripts/download_resources.sh /download_resources.sh
 RUN chmod +x /download_resources.sh
 
 ENTRYPOINT ["/bin/bash", "-c", "/download_resources.sh && python etl/pipeline/etl_run.py"]
