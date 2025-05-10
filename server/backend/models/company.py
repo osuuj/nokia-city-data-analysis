@@ -65,13 +65,23 @@ class MainBusinessLine(Base):
 class Website(Base):
     __tablename__ = "websites"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    business_id = Column(Text, ForeignKey("businesses.business_id"), nullable=False)
+    website = Column(Text)
+    registration_date = Column(Date)
     end_date = Column(Date, nullable=True)
+    source = Column(Text)
+    version = Column(Integer)
     # Add other fields and relationships as needed
 
 
 class CompanyForm(Base):
     __tablename__ = "company_forms"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    business_id = Column(Text, ForeignKey("businesses.business_id"), nullable=False)
+    business_form = Column(Text)
+    version = Column(Integer)
+    registration_date = Column(Date)
+    end_date = Column(Date, nullable=True)
     source = Column(Text, nullable=False)
     # Add other fields and relationships as needed
 
@@ -79,4 +89,8 @@ class CompanyForm(Base):
 class CompanySituation(Base):
     __tablename__ = "company_situations"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    business_id = Column(Text, ForeignKey("businesses.business_id"), nullable=False)
+    situation_type = Column(Text)
+    registration_date = Column(Date)
+    source = Column(Text)
     # Add other fields and relationships as needed
