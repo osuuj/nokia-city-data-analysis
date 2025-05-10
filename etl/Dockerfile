@@ -15,7 +15,7 @@ RUN apt-get update && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
 
-COPY . /code/etl
+COPY . /code
 
 COPY scripts/download_resources.sh /download_resources.sh
 RUN chmod +x /download_resources.sh
