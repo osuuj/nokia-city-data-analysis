@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List
 
 import pandas as pd
-
 from etl.utils.s3_utils import upload_file_to_s3
 
 logging.basicConfig(level=logging.INFO)
@@ -84,6 +83,6 @@ def save_to_csv_and_upload(
             bucket = os.getenv("S3_BUCKET")
             snapshot_date = config.get("snapshot_date", "unknown-date")
             language = config.get("language", "unknown-lang")
-            s3_key = f"etl/cleaned/{snapshot_date}/{language}/{entity_name}.csv"
+            s3_key = f"etl/cleaned/{snapshot_date}/{language}/{Path(output_file).name}"
             upload_file_to_s3(output_file, bucket, s3_key)
             logger.info(f"Uploaded {output_file} to s3://{bucket}/{s3_key}")

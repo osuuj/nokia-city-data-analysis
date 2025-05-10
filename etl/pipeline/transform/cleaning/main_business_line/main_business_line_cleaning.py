@@ -1,7 +1,6 @@
 """This module provides functionality to clean the main business lines dataset."""
 
 import pandas as pd
-
 from etl.pipeline.transform.cleaning.core.final_cleaning import clean_dataset
 from etl.pipeline.transform.cleaning.main_business_line.industry_mapping import (
     process_main_business_lines,
@@ -37,5 +36,8 @@ def clean_main_business_lines(
 
     # Save the cleaned DataFrame and upload to S3 if enabled
     save_to_csv_and_upload(
-        df, f"{output_dir}/cleaned_main_business_lines.csv", entity_name, config
+        df,
+        f"{output_dir}/cleaned_main_business_lines.csv",
+        "cleaned_main_business_lines",
+        config,
     )

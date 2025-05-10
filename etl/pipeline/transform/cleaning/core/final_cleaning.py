@@ -5,7 +5,6 @@ It ensures data integrity by formatting dates, standardizing text fields, and ha
 """
 
 import pandas as pd
-
 from etl.utils.file_io import save_to_csv_and_upload
 
 
@@ -81,7 +80,10 @@ def clean_registered_entries(
         ["end_date"],
     )
     save_to_csv_and_upload(
-        df, f"{output_dir}/cleaned_registered_entries.csv", entity_name, config
+        df,
+        f"{output_dir}/cleaned_registered_entries.csv",
+        "cleaned_registered_entries",
+        config,
     )
 
 
@@ -100,7 +102,7 @@ def clean_company_forms(
         df, ["source"], ["registration_date", "end_date"], ["end_date", "business_form"]
     )
     save_to_csv_and_upload(
-        df, f"{output_dir}/cleaned_company_forms.csv", entity_name, config
+        df, f"{output_dir}/cleaned_company_forms.csv", "cleaned_company_forms", config
     )
 
 
@@ -120,5 +122,8 @@ def clean_company_situations(
     """
     df = clean_dataset(df, ["situation_type", "source"], ["registration_date"], [])
     save_to_csv_and_upload(
-        df, f"{output_dir}/cleaned_company_situations.csv", entity_name, config
+        df,
+        f"{output_dir}/cleaned_company_situations.csv",
+        "cleaned_company_situations",
+        config,
     )

@@ -3,7 +3,6 @@
 import re
 
 import pandas as pd
-
 from etl.utils.file_io import save_to_csv_and_upload
 
 
@@ -86,7 +85,7 @@ def clean_names(
 
     # Save processed data and upload to S3 if enabled
     save_to_csv_and_upload(
-        df_latest, f"{output_dir}/cleaned_names.csv", entity_name, config
+        df_latest, f"{output_dir}/cleaned_names.csv", "cleaned_names", config
     )
     save_to_csv_and_upload(
         df_removed, f"{output_dir}/staging_names_old.csv", "staging_names_old", config

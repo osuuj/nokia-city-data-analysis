@@ -6,7 +6,8 @@ CREATE TABLE businesses (
     end_date DATE NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     source TEXT NOT NULL,
-    version INT NOT NULL
+    version INT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE business_name_history (
@@ -18,7 +19,8 @@ CREATE TABLE business_name_history (
     end_date DATE NULL,
     active BOOLEAN NOT NULL,
     source TEXT NOT NULL,
-    version INT NOT NULL
+    version INT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE addresses (
@@ -38,7 +40,8 @@ CREATE TABLE addresses (
     co TEXT NULL,
     registration_date DATE NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    type TEXT
+    type TEXT,
+    snapshot_date DATE
 );
 
 CREATE TABLE industry_classifications (
@@ -49,7 +52,8 @@ CREATE TABLE industry_classifications (
     industry TEXT NULL,
     industry_description TEXT NOT NULL,
     registration_date DATE NOT NULL,
-    source TEXT NOT NULL
+    source TEXT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE websites (
@@ -60,7 +64,8 @@ CREATE TABLE websites (
     company_id_status TEXT NULL,
     trade_register_status TEXT NULL,
     registration_date DATE NULL,
-    end_date DATE NULL
+    end_date DATE NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE company_forms (
@@ -70,7 +75,8 @@ CREATE TABLE company_forms (
     registration_date DATE NULL,
     end_date DATE NULL,
     version INT,
-    source TEXT NOT NULL
+    source TEXT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE company_situations (
@@ -78,7 +84,8 @@ CREATE TABLE company_situations (
     business_id TEXT REFERENCES businesses(business_id) ON DELETE CASCADE,
     situation_type TEXT CHECK (situation_type IN ('Bankrupt', 'Liquidation','Company Re-Organisation')),
     registration_date DATE NOT NULL,
-    source TEXT NOT NULL
+    source TEXT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE TABLE registered_entries (
@@ -88,7 +95,8 @@ CREATE TABLE registered_entries (
     registration_date DATE NULL,
     end_date DATE NULL,
     register_name TEXT NOT NULL,
-    authority TEXT NOT NULL
+    authority TEXT NOT NULL,
+    snapshot_date DATE
 );
 
 CREATE INDEX idx_location ON addresses USING GIST (point(latitude_wgs84, longitude_wgs84));
