@@ -14,13 +14,6 @@ jobs:
       ETL_CONTAINER_NAME: ${{ secrets.ETL_CONTAINER_NAME }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
     steps:
-      - name: Manual Approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ secrets.GITHUB_TOKEN }}
-          approvers: user1,user2
-          minimum-approvals: 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
