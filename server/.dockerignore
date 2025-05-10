@@ -1,0 +1,123 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+pytest-report.xml
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Development environments
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project
+data/extracted_data/
+data/raw_data/
+data/logs/
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+
+# Local development
+.env
+.env.local
+.env.development
+.env.test
+
+# Docker
+Dockerfile*
+docker-compose*
+
+# Other
+README.md
+LICENSE
+.dockerignore
+.ruff_cache/
+.mypy_cache/
+
+# Configuration and documentation
+.black.toml
+.isort.cfg
+bandit.yaml
+pyrightconfig.json
+ruff.toml
+*.md
+!requirements*.txt
+
+# Editor directories and files
+*.swp
+*.swo
+*~
+
+# Log files
+logs/
+*.log
+
+# Local env files (secrets)
+.env.dev
+.env.*.local
+
+# Alembic migrations version control (keep migrations/)
+alembic/*.ini
+
+# Cache directories
+.pyright/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/ 

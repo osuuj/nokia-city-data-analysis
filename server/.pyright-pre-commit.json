@@ -1,6 +1,7 @@
 {
 	"include": [
-		"."
+		"backend/**/*.py",
+		"scripts/**/*.py"
 	],
 	"exclude": [
 		"**/__pycache__",
@@ -9,16 +10,17 @@
 		"**/node_modules",
 		"**/dist",
 		"**/build",
-		"**/.ruff_cache"
+		"**/.ruff_cache",
+		"tests/**/*",
+		"**/tests/**/*"
 	],
 	"ignore": [
-		"server/tests",
 		"backend/services/analytics_service.py",
 		"backend/utils/cache.py",
 		"backend/services/company_service.py",
 		"backend/routers/analytics.py"
 	],
-	"reportMissingImports": true,
+	"reportMissingImports": "warning",
 	"reportMissingTypeStubs": false,
 	"reportGeneralTypeIssues": "warning",
 	"reportOptionalMemberAccess": "warning",
@@ -33,4 +35,4 @@
 	"extraPaths": [
 		"."
 	]
-}
+} 

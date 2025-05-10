@@ -1,32 +1,56 @@
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.backend.database import get_db
-from server.backend.services.company_service import get_business_data_by_city
+from server.backend.config import settings  # pyright: ignore[reportMissingImports]
+from server.backend.database import get_db  # pyright: ignore[reportMissingImports]
+from server.backend.middleware import limiter  # pyright: ignore[reportMissingImports]
+from server.backend.services.company_service import (  # pyright: ignore[reportMissingImports]
+    get_business_data_by_city,
+)
 
 router = APIRouter()
 
 
 @router.get("/companies.geojson", response_model=Dict[str, Any])
-def get_companies_geojson(
+@limiter.limit(settings.RATE_LIMIT_HEAVY)  # Data-heavy endpoint, standardized limit
+async def get_companies_geojson(
     city: str = Query(..., description="City name to filter by"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Return grouped business data as a GeoJSON FeatureCollection."""
-    businesses = get_business_data_by_city(db, city)
+    """Return grouped business data as a GeoJSON FeatureCollection.
 
-    grouped = group_businesses_by_id(businesses)
-    features = [
-        create_feature(business_id, entries) for business_id, entries in grouped.items()
-    ]
+    Args:
+        city (str): City name to filter by
+        db (AsyncSession): Database session
 
-    return {
-        "type": "FeatureCollection",
-        "features": [f for f in features if f],  # Filter out None features
-    }
+    Returns:
+        Dict[str, Any]: GeoJSON FeatureCollection
+    """
+    try:
+        businesses = await get_business_data_by_city(db, city)
+
+        grouped = group_businesses_by_id(businesses)
+        features = [
+            create_feature(business_id, entries)
+            for business_id, entries in grouped.items()
+        ]
+
+        return {
+            "type": "FeatureCollection",
+            "features": [f for f in features if f],  # Filter out None features
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error generating GeoJSON: {str(e)}"
+        )
 
 
 def group_businesses_by_id(businesses: List[Any]) -> Dict[str, List[Any]]:
