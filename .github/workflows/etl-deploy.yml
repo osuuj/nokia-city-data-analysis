@@ -48,6 +48,7 @@ jobs:
             --cluster $ECS_CLUSTER \
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
             --overrides '{
               "containerOverrides":[
                 {
@@ -73,6 +74,7 @@ jobs:
             --cluster $ECS_CLUSTER \
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
             --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/utils/change_detection.py"]}]}'
 
       - name: Wait for Change Detection to Finish
@@ -94,4 +96,5 @@ jobs:
             --cluster $ECS_CLUSTER \
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
             --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","etl/pipeline/load/load_data.py"]}]}' 
