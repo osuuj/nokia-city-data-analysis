@@ -44,5 +44,5 @@ jobs:
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"etl","command":["python","etl/utils/change_detection.py"]}]}'
+            --overrides '{"containerOverrides":[{"name":"etl","command":["python","-m","etl.utils.change_detection"]}]}'
           echo "Change Detection ECS task started. Monitor progress in AWS ECS/CloudWatch." 
