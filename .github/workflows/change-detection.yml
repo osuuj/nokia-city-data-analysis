@@ -2,6 +2,15 @@ name: Run Change Detection
 
 on:
   workflow_dispatch:
+    inputs:
+      PREV_SNAPSHOT_DATE:
+        description: 'Previous snapshot date'
+        required: true
+        default: '2025-05-09'
+      SNAPSHOT_DATE:
+        description: 'Current snapshot date'
+        required: true
+        default: '2025-05-10'
 
 jobs:
   change-detection:
@@ -44,5 +53,16 @@ jobs:
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"etl","command":["python","-m","etl.utils.change_detection"]}]}'
+            --overrides '{
+              "containerOverrides":[
+                {
+                  "name":"etl",
+                  "command":["python","-m","etl.utils.change_detection"],
+                  "environment":[
+                    {"name":"PREV_SNAPSHOT_DATE","value":"${{ github.event.inputs.PREV_SNAPSHOT_DATE }}"},
+                    {"name":"SNAPSHOT_DATE","value":"${{ github.event.inputs.SNAPSHOT_DATE }}"}
+                  ]
+                }
+              ]
+            }'
           echo "Change Detection ECS task started. Monitor progress in AWS ECS/CloudWatch." 
