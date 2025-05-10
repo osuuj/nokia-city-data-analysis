@@ -1,7 +1,6 @@
 from urllib.parse import urlparse
 
 import pandas as pd
-
 from etl.utils.file_io import save_to_csv_and_upload
 
 
@@ -64,7 +63,10 @@ def clean_companies(
     df = pd.DataFrame(df[~df.index.isin(df_missing_website.index)])
     # Save the cleaned DataFrame to a file and upload to S3 if enabled
     save_to_csv_and_upload(
-        df, f"{output_dir}/cleaned_companies_website.csv", entity_name, config
+        df,
+        f"{output_dir}/cleaned_companies_website.csv",
+        "cleaned_companies_website",
+        config,
     )
     # Save the filtered rows to another file and upload to S3 if enabled
     save_to_csv_and_upload(

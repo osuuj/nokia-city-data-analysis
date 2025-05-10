@@ -14,11 +14,10 @@ import tempfile
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
-
 from etl.config.config_loader import CONFIG, DATABASE_URL
 from etl.utils.s3_utils import download_file_from_s3
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 # Enable SQLAlchemy logging
 logging.basicConfig()
@@ -48,6 +47,9 @@ LANGUAGE = CONFIG.get("language")
 def get_cleaned_csv_path(entity_file):
     if USE_S3:
         s3_key = f"etl/cleaned/{SNAPSHOT_DATE}/{LANGUAGE}/{entity_file}"
+        print(
+            f"[DEBUG] Attempting to download from S3: bucket={S3_BUCKET}, key={s3_key}"
+        )
         with tempfile.NamedTemporaryFile(
             delete=False, suffix=f"_{entity_file}"
         ) as tmp_file:
