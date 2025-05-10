@@ -1,9 +1,9 @@
 {
-  "pythonVersion": "3.12",
-  "reportMissingTypeStubs": false,
-  "reportMissingImports": false,
-  "venvPath": "./venvs",
-  "venv": "etl_env",
-  "include": ["config", "pipeline", "utils"],
-  "exclude": ["data"]
+	"pythonVersion": "3.12",
+	"reportMissingTypeStubs": false,
+	"reportMissingImports": false,
+	"venvPath": "../venvs",
+	"venv": "etl_env",
+	"include": ["config", "pipeline", "utils"],
+	"exclude": ["data"]
 }

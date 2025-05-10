@@ -13,6 +13,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from server.backend.config import DATABASE_URL
 
+# Import Base and models - Adjust path if necessary
+from .models.company import Base  # Import from company.py
+
 # ✅ Enable connection pooling
 engine = create_engine(
     DATABASE_URL, pool_size=10, max_overflow=5, pool_timeout=30, pool_recycle=1800
@@ -32,3 +35,13 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()  # ✅ Returns connection to the pool instead of closing it
+
+
+def create_db_and_tables():
+    """Creates database tables based on SQLAlchemy models."""
+    print("Creating database tables if they don't exist...")
+    # Import all models here before calling create_all to ensure they are registered
+    # This is often handled by importing the modules where models are defined
+    # E.g., from . import models
+    Base.metadata.create_all(bind=engine)
+    print("Table creation check complete.")

@@ -1,0 +1,36 @@
+/* Add these styles to your global CSS file */
+
+/* Hide scrollbars but keep scroll functionality */
+.scrollbar-hide {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none; /* Chrome, Safari and Opera */
+}
+
+/* Additional responsive breakpoint for very small screens */
+@layer utilities {
+	@media (min-width: 480px) {
+		.xs\:block {
+			display: block;
+		}
+		.xs\:hidden {
+			display: none;
+		}
+		.xs\:w-8 {
+			width: 2rem;
+		}
+		.xs\:h-8 {
+			height: 2rem;
+		}
+		.xs\:gap-1 {
+			gap: 0.25rem;
+		}
+		.xs\:text-sm {
+			font-size: 0.875rem;
+			line-height: 1.25rem;
+		}
+	}
+}

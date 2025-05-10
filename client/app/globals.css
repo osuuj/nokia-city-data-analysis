@@ -1,0 +1,15 @@
+/* Add appropriate base background colors to prevent page flashes */
+:root {
+  /* Light theme base background */
+  --background-color: #f5f7fa;
+}
+
+/* Dark theme base background */
+[data-theme="dark"] {
+  --background-color: #121212;
+}
+
+body {
+  background-color: var(--background-color);
+  transition: background-color 0.3s ease;
+} 

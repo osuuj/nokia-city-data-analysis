@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from etl.config.config_loader import CONFIG
+from etl.config.config_loader import CONFIG, LOG_TO_FILE
 from etl.config.logging.filters import SensitiveDataFilter
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,19 @@ def configure_logging() -> None:
                     standard_file=file_names["standard_log_file"],
                     debug_file=file_names["debug_log_file"],
                 )
+
+        # Dynamically adjust handlers for each logger based on LOG_TO_FILE
+        if not LOG_TO_FILE:
+            for logger_name, logger_conf in log_config.get("loggers", {}).items():
+                logger_conf["handlers"] = [
+                    h for h in logger_conf["handlers"] if "console" in h
+                ]
+            # Also update root logger
+            if "root" in log_config:
+                log_config["root"]["handlers"] = [
+                    h for h in log_config["root"]["handlers"] if "console" in h
+                ]
+        # else: keep as defined (console + file or just file)
 
         # Apply the logging configuration
         logging.config.dictConfig(log_config)

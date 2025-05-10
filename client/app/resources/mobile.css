@@ -1,0 +1,30 @@
+/* Mobile-specific optimizations to improve performance */
+
+@media (max-width: 768px) {
+  /* Reduce animation complexity */
+  * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+  
+  /* Disable backdrop blur which is expensive on mobile */
+  .backdrop-blur-md {
+    backdrop-filter: none !important;
+  }
+  
+  /* Simplify box shadows */
+  .shadow-sm, .shadow, .shadow-md {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  }
+  
+  /* Reduce border radius calculations */
+  .rounded-large {
+    border-radius: 8px !important;
+  }
+  
+  /* Use hardware acceleration for composited layers */
+  .card, .fixed {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+} 

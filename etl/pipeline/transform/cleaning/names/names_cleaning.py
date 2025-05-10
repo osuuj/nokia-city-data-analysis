@@ -4,7 +4,7 @@ import re
 
 import pandas as pd
 
-from etl.utils.file_io import save_to_csv
+from etl.utils.file_io import save_to_csv_and_upload
 
 
 def clean_company_name(name: str) -> str:
@@ -33,13 +33,21 @@ def clean_company_name(name: str) -> str:
     return name
 
 
-def clean_names(df: pd.DataFrame, staging_dir: str, output_dir: str) -> None:
+def clean_names(
+    df: pd.DataFrame,
+    staging_dir: str,
+    output_dir: str,
+    config: dict,
+    entity_name: str = "names",
+) -> None:
     """Cleans and standardizes company names in the DataFrame, and saves the cleaned data.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing company names.
         staging_dir (str): Path to save staging files.
         output_dir (str): Path to save cleaned files.
+        config (dict): Config dictionary for S3 upload.
+        entity_name (str): Name of the entity (default: "names").
 
     Returns:
         None
@@ -67,15 +75,21 @@ def clean_names(df: pd.DataFrame, staging_dir: str, output_dir: str) -> None:
     # Step 2: Keep only the latest version
     # If multiple rows exist with `version = 1` and `company_type` matches "Company name",
     # keep only the most recent `registrationDate`
-    df_latest = df[
-        (df["version"] == 1) & (df["company_type"] == "Company name")
-    ].drop_duplicates(subset=["business_id"], keep="first")
+    df_latest = pd.DataFrame(
+        df[(df["version"] == 1) & (df["company_type"] == "Company name")]
+        .copy()
+        .drop_duplicates(subset=["business_id"], keep="first")  # type: ignore
+    )
 
     # Step 3: Identify removed records (older versions)
     df_removed = df[~df.index.isin(df_latest.index)]
 
-    # Save processed data
-    save_to_csv(df_latest, f"{output_dir}/cleaned_names.csv")
-    save_to_csv(df_removed, f"{output_dir}/staging_names_old.csv")
+    # Save processed data and upload to S3 if enabled
+    save_to_csv_and_upload(
+        df_latest, f"{output_dir}/cleaned_names.csv", entity_name, config
+    )
+    save_to_csv_and_upload(
+        df_removed, f"{output_dir}/staging_names_old.csv", "staging_names_old", config
+    )
 
     print("Cleaning process completed.")

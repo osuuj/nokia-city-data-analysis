@@ -1,6 +1,5 @@
 # Ignore everything in the etl/data/ directory
 etl/data/*
-
 # Do not ignore the resources directory itself
 !etl/data/resources/
 
@@ -48,6 +47,7 @@ __pycache__/
 
 # Ignore environment configuration
 .env
+etl/.env
 
 # Ignore logs and temporary files
 *.log

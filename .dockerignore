@@ -7,3 +7,8 @@ coverage
 .gitignore
 Dockerfile
 docker-compose.yml
+etl/.black.toml
+etl/.isort.cfg
+etl/bandit.yaml
+etl/pyrightconfig.json
+etl/ruff.toml

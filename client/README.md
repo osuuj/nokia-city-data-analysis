@@ -1,53 +1,92 @@
-# Next.js & HeroUI Template
+# Client Application
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+This directory contains the client application for the Nokia City Data Analysis project.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## Documentation
 
-## Technologies Used
+Comprehensive documentation is available in the following locations:
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+- [Main Documentation](./docs/README.md) - Project overview and documentation index
+- [Feature Documentation](./docs/features/README.md) - Documentation for each specific feature
+- [Shared Components Documentation](./docs/shared/README.md) - Documentation for shared components, hooks, and utilities
 
-## How to Use
+## Directory Structure
 
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
-
-```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
+```
+client/
+├── app/              # Next.js App Router entry points
+├── features/         # Feature-specific code
+│   ├── about/        # About page feature
+│   ├── contact/      # Contact page feature
+│   ├── dashboard/    # Dashboard feature
+│   ├── landing/      # Landing page feature
+│   ├── project/      # Project feature
+│   └── resources/    # Resources feature
+├── shared/           # Shared resources (components, hooks, utilities)
+│   ├── components/   # Shared UI components
+│   ├── hooks/        # Shared hooks
+│   ├── utils/        # Shared utilities
+│   └── types/        # Shared type definitions
+├── docs/             # Comprehensive documentation
+│   ├── features/     # Feature-specific documentation
+│   └── shared/       # Shared component documentation
+├── public/           # Static assets
+├── scripts/          # Build and development scripts
+└── README.md         # This file
 ```
 
-### Install dependencies
+## Getting Started
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm install
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Logging
+
+The application uses a centralized logger utility (`shared/utils/logger.ts`) that automatically disables debug and info logs in production.
+
+- In development: All logs are displayed
+- In production: Only warnings and errors are shown
+
+### Enabling Debug Logs in Production
+
+To enable debug logs in production for troubleshooting, add the following to your `.env` file:
+
+```
+NEXT_PUBLIC_DEBUG_MODE=true
 ```
 
-### Run the development server
+### Usage
 
-```bash
-npm run dev
+Replace direct console logs with the logger utility:
+
+```typescript
+import { logger } from '@/shared/utils/logger';
+
+// Different log levels
+logger.debug('Detailed information for debugging');
+logger.info('Informational messages');
+logger.warn('Warning messages');
+logger.error('Error messages', errorObject);
 ```
 
-### Setup pnpm (optional)
+## Key Technologies
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+- Next.js 14 (App Router)
+- React 18
+- TypeScript
+- Tailwind CSS
+- React Query
+- React Hook Form
 
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
+## Best Practices
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
-
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+For detailed best practices, please refer to the [Documentation Guidelines](./docs/GUIDELINES.md).

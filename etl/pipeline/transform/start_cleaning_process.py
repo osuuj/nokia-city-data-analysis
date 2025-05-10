@@ -40,6 +40,7 @@ def start_cleaning_process(
     staging_dir: str,
     entity_name: str,
     resources_dir: str,
+    config: dict,
 ) -> None:
     """Executes the cleaning process on extracted CSV files.
 
@@ -49,6 +50,7 @@ def start_cleaning_process(
         staging_dir (str): Directory to save staging data for later enrichment.
         entity_name (str): Name of the entity being processed.
         resources_dir (str): Path to resources directory for additional reference files.
+        config (dict): Config dictionary for S3 upload and metadata.
     """
     # Step 1: Load and preprocess
     df = read_csv(input_file)
@@ -57,18 +59,18 @@ def start_cleaning_process(
 
     # Step 2: Entity-Specific Cleaning
     if entity_name == "post_offices":
-        clean_post_offices(df, resources_dir, staging_dir)
+        clean_post_offices(df, resources_dir, staging_dir, config, entity_name)
     elif entity_name == "addresses":
-        clean_addresses(df, staging_dir, output_dir)
+        clean_addresses(df, staging_dir, output_dir, config, entity_name)
     elif entity_name == "names":
-        clean_names(df, staging_dir, output_dir)
+        clean_names(df, staging_dir, output_dir, config, entity_name)
     elif entity_name == "companies":
-        clean_companies(df, staging_dir, output_dir)
+        clean_companies(df, staging_dir, output_dir, config, entity_name)
     elif entity_name == "company_forms":
-        clean_company_forms(df, output_dir)
+        clean_company_forms(df, output_dir, config, entity_name)
     elif entity_name == "company_situations":
-        clean_company_situations(df, output_dir)
+        clean_company_situations(df, output_dir, config, entity_name)
     elif entity_name == "main_business_lines":
-        clean_main_business_lines(df, output_dir)
+        clean_main_business_lines(df, output_dir, config, entity_name)
     elif entity_name == "registered_entries":
-        clean_registered_entries(df, output_dir)
+        clean_registered_entries(df, output_dir, config, entity_name)

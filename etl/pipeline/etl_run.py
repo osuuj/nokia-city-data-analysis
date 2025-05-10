@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Union
 
 import ijson
 import pandas as pd
-
 from etl.config.config_loader import load_all_configs
 from etl.config.logging.logging_config import configure_logging, get_logger
 from etl.pipeline.data_fetcher import download_and_extract_files
@@ -192,7 +191,12 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
     """
     split_dir = Path(config["directory_structure"]["processed_dir"]) / "chunks"
     processed_dir = Path(config["directory_structure"]["processed_dir"]) / "extracted"
-    cleaned_dir = Path(config["directory_structure"]["processed_dir"]) / "cleaned"
+    cleaned_dir = (
+        Path(config["directory_structure"]["processed_dir"])
+        / "cleaned"
+        / config["snapshot_date"]
+        / config["language"]
+    )
     staging_dir = Path(config["directory_structure"]["processed_dir"]) / "staging"
     resources_dir = Path(config["directory_structure"]["resources_dir"])
     cleaned_dir.mkdir(parents=True, exist_ok=True)
@@ -216,6 +220,7 @@ def process_and_clean_entities(config: Dict[str, Any]) -> None:
             str(staging_dir),
             entity_name,
             str(resources_dir),
+            config,
         )
 
     logger.info("Cleaning process completed for all entities.")
