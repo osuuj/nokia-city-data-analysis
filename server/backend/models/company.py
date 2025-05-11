@@ -49,7 +49,7 @@ class Address(Base):
     active = Column(Boolean)
 
 
-class MainBusinessLine(Base):
+class IndustryClassification(Base):
     __tablename__ = "industry_classifications"
     id = Column(Integer, primary_key=True, autoincrement=True)
     business_id = Column(Text, ForeignKey("businesses.business_id"), nullable=False)

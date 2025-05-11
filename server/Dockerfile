@@ -1,5 +1,5 @@
 # Stage 1: Build dependencies
-FROM python:3.13.0-slim-bookworm as builder
+FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /build
 
@@ -8,17 +8,15 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        gcc \
        libpq-dev \
+       libc6-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
 COPY requirements.txt .
 
-# Install dependencies
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels -r requirements.txt
-
-# Stage 2: Runtime
-FROM python:3.13.0-slim-bookworm
+# Install dependencies directly rather than using wheels
+FROM python:3.12-slim-bookworm
 
 LABEL maintainer="Nokia City Data Analysis Team" \
       description="Nokia City Data Analysis API Server" \
@@ -37,22 +35,25 @@ RUN apt-get update \
         curl \
         libpq5 \
         ca-certificates \
+        gcc \
+        libpq-dev \
+        libc6-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
-# Copy dependencies from builder stage
-COPY --from=builder /build/wheels /wheels
-RUN pip install --no-cache-dir /wheels/* \
-    && rm -rf /wheels
+# Copy application code - fix the directory structure
+COPY ./backend /app/backend
+COPY ./config /app/config
+COPY ./db /app/db
+COPY ./tests /app/tests
+COPY ./scripts /app/scripts
+COPY ./deployment /app/deployment
+COPY ./__init__.py /app/__init__.py
+COPY ./requirements.txt /app/
 
-# Copy application code - split for better layer caching
-COPY ./server/backend ./app/server/backend
-COPY ./server/config ./app/server/config
-COPY ./server/db ./app/server/db
-COPY ./server/tests ./app/server/tests
-COPY ./server/scripts ./app/server/scripts
-COPY ./server/deployment ./app/server/deployment
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set ownership and secure permissions
 RUN chown -R appuser:appuser /app \
@@ -78,4 +79,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
 # Command to run the application with production settings
-CMD ["sh", "-c", "uvicorn server.backend.main:app --host 0.0.0.0 --port $PORT --workers $WORKERS --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port $PORT --workers $WORKERS --proxy-headers --forwarded-allow-ips='*'"]

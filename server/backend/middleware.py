@@ -5,6 +5,7 @@ This module contains middleware components for:
 - Rate limiting to prevent API abuse
 """
 
+import os
 import time
 from typing import Callable
 
@@ -21,7 +22,8 @@ from starlette.middleware.base import (  # pyright: ignore[reportMissingImports]
 from starlette.types import ASGIApp  # pyright: ignore[reportMissingImports]
 
 # Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+# Rate limiting will be conditionally enabled in setup_middlewares based on environment
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -61,28 +63,32 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Referrer-Policy controls what referrer information is sent
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # Content-Security-Policy restricts resource loading
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "img-src 'self' data:; "
-            "script-src 'self'; "
-            "style-src 'self'; "
-            "font-src 'self'; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none'"
-        )
+        # Skip CSP in development mode for Swagger UI to work properly
+        if os.environ.get(
+            "ENVIRONMENT", "dev"
+        ) != "dev" and not request.url.path.startswith("/docs"):
+            # Content-Security-Policy restricts resource loading
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "img-src 'self' data:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "font-src 'self' data:; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'"
+            )
 
-        # Permissions-Policy (formerly Feature-Policy) restricts browser features
-        response.headers["Permissions-Policy"] = (
-            "accelerometer=(), "
-            "camera=(), "
-            "geolocation=(), "
-            "gyroscope=(), "
-            "magnetometer=(), "
-            "microphone=(), "
-            "payment=(), "
-            "usb=()"
-        )
+            # Permissions-Policy (formerly Feature-Policy) restricts browser features
+            response.headers["Permissions-Policy"] = (
+                "accelerometer=(), "
+                "camera=(), "
+                "geolocation=(), "
+                "gyroscope=(), "
+                "magnetometer=(), "
+                "microphone=(), "
+                "payment=(), "
+                "usb=()"
+            )
 
         # HSTS tells browsers to only use HTTPS (only in production)
         if request.url.scheme == "https":
@@ -118,6 +124,12 @@ def setup_middlewares(app: FastAPI) -> None:
     # Add processing time middleware
     app.add_middleware(ProcessTimeMiddleware)
 
-    # Configure rate limiting
+    # Set up rate limiter regardless of environment (needed for decorator references)
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # Only enable rate limiting in production environment
+    environment = os.environ.get("ENVIRONMENT", "dev")
+    if environment != "dev":
+        # Add rate limit exceeded handler in production
+        app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        print(f"Rate limiting enabled in {environment} environment")

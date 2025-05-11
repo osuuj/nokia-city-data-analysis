@@ -4,6 +4,7 @@ This module handles API routes for accessing company data.
 """
 
 import logging
+import os
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query  # pyright: ignore[reportMissingImports]
@@ -23,13 +24,27 @@ from ..services.company_service import (
 # Configure logger
 logger = logging.getLogger(__name__)
 
+# Check if we're in production environment
+is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+
+
+# Conditionally create decorator factories
+def rate_limit_if_production(limit_string):
+    """Apply rate limiting only in production environment."""
+
+    def decorator(func):
+        if is_production:
+            return limiter.limit(limit_string)(func)
+        return func
+
+    return decorator
+
+
 router = APIRouter()
 
 
 @router.get("/businesses_by_city", response_model=List[BusinessData])
-@limiter.limit(
-    settings.RATE_LIMIT_HEAVY
-)  # More restrictive limit for data-heavy endpoint
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def read_businesses_by_city(
     city: str = Query(..., description="City name to filter by"),
     db: AsyncSession = Depends(get_db),
@@ -52,7 +67,7 @@ async def read_businesses_by_city(
 
 
 @router.get("/businesses_by_industry", response_model=List[BusinessData])
-@limiter.limit(settings.RATE_LIMIT_HEAVY)
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def read_businesses_by_industry(
     industry_letter: str = Query(..., description="Industry letter code to filter by"),
     city: Optional[str] = Query(None, description="Optional city to filter by"),
@@ -83,7 +98,7 @@ async def read_businesses_by_industry(
 
 
 @router.get("/cities", response_model=List[str])
-@limiter.limit(settings.RATE_LIMIT_DEFAULT)  # Standard limit for simple endpoint
+@rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
 async def read_cities(db: AsyncSession = Depends(get_db)) -> List[str]:
     """Retrieve all cities.
 
@@ -102,7 +117,7 @@ async def read_cities(db: AsyncSession = Depends(get_db)) -> List[str]:
 
 
 @router.get("/industries", response_model=List[str])
-@limiter.limit(settings.RATE_LIMIT_DEFAULT)  # Standard limit for simple endpoint
+@rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
 async def read_industries(db: AsyncSession = Depends(get_db)) -> List[str]:
     """Retrieve all industry letter codes.
 

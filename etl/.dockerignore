@@ -12,4 +12,6 @@ docker-compose.yml
 .isort.cfg
 bandit.yaml
 pyrightconfig.json
-ruff.toml 
+ruff.toml
+run_etl_load.sh
+scripts/run_etl_load.sh 

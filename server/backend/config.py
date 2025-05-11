@@ -6,12 +6,16 @@ with environment variables.
 """
 
 import os
-from typing import List, Optional, Set, Union
+from typing import Any, List, Optional, Set
 
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
-from pydantic_settings import BaseSettings  # pyright: ignore[reportMissingImports]
+from pydantic import PostgresDsn, field_validator
+from pydantic_settings import (  # pyright: ignore[reportMissingImports]
+    BaseSettings,
+    SettingsConfigDict,
+)
 
 
+# Create a completely environment-free settings class
 class Settings(BaseSettings):
     """Application settings.
 
@@ -30,7 +34,7 @@ class Settings(BaseSettings):
     # API settings
     API_V1_STR: str = "/api/v1"
 
-    # Database settings
+    # Database settings - we'll override these manually later
     POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
@@ -51,8 +55,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
-    # CORS settings
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    # CORS settings - Hard-coded for local development
+    # Define as Any to avoid validation, but override with field_validator
+    BACKEND_CORS_ORIGINS: Any = None
 
     # Analytics settings
     ANALYTICS_PRIORITY_INDUSTRIES: Set[str] = {
@@ -76,24 +81,27 @@ class Settings(BaseSettings):
     RATE_LIMIT_HEAVY: str = "20/minute"
     RATE_LIMIT_HEALTH: str = "120/minute"
 
+    # CRITICAL: Completely disable environment variables and .env files
+    model_config = SettingsConfigDict(
+        env_nested_delimiter=None,  # Disable nested env vars
+        env_file=None,  # Disable .env file loading
+        env_prefix="",  # Use empty string instead of None
+        extra="ignore",  # Ignore extra attributes
+        frozen=False,  # Allow changes after init
+    )
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
-        """Parse CORS origins into a list.
+    def set_cors_origins(cls, v: Any) -> List[str]:
+        """Completely override any value with a fixed list.
 
         Args:
-            v: CORS origins string or list
+            v: Any input value (ignored)
 
         Returns:
-            Parsed CORS origins
+            Fixed list of allowed origins
         """
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, list):
-            return v
-        elif isinstance(v, str):
-            # Handle the case when v is a string but might be a JSON list
-            return v  # type: ignore
-        raise ValueError(v)
+        # Ignore any input value, always return this hardcoded list
+        return ["http://localhost:3000"]
 
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
@@ -119,11 +127,9 @@ class Settings(BaseSettings):
             path=f"{values.get('POSTGRES_DB') or ''}",
         )
 
-    class Config:
-        """Pydantic model configuration."""
 
-        case_sensitive = True
-        env_file = f".env.{os.getenv('ENVIRONMENT', 'dev')}"
-
-
+# Create settings instance with default values
 settings = Settings()
+
+# Force set BACKEND_CORS_ORIGINS after initialization
+settings.BACKEND_CORS_ORIGINS = ["http://localhost:3000"]

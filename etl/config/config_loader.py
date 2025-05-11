@@ -13,10 +13,30 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from multiple possible locations
+ENV_FILE = find_dotenv(usecwd=True)
+env_path = None  # Initialize env_path to prevent "possibly unbound" error
+
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+else:
+    # Try the dedicated ETL .env file
+    etl_env = Path(__file__).parent.parent / ".env"
+    if etl_env.exists():
+        load_dotenv(etl_env)
+    # Also try root project .env and .env.compose files
+    project_root = Path(__file__).parent.parent.parent
+    for env_file in [".env", ".env.compose"]:
+        env_path = project_root / env_file
+        if env_path.exists():
+            load_dotenv(env_path)
+            break
+
+    # Log the loaded env file
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Loaded environment variables from {ENV_FILE or etl_env or env_path}")
 
 # Logger setup
 logger = logging.getLogger(__name__)
@@ -107,11 +127,50 @@ def construct_database_url(config: Dict[str, Any]) -> str:
 
     Returns:
         str: Database connection URL.
+
+    Raises:
+        ValueError: If required database environment variables are missing.
     """
+    # First try DATABASE_URL directly
     db_url = os.getenv("DATABASE_URL")
     if db_url:
         return db_url
-    return "postgresql://default_user:default_password@localhost:5432/default_db"
+
+    # Try DATABASE_URL_DOCKER if running in Docker
+    db_url_docker = os.getenv("DATABASE_URL_DOCKER")
+    if db_url_docker and os.getenv("ENVIRONMENT") == "docker":
+        return db_url_docker
+
+    # Get required parameters from environment variables
+    missing_vars = []
+    db_host = os.getenv("POSTGRES_HOST")
+    if not db_host:
+        missing_vars.append("POSTGRES_HOST")
+
+    db_port = os.getenv("POSTGRES_PORT")
+    if not db_port:
+        missing_vars.append("POSTGRES_PORT")
+
+    db_user = os.getenv("POSTGRES_USER")
+    if not db_user:
+        missing_vars.append("POSTGRES_USER")
+
+    db_password = os.getenv("POSTGRES_PASSWORD")
+    if not db_password:
+        missing_vars.append("POSTGRES_PASSWORD")
+
+    db_name = os.getenv("POSTGRES_DB")
+    if not db_name:
+        missing_vars.append("POSTGRES_DB")
+
+    # If any required variables are missing, raise an error
+    if missing_vars:
+        raise ValueError(
+            f"Missing required database environment variables: {', '.join(missing_vars)}. "
+            "Please set these in your environment or .env file."
+        )
+
+    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
 # Main configuration loader

@@ -135,7 +135,7 @@ def cached(ttl_seconds: int = 300):
             return result
 
         # Return appropriate wrapper based on whether the function is async or not
-        if "async" in func.__code__.co_flags:
+        if func.__code__.co_flags & 0x80:
             return async_wrapper
         return sync_wrapper
 
