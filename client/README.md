@@ -1,4 +1,4 @@
-# Client Application
+# Nokia City Data Analysis - Client Application
 
 This directory contains the client application for the Nokia City Data Analysis project.
 
@@ -90,3 +90,58 @@ logger.error('Error messages', errorObject);
 ## Best Practices
 
 For detailed best practices, please refer to the [Documentation Guidelines](./docs/GUIDELINES.md).
+
+## Environment Setup
+
+### Local Development
+
+1. Create a `.env.local` file in the client directory with the following variables:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_API_VERSION=v1
+NEXT_PUBLIC_ENVIRONMENT=development
+```
+
+2. Start the client application:
+
+```bash
+npm run dev
+```
+
+### Production Environment (Vercel)
+
+In your Vercel project settings, configure the following environment variables:
+
+```
+NEXT_PUBLIC_API_BASE_URL=https://your-aws-api-gateway-url.amazonaws.com
+NEXT_PUBLIC_API_VERSION=v1
+NEXT_PUBLIC_ENVIRONMENT=production
+```
+
+### Testing the Integration
+
+1. Test with local FastAPI server:
+   ```bash
+   # In one terminal
+   cd server
+   docker-compose up
+   
+   # In another terminal
+   cd client
+   npm run dev
+   ```
+
+2. Test with production API (using environment variables):
+   ```bash
+   # In the client directory
+   NEXT_PUBLIC_API_BASE_URL=https://your-aws-api-gateway-url.amazonaws.com npm run dev
+   ```
+
+### CORS Configuration
+
+The server has been configured to accept CORS requests from both:
+- http://localhost:3000 (local development)
+- Your production Vercel domain
+
+If you need to add additional domains, update the `BACKEND_CORS_ORIGINS` environment variable on the server side.

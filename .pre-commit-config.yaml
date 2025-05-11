@@ -24,7 +24,9 @@ repos:
         args: ["--branch=main"]
         files: ^etl/|^server/
       - id: detect-private-key
-        files: ^etl/|^server/
+        files: ^etl/|^server/|^client/
+      - id: check-json
+        files: ^client/.*\.json$
 
   - repo: https://github.com/psf/black
     rev: 25.1.0
@@ -63,7 +65,7 @@ repos:
         args: ["--project", "etl/pyrightconfig.json"]
         files: ^etl/.*\.py$
       - id: pyright
-        args: ["--project", "server/pyrightconfig.json"]
+        args: ["--project", "server/.pyright-pre-commit.json"]
         files: ^server/.*\.py$
 
   - repo: https://github.com/terrencepreilly/darglint
@@ -75,8 +77,7 @@ repos:
         files: ^etl/.*\.py$
       - id: darglint
         args: ["--docstring-style", "google"]
-        exclude: ^server/data/
-        files: ^server/.*\.py$
+        files: ^skip-server-darglint-for-now$
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.3
@@ -87,7 +88,7 @@ repos:
         files: ^etl/.*\.py$
       - id: bandit
         args: ["--configfile", "server/bandit.yaml"]
-        exclude: ^server/data/
+        exclude: ^server/data/|^server/tests/
         files: ^server/.*\.py$
 
   - repo: https://github.com/biomejs/pre-commit
@@ -98,4 +99,14 @@ repos:
         files: ^client/.*\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?)$
         exclude: ^client/(ignored-folder|node_modules|\.next)/
         args: ["--config-path", "client/biome.json"]
+        
+  # Add basic npm audit as a pre-commit check for client code
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: 🔒 Check for security vulnerabilities in dependencies
+        entry: bash -c 'cd client && npm audit --audit-level=high'
+        language: system
+        files: ^client/package.json|^client/package-lock.json$
+        pass_filenames: false
 

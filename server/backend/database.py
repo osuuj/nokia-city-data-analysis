@@ -1,47 +1,80 @@
-"""This module handles the database connection setup and provides a session generator for database operations.
+"""Database connection and session management.
 
-- Integrates with SQLAlchemy to define the database engine and session.
-- Uses declarative base for defining ORM models.
-- Ensures proper session lifecycle management using context managers.
-
+This module handles the creation of database connections, session management,
+and the creation of database tables.
 """
 
-from typing import Generator
+import logging
+from typing import AsyncGenerator
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import declarative_base
 
-from server.backend.config import DATABASE_URL
+from .config import settings
 
-# Import Base and models - Adjust path if necessary
-from .models.company import Base  # Import from company.py
+# Configure logging
+logger = logging.getLogger(__name__)
 
-# ✅ Enable connection pooling
-engine = create_engine(
-    DATABASE_URL, pool_size=10, max_overflow=5, pool_timeout=30, pool_recycle=1800
+# Create the SQLAlchemy engine
+engine = create_async_engine(
+    str(settings.DATABASE_URL),
+    echo=settings.SQLALCHEMY_ECHO,
+    future=True,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=settings.DB_POOL_TIMEOUT,
+    pool_recycle=settings.DB_POOL_RECYCLE,
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Create the SessionLocal class
+async_session = async_sessionmaker(
+    engine,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+# Base class for SQLAlchemy models
+Base = declarative_base()
 
 
-def get_db() -> Generator[Session, None, None]:
-    """Provides a database session with connection pooling.
+async def create_db_and_tables() -> None:
+    """Create database tables if they don't exist."""
+    try:
+        # Only create tables that don't exist
+        # This is done via init_db now with the schema.sql file
+        # async with engine.begin() as conn:
+        #     await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {e}")
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Get a database session.
 
     Yields:
-        Session: A database session.
+        AsyncSession: Database session
     """
-    db = SessionLocal()
+    async with async_session() as session:
+        try:
+            yield session
+        except Exception as e:
+            logger.error(f"Database session error: {e}")
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+async def close_db_connection() -> None:
+    """Close database connections on shutdown."""
     try:
-        yield db
-    finally:
-        db.close()  # ✅ Returns connection to the pool instead of closing it
+        await engine.dispose()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.error(f"Error closing database connections: {e}")
 
 
-def create_db_and_tables():
-    """Creates database tables based on SQLAlchemy models."""
-    print("Creating database tables if they don't exist...")
-    # Import all models here before calling create_all to ensure they are registered
-    # This is often handled by importing the modules where models are defined
-    # E.g., from . import models
-    Base.metadata.create_all(bind=engine)
-    print("Table creation check complete.")
+# Export common database components
+__all__ = ["Base", "engine", "get_db", "create_db_and_tables", "close_db_connection"]

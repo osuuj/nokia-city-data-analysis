@@ -1,111 +1,138 @@
-"""This module handles the configuration loading and environment variable resolution for the application."""
+"""Configuration settings for the backend.
+
+This module loads configuration from environment variables and provides
+default values for development. For production, override these values
+with environment variables.
+"""
 
 import os
-from pathlib import Path
-from typing import List
+from typing import Any, List, Optional, Set
 
-import yaml
-from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
-
-# Load .env file
-load_dotenv()
-
-# Paths
-BASE_DIR = Path(__file__).resolve().parent
-CONFIG_PATH = BASE_DIR / "../config/db.yml"
+from pydantic import PostgresDsn, field_validator
+from pydantic_settings import (  # pyright: ignore[reportMissingImports]
+    BaseSettings,
+    SettingsConfigDict,
+)
 
 
-def load_yaml(file_path: Path) -> dict:
-    """Load a YAML file.
-
-    Args:
-        file_path (Path): The path to the YAML file.
-
-    Returns:
-        dict: The loaded YAML content as a dictionary.
-
-    Raises:
-        FileNotFoundError: If the YAML file does not exist.
-    """
-    if not file_path.exists():
-        raise FileNotFoundError(f"Configuration file not found: {file_path}")
-    with file_path.open("r", encoding="utf-8") as file:
-        return yaml.safe_load(file) or {}
-
-
-def resolve_env_vars(config: dict) -> dict:
-    """Resolve environment variables in the configuration.
-
-    Args:
-        config (dict): The configuration dictionary.
-
-    Returns:
-        dict: The configuration dictionary with resolved environment variables.
-    """
-    for key, value in config.items():
-        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
-            env_var = value[2:-1]  # Strip ${ and }
-            config[key] = os.getenv(env_var, value)
-        elif isinstance(value, dict):
-            config[key] = resolve_env_vars(value)
-    return config
-
-
-def load_config() -> dict:
-    """Load and resolve configuration from YAML and environment variables.
-
-    Returns:
-        dict: The resolved configuration dictionary.
-    """
-    config = load_yaml(CONFIG_PATH)
-    return resolve_env_vars(config)
-
-
-# Load the configuration
-CONFIG = load_config()
-
-# Construct the database URL
-DATABASE_URL = f"postgresql://{CONFIG['db']['user']}:{CONFIG['db']['password']}@{CONFIG['db']['host']}:{CONFIG['db']['port']}/{CONFIG['db']['name']}"
-
-# Make the config available as 'settings' for import compatibility
-settings = CONFIG
-
-
+# Create a completely environment-free settings class
 class Settings(BaseSettings):
-    # Project Settings
+    """Application settings.
+
+    These settings are loaded from environment variables. Default values
+    are provided for development, but should be overridden in production.
+    """
+
+    # Basic application settings
     PROJECT_NAME: str = "Nokia City Data API"
+    VERSION: str = "1.0.0"
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "dev")
+    DEBUG: bool = ENVIRONMENT == "dev"
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    SQLALCHEMY_ECHO: bool = DEBUG
+
+    # API settings
     API_V1_STR: str = "/api/v1"
 
-    # Database Configuration (loads from environment variables)
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    DB_HOST: str
-    DB_PORT: str = "5432"
+    # Database settings - we'll override these manually later
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "nokia_city_data")
+    DATABASE_URL: Optional[PostgresDsn] = None
 
-    # CORS Origins (example: "http://localhost:3000,http://127.0.0.1:3000")
-    # Pydantic settings automatically handles comma-separated strings into lists if typed correctly
-    BACKEND_CORS_ORIGINS: List[str] = []
+    # Database pool settings
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))  # Production default
+    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+    DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+    DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # 30 minutes
 
-    # Construct Database URL
-    # Use model_computed_field in Pydantic v2 for cleaner construction
-    # Or define as a property
-    @property
-    def DATABASE_URL(self) -> str:
-        """Construct database connection URL."""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.POSTGRES_DB}"
+    # Security settings - JWT not implemented yet but ready when needed
+    JWT_SECRET_KEY: str = os.getenv(
+        "JWT_SECRET_KEY", "placeholder_jwt_secret_key_for_dev_only"
+    )
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
-    class Config:
-        """Pydantic BaseSettings config."""
+    # CORS settings - Hard-coded for local development
+    # Define as Any to avoid validation, but override with field_validator
+    BACKEND_CORS_ORIGINS: Any = None
 
-        # Optional: Specify .env file if not using load_dotenv separately
-        # env_file = ".env"
-        case_sensitive = True
+    # Analytics settings
+    ANALYTICS_PRIORITY_INDUSTRIES: Set[str] = {
+        "K",  # IT
+        "L",  # Finance
+        "R",  # Healthcare
+        "G",  # Retail
+        "C",  # Manufacturing
+        "Q",  # Education
+    }
+    ANALYTICS_OTHER_CATEGORY_NAME: str = "Other"
+    ANALYTICS_TOP_N_INDUSTRIES: int = 10
+
+    # Cache settings
+    CACHE_TTL_SHORT: int = 300  # 5 minutes
+    CACHE_TTL_MEDIUM: int = 3600  # 1 hour
+    CACHE_TTL_LONG: int = 86400  # 24 hours
+
+    # Rate limiting settings
+    RATE_LIMIT_DEFAULT: str = "60/minute"
+    RATE_LIMIT_HEAVY: str = "20/minute"
+    RATE_LIMIT_HEALTH: str = "120/minute"
+
+    # CRITICAL: Completely disable environment variables and .env files
+    model_config = SettingsConfigDict(
+        env_nested_delimiter=None,  # Disable nested env vars
+        env_file=None,  # Disable .env file loading
+        env_prefix="",  # Use empty string instead of None
+        extra="ignore",  # Ignore extra attributes
+        frozen=False,  # Allow changes after init
+    )
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    def set_cors_origins(cls, v: Any) -> List[str]:
+        """Completely override any value with a fixed list.
+
+        Args:
+            v: Any input value (ignored)
+
+        Returns:
+            Fixed list of allowed origins
+        """
+        # Parse environment variable if provided, otherwise use default
+        origins_str = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000")
+        origins = [origin.strip() for origin in origins_str.split(",")]
+        return origins
+
+    @field_validator("DATABASE_URL", mode="before")
+    def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
+        """Assemble database URL if not provided.
+
+        Args:
+            v: Database URL
+            info: Field validator info
+
+        Returns:
+            Database URL
+        """
+        if isinstance(v, str):
+            return PostgresDsn(v)
+
+        values = info.data
+        return PostgresDsn.build(
+            scheme="postgresql+asyncpg",
+            username=values.get("POSTGRES_USER"),
+            password=values.get("POSTGRES_PASSWORD"),
+            host=values.get("POSTGRES_HOST"),
+            port=int(values.get("POSTGRES_PORT")),
+            path=f"{values.get('POSTGRES_DB') or ''}",
+        )
 
 
-# Instantiate the settings
+# Create settings instance with default values
 settings = Settings()
 
-# Make DATABASE_URL easily accessible if needed directly elsewhere (though prefer settings.DATABASE_URL)
-DATABASE_URL = settings.DATABASE_URL
+# Force set BACKEND_CORS_ORIGINS after initialization if not set from environment
+if not settings.BACKEND_CORS_ORIGINS:
+    settings.BACKEND_CORS_ORIGINS = ["http://localhost:3000"]
