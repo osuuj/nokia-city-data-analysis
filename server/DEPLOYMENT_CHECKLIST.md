@@ -1,19 +1,33 @@
 # Server Deployment Checklist
 
+## Pre-Deployment Preparations
+
+- [ ] Run complete test suite on production Docker image
+- [ ] Verify database migrations work correctly with production settings
+- [ ] Check that SQLAlchemy query fixes are working properly (str.label issues resolved)
+- [ ] Ensure caching mechanisms are configured appropriately for production
+- [ ] Verify service layer separation is complete and working as expected
+
 ## AWS Cloud Deployment
 
 - [ ] Deploy to AWS ECS using the task definition in `deployment/aws-ecs-task-definition.json`
+- [ ] Configure AWS Secrets Manager for database credentials
+- [ ] Set up proper IAM roles and policies for the ECS task
 - [ ] Verify all endpoints work correctly in the cloud environment
 - [ ] Set up CloudWatch metrics and logging
 - [ ] Configure proper security groups and VPC settings for database access
 - [ ] Set up environment variables in ECS task definition
+- [ ] Configure proper scaling policies based on expected load
 
 ## Client Integration
 
+- [ ] Create a client-side environment configuration for development vs production API URLs
+- [ ] Update Vercel environment variables to point to the AWS API endpoint
 - [ ] Verify the client-side API integration in the client folder works with the deployed API
-- [ ] Test CORS configuration with the Vercel frontend
-- [ ] Update the API base URL in the Vercel environment variables
+- [ ] Test CORS configuration with the Vercel frontend (confirm the BACKEND_CORS_ORIGINS includes Vercel domain)
+- [ ] Implement client-side retry and error handling for API failures
 - [ ] Test authentication flow (if applicable)
+- [ ] Add loading states in client UI for slower API operations
 
 ## End-to-End Validation
 
@@ -22,6 +36,7 @@
 - [ ] Establish monitoring for key API endpoints
 - [ ] Set up alerts for API failures or performance issues
 - [ ] Document API contracts for frontend developers
+- [ ] Test geospatial data visualization with real production data
 
 ## Final Documentation
 
@@ -29,6 +44,8 @@
 - [ ] Create user documentation for using the API
 - [ ] Document deployment process for future team members
 - [ ] Create troubleshooting guide for common issues
+- [ ] Document rollback procedures in case of deployment failures
+- [ ] Create handover documentation with system architecture diagrams
 
 ## Security Audit
 
@@ -36,6 +53,8 @@
 - [ ] Verify proper rate limiting is in place and working
 - [ ] Check that all secrets are properly managed and not exposed
 - [ ] Ensure database credentials are securely stored
+- [ ] Test API endpoints for common vulnerabilities (SQL injection, etc.)
+- [ ] Configure proper CDN/WAF for production API endpoints
 
 ## Performance Testing
 
@@ -43,6 +62,8 @@
 - [ ] Verify database indexes are working efficiently
 - [ ] Check cache effectiveness for frequently accessed data
 - [ ] Optimize slow queries if identified
+- [ ] Test performance with realistic data volumes
+- [ ] Set up performance monitoring for long-term tracking
 
 ## Future Improvements
 
