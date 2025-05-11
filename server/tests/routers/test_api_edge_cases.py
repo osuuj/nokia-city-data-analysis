@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.database import get_db
@@ -142,7 +143,9 @@ async def test_health_redirect(db: AsyncSession):
 
 async def get_test_industry_letter(db: AsyncSession) -> str:
     """Get a test industry letter from the database."""
-    query = "SELECT DISTINCT industry_letter FROM industry_classifications LIMIT 1"
+    query = text(
+        "SELECT DISTINCT industry_letter FROM industry_classifications LIMIT 1"
+    )
     result = await db.execute(query)
     row = result.first()
     return row[0] if row else None

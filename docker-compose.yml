@@ -40,6 +40,7 @@ services:
   server:
     build:
       context: ./server
+      dockerfile: Dockerfile.dev
     container_name: fastapi
     depends_on:
       db:
@@ -54,11 +55,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-nokia_city_data}
       ENVIRONMENT: ${ENVIRONMENT:-dev}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_LEVEL: ${LOG_LEVEL:-DEBUG}
       DEBUG: ${DEBUG:-true}
-      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:-[]}'
+      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:-["http://localhost:3000"]}'
     volumes:
       - ./server:/app
+    # Override command to enable hot-reload with mounted code
+    command: uvicorn server.backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   postgres_data:

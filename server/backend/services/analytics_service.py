@@ -491,3 +491,87 @@ async def get_top_cities(
     except Exception as e:
         logger.error(f"Error getting top cities: {e}")
         raise
+
+
+class IndustryComparisonResult(TypedDict):
+    """Industry comparison between two cities result."""
+
+    industry_letter: str
+    industry_description: str
+    city1_count: int
+    city2_count: int
+    city1_percentage: float
+    city2_percentage: float
+    difference: float
+
+
+async def compare_industry_by_cities(
+    db: AsyncSession,
+    city1: str,
+    city2: str,
+) -> List[IndustryComparisonResult]:
+    """Compare industry distribution between two cities.
+
+    Args:
+        db: Database async session
+        city1: First city to compare
+        city2: Second city to compare
+
+    Returns:
+        List of industry comparison results
+    """
+    try:
+        # Get industry distribution for both cities
+        city1_data = await get_industry_distribution(db, [city1])
+        city2_data = await get_industry_distribution(db, [city2])
+
+        # Create a mapping of industry letter to result
+        results = []
+
+        # Create mapping for quick lookup
+        city1_map = {item["industry_letter"]: item for item in city1_data}
+        city2_map = {item["industry_letter"]: item for item in city2_data}
+
+        # Combine all industry letters from both cities
+        all_industries = set(city1_map.keys()).union(set(city2_map.keys()))
+
+        for industry in all_industries:
+            # Get data for this industry in both cities, defaulting to 0 if not present
+            city1_item = city1_map.get(
+                industry, {"count": 0, "percentage": 0, "industry_description": ""}
+            )
+            city2_item = city2_map.get(
+                industry, {"count": 0, "percentage": 0, "industry_description": ""}
+            )
+
+            # Use description from whichever city has it
+            industry_description = (
+                city1_item.get("industry_description")
+                or city2_item.get("industry_description")
+                or ""
+            )
+
+            # Calculate percentage difference
+            city1_percentage = float(city1_item.get("percentage", 0))
+            city2_percentage = float(city2_item.get("percentage", 0))
+            difference = city2_percentage - city1_percentage
+
+            results.append(
+                {
+                    "industry_letter": str(industry),
+                    "industry_description": str(industry_description),
+                    "city1_count": int(city1_item.get("count", 0)),
+                    "city2_count": int(city2_item.get("count", 0)),
+                    "city1_percentage": city1_percentage,
+                    "city2_percentage": city2_percentage,
+                    "difference": difference,
+                }
+            )
+
+        # Sort by absolute difference (descending)
+        results.sort(key=lambda x: abs(x["difference"]), reverse=True)
+
+        return results
+    except Exception as e:
+        logger.error(f"Error comparing industries: {e}")
+        raise
