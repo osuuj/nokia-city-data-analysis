@@ -1,15 +1,14 @@
 name: Server Test & Build
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'server/**'
-  # pull_request:
-  #   branches: [main]
-  #   paths:
-  #     - 'server/**'
+  # Only trigger manually - removed automatic push trigger
   workflow_dispatch:
+    inputs:
+      deploy_after_build:
+        description: 'Deploy to AWS after successful build'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   test:
@@ -62,6 +61,8 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: testdb
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/testdb
+          ENVIRONMENT: test
+          BYPASS_RATE_LIMIT: "true"
         run: |
           cd server
           python -m pytest --cov=backend tests/
