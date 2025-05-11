@@ -21,7 +21,21 @@ Thank you for contributing to this project! We appreciate your time and effort t
    cd nokia-city-data-analysis
    ```
 
-2. Set up a virtual environment and install dependencies (ETL pipeline requirements are located in the `etl` folder and FastAPIs requirements are located in the `server` folder):
+2. Set up development environments:
+
+   ### Option 1: Using Helper Scripts (Recommended)
+
+   We provide helper scripts to automate environment setup:
+
+   ```bash
+   # Set up ETL environment
+   ./etl/scripts/setup_dev_env.sh
+
+   # Set up FastAPI environment
+   ./server/scripts/setup_dev_env.sh
+   ```
+
+   ### Option 2: Manual Setup
 
    Set up the ETL environment:
 
@@ -29,14 +43,16 @@ Thank you for contributing to this project! We appreciate your time and effort t
    python -m venv venvs/etl_env
    source venvs/etl_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
    pip install -r etl/requirements.txt
+   pip install -r etl/requirements-dev.txt  # For development tools
    ```
 
    Set up the FastAPI environment:
 
    ```bash
    python -m venv venvs/fastapi_env
-   source venvs/fastapi_env/bin/activate  # Use `venvs\etl_env\Scripts\activate` on Windows
+   source venvs/fastapi_env/bin/activate  # Use `venvs\fastapi_env\Scripts\activate` on Windows
    pip install -r server/requirements.txt
+   pip install -r server/requirements-dev.txt  # For development tools
    ```
 
 3. Run the ETL process:
@@ -44,7 +60,7 @@ Thank you for contributing to this project! We appreciate your time and effort t
    - Make sure you are in the `etl_env` environment.
    - Execute the ETL pipeline script:
      ```bash
-     python etl/scripts/etl_run.py
+     python -m etl.pipeline.etl_run
      ```
 
 4. Start the database services with Docker:
@@ -55,11 +71,23 @@ Thank you for contributing to this project! We appreciate your time and effort t
 
 5. Load processed data into the database:
 
-   - Ensure the Docker services are running.
-   - While still in the `etl_env` environment, execute the loading script:
-     ```bash
-     python etl/pipeline/load/load_data.py
-     ```
+   ### Using Helper Script (Recommended)
+   ```bash
+   # Ensure you're in the etl_env environment
+   source venvs/etl_env/bin/activate
+   
+   # Run the data loading script (handles environment variables and error reporting)
+   ./etl/scripts/run_etl_load.sh
+   ```
+
+   ### Manual Method
+   ```bash
+   # Ensure you're in the etl_env environment
+   source venvs/etl_env/bin/activate
+   
+   # Run the loading module directly
+   python -m etl.pipeline.load.load_data
+   ```
 
 6. Switch to the FastAPI environment:
 
@@ -112,27 +140,27 @@ Code Style Guidelines are optional, and the tools required are already listed in
 
 1. **Linters**:
 
-   - Use `ruff` for linting.
-   - Use `darglint` for docstring validation.
+   - Use `ruff` for linting (config in `etl/ruff.toml`).
+   - Use `darglint` for docstring validation (config in `etl/.darglint`).
 
 2. **Formatting**:
 
-   - Use `black` for code formatting.
-   - Use `isort` for organizing imports.
+   - Use `black` for code formatting (config in `etl/.black.toml`).
+   - Use `isort` for organizing imports (config in `etl/.isort.cfg`).
 
 3. **Type Checking**:
 
-   - Use `pyright` to enforce type annotations.
+   - Use `pyright` to enforce type annotations (config in `etl/pyrightconfig.json`).
 
 4. **Security**:
-   - Use `bandit` for security checks.
+   - Use `bandit` for security checks (config in `etl/bandit.yaml`).
 
 Run the following commands to check your code:
 
 ```bash
-ruff check --config ruff.toml etl/config etl/pipeline etl/scripts etl/utils
-black --config .black.toml etl/config etl/pipeline etl/scripts etl/utils
-isort --settings-path .isort.cfg --verbose etl/config etl/pipeline etl/scripts etl/utils
+ruff check --config etl/ruff.toml etl/config etl/pipeline etl/scripts etl/utils
+black --config etl/.black.toml etl/config etl/pipeline etl/scripts etl/utils
+isort --settings-path etl/.isort.cfg --verbose etl/config etl/pipeline etl/scripts etl/utils
 pyright
 darglint etl/config etl/pipeline etl/scripts etl/utils
 bandit -r etl
@@ -166,6 +194,16 @@ pre-commit install
 ## Code of Conduct
 
 We strive to maintain a welcoming and inclusive environment. By contributing to this project, you agree to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+## Project Documentation
+
+For more detailed information on specific components, refer to their README files:
+
+- [ETL System Documentation](etl/README.md) - Details on the ETL pipeline
+- [Server Documentation](server/README.md) - Details on the FastAPI server
+- [Client Documentation](client/README.md) - Details on the frontend application
 
 ---
 
