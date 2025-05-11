@@ -14,39 +14,38 @@ from pydantic import BaseModel, ConfigDict
 class AddressSchema(BaseModel):
     """Pydantic schema for Address entity."""
 
-    street: Optional[str]
-    building_number: Optional[str]
-    entrance: Optional[str]
-    apartment_number: Optional[str]
-    apartment_id_suffix: Optional[str]
-    post_office_box: Optional[str]
-    post_code: Optional[str]
-    co: Optional[str]
-    country: Optional[str]
-    free_address_line: Optional[str]
-    registration_date: Optional[date]
-    source: Optional[str]
+    street: str
+    building_number: str
+    entrance: Optional[str] = None
+    apartment_number: Optional[str] = None
+    postal_code: int
+    municipality: int
+    city: str
+    country: str = "FI"
+    latitude_wgs84: float
+    longitude_wgs84: float
+    address_type: Optional[str] = None
+    co: Optional[str] = None
+    registration_date: Optional[date] = None
+    active: bool = True
+    type: Optional[str] = None
 
-    class Config:
-        """Configuration for AddressSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class NameSchema(BaseModel):
     """Pydantic schema for Name entity."""
 
+    business_id: str
     company_name: str
+    company_type: str
+    registration_date: Optional[date] = None
+    end_date: Optional[date] = None
+    active: bool
+    source: str
     version: int
-    company_type: Optional[str]
-    registration_date: Optional[date]
-    end_date: Optional[date]
-    source: Optional[str]
 
-    class Config:
-        """Configuration for NameSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MainBusinessLineSchema(BaseModel):
@@ -54,8 +53,10 @@ class MainBusinessLineSchema(BaseModel):
 
     industry_code: int
     industry_letter: str
+    industry: Optional[str] = None
     industry_description: str
     registration_date: date
+    source: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -64,81 +65,83 @@ class RegisteredEntrySchema(BaseModel):
     """Pydantic schema for Registered Entry entity."""
 
     registration_status_code: str
-    registration_date: Optional[date]
-    end_date: Optional[date]
-    register_name: Optional[str]
-    authority: Optional[str]
+    registration_date: Optional[date] = None
+    end_date: Optional[date] = None
+    register_name: str
+    authority: str
 
-    class Config:
-        """Configuration for RegisteredEntrySchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompanyFormSchema(BaseModel):
     """Pydantic schema for Company Form entity."""
 
-    business_form: Optional[str]
-    version: Optional[int]
-    registration_date: Optional[date]
-    end_date: Optional[date]
-    source: Optional[str]
+    business_form: str
+    version: Optional[int] = None
+    registration_date: Optional[date] = None
+    end_date: Optional[date] = None
+    source: str
 
-    class Config:
-        """Configuration for CompanyFormSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class PostOfficeSchema(BaseModel):
-    """Pydantic schema for Post Office entity."""
+class WebsiteSchema(BaseModel):
+    """Pydantic schema for Website entity."""
 
-    post_code: str
-    city: Optional[str]
-    municipality_code: Optional[int]
-    active: Optional[bool]
+    website: str
+    last_modified: Optional[date] = None
+    company_id_status: Optional[str] = None
+    trade_register_status: Optional[str] = None
+    registration_date: Optional[date] = None
+    end_date: Optional[date] = None
 
-    class Config:
-        """Configuration for PostOfficeSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompanySituationSchema(BaseModel):
     """Pydantic schema for Company Situation entity."""
 
-    type: str
+    situation_type: str
     registration_date: date
-    source: Optional[str]
+    source: str
 
-    class Config:
-        """Configuration for CompanySituationSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BusinessData(BaseModel):
     """Pydantic schema for Business Data entity."""
 
     business_id: str
-    street: Optional[str]
-    building_number: Optional[str]
-    entrance: Optional[str]
-    postal_code: Optional[str]
-    city: Optional[str]
-    latitude_wgs84: Optional[str]
-    longitude_wgs84: Optional[str]
-    address_type: Optional[str]
-    active: Optional[str]
-    company_name: Optional[str]
-    company_type: Optional[str]
-    industry_description: Optional[str]
-    industry_letter: Optional[str]
-    industry: Optional[str]
-    registration_date: Optional[str]
-    website: Optional[str]
+    street: Optional[str] = None
+    building_number: Optional[str] = None
+    entrance: Optional[str] = None
+    postal_code: Optional[str] = None
+    city: Optional[str] = None
+    latitude_wgs84: Optional[str] = None
+    longitude_wgs84: Optional[str] = None
+    address_type: Optional[str] = None
+    active: Optional[str] = None
+    company_name: Optional[str] = None
+    company_type: Optional[str] = None
+    industry_description: Optional[str] = None
+    industry_letter: Optional[str] = None
+    industry: Optional[str] = None
+    registration_date: Optional[str] = None
+    website: Optional[str] = None
 
-    class Config:
-        """Configuration for BusinessData."""
+    model_config = ConfigDict(from_attributes=True)
 
-        from_attributes = True
+
+class CompanySchema(BaseModel):
+    """Pydantic schema for Company entity."""
+
+    business_id: str
+    company_name: str
+    company_type: str
+    registration_date: Optional[date] = None
+    end_date: Optional[date] = None
+    active: bool = True
+    source: str
+    version: int
+
+    model_config = ConfigDict(from_attributes=True)

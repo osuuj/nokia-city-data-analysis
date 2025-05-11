@@ -6,7 +6,7 @@ This module provides services for retrieving and processing company data.
 import logging
 from typing import List, Optional, cast
 
-from sqlalchemy import and_, distinct, func, select, text
+from sqlalchemy import and_, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -133,83 +133,6 @@ async def get_business_data_by_city(db: AsyncSession, city: str) -> List[Busines
 
     except Exception as e:
         logger.error(f"Error fetching business data for city {city}: {e}")
-        raise
-
-
-async def get_business_data_by_city_raw_sql(
-    db: AsyncSession, city: str
-) -> List[BusinessData]:
-    """Fetches business data for companies using the original raw SQL query.
-
-    Important:
-    This implementation is kept only for:
-    1. Benchmarking against the SQLAlchemy implementation
-    2. Reference of the original query structure
-    3. Use with the comparison script
-
-    In production, always use the get_business_data_by_city function instead
-    which uses SQLAlchemy expressions for better maintainability and type safety.
-
-    Args:
-        db: SQLAlchemy async database session
-        city: Name of the city to filter by postal address
-
-    Returns:
-        List of business data records
-    """
-    try:
-        # Original SQL query kept for reference and testing
-        query = text(
-            """
-            WITH companies_with_postal_in_city AS (
-                SELECT DISTINCT business_id
-                FROM addresses
-                 WHERE city = :city
-                    AND address_type IN ('Postal address', 'Visiting address')
-            )
-            SELECT
-                a.business_id,
-                a.street,
-                a.building_number,
-                COALESCE(a.entrance, '') AS entrance,
-                CAST(a.postal_code AS TEXT) AS postal_code,
-                a.city,
-                CAST(a.latitude_wgs84 AS TEXT) AS latitude_wgs84,
-                CAST(a.longitude_wgs84 AS TEXT) AS longitude_wgs84,
-                a.address_type,
-                CAST(a.active AS TEXT) AS active,
-                b.company_name,
-                b.company_type,
-                COALESCE(ic.industry_description, '') AS industry_description,
-                COALESCE(ic.industry_letter, '') AS industry_letter,
-                COALESCE(ic.industry, '') AS industry,
-                COALESCE(CAST(ic.registration_date AS TEXT), '') AS registration_date,
-                COALESCE(w.website, '') AS website
-            FROM addresses a
-            JOIN companies_with_postal_in_city cpc ON a.business_id = cpc.business_id
-            JOIN businesses b ON a.business_id = b.business_id
-            LEFT JOIN LATERAL (
-                SELECT industry_description, industry_letter, industry, registration_date
-                FROM industry_classifications ic
-                WHERE ic.business_id = a.business_id
-                ORDER BY ic.registration_date DESC
-                LIMIT 1
-            ) ic ON true
-            LEFT JOIN LATERAL (
-                SELECT website
-                FROM websites w
-                WHERE w.business_id = a.business_id
-                ORDER BY w.registration_date DESC
-                LIMIT 1
-            ) w ON true
-            """
-        )
-
-        result = await db.execute(query, {"city": city})
-        return [BusinessData(**row._mapping) for row in result]
-
-    except Exception as e:
-        logger.error(f"Error fetching business data for city {city} (raw SQL): {e}")
         raise
 
 

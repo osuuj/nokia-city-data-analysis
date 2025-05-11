@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.services.company_service import (
     get_business_data_by_city,
-    get_business_data_by_city_raw_sql,
     get_cities,
     get_companies_by_industry,
     get_industries,
@@ -34,40 +33,6 @@ async def test_get_business_data_by_city(db: AsyncSession):
         assert first_record.business_id
         assert first_record.company_name
         assert first_record.city == city
-
-
-@pytest.mark.asyncio
-async def test_compare_sql_and_sqlalchemy_implementations(db: AsyncSession):
-    """Compare results from raw SQL and SQLAlchemy implementations."""
-    # Get a test city
-    city = await get_test_city(db)
-
-    if not city:
-        pytest.skip("No cities available for testing")
-
-    # Get data using both implementations
-    sql_result = await get_business_data_by_city_raw_sql(db, city)
-    sqlalchemy_result = await get_business_data_by_city(db, city)
-
-    # Compare result counts
-    assert len(sql_result) == len(sqlalchemy_result), (
-        f"Result counts don't match: SQL={len(sql_result)}, "
-        f"SQLAlchemy={len(sqlalchemy_result)}"
-    )
-
-    # If we have results, compare a sample of records
-    if sql_result:
-        # Compare first record fields
-        for i in range(min(3, len(sql_result))):
-            sql = sql_result[i]
-            sqlalchemy = sqlalchemy_result[i]
-
-            # Compare key fields
-            assert sql.business_id == sqlalchemy.business_id
-            assert sql.company_name == sqlalchemy.company_name
-            assert sql.street == sqlalchemy.street
-            assert sql.city == sqlalchemy.city
-            assert sql.postal_code == sqlalchemy.postal_code
 
 
 @pytest.mark.asyncio
