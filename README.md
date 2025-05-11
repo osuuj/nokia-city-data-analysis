@@ -1,26 +1,25 @@
 # Nokia City Data Analysis
 
-A comprehensive data analysis system for Nokia City Data, providing ETL capabilities, API services, and interactive data visualizations.
-
-![Project Banner](client/public/images/project-banner.png)
+A comprehensive data analysis system for companies in cities of Finland, providing ETL capabilities, API services, and interactive data visualizations.
 
 ## Project Overview
 
-This project provides an end-to-end solution for processing, analyzing, and visualizing city business data. It consists of three main components:
+This project provides an end-to-end solution for processing, analyzing, and visualizing business data across Finnish cities. It consists of three main components:
 
-1. **ETL System** - Extracts data from various sources, transforms it according to business rules, and loads it into a PostgreSQL database
+1. **ETL System** - Extracts company data from PRH (Finnish Patent and Registration Office) open data, transforms it according to business rules, and loads it into a PostgreSQL database
 2. **FastAPI Server** - Provides RESTful API endpoints for accessing and querying the processed data
 3. **Next.js Client** - Delivers an interactive web dashboard for data visualization and analysis
 
 ## Key Features
 
-- 🗄️ **Data Processing** - Robust ETL pipeline with advanced data cleaning and transformation
-- 🔍 **Business Analytics** - Industry distribution analysis and city comparisons
+- 🗄️ **Data Processing** - Robust ETL pipeline with advanced data cleaning and transformation of PRH open data
+- 🔍 **Business Analytics** - Industry distribution analysis and city comparisons across Finland
 - 🌍 **Geospatial Visualization** - Interactive maps with business location data
 - 📊 **Data Dashboards** - Customizable dashboards with various visualization options
 - 🔄 **Real-time Updates** - Automated data refresh and processing
 - 🔐 **Secure API** - FastAPI backend with proper authentication and rate limiting
 - 📱 **Responsive Design** - Mobile-friendly front-end application
+- ☁️ **Cloud Deployment** - Production-ready setup for AWS (backend) and Vercel (frontend)
 
 ## System Architecture
 
@@ -41,6 +40,33 @@ This project provides an end-to-end solution for processing, analyzing, and visu
                                           └───────────────┘
 ```
 
+## Deployment Architecture
+
+```
+                      ┌─────────────────┐
+                      │                 │
+                      │  GitHub Actions │
+                      │  CI/CD          │
+                      │                 │
+                      └────────┬────────┘
+                               │
+              ┌────────────────┴────────────────┐
+              │                                 │
+┌─────────────▼──────────────┐      ┌───────────▼─────────────┐
+│                            │      │                         │
+│  AWS ECS                   │      │  Vercel                 │
+│  (FastAPI Server)          │      │  (Next.js Client)       │
+│                            │      │                         │
+└─────────────┬──────────────┘      └─────────────────────────┘
+              │
+┌─────────────▼──────────────┐
+│                            │
+│  AWS RDS                   │
+│  (PostgreSQL Database)     │
+│                            │
+└────────────────────────────┘
+```
+
 ## Getting Started
 
 ### Prerequisites
@@ -49,6 +75,8 @@ This project provides an end-to-end solution for processing, analyzing, and visu
 - Node.js 18+ and npm
 - Docker and Docker Compose (for local development)
 - PostgreSQL 14+ (or use the provided Docker setup)
+- AWS account (for production deployment of the backend)
+- Vercel account (for production deployment of the frontend)
 
 ### Quick Start
 
@@ -150,6 +178,8 @@ nokia-city-data-analysis/
 - Alembic for migrations
 - PostgreSQL for database
 - Pydantic for validation
+- AWS ECS for deployment
+- AWS RDS for database hosting
 
 ### Client
 - Next.js 14 (App Router)
@@ -157,6 +187,28 @@ nokia-city-data-analysis/
 - TypeScript
 - Tailwind CSS
 - React Query
+- Vercel for deployment
+
+## Deployment
+
+### Backend Deployment (AWS)
+
+The FastAPI backend is deployed to AWS using the following services:
+- **ECS (Elastic Container Service)** for running the containerized API
+- **RDS (Relational Database Service)** for hosting the PostgreSQL database
+- **ECR (Elastic Container Registry)** for storing Docker images
+- **ELB (Elastic Load Balancer)** for distributing traffic
+- **CloudWatch** for monitoring and logging
+
+Deployment is automated via GitHub Actions workflows in the `.github/workflows` directory.
+
+### Frontend Deployment (Vercel)
+
+The Next.js frontend is deployed to Vercel:
+- **Vercel** provides automatic deployments from Git
+- **Preview Deployments** for pull requests
+- **Edge Network** for global content delivery
+- **Serverless Functions** for API routes
 
 ## Contributing
 
@@ -168,6 +220,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Nokia for providing the city data
+- Nokia for supporting the development of this Finnish city data analysis project
+- The Finnish Patent and Registration Office (PRH) for providing open business data
 - The FastAPI, Next.js, and Python communities for their excellent documentation
+- AWS and Vercel for their robust cloud platforms
 - All contributors who have helped shape this project 
