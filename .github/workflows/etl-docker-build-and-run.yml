@@ -47,11 +47,11 @@ jobs:
             --overrides '{
               "containerOverrides":[
                 {
-                  "name":"${{ env.ETL_CONTAINER_NAME }}",
+                  "name":"'"$ETL_CONTAINER_NAME"'",
                   "command":["python","-m","etl.pipeline.etl_run"],
                   "environment":[
                     {"name":"DOWNLOAD_RESOURCES_FROM_S3","value":"true"},
-                    {"name":"S3_BUCKET","value":"osuuj-etl"}
+                    {"name":"S3_BUCKET","value":"'"$S3_BUCKET"'"}
                   ]
                 }
               ]
