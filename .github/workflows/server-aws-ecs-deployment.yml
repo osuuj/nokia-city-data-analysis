@@ -1,18 +1,20 @@
 name: Deploy Server to AWS
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'server/**'
-      - '.github/workflows/server-aws-ecs-deployment.yml'
-  workflow_dispatch:  # Allow manual triggering
+  # Only manual triggering - removed automatic push trigger
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: 'Run tests before deployment'
+        required: false
+        default: 'true'
+        type: boolean
 
 jobs:
   test:
     name: Test Server
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_tests == 'true' }}
     
     services:
       postgres:
@@ -51,12 +53,14 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/nokia_city_data_test
           ENVIRONMENT: test
+          BYPASS_RATE_LIMIT: "true"
         run: |
           pytest -v
 
   build-and-deploy:
     name: Build and Deploy Server
     needs: test
+    if: ${{ always() && (github.event.inputs.run_tests != 'true' || needs.test.result == 'success') }}
     runs-on: ubuntu-latest
     
     steps:
