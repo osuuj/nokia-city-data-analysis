@@ -1,0 +1,74 @@
+name: Client Security Audit
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'client/package.json'
+      - 'client/package-lock.json'
+  push:
+    branches: [ main ]
+    paths:
+      - 'client/package.json'
+      - 'client/package-lock.json'
+  # Allows manual triggering
+  workflow_dispatch:
+  # Run a security audit weekly
+  schedule:
+    - cron: '0 0 * * 0'  # Runs at 00:00 every Sunday
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      
+      # Run NPM audit to check for vulnerabilities
+      - name: Run NPM audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      
+      # Generate a report for review
+      - name: Generate audit report
+        run: npm audit --json > npm-audit.json
+        continue-on-error: true
+        
+      # Install npm-audit-html to create a readable report
+      - name: Install npm-audit-html
+        run: npm install -g npm-audit-html
+        
+      # Create HTML report
+      - name: Generate HTML report
+        run: cat npm-audit.json | npm-audit-html > npm-audit-report.html
+        continue-on-error: true
+      
+      # Upload the report as an artifact
+      - name: Upload audit report
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-report
+          path: client/npm-audit-report.html
+
+      # Check specifically for critical vulnerabilities - warn but don't fail
+      - name: Check for critical vulnerabilities
+        run: |
+          if npm audit | grep -q "Critical"; then
+            echo "::warning::Critical vulnerabilities found in dependencies! Check the audit report."
+          fi
+        
+      # Install a tool for license compliance checking
+      - name: Check licenses
+        run: |
+          npx license-checker --production --onlyAllow="MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;CC0-1.0" --summary
+        continue-on-error: true 
