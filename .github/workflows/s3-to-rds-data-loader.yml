@@ -45,7 +45,7 @@ jobs:
             --task-definition $ETL_TASK_DEF \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","-m","etl.pipeline.load.load_data"]}]}' \
+            --overrides '{"containerOverrides":[{"name":"'"$ETL_CONTAINER_NAME"'","command":["python","-m","etl.pipeline.load.load_data"]}]}' \
             --query 'tasks[0].taskArn' --output text)
           echo "TASK_ARN=$TASK_ARN" >> $GITHUB_ENV
 

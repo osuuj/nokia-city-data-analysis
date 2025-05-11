@@ -5,6 +5,7 @@ default values for development. For production, override these values
 with environment variables.
 """
 
+import json
 import os
 from typing import Any, List, Optional, Set
 
@@ -116,9 +117,34 @@ class Settings(BaseSettings):
         Returns:
             Database URL
         """
+        # If explicit DATABASE_URL is provided, use it
         if isinstance(v, str):
             return PostgresDsn(v)
 
+        # For production environment with AWS Secrets
+        if os.environ.get("ENVIRONMENT", "dev") == "production":
+            try:
+                # Get credentials from AWS Secrets Manager (auto-loaded to environment)
+                if "DATABASE_CREDENTIALS" in os.environ:
+                    db_credentials = json.loads(
+                        os.environ.get("DATABASE_CREDENTIALS", "{}")
+                    )
+                    db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
+
+                    # Build connection string from credentials
+                    return PostgresDsn.build(
+                        scheme="postgresql+asyncpg",
+                        username=db_credentials.get("username"),
+                        password=db_credentials.get("password"),
+                        host=db_credentials.get("host"),
+                        port=int(db_credentials.get("port", 5432)),
+                        path=f"{db_name}",
+                    )
+            except Exception as e:
+                print(f"Error loading AWS Secrets: {e}")
+                # Fall through to default handling
+
+        # Default behavior using individual environment variables
         values = info.data
         return PostgresDsn.build(
             scheme="postgresql+asyncpg",
