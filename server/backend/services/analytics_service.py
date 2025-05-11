@@ -8,7 +8,7 @@ This module provides data analytics services for business data including:
 
 import logging
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, TypedDict, Union
+from typing import Dict, List, Optional, Set, Tuple, TypedDict, Union
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.engine.row import Row
@@ -124,9 +124,139 @@ async def get_top_n_industry_letters(
         return set()
 
 
+def _aggregate_industry_data(
+    results: List[Row],
+) -> Tuple[Dict[str, int], Dict[str, str]]:
+    """Aggregate industry data by letter and collect descriptions.
+
+    Args:
+        results: Query results with industry data
+
+    Returns:
+        Tuple of (industry_totals, industry_descriptions)
+    """
+    totals = {}
+    descriptions = {}
+
+    for row in results:
+        letter = row.industry_letter
+        if not letter:
+            continue
+
+        # Keep track of descriptions
+        if hasattr(row, "industry_description"):
+            if letter not in descriptions:
+                descriptions[letter] = getattr(row, "industry_description", "")
+        else:
+            # If description not available, use a default
+            descriptions[letter] = f"Industry {letter}"
+
+        # Sum the counts
+        if letter in totals:
+            totals[letter] += row.count
+        else:
+            totals[letter] = row.count
+
+    return totals, descriptions
+
+
+def _process_top_industries(
+    industry_totals: Dict[str, int],
+    industry_descriptions: Dict[str, str],
+    top_letters: Set[str],
+) -> Tuple[List[IndustryDistributionItem], int, List[IndustryBreakdownItem]]:
+    """Process industry data into top industries and others.
+
+    Args:
+        industry_totals: Dictionary of industry letter to count
+        industry_descriptions: Dictionary of industry letter to description
+        top_letters: Set of industry letters to be treated as top
+
+    Returns:
+        Tuple of (top_data, other_value, other_details)
+    """
+    # Initialize data structures
+    top_data = []
+    other_value = 0
+    other_details = []
+    processed_letters = set()
+
+    # Process the aggregated data
+    for industry_letter, total_count in industry_totals.items():
+        if industry_letter in top_letters and industry_letter not in processed_letters:
+            # Add to top data
+            processed_letters.add(industry_letter)
+            top_data.append(
+                {
+                    "name": industry_letter,
+                    "value": total_count,
+                    "industry_letter": industry_letter,
+                    "industry_description": industry_descriptions.get(
+                        industry_letter, ""
+                    ),
+                    "count": total_count,
+                    "percentage": 0.0,  # Will be set later
+                    "others_breakdown": None,
+                }
+            )
+        else:
+            # Add to other
+            other_value += total_count
+            other_details.append(
+                {
+                    "name": industry_letter,
+                    "value": total_count,
+                }
+            )
+
+    return top_data, other_value, other_details
+
+
+def _create_other_category(
+    other_details: List[IndustryBreakdownItem], other_value: int, total_count: int
+) -> IndustryDistributionItem:
+    """Create the 'Other' category with breakdown details.
+
+    Args:
+        other_details: List of breakdown items
+        other_value: Total value for 'Other' category
+        total_count: Total count for percentage calculation
+
+    Returns:
+        'Other' category item
+    """
+    # Sort the breakdown details by count descending
+    other_details.sort(key=lambda x: x["value"], reverse=True)
+
+    # Create the 'Other' item with its breakdown
+    return {
+        "name": OTHER_CATEGORY_NAME,
+        "value": other_value,
+        "industry_letter": OTHER_CATEGORY_NAME,
+        "industry_description": "Other industries",
+        "count": other_value,
+        "percentage": (
+            round((other_value / total_count) * 100, 1) if total_count > 0 else 0.0
+        ),
+        "others_breakdown": other_details,
+    }
+
+
+def _update_percentages(data: List[IndustryDistributionItem], total_count: int) -> None:
+    """Update percentage values for each item in data.
+
+    Args:
+        data: List of distribution items to update
+        total_count: Total count for percentage calculation
+    """
+    if total_count > 0:
+        for item in data:
+            item["percentage"] = round((item["value"] / total_count) * 100, 1)
+
+
 def group_data_for_distribution(
     results: List[Row], top_letters: Set[str]
-) -> List[IndustryDistributionItem]:  # pyright: ignore[reportReturnType]
+) -> List[IndustryDistributionItem]:
     """Groups raw industry letter counts into Top N + Other, providing breakdown.
 
     Args:
@@ -136,59 +266,31 @@ def group_data_for_distribution(
     Returns:
         List of distribution items with name, value, and optional breakdown
     """
-    top_data: List[IndustryDistributionItem] = []
-    other_value = 0
-    other_details: List[IndustryBreakdownItem] = []  # Store details for breakdown
+    # Step 1: Aggregate data
+    industry_totals, industry_descriptions = _aggregate_industry_data(results)
 
-    for row in results:
-        if row.industry_letter in top_letters:
-            # Calculate the percentage later when we know total
-            item: IndustryDistributionItem = {
-                "name": row.industry_letter,
-                "value": row.count,
-                "industry_letter": row.industry_letter,
-                "industry_description": getattr(row, "industry_description", ""),
-                "count": row.count,
-                "percentage": 0.0,  # Will be set later
-                "others_breakdown": None,
-            }
-            top_data.append(item)
-        else:
-            other_value += row.count  # pyright: ignore[reportOperatorIssue]
-            # Store individual item for breakdown
-            other_details.append(
-                {
-                    "name": row.industry_letter,
-                    "value": row.count,
-                }
-            )  # pyright: ignore[reportArgumentType]
+    # Step 2: Process into top and other categories
+    top_data, other_value, other_details = _process_top_industries(
+        industry_totals, industry_descriptions, top_letters
+    )
 
-    # Calculate total for percentages
+    # Step 3: Calculate total for percentages
     total_count = sum(item["value"] for item in top_data) + other_value
-    if total_count > 0:
-        # Update percentages
-        for item in top_data:
-            item["percentage"] = round((item["value"] / total_count) * 100, 1)
 
+    # Step 4: Update percentages for top data
+    _update_percentages(top_data, total_count)
+
+    # Step 5: Add the 'Other' category if needed
     if other_value > 0:
-        # Sort the breakdown details by count descending
-        other_details.sort(key=lambda x: x["value"], reverse=True)
-        # Add the aggregated "Other" item with its breakdown
-        other_item: IndustryDistributionItem = {
-            "name": OTHER_CATEGORY_NAME,
-            "value": other_value,
-            "industry_letter": OTHER_CATEGORY_NAME,
-            "industry_description": "Other industries",
-            "count": other_value,
-            "percentage": (
-                round((other_value / total_count) * 100, 1) if total_count > 0 else 0.0
-            ),
-            "others_breakdown": other_details,
-        }
+        other_item = _create_other_category(other_details, other_value, total_count)
         top_data.append(other_item)
 
-    # Sort final list by value descending
+    # Step 6: Sort final list by value descending
     top_data.sort(key=lambda x: x["value"], reverse=True)
+
+    # Log for debugging
+    logger.debug(f"Final distribution data has {len(top_data)} items")
+
     return top_data
 
 
@@ -264,48 +366,106 @@ async def get_industry_distribution(
     db: AsyncSession,
     cities: Optional[List[str]] = None,
 ) -> List[IndustryDistributionItem]:  # pyright: ignore[reportReturnType]
-    """Get industry distribution with breakdown of 'Other' category.
+    """Calculates the distribution of businesses across different industries.
 
     Args:
-        db: Database async session
-        cities: Optional list of cities to filter by
+        db: Database session
+        cities: Optional list of city names to filter by
 
     Returns:
-        List of industry distribution items with breakdown
+        List of industry distribution items with breakdown data
     """
-    city_list = cities or []
-
     try:
-        top_letters = await get_top_n_industry_letters(db, city_list)
+        top_letters = await get_top_n_industry_letters(db, cities)
 
-        stmt = (
-            select(
-                IndustryClassification.industry_letter,
-                IndustryClassification.industry_description,
-                func.count(distinct(Company.business_id)).label("count"),
+        # Add the PRIORITY_INDUSTRY_LETTERS to the top_letters set
+        for letter in PRIORITY_INDUSTRY_LETTERS:
+            top_letters.add(letter)
+
+        logger.debug(f"Top industry letters: {top_letters}")
+
+        # Build query for industry distribution
+        # Check both possible field names - the issue might be with the description field name
+        try:
+            stmt = (
+                select(
+                    IndustryClassification.industry_letter,
+                    func.count(distinct(Company.business_id)).label("count"),
+                    # Try using the column name directly
+                    IndustryClassification.industry_description.label(
+                        "industry_description"
+                    ),
+                )
+                .join(
+                    IndustryClassification,
+                    Company.business_id == IndustryClassification.business_id,
+                )
+                .where(IndustryClassification.industry_letter.is_not(None))
+                .group_by(
+                    IndustryClassification.industry_letter,
+                    IndustryClassification.industry_description,
+                )
             )
-            .join(
-                IndustryClassification,
-                Company.business_id == IndustryClassification.business_id,
+
+            if cities:
+                stmt = stmt.join(Address, Company.business_id == Address.business_id)
+                stmt = stmt.where(Address.city.in_(cities))
+
+            results = await db.execute(stmt)
+            rows = results.all()
+
+            # If we got results, proceed with them
+            if rows:
+                logger.debug(
+                    f"Retrieved {len(rows)} industry rows with industry_description field"
+                )
+            else:
+                # If no results, maybe a different field name
+                raise AttributeError(
+                    "No results or wrong field name - trying alternative"
+                )
+
+        except (AttributeError, Exception) as e:
+            # Fallback to just getting the letter without the description
+            logger.warning(
+                f"Error with description field, trying simpler query: {str(e)}"
             )
-            .where(IndustryClassification.industry_letter.is_not(None))
-            .group_by(
-                IndustryClassification.industry_letter,
-                IndustryClassification.industry_description,
+            stmt = (
+                select(
+                    IndustryClassification.industry_letter,
+                    func.count(distinct(Company.business_id)).label("count"),
+                )
+                .join(
+                    IndustryClassification,
+                    Company.business_id == IndustryClassification.business_id,
+                )
+                .where(IndustryClassification.industry_letter.is_not(None))
+                .group_by(IndustryClassification.industry_letter)
             )
-        )
 
-        if city_list:
-            stmt = stmt.join(Address, Company.business_id == Address.business_id)
-            stmt = stmt.where(Address.city.in_(city_list))
+            if cities:
+                stmt = stmt.join(Address, Company.business_id == Address.business_id)
+                stmt = stmt.where(Address.city.in_(cities))
 
-        results = await db.execute(stmt)
-        return group_data_for_distribution(
-            results.all(), top_letters
-        )  # pyright: ignore[reportArgumentType]
+            results = await db.execute(stmt)
+            rows = results.all()
+            logger.debug(f"Retrieved {len(rows)} industry rows with simpler query")
 
+        # Log a sample of the data
+        if rows:
+            sample = rows[0]
+            logger.debug(f"First row sample: {sample}")
+
+        # Group raw query results into Top N + Others with breakdown
+        distribution_data = group_data_for_distribution(rows, top_letters)
+
+        logger.debug(f"Distribution data type: {type(distribution_data)}")
+        logger.debug(f"Distribution data length: {len(distribution_data)}")
+
+        return distribution_data
     except Exception as e:
-        logger.error(f"Error getting industry distribution: {e}")
+        logger.error(f"Error getting industry distribution: {e}", exc_info=True)
+        # Re-raise so the endpoint can handle the error
         raise
 
 
