@@ -1,0 +1,75 @@
+name: Load Data to DB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  loader:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      ETL_TASK_DEF: ${{ secrets.ETL_TASK_DEF }}
+      ETL_CONTAINER_NAME: ${{ secrets.ETL_CONTAINER_NAME }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:latest -f etl/Dockerfile .
+
+      - name: Push Docker image to ECR
+        run: |
+          docker tag $ECR_REPOSITORY:latest ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: Run Loader ECS Task and Wait
+        id: run_loader_task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster $ECS_CLUSTER \
+            --task-definition $ETL_TASK_DEF \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.SUBNET_ID }}],securityGroups=[${{ secrets.SECURITY_GROUP_ID }}],assignPublicIp=ENABLED}" \
+            --overrides '{"containerOverrides":[{"name":"${{ env.ETL_CONTAINER_NAME }}","command":["python","-m","etl.pipeline.load.load_data"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+          echo "TASK_ARN=$TASK_ARN" >> $GITHUB_ENV
+
+      - name: Wait for Loader to Finish
+        run: |
+          TIMEOUT=5400  # 90 minutes max
+          INTERVAL=30   # check every 30 seconds
+          ELAPSED=0
+          while true; do
+            STATUS=$(aws ecs describe-tasks --cluster $ECS_CLUSTER --tasks $TASK_ARN --query 'tasks[0].lastStatus' --output text)
+            echo "Task status: $STATUS (elapsed: $ELAPSED seconds)"
+            if [ "$STATUS" = "STOPPED" ]; then
+              break
+            fi
+            if [ $ELAPSED -ge $TIMEOUT ]; then
+              echo "Timeout waiting for ECS task to finish"
+              exit 1
+            fi
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          EXIT_CODE=$(aws ecs describe-tasks --cluster $ECS_CLUSTER --tasks $TASK_ARN --query 'tasks[0].containers[0].exitCode' --output text)
+          echo "Task exit code: $EXIT_CODE"
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "ECS task failed"
+            exit 1
+          fi 
