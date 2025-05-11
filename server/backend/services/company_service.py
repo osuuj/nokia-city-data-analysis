@@ -141,7 +141,14 @@ async def get_business_data_by_city_raw_sql(
 ) -> List[BusinessData]:
     """Fetches business data for companies using the original raw SQL query.
 
-    Kept for comparison and fallback purposes. This is the legacy implementation.
+    Important:
+    This implementation is kept only for:
+    1. Benchmarking against the SQLAlchemy implementation
+    2. Reference of the original query structure
+    3. Use with the comparison script
+
+    In production, always use the get_business_data_by_city function instead
+    which uses SQLAlchemy expressions for better maintainability and type safety.
 
     Args:
         db: SQLAlchemy async database session

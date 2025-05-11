@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -9,18 +10,34 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.backend.config import settings  # pyright: ignore[reportMissingImports]
-from server.backend.database import get_db  # pyright: ignore[reportMissingImports]
-from server.backend.middleware import limiter  # pyright: ignore[reportMissingImports]
-from server.backend.services.company_service import (  # pyright: ignore[reportMissingImports]
+from ..config import settings  # pyright: ignore[reportMissingImports]
+from ..database import get_db  # pyright: ignore[reportMissingImports]
+from ..middleware import limiter  # pyright: ignore[reportMissingImports]
+from ..services.company_service import (  # pyright: ignore[reportMissingImports]
     get_business_data_by_city,
 )
+
+# Check if we're in production environment
+is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+
+
+# Conditionally create decorator factories
+def rate_limit_if_production(limit_string):
+    """Apply rate limiting only in production environment."""
+
+    def decorator(func):
+        if is_production:
+            return limiter.limit(limit_string)(func)
+        return func
+
+    return decorator
+
 
 router = APIRouter()
 
 
 @router.get("/companies.geojson", response_model=Dict[str, Any])
-@limiter.limit(settings.RATE_LIMIT_HEAVY)  # Data-heavy endpoint, standardized limit
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_companies_geojson(
     city: str = Query(..., description="City name to filter by"),
     db: AsyncSession = Depends(get_db),

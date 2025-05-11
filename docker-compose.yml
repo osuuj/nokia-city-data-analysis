@@ -1,64 +1,65 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:15
     container_name: postgres_db
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-nokia_city_data}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # etl:
-  #   build:
-  #     context: ./etl
-  #   container_name: etl
-  #   depends_on:
-  #     - db
-  #   env_file:
-  #     - .env
+#  etl:
+#    build:
+#      context: ./etl
+#    container_name: etl
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#    env_file:
+#      - .env.compose
+#    environment:
+#      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-nokia_city_data}
+#      POSTGRES_HOST: db
+#      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+#      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+#      POSTGRES_DB: ${POSTGRES_DB:-nokia_city_data}
+#      ENVIRONMENT: docker
+#      SNAPSHOT_DATE: ${SNAPSHOT_DATE:-2025-05-11}
+#      LANGUAGE: ${LANGUAGE:-en}
   
-  #   Uncomment the following lines of server if you want to run the ETL process and load_data.py manually.
-  #   Remember delete images and containers before running load-data.py and after that run the server.
   server:
     build:
       context: ./server
     container_name: fastapi
     depends_on:
-      - db
-    env_file:
-      - .env
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URI: ${DATABASE_URL_DOCKER}
-      ENV: ${ENV}
-      CHUNK_SIZE: ${CHUNK_SIZE}
-      API_URL: ${API_URL}
-      BACKEND_CORS_ORIGINS: '["http://localhost:3000"]'
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-nokia_city_data}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-nokia_city_data}
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DEBUG: ${DEBUG:-true}
+      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:-[]}'
+    volumes:
+      - ./server:/app
 
-#  client:
-#    build:
-#      context: ./client
-#    container_name: react
-#    depends_on:
-#      - db
-#      - server
-#    volumes:
-#      - ./client:/app
-#      - /app/node_modules
-#      - next_cache:/app/.next
-#    ports:
-#      - '3000:3000'
-#    env_file:
-#      - .env
-#    environment:
-#      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
-#      VITE_PORT: "3001"
-#      VITE_API_PATH: "/api/v1"
-#      ENV: ${ENV}
-#
 volumes:
   postgres_data:
   next_cache:

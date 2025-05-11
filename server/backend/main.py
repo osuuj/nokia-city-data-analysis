@@ -5,6 +5,7 @@ includes routers, and configures logging and startup/shutdown events.
 """
 
 import logging
+import os
 import sys
 from datetime import datetime
 from typing import Dict
@@ -39,9 +40,7 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     version=settings.VERSION,
     description="API for managing company data from the Finnish Patent and Registration Office (PRH)",
-    docs_url=(
-        "/docs" if settings.DEBUG else None
-    ),  # Disable docs in production if needed
+    docs_url="/docs",  # Always enable docs for development, configure via env in production
 )
 
 # Configure middlewares (including security headers and rate limiting)
@@ -89,6 +88,21 @@ app.include_router(
     tags=["GeoJSON"],
 )
 
+# Check if we're in production environment
+is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+
+
+# Conditionally create decorator factories
+def rate_limit_if_production(limit_string):
+    """Apply rate limiting only in production environment."""
+
+    def decorator(func):
+        if is_production:
+            return limiter.limit(limit_string)(func)
+        return func
+
+    return decorator
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
@@ -124,7 +138,7 @@ async def shutdown_event() -> None:
 
 
 @app.get("/", response_model=Dict[str, str])
-@limiter.limit(settings.RATE_LIMIT_DEFAULT)
+@rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
 async def read_root() -> Dict[str, str]:
     """Root endpoint that returns a welcome message.
 
@@ -172,7 +186,7 @@ async def readiness() -> Response:
 
 
 @app.get("/api/health", tags=["Health"])
-@limiter.limit(settings.RATE_LIMIT_HEALTH)  # Higher rate limit for health checks
+@rate_limit_if_production(settings.RATE_LIMIT_HEALTH)
 async def health_check():
     """Health check endpoint for monitoring and load balancers.
 
@@ -186,4 +200,21 @@ async def health_check():
         "timestamp": datetime.now().isoformat(),
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT,
+    }
+
+
+@app.get("/api/debug/swagger")
+async def debug_swagger():
+    """Debug endpoint to check Swagger UI configuration.
+
+    Returns:
+        Dict with information about the Swagger UI configuration
+    """
+    return {
+        "openapi_url": f"{settings.API_V1_STR}/openapi.json",
+        "docs_url": "/docs",
+        "environment": settings.ENVIRONMENT,
+        "debug": settings.DEBUG,
+        "app_title": settings.PROJECT_NAME,
+        "version": settings.VERSION,
     }

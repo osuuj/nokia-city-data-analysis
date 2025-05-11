@@ -8,7 +8,7 @@
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class AddressSchema(BaseModel):
@@ -52,17 +52,12 @@ class NameSchema(BaseModel):
 class MainBusinessLineSchema(BaseModel):
     """Pydantic schema for Main Business Line entity."""
 
-    industry_code: Optional[int]
-    industry_letter: Optional[str]
-    industry: Optional[str]
-    industry_description: Optional[str]
-    registration_date: Optional[date]
-    source: Optional[str]
+    industry_code: int
+    industry_letter: str
+    industry_description: str
+    registration_date: date
 
-    class Config:
-        """Configuration for MainBusinessLineSchema."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RegisteredEntrySchema(BaseModel):

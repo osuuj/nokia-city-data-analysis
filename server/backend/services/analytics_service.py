@@ -15,7 +15,7 @@ from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
-from ..models.company import Address, Company, MainBusinessLine
+from ..models.company import Address, Company, IndustryClassification
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -99,12 +99,15 @@ async def get_top_n_industry_letters(
 
     stmt = (
         select(
-            MainBusinessLine.industry_letter,
+            IndustryClassification.industry_letter,
             func.count(distinct(Company.business_id)).label("count"),
         )
-        .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-        .where(MainBusinessLine.industry_letter.is_not(None))
-        .group_by(MainBusinessLine.industry_letter)
+        .join(
+            IndustryClassification,
+            Company.business_id == IndustryClassification.business_id,
+        )
+        .where(IndustryClassification.industry_letter.is_not(None))
+        .group_by(IndustryClassification.industry_letter)
         .order_by(func.count(distinct(Company.business_id)).desc())
         .limit(TOP_N_INDUSTRIES)
     )
@@ -277,14 +280,18 @@ async def get_industry_distribution(
 
         stmt = (
             select(
-                MainBusinessLine.industry_letter,
-                MainBusinessLine.industry_description,
+                IndustryClassification.industry_letter,
+                IndustryClassification.industry_description,
                 func.count(distinct(Company.business_id)).label("count"),
             )
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-            .where(MainBusinessLine.industry_letter.is_not(None))
+            .join(
+                IndustryClassification,
+                Company.business_id == IndustryClassification.business_id,
+            )
+            .where(IndustryClassification.industry_letter.is_not(None))
             .group_by(
-                MainBusinessLine.industry_letter, MainBusinessLine.industry_description
+                IndustryClassification.industry_letter,
+                IndustryClassification.industry_description,
             )
         )
 
@@ -325,16 +332,19 @@ async def get_city_comparison(
 
         stmt = (
             select(
-                MainBusinessLine.industry_letter.label("industry"),  # pivot_key
+                IndustryClassification.industry_letter.label("industry"),  # pivot_key
                 Address.city,  # group_by_key -> becomes column header
                 func.count(distinct(Company.business_id)).label("count"),  # value_key
             )
             .select_from(Company)
             .join(Address, Company.business_id == Address.business_id)
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
+            .join(
+                IndustryClassification,
+                Company.business_id == IndustryClassification.business_id,
+            )
             .where(Address.city.in_(cities))
-            .where(MainBusinessLine.industry_letter.is_not(None))
-            .group_by(MainBusinessLine.industry_letter, Address.city)
+            .where(IndustryClassification.industry_letter.is_not(None))
+            .group_by(IndustryClassification.industry_letter, Address.city)
         )
 
         results = await db.execute(stmt)
@@ -411,15 +421,18 @@ async def get_industries_by_city(
         stmt = (
             select(
                 Address.city,  # group_by_key
-                MainBusinessLine.industry_letter.label("industry"),  # pivot_key
+                IndustryClassification.industry_letter.label("industry"),  # pivot_key
                 func.count(distinct(Company.business_id)).label("count"),  # value_key
             )
             .select_from(Company)
             .join(Address, Company.business_id == Address.business_id)
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
+            .join(
+                IndustryClassification,
+                Company.business_id == IndustryClassification.business_id,
+            )
             .where(Address.city.in_(cities))
-            .where(MainBusinessLine.industry_letter.is_not(None))
-            .group_by(Address.city, MainBusinessLine.industry_letter)
+            .where(IndustryClassification.industry_letter.is_not(None))
+            .group_by(Address.city, IndustryClassification.industry_letter)
         )
 
         results = await db.execute(stmt)

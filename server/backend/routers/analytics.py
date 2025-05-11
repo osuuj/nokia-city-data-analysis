@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, List, Optional
 
 from fastapi import (  # pyright: ignore[reportMissingImports]
@@ -21,6 +22,22 @@ from ..services.analytics_service import (
     get_top_cities,
 )
 from ..utils.analytics_utils import filter_city_list
+
+# Check if we're in production environment
+is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+
+
+# Conditionally create decorator factories
+def rate_limit_if_production(limit_string):
+    """Apply rate limiting only in production environment."""
+
+    def decorator(func):
+        if is_production:
+            return limiter.limit(limit_string)(func)
+        return func
+
+    return decorator
+
 
 # from ..services import analytics_service # Placeholder for a potential service layer
 
@@ -111,9 +128,7 @@ class IndustryComparisonResult(BaseModel):
     summary="Get overall industry distribution (Top 10 + Other) with breakdown",
     description="Calculates the distribution of the top 10 main industry letters, grouping others and providing breakdown.",
 )
-@limiter.limit(
-    settings.RATE_LIMIT_HEAVY
-)  # Restrictive limit for computationally intensive endpoint
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_industry_distribution_endpoint(
     cities: Optional[str] = Query(
         None, description="Comma-separated cities. If None, calculates for all."
@@ -148,7 +163,7 @@ async def get_industry_distribution_endpoint(
     summary="Compare normalized industry distribution (Top 10 + Other) across cities",
     description="Returns normalized (percentage) distribution for top 10 industries + Other across cities.",
 )
-@limiter.limit(settings.RATE_LIMIT_HEAVY)
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_city_comparison_endpoint(
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
     db: AsyncSession = Depends(get_db),
@@ -182,7 +197,7 @@ async def get_city_comparison_endpoint(
     summary="Get Top 10 + Other industry counts for each city",
     description="Returns data with cities and counts for top 10 industries and 'Other'.",
 )
-@limiter.limit(settings.RATE_LIMIT_HEAVY)
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_industries_by_city_endpoint(
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
     db: AsyncSession = Depends(get_db),
@@ -216,9 +231,7 @@ async def get_industries_by_city_endpoint(
     summary="Get top cities by active company count",
     description="Ranks cities based on the total number of unique active companies located there.",
 )
-@limiter.limit(
-    settings.RATE_LIMIT_DEFAULT
-)  # Standard limit for less intensive endpoint
+@rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
 async def get_top_cities_endpoint(
     limit: int = Query(10, description="Number of top cities to return", ge=1, le=50),
     db: AsyncSession = Depends(get_db),
@@ -245,9 +258,7 @@ async def get_top_cities_endpoint(
 @router.get(
     "/industry_comparison_by_cities", response_model=List[IndustryComparisonResult]
 )
-@limiter.limit(
-    settings.RATE_LIMIT_HEAVY
-)  # Standardized to 20/minute for all analytics endpoints
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def compare_industry_by_cities(
     city1: str = Query(..., description="First city to compare"),
     city2: str = Query(..., description="Second city to compare"),
