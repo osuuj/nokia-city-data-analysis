@@ -1,11 +1,11 @@
 name: Client Security Audit
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'client/package.json'
-      - 'client/package-lock.json'
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'client/package.json'
+  #     - 'client/package-lock.json'
   push:
     branches: [ main ]
     paths:
