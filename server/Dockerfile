@@ -15,7 +15,13 @@ RUN apt-get update \
 # Copy requirements file
 COPY requirements.txt .
 
-# Install dependencies directly rather than using wheels
+# Install dependencies into a virtual environment
+RUN python -m venv /build/venv
+ENV PATH="/build/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime stage
 FROM python:3.12-slim-bookworm
 
 LABEL maintainer="Nokia City Data Analysis Team" \
@@ -35,25 +41,22 @@ RUN apt-get update \
         curl \
         libpq5 \
         ca-certificates \
-        gcc \
-        libpq-dev \
-        libc6-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && update-ca-certificates
 
-# Copy application code - fix the directory structure
-COPY ./backend /app/backend
-COPY ./config /app/config
-COPY ./db /app/db
-COPY ./tests /app/tests
-COPY ./scripts /app/scripts
-COPY ./deployment /app/deployment
-COPY ./__init__.py /app/__init__.py
-COPY ./requirements.txt /app/
+# Copy the virtual environment from the builder stage
+COPY --from=builder /build/venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only necessary application code
+COPY ./backend /app/server/backend
+COPY ./config /app/server/config
+COPY ./db /app/server/db
+COPY ./alembic /app/alembic
+COPY ./alembic.ini /app/alembic.ini
+COPY ./deployment /app/deployment
+COPY ./__init__.py /app/server/__init__.py
 
 # Set ownership and secure permissions
 RUN chown -R appuser:appuser /app \
@@ -63,7 +66,8 @@ RUN chown -R appuser:appuser /app \
 USER appuser
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1 \
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHON_HASH_SEED=random \
     ENVIRONMENT=production \
@@ -79,4 +83,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
 # Command to run the application with production settings
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port $PORT --workers $WORKERS --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["sh", "-c", "uvicorn server.backend.main:app --host 0.0.0.0 --port $PORT --workers $WORKERS --proxy-headers --forwarded-allow-ips='*'"]

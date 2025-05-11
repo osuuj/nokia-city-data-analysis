@@ -68,25 +68,32 @@ docs/
 .env.development
 .env.test
 
-# Docker
-Dockerfile*
-docker-compose*
+# Don't exclude Dockerfile for production builds
+# Dockerfile*
+# docker-compose*
+Dockerfile.dev
+docker-compose.yml
+docker-compose.*.yml
 
-# Other
-README.md
-LICENSE
-.dockerignore
+# Testing
+tests/
+pytest.ini
+
+# Linting and formatting config
 .ruff_cache/
 .mypy_cache/
-
-# Configuration and documentation
 .black.toml
 .isort.cfg
 bandit.yaml
 pyrightconfig.json
+.pyrightignore
+.pyright-pre-commit.json
 ruff.toml
-*.md
-!requirements*.txt
+
+# Basic documentation is fine
+# README.md
+# LICENSE
+.dockerignore
 
 # Editor directories and files
 *.swp
@@ -101,8 +108,8 @@ logs/
 .env.dev
 .env.*.local
 
-# Alembic migrations version control (keep migrations/)
-alembic/*.ini
+# Keep alembic files and migrations
+# alembic/*.ini
 
 # Cache directories
 .pyright/
@@ -121,3 +128,6 @@ temp/
 # Notebooks
 *.ipynb
 .ipynb_checkpoints/ 
+
+# Development requirements
+requirements-dev.txt

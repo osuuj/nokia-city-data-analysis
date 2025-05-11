@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.database import get_db
@@ -147,7 +148,7 @@ async def test_get_businesses_by_industry(db: AsyncSession):
 
 async def get_test_city(db: AsyncSession) -> str:
     """Get a city name for testing."""
-    query = "SELECT city FROM addresses WHERE city IS NOT NULL LIMIT 1"
+    query = text("SELECT city FROM addresses WHERE city IS NOT NULL LIMIT 1")
     result = await db.execute(query)
     row = result.first()
     return row[0] if row else None
@@ -155,7 +156,9 @@ async def get_test_city(db: AsyncSession) -> str:
 
 async def get_test_industry_letter(db: AsyncSession) -> str:
     """Get an industry letter for testing."""
-    query = "SELECT DISTINCT industry_letter FROM industry_classifications LIMIT 1"
+    query = text(
+        "SELECT DISTINCT industry_letter FROM industry_classifications LIMIT 1"
+    )
     result = await db.execute(query)
     row = result.first()
     return row[0] if row else None

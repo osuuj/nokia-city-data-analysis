@@ -1,6 +1,7 @@
 """Tests for the analytics service module."""
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.services.analytics_service import (
@@ -105,6 +106,8 @@ async def test_get_top_cities(db: AsyncSession):
 # Helper function to get cities for testing
 async def get_cities_for_testing(db: AsyncSession, limit: int = 3) -> list:
     """Helper to get cities for testing."""
-    query = "SELECT DISTINCT city FROM addresses WHERE city IS NOT NULL LIMIT :limit"
+    query = text(
+        "SELECT DISTINCT city FROM addresses WHERE city IS NOT NULL LIMIT :limit"
+    )
     result = await db.execute(query, {"limit": limit})
     return [row[0] for row in result]
