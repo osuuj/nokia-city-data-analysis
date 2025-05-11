@@ -2,39 +2,161 @@
  * API utilities for interacting with the server API
  */
 
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
-// Define base URL from environment variables or use default
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+// Define API configuration from environment variables with fallbacks
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
+const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
+const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || 'development';
+
+// Maximum number of retries for network errors
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // ms
+
+// API error types for better error handling
+export enum ApiErrorType {
+  NETWORK = 'network',
+  SERVER = 'server',
+  UNAUTHORIZED = 'unauthorized',
+  FORBIDDEN = 'forbidden',
+  NOT_FOUND = 'not_found',
+  VALIDATION = 'validation',
+  UNKNOWN = 'unknown',
+}
+
+export interface ApiError {
+  type: ApiErrorType;
+  status?: number;
+  message: string;
+  data?: Record<string, unknown>;
+}
 
 // Create axios instance with common configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add a response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    // Add common error handling
-    if (error.response) {
-      // The request was made and the server responded with an error status
-      console.error('API Error Response:', error.response.data);
-      console.error('Status:', error.response.status);
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received:', error.request);
-    } else {
-      // Something happened in setting up the request
-      console.error('Error setting up request:', error.message);
+/**
+ * Categorize errors into more usable types
+ */
+const categorizeError = (error: AxiosError): ApiError => {
+  if (!error.response) {
+    return {
+      type: ApiErrorType.NETWORK,
+      message: 'Network error. Please check your connection.',
+    };
+  }
+
+  const status = error.response.status;
+  const data = error.response.data as Record<string, unknown>;
+
+  switch (status) {
+    case 401:
+      return {
+        type: ApiErrorType.UNAUTHORIZED,
+        status,
+        message: 'Unauthorized. Please log in.',
+        data,
+      };
+    case 403:
+      return {
+        type: ApiErrorType.FORBIDDEN,
+        status,
+        message: "Forbidden. You don't have permission.",
+        data,
+      };
+    case 404:
+      return {
+        type: ApiErrorType.NOT_FOUND,
+        status,
+        message: 'Resource not found.',
+        data,
+      };
+    case 422:
+      return {
+        type: ApiErrorType.VALIDATION,
+        status,
+        message: 'Validation error.',
+        data,
+      };
+    default:
+      if (status >= 500) {
+        return {
+          type: ApiErrorType.SERVER,
+          status,
+          message: 'Server error. Please try again later.',
+          data,
+        };
+      }
+      return {
+        type: ApiErrorType.UNKNOWN,
+        status,
+        message: 'An unexpected error occurred.',
+        data,
+      };
+  }
+};
+
+/**
+ * Implement retry logic for transient errors
+ */
+const requestWithRetry = async <T>(
+  requestFn: () => Promise<AxiosResponse<T>>,
+  retries = MAX_RETRIES,
+  delay = RETRY_DELAY,
+): Promise<T> => {
+  try {
+    const response = await requestFn();
+    return response.data;
+  } catch (error) {
+    if (
+      retries > 0 &&
+      axios.isAxiosError(error) &&
+      !error.response // Only retry network errors
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return requestWithRetry(requestFn, retries - 1, delay * 1.5);
     }
-    return Promise.reject(error);
+
+    if (axios.isAxiosError(error)) {
+      const apiError = categorizeError(error);
+      throw apiError;
+    }
+
+    throw error;
+  }
+};
+
+// Define type for request data
+type RequestData = Record<string, unknown>;
+
+// Enhanced API client with retry logic and better error handling
+export const apiClient = {
+  get: async <T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> => {
+    return requestWithRetry<T>(() => api.get<T>(endpoint, config));
   },
-);
+
+  post: async <T>(
+    endpoint: string,
+    data?: RequestData,
+    config?: AxiosRequestConfig,
+  ): Promise<T> => {
+    return requestWithRetry<T>(() => api.post<T>(endpoint, data, config));
+  },
+
+  put: async <T>(endpoint: string, data?: RequestData, config?: AxiosRequestConfig): Promise<T> => {
+    return requestWithRetry<T>(() => api.put<T>(endpoint, data, config));
+  },
+
+  delete: async <T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> => {
+    return requestWithRetry<T>(() => api.delete<T>(endpoint, config));
+  },
+};
 
 // API interfaces
 interface BusinessData {

@@ -24,46 +24,79 @@ NEXT_PUBLIC_API_VERSION=v1
 NEXT_PUBLIC_ENVIRONMENT=production
 ```
 
-## API Client Configuration
+## API Client Implementation
 
-The application uses a central API client that respects these environment variables. Update your API client to use the environment-specific configuration:
+The application uses an enhanced API client with proper error handling and retry logic. This implementation is located in `client/shared/utils/api.ts`.
+
+Key features:
+- Configuration from environment variables
+- Typed error handling with categorized error types
+- Automatic retry for network errors
+- Consistent error format
 
 ```typescript
-// client/shared/api/client.ts
+// Example usage in components
+import { apiClient } from '@/shared/utils/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
+// Get data from API
+const data = await apiClient.get<BusinessData[]>('/companies/businesses_by_city', {
+  params: { city: 'Helsinki' }
+});
+```
 
-export const apiClient = {
-  get: async <T>(endpoint: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}/api/${API_VERSION}/${endpoint}`);
-    
-    if (!response.ok) {
-      // Implement error handling based on status codes
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    return response.json() as Promise<T>;
-  },
+## React Hooks for API Calls
+
+We've implemented React hooks to simplify API usage with loading and error states. See `client/shared/hooks/useApi.ts`.
+
+```typescript
+// Example usage in a component
+import { useApiRequest } from '@/shared/hooks/useApi';
+
+function BusinessList({ city }) {
+  const { data, loading, error, execute } = useApiRequest<BusinessData[]>(
+    '/companies/businesses_by_city'
+  );
+
+  useEffect(() => {
+    execute({ params: { city } });
+  }, [city, execute]);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ApiErrorDisplay error={error} onRetry={() => execute({ params: { city } })} />;
   
-  // Add other methods as needed (post, put, delete, etc.)
-};
+  return <Table data={data || []} />;
+}
+```
+
+## Reusable Components
+
+We've created reusable components for common patterns:
+
+1. `ApiErrorDisplay` - Displays API errors with proper formatting based on error type
+2. `DataFetcher` - A reusable component for fetching data with loading and error states
+
+```typescript
+// Example usage of DataFetcher
+<DataFetcher
+  endpoint="/companies/businesses_by_city"
+  params={{ city: selectedCity }}
+  renderData={(data) => <BusinessTable businesses={data} />}
+  renderLoading={() => <CustomLoadingSpinner />}
+  renderEmpty={() => <NoDataMessage />}
+/>
 ```
 
 ## CORS Configuration
 
-Ensure that your FastAPI backend has the correct CORS configuration:
+The server has been configured to accept CORS requests from both:
+- Local development (http://localhost:3000)
+- Production Vercel domain
 
-1. For local development, the backend should allow `http://localhost:3000`
-2. For production, the backend should allow your Vercel domain (e.g., `https://your-app.vercel.app`)
+The CORS configuration is controlled by the `BACKEND_CORS_ORIGINS` environment variable on the server side. In production, set this environment variable to include your Vercel domain:
 
-## Error Handling
-
-Implement appropriate error handling in your client application:
-
-1. Add loading states for API calls
-2. Implement error boundaries for API failures
-3. Add retry logic for transient network issues
+```bash
+BACKEND_CORS_ORIGINS=https://your-vercel-app.vercel.app,https://your-custom-domain.com
+```
 
 ## Testing the Integration
 
@@ -90,3 +123,19 @@ Implement appropriate error handling in your client application:
 2. Update Vercel environment variables to point to the new API endpoint
 3. Deploy client to Vercel
 4. Verify end-to-end functionality 
+
+## Troubleshooting
+
+### Network Errors
+- Ensure your API URL is correct
+- Check if the server is running
+- Verify your CORS configuration
+
+### Authentication Errors
+- Check if you need authentication tokens
+- Verify token expiration
+
+### Other Issues
+- Check browser console for detailed error messages
+- Verify environment variables are set correctly
+- Make sure the API version matches between client and server 
