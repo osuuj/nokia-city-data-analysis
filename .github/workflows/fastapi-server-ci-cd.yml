@@ -6,10 +6,10 @@ on:
     paths:
       - "server/**"
       - ".github/workflows/fastapi-server-ci-cd.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "server/**"
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - "server/**"
   workflow_dispatch:  # Enable manual triggering
 
 env:

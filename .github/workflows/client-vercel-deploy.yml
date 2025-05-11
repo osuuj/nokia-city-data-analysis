@@ -6,10 +6,10 @@ on:
     paths:
       - 'client/**'
       - '.github/workflows/client-vercel-deploy.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'client/**'
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - 'client/**'
   workflow_dispatch:
 
 jobs:
