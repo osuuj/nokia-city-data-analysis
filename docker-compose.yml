@@ -38,9 +38,11 @@ services:
 #      LANGUAGE: ${LANGUAGE:-en}
   
   server:
+    # Build directly in compose for simplicity
+    image: fastapi-dev
     build:
-      context: ./server
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: server/Dockerfile.dev
     container_name: fastapi
     depends_on:
       db:

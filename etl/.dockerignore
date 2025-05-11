@@ -1,17 +1,68 @@
+# Data and cache files
 data/resources/*
+data/extracted_data/*
+data/logs/*
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/*.log
+**/.ruff_cache/
+**/.pyright/
+**/.mypy_cache/
+**/.cache/
+
+# Environment and packaging
+**/.env*
+**/venv/
+**/.venv/
+**/*.egg-info/
+**/*.egg
+**/.installed.cfg
+**/dist/
+**/build/
+**/wheels/
+
+# Development and version control
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+**/.ipynb_checkpoints/
+**/notebooks/
+**/tests/
+**/docs/
+
+# Config files
+.black.toml
+.isort.cfg
+bandit.yaml
+pyrightconfig.json
+.pyrightignore
+.pyright-pre-commit.json
+ruff.toml
+.pre-commit-config.yaml
+pytest.ini
+
+# Docker related
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Web-related (if accidentally included in etl folder)
 node_modules
 .next
 dist
 build
 coverage
-.git
-.gitignore
-Dockerfile
-docker-compose.yml
-.black.toml
-.isort.cfg
-bandit.yaml
-pyrightconfig.json
-ruff.toml
+
+# Development scripts - exclude from Docker image
+scripts/setup_dev_env.sh
+requirements-dev.txt
+
+# Production scripts - keep in Docker image
 run_etl_load.sh
 scripts/run_etl_load.sh 

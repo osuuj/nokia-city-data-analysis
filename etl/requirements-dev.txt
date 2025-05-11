@@ -1,0 +1,30 @@
+# Core requirements
+-r requirements.txt
+
+# Testing
+pytest>=7.4.3,<7.5.0
+pytest-asyncio>=0.23.5,<0.24.0
+pytest-cov>=4.1.0,<4.2.0
+pytest-mock>=3.12.0,<4.0.0
+pytest-xdist>=2.5.0,<3.0.0
+Faker>=24.0.0,<25.0.0
+
+# Code quality
+black==24.10.0
+isort==5.13.2
+ruff==0.8.2
+bandit==1.8.0
+pyright==1.1.391
+pre-commit==4.0.1
+darglint==1.8.1
+
+# Development utilities
+ipython>=8.22.1,<9.0.0
+debugpy>=1.8.0,<2.0.0
+jupyter>=1.1.0,<1.2.0
+pipdeptree==2.24.0
+
+# Documentation
+mkdocs>=1.5.0,<1.6.0
+mkdocs-material>=9.0.0,<10.0.0
+mkdocstrings>=0.24.0,<0.25.0 

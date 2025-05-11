@@ -2,11 +2,25 @@
 pytest==7.4.3
 pytest-asyncio==0.23.5
 pytest-cov==4.1.0
+pytest-xdist>=2.5.0,<3.0.0      # Run tests in parallel
+pytest-mock>=3.12.0,<4.0.0      # Better mocking for tests
+Faker>=24.0.0,<25.0.0           # Generate fake data for tests
+
+# Code quality
 black==24.10.0
 isort==5.13.2
 ruff==0.8.2
 bandit==1.7.7
 pyright==1.1.391
 pre-commit==3.6.2
-httpx==0.27.0  # For API tests
-asgi-lifespan==2.1.0  # Manage ASGI app lifecycle in tests 
+
+# API testing
+httpx==0.27.0                   # For API tests
+asgi-lifespan==2.1.0            # Manage ASGI app lifecycle in tests
+
+# Debugging tools
+ipython>=8.22.1,<9.0.0          # Enhanced interactive Python shell
+debugpy>=1.8.0,<2.0.0           # VS Code debugging support
+
+# Additional tools
+python-jose[cryptography]>=3.3.0,<4.0.0  # For testing JWT authentication
