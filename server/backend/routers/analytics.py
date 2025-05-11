@@ -21,7 +21,7 @@ from ..config import settings
 # Adjust these imports based on your actual project structure
 from ..database import get_db
 from ..middleware import limiter
-from ..services.analytics import (
+from ..services.analytics_service import (
     compare_industry_by_cities,
     get_city_comparison,
     get_industries_by_city,
