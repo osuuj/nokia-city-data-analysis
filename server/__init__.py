@@ -1,1 +1,1 @@
-"""Server package."""
+"""Nokia City Data Analysis Server package."""

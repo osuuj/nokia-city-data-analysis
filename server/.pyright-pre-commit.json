@@ -1,0 +1,38 @@
+{
+	"include": [
+		"backend/**/*.py",
+		"scripts/**/*.py"
+	],
+	"exclude": [
+		"**/__pycache__",
+		"**/.venv",
+		"**/venv",
+		"**/node_modules",
+		"**/dist",
+		"**/build",
+		"**/.ruff_cache",
+		"tests/**/*",
+		"**/tests/**/*"
+	],
+	"ignore": [
+		"backend/services/analytics_service.py",
+		"backend/utils/cache.py",
+		"backend/services/company_service.py",
+		"backend/routers/analytics.py"
+	],
+	"reportMissingImports": "warning",
+	"reportMissingTypeStubs": false,
+	"reportGeneralTypeIssues": "warning",
+	"reportOptionalMemberAccess": "warning",
+	"reportReturnType": "warning",
+	"reportArgumentType": "warning",
+	"reportOperatorIssue": "warning",
+	"reportAssignmentType": "warning",
+	"pythonVersion": "3.11",
+	"typeCheckingMode": "basic",
+	"venvPath": "../venvs",
+	"venv": "etl_env",
+	"extraPaths": [
+		"."
+	]
+} 

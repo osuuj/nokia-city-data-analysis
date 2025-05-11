@@ -28,7 +28,71 @@ export interface TopCityData {
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+// Enhanced fetcher to handle different API response formats
+const fetcher = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Ensure array data format is returned
+    if (url.includes('/industry-distribution')) {
+      // Handle industry distribution specific format
+      if (!data) {
+        console.error('Industry distribution response is empty');
+        return [];
+      }
+
+      if (!Array.isArray(data)) {
+        console.warn('Industry distribution response is not an array, fixing format:', data);
+        // If data is an object with a data property that's an array, use that
+        if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+          return data.data;
+        }
+        // If it's a single object, wrap it in an array
+        if (data && typeof data === 'object') {
+          return [data];
+        }
+        return [];
+      }
+
+      // Validate that each item has required properties
+      return data.map((item, index) => {
+        if (!item || typeof item !== 'object') {
+          console.warn(`Invalid industry item at index ${index}:`, item);
+          return { name: `Unknown-${index}`, value: 0 };
+        }
+        return item;
+      });
+    }
+
+    // For other endpoints, ensure they return arrays
+    if (
+      url.includes('/top-cities') ||
+      url.includes('/city-comparison') ||
+      url.includes('/industries-by-city')
+    ) {
+      if (!Array.isArray(data)) {
+        console.warn(`Expected array response from ${url}, got:`, typeof data);
+        return [];
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`Error fetching from ${url}:`, error);
+    // Return appropriate empty data structure based on endpoint
+    if (url.includes('/top-cities')) return [];
+    if (url.includes('/industry-distribution')) return [];
+    if (url.includes('/city-comparison')) return [];
+    if (url.includes('/industries-by-city')) return [];
+    return [];
+  }
+};
 
 // Define the name for the grouped category from backend
 const OTHER_CATEGORY_NAME_FROM_BACKEND = 'Other';
@@ -190,14 +254,53 @@ export const AnalyticsView: React.FC = () => {
   // --- Transform Data for Charts ---
   const industryDistributionDataAll: TransformedDistribution = useMemo(() => {
     if (!rawIndustryDistributionData) return [];
-    return rawIndustryDistributionData.map((item) => ({
-      ...item,
-      name: getIndustryName(item.name, industryNameMap),
-    }));
+
+    // Check if rawIndustryDistributionData is an array
+    if (!Array.isArray(rawIndustryDistributionData)) {
+      console.error(
+        'Expected rawIndustryDistributionData to be an array but got:',
+        typeof rawIndustryDistributionData,
+      );
+      return []; // Return empty array as fallback
+    }
+
+    // Validate and transform each item
+    return rawIndustryDistributionData.map((item, index) => {
+      // Ensure the item is valid
+      if (!item || typeof item !== 'object') {
+        console.warn(`Invalid industry item at index ${index}:`, item);
+        return { name: `Unknown-${index}`, value: 0 };
+      }
+
+      // Get name with fallback
+      const name = item.name ? getIndustryName(item.name, industryNameMap) : `Unknown-${index}`;
+
+      // Ensure value is a number
+      const value =
+        typeof item.value === 'number'
+          ? item.value
+          : Number.parseInt(item.value as unknown as string, 10) || 0;
+
+      return {
+        ...item,
+        name,
+        value,
+      };
+    });
   }, [rawIndustryDistributionData, industryNameMap]);
 
   const industriesByCityDataAll: TransformedIndustriesByCity[] = useMemo(() => {
     if (!rawIndustriesByCityData) return [];
+
+    // Check if rawIndustriesByCityData is an array
+    if (!Array.isArray(rawIndustriesByCityData)) {
+      console.error(
+        'Expected rawIndustriesByCityData to be an array but got:',
+        typeof rawIndustriesByCityData,
+      );
+      return []; // Return empty array as fallback
+    }
+
     return rawIndustriesByCityData.map((cityData) => {
       // Cast initial object
       const transformedData = { city: cityData.city as string } as TransformedIndustriesByCity;
@@ -213,6 +316,16 @@ export const AnalyticsView: React.FC = () => {
 
   const cityComparisonDataAll: TransformedCityComparison[] = useMemo(() => {
     if (!rawCityComparisonData) return [];
+
+    // Check if rawCityComparisonData is an array
+    if (!Array.isArray(rawCityComparisonData)) {
+      console.error(
+        'Expected rawCityComparisonData to be an array but got:',
+        typeof rawCityComparisonData,
+      );
+      return []; // Return empty array as fallback
+    }
+
     return rawCityComparisonData.map((item) => {
       // Cast initial object
       const transformedData = {

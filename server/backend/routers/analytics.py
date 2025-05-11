@@ -1,18 +1,44 @@
-from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set, Union
+import os
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
-from sqlalchemy import distinct, func, select
-from sqlalchemy.orm import Session
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+)
+from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..config import settings
 
 # Adjust these imports based on your actual project structure
 from ..database import get_db
-from ..models.company import (  # Import from company.py
-    Address,
-    Company,
-    MainBusinessLine,
+from ..middleware import limiter
+from ..services.analytics_service import (
+    compare_industry_by_cities,
+    get_city_comparison,
+    get_industries_by_city,
+    get_industry_distribution,
+    get_top_cities,
 )
+from ..utils.analytics_utils import filter_city_list
+
+# Check if we're in production environment
+is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+
+
+# Conditionally create decorator factories
+def rate_limit_if_production(limit_string):
+    """Apply rate limiting only in production environment."""
+
+    def decorator(func):
+        if is_production:
+            return limiter.limit(limit_string)(func)
+        return func
+
+    return decorator
+
 
 # from ..services import analytics_service # Placeholder for a potential service layer
 
@@ -76,135 +102,22 @@ class TopCityItem(BaseModel):
         orm_mode = True
 
 
-# --- Constants ---
-# Define the priority industry letters based on the target image
-PRIORITY_INDUSTRY_LETTERS: Set[str] = {
-    "K",
-    "L",
-    "R",
-    "G",
-    "C",
-    "Q",
-}  # IT, Finance, Healthcare, Retail, Manufacturing, Education
-OTHER_CATEGORY_NAME = "Other"
-TOP_N_INDUSTRIES = 10  # Number of top industries to show explicitly
+# Add the missing model definition for IndustryComparisonResult
+class IndustryComparisonResult(BaseModel):
+    """Industry comparison between two cities result model."""
 
-# --- Helper Functions ---
+    industry_letter: str
+    industry_description: str
+    city1_count: int
+    city2_count: int
+    city1_percentage: float
+    city2_percentage: float
+    difference: float
 
+    class Config:
+        """Pydantic model configuration."""
 
-def get_top_n_industry_letters(db: Session, city_list: List[str] = []) -> Set[str]:
-    """Gets the letters of the top N most frequent industries overall or for specific cities."""
-    stmt = (
-        select(
-            MainBusinessLine.industry_letter,
-            func.count(distinct(Company.business_id)).label("count"),
-        )
-        .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-        .where(MainBusinessLine.industry_letter is not None)
-        .group_by(MainBusinessLine.industry_letter)
-        .order_by(func.count(distinct(Company.business_id)).desc())
-        .limit(TOP_N_INDUSTRIES)
-    )
-    if city_list:
-        stmt = stmt.join(Address, Company.business_id == Address.business_id)
-        stmt = stmt.where(Address.city.in_(city_list))
-
-    results = db.execute(stmt).all()
-    return {row.industry_letter for row in results}
-
-
-def group_data_for_distribution(
-    results: List[Any], top_letters: Set[str]
-) -> List[IndustryDistributionDetailItem]:
-    """Groups raw industry letter counts into Top N + Other, providing breakdown."""
-    top_data = []
-    other_value = 0
-    other_details: List[IndustryDistributionItem] = []  # Store details for breakdown
-
-    for row in results:
-        if row.industry_letter in top_letters:
-            # Cast to DetailItem, breakdown will be None
-            top_data.append(
-                IndustryDistributionDetailItem(
-                    name=row.industry_letter, value=row.count
-                )
-            )
-        else:
-            other_value += row.count
-            # Store individual item for breakdown
-            other_details.append(
-                IndustryDistributionItem(name=row.industry_letter, value=row.count)
-            )
-
-    if other_value > 0:
-        # Sort the breakdown details by count descending
-        other_details.sort(key=lambda x: x.value, reverse=True)
-        # Add the aggregated "Other" item with its breakdown
-        top_data.append(
-            IndustryDistributionDetailItem(
-                name=OTHER_CATEGORY_NAME,
-                value=other_value,
-                others_breakdown=other_details,  # Assign breakdown
-            )
-        )
-
-    # Sort final list, usually putting 'Other' last if needed, but sorting by value is common
-    top_data.sort(key=lambda x: x.value, reverse=True)
-    return top_data
-
-
-def pivot_and_group_data(
-    results: List[Any],
-    top_letters: Set[str],
-    group_by_key: str,
-    pivot_key: str,
-    value_key: str,
-    all_groups: List[str],
-    normalize: bool = False,
-) -> List[Dict[str, Any]]:
-    """Pivots data and groups non-priority items into 'Other', optionally normalizing values."""
-    temp_pivoted_data = defaultdict(lambda: defaultdict(int))
-    group_totals = defaultdict(int) if normalize else None
-
-    # Initial aggregation & calculate totals if normalizing
-    for row in results:
-        group_val = getattr(row, group_by_key)
-        pivot_val = getattr(row, pivot_key)  # This is the industry letter
-        count = getattr(row, value_key)
-
-        if group_val and pivot_val:
-            category = pivot_val if pivot_val in top_letters else OTHER_CATEGORY_NAME
-            temp_pivoted_data[group_val][category] += count
-            if normalize and group_totals is not None:
-                group_totals[
-                    group_val
-                ] += count  # Sum counts per group (e.g., per city)
-
-    # Format into the final list structure
-    final_data = []
-    all_pivot_keys = sorted(list(top_letters)) + (
-        [OTHER_CATEGORY_NAME]
-        if any(OTHER_CATEGORY_NAME in d for d in temp_pivoted_data.values())
-        else []
-    )
-
-    for group_val in all_groups:
-        data_entry: Dict[str, Union[str, int]] = {group_by_key: group_val}
-        group_total = (
-            group_totals.get(group_val, 1) if normalize and group_totals else 1
-        )  # Avoid division by zero
-        if group_total == 0:
-            group_total = 1  # Avoid division by zero
-
-        for pivot_val in all_pivot_keys:
-            raw_value = temp_pivoted_data[group_val].get(pivot_val, 0)
-            # Normalize to percentage if requested, otherwise use raw count
-            data_entry[pivot_val] = (
-                round((raw_value / group_total) * 100) if normalize else raw_value
-            )
-        final_data.append(data_entry)
-
-    return final_data
+        orm_mode = True
 
 
 # --- Analytics API Endpoints ---
@@ -212,39 +125,50 @@ def pivot_and_group_data(
 
 @router.get(
     "/industry-distribution",
-    response_model=List[IndustryDistributionDetailItem],
+    response_model=List[Dict[str, Any]],
     summary="Get overall industry distribution (Top 10 + Other) with breakdown",
     description="Calculates the distribution of the top 10 main industry letters, grouping others and providing breakdown.",
 )
-async def get_industry_distribution(
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
+async def get_industry_distribution_endpoint(
     cities: Optional[str] = Query(
         None, description="Comma-separated cities. If None, calculates for all."
     ),
-    db: Session = Depends(get_db),
-):
-    city_list = (
-        [city.strip() for city in cities.split(",") if city.strip()] if cities else []
-    )
-    try:
-        top_letters = get_top_n_industry_letters(db, city_list)
-        stmt = (
-            select(
-                MainBusinessLine.industry_letter,
-                func.count(distinct(Company.business_id)).label("count"),
-            )
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-            .where(MainBusinessLine.industry_letter is not None)
-            .group_by(MainBusinessLine.industry_letter)
-        )
-        if city_list:
-            stmt = stmt.join(Address, Company.business_id == Address.business_id)
-            stmt = stmt.where(Address.city.in_(city_list))
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:  # pyright: ignore[reportReturnType]
+    """Get industry distribution with breakdown of 'Other' category.
 
-        results = db.execute(stmt).all()
-        return group_data_for_distribution(results, top_letters)
+    Args:
+        cities: Comma-separated list of cities to filter by
+        db: Database session
+
+    Returns:
+        List of industry distribution items with Other breakdown
+    """
+    city_list = filter_city_list(cities) if cities else None
+    try:
+        # Get the result from the service layer
+        result = await get_industry_distribution(
+            db, city_list
+        )  # pyright: ignore[reportReturnType]
+
+        # Ensure we have a valid result
+        if not result:
+            return []
+
+        # Validate the result is a list before returning
+        if not isinstance(result, list):
+            print(f"Warning: Expected list but got {type(result)}, converting to list")
+            if result:
+                return [result]
+            return []
+
+        return result
     except Exception as e:
-        print(f"Error fetching industry distribution: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        print(f"Error in get_industry_distribution_endpoint: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting industry distribution: {str(e)}"
+        )
 
 
 @router.get(
@@ -253,73 +177,32 @@ async def get_industry_distribution(
     summary="Compare normalized industry distribution (Top 10 + Other) across cities",
     description="Returns normalized (percentage) distribution for top 10 industries + Other across cities.",
 )
-async def get_city_comparison(
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
+async def get_city_comparison_endpoint(
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
-    db: Session = Depends(get_db),
-):
-    city_list = [city.strip() for city in cities.split(",") if city.strip()]
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """Compare normalized industry distribution across cities.
+
+    Args:
+        cities: Comma-separated list of cities to compare
+        db: Database session
+
+    Returns:
+        List of dictionaries with city comparison data
+    """
+    city_list = filter_city_list(cities)
     if not city_list:
         raise HTTPException(
             status_code=400, detail="At least one city must be specified."
         )
+
     try:
-        # Find top letters based on the selected cities
-        top_letters = get_top_n_industry_letters(db, city_list)
-        stmt = (
-            select(
-                MainBusinessLine.industry_letter.label("industry"),  # pivot_key
-                Address.city,  # group_by_key -> becomes column header
-                func.count(distinct(Company.business_id)).label("count"),  # value_key
-            )
-            .select_from(Company)
-            .join(Address, Company.business_id == Address.business_id)
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-            .where(Address.city.in_(city_list))
-            .where(MainBusinessLine.industry_letter is not None)
-            .group_by(MainBusinessLine.industry_letter, Address.city)
-        )
-        results = db.execute(stmt).all()
-
-        # Pivot data for the Radar chart format: { industry: 'A', City1: %, City2: % }
-        # We need to normalize *within* each city first
-        city_totals = defaultdict(int)
-        raw_counts = defaultdict(lambda: defaultdict(int))
-        all_industries_in_results = set()
-        for row in results:
-            if row.industry and row.city in city_list:
-                city_totals[row.city] += row.count
-                raw_counts[row.industry][row.city] = row.count
-                all_industries_in_results.add(row.industry)
-
-        # Group into top N + Other based on overall counts (or use top_letters already calculated)
-        final_pivot = defaultdict(lambda: {city: 0 for city in city_list})
-        for industry_letter in all_industries_in_results:
-            category = (
-                industry_letter
-                if industry_letter in top_letters
-                else OTHER_CATEGORY_NAME
-            )
-            for city in city_list:
-                final_pivot[category][city] += raw_counts[industry_letter].get(city, 0)
-
-        # Format and Normalize
-        final_data = []
-        for category in sorted(list(final_pivot.keys())):
-            data_entry = {"industry": category}  # Category is Letter or 'Other'
-            for city in city_list:
-                total = city_totals.get(city, 1)
-                if total == 0:
-                    total = 1  # Avoid division by zero
-                data_entry[city] = round(
-                    (final_pivot[category].get(city, 0) / total) * 100
-                )
-            final_data.append(data_entry)
-
-        return final_data
-
+        return await get_city_comparison(db, city_list)
     except Exception as e:
-        print(f"Error fetching city comparison data: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching city comparison data: {str(e)}"
+        )
 
 
 @router.get(
@@ -328,47 +211,32 @@ async def get_city_comparison(
     summary="Get Top 10 + Other industry counts for each city",
     description="Returns data with cities and counts for top 10 industries and 'Other'.",
 )
-async def get_industries_by_city(
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
+async def get_industries_by_city_endpoint(
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
-    db: Session = Depends(get_db),
-):
-    city_list = [city.strip() for city in cities.split(",") if city.strip()]
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """Get Top 10 + Other industry counts for each city.
+
+    Args:
+        cities: Comma-separated list of cities to analyze
+        db: Database session
+
+    Returns:
+        List of dictionaries with industry counts by city
+    """
+    city_list = filter_city_list(cities)
     if not city_list:
         raise HTTPException(
             status_code=400, detail="At least one city must be specified."
         )
+
     try:
-        # Find top letters based on the selected cities
-        top_letters = get_top_n_industry_letters(db, city_list)
-        stmt = (
-            select(
-                Address.city,  # group_by_key
-                MainBusinessLine.industry_letter.label("industry"),  # pivot_key
-                func.count(distinct(Company.business_id)).label("count"),  # value_key
-            )
-            .select_from(Company)
-            .join(Address, Company.business_id == Address.business_id)
-            .join(MainBusinessLine, Company.business_id == MainBusinessLine.business_id)
-            .where(Address.city.in_(city_list))
-            .where(MainBusinessLine.industry_letter is not None)
-            .group_by(Address.city, MainBusinessLine.industry_letter)
-        )
-        results = db.execute(stmt).all()
-
-        # Use the generic pivot helper, don't normalize counts
-        return pivot_and_group_data(
-            results,
-            top_letters=top_letters,
-            group_by_key="city",
-            pivot_key="industry",
-            value_key="count",
-            all_groups=city_list,
-            normalize=False,
-        )
-
+        return await get_industries_by_city(db, city_list)
     except Exception as e:
-        print(f"Error fetching industries by city data: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching industries by city data: {str(e)}"
+        )
 
 
 @router.get(
@@ -377,36 +245,52 @@ async def get_industries_by_city(
     summary="Get top cities by active company count",
     description="Ranks cities based on the total number of unique active companies located there.",
 )
-async def get_top_cities(
+@rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
+async def get_top_cities_endpoint(
     limit: int = Query(10, description="Number of top cities to return", ge=1, le=50),
-    db: Session = Depends(get_db),
-):
-    """Fetches the top N cities ranked by the total count of unique active companies."""
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:  # pyright: ignore[reportReturnType]
+    """Get top cities by active company count.
+
+    Args:
+        limit: Number of top cities to return
+        db: Database session
+
+    Returns:
+        List of top cities by company count
+    """
     try:
-        # Corrected Query: Select city, COUNT(DISTINCT active company business_id)
-        stmt = (
-            select(
-                Address.city, func.count(distinct(Company.business_id)).label("count")
-            )
-            .select_from(Address)  # Start from Address
-            .join(Company, Address.business_id == Company.business_id)
-            .where(Address.city is not None)
-            .where(Company.active)  # Fix E712 and filter for active companies
-            .group_by(Address.city)
-            .order_by(
-                func.count(distinct(Company.business_id)).desc()
-            )  # Order by active company count
-            .limit(limit)
+        # This typing inconsistency is intentional - FastAPI handles serialization
+        result = await get_top_cities(db, limit)  # pyright: ignore[reportReturnType]
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error getting top cities: {str(e)}"
         )
 
-        results = db.execute(stmt).all()
 
-        formatted_results = [
-            TopCityItem(city=row.city, count=row.count) for row in results
-        ]
+@router.get(
+    "/industry_comparison_by_cities", response_model=List[IndustryComparisonResult]
+)
+@rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
+async def compare_industry_by_cities_endpoint(
+    city1: str = Query(..., description="First city to compare"),
+    city2: str = Query(..., description="Second city to compare"),
+    db: AsyncSession = Depends(get_db),
+) -> List[IndustryComparisonResult]:
+    """Compare industry distribution between two cities.
 
-        return formatted_results
+    Args:
+        city1: First city to compare
+        city2: Second city to compare
+        db: Database session
 
+    Returns:
+        List of industry comparison results
+    """
+    try:
+        return await compare_industry_by_cities(db, city1, city2)
     except Exception as e:
-        print(f"Error fetching top cities data: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500, detail=f"Error comparing industries: {str(e)}"
+        )

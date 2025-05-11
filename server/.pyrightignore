@@ -1,0 +1,14 @@
+# Ignore all test files
+tests/**/*.py
+
+# Ignore generated files
+__pycache__
+*.pyc
+
+# Ignore environment directories
+venvs
+.venv
+**/site-packages
+
+# Ignore alembic migrations
+alembic/versions 

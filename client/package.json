@@ -9,7 +9,11 @@
     "biome:check": "biome check .",
     "biome:fix": "biome check --fix .",
     "setup:build-dir": "./scripts/setup-build-dir.sh",
-    "dev:optimized": "npm run setup:build-dir && next dev --turbo"
+    "dev:optimized": "npm run setup:build-dir && next dev --turbo",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit-fix": "npm audit fix",
+    "prebuild": "npm run security:audit",
+    "prelint": "npm run security:audit"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
