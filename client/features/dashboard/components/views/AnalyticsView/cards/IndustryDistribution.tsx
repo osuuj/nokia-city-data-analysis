@@ -99,7 +99,7 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
 
   return (
     <ul className="list-none p-0 m-0 flex flex-wrap justify-center gap-x-2 gap-y-1 mt-2 text-[10px] sm:text-xs">
-      {payload.map((entry, index) => {
+      {payload.map((entry) => {
         const industryName = entry.value as string;
         const value = entry.payload?.value || 0;
         const originalDataItem = data.find((item) => item.name === industryName);
@@ -118,8 +118,8 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
           iconPath = `/${folder}/${industryKey}.svg`;
         }
 
-        // Generate a unique key using both industry name and index
-        const uniqueKey = `${industryName}-${index}`;
+        // Generate a unique key using industry name and value
+        const uniqueKey = `legend-${industryName}-${value}`;
 
         if (industryName === 'Others') {
           return (
