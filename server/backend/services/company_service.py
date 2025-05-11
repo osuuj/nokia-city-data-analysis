@@ -4,9 +4,9 @@ This module provides services for retrieving and processing company data.
 """
 
 import logging
-from typing import List, Optional, cast
+from typing import List, Optional
 
-from sqlalchemy import and_, distinct, func, select
+from sqlalchemy import String, and_, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -55,12 +55,12 @@ async def get_business_data_by_city(db: AsyncSession, city: str) -> List[Busines
                 Address.street,
                 Address.building_number,
                 func.coalesce(Address.entrance, "").label("entrance"),
-                cast(Address.postal_code, str).label("postal_code"),
+                func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                cast(Address.latitude_wgs84, str).label("latitude_wgs84"),
-                cast(Address.longitude_wgs84, str).label("longitude_wgs84"),
+                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
                 Address.address_type,
-                cast(Address.active, str).label("active"),
+                func.cast(Address.active, String).label("active"),
                 Company.company_name,
                 Company.company_type,
                 # Get industry data using a correlated subquery
@@ -95,7 +95,7 @@ async def get_business_data_by_city(db: AsyncSession, city: str) -> List[Busines
                     "industry"
                 ),  # pyright: ignore[reportInvalidTypeForm]
                 func.coalesce(
-                    cast(
+                    func.cast(
                         select(IndustryClassification.registration_date)
                         .where(
                             IndustryClassification.business_id == Address.business_id
@@ -103,7 +103,7 @@ async def get_business_data_by_city(db: AsyncSession, city: str) -> List[Busines
                         .order_by(IndustryClassification.registration_date.desc())
                         .limit(1)
                         .scalar_subquery(),
-                        str,
+                        String,
                     ),
                     "",
                 ).label(
@@ -165,13 +165,13 @@ async def get_companies_by_industry(
                 Address.business_id,
                 Address.street,
                 Address.building_number,
-                Address.entrance,
-                Address.postal_code,
+                func.coalesce(Address.entrance, "").label("entrance"),
+                func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                Address.latitude_wgs84,
-                Address.longitude_wgs84,
+                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
                 Address.address_type,
-                Address.active,
+                func.cast(Address.active, String).label("active"),
                 Company.company_name,
                 Company.company_type,
                 # Using the most recent industry classification
@@ -182,9 +182,9 @@ async def get_companies_by_industry(
                     "industry_letter"
                 ),
                 func.coalesce(IndustryClassification.industry, "").label("industry"),
-                func.coalesce(IndustryClassification.registration_date, "").label(
-                    "registration_date"
-                ),
+                func.coalesce(
+                    func.cast(IndustryClassification.registration_date, String), ""
+                ).label("registration_date"),
                 func.coalesce(Website.website, "").label("website"),
             )
             .join(
