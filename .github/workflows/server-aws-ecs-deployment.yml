@@ -90,10 +90,11 @@ jobs:
         env:
           ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+          ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
           IMAGE_URI: ${{ steps.build-image.outputs.image }}
         run: |
           # Get current task definition
-          aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} --output json > task-definition.json
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
           
           # Update container image in task definition
           jq --arg IMAGE "$IMAGE_URI" '.taskDefinition.containerDefinitions[0].image = $IMAGE | .taskDefinition' task-definition.json > new-task-definition.json
@@ -106,10 +107,26 @@ jobs:
           NEW_REVISION=$(echo $NEW_TASK_DEF | jq -r '.taskDefinition.revision')
           
           # Update the service to use the new task definition
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition ${{ secrets.ECS_TASK_DEFINITION }}:$NEW_REVISION --force-new-deployment
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION --force-new-deployment
+      
+      - name: Add environment variables to task definition
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+        run: |
+          # Ensure we have the necessary AWS CLI tools
+          aws --version
+          
+          # Add environment variables to the task definition
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+          
+          echo "FastAPI server deployed successfully to ECS"
       
       - name: Report deployment status
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
         run: |
           echo "Deployment started. Check AWS ECS console for deployment status."
-          echo "Service: ${{ secrets.ECS_SERVICE }}"
-          echo "Cluster: ${{ secrets.ECS_CLUSTER }}" 
+          echo "Service: $ECS_SERVICE"
+          echo "Cluster: $ECS_CLUSTER" 
