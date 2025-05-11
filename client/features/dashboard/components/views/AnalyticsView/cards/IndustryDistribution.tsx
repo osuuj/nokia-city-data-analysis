@@ -118,23 +118,26 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
           iconPath = `/${folder}/${industryKey}.svg`;
         }
 
+        // Generate a unique key using both industry name and index
+        const uniqueKey = `${industryName}-${index}`;
+
         if (industryName === 'Others') {
           return (
             <Tooltip
-              key={industryName}
+              key={uniqueKey}
               content={
                 <div className="p-1 text-tiny">
                   <p className="font-bold mb-1">Includes:</p>
                   <ul className="list-none pl-0 max-h-40 overflow-y-auto">
                     {breakdownData
-                      ? breakdownData.map((detail, detailIndex) => {
+                      ? breakdownData.map((detail) => {
                           const detailName = industryNameMap.get(detail.name) || detail.name;
                           const detailKey = detail.name ?? 'broken';
                           const detailPercent =
                             totalValue > 0 ? (detail.value / totalValue) * 100 : 0;
                           return (
                             <li
-                              key={detail.name}
+                              key={`detail-${detailKey}-${detail.value}`}
                               className="flex items-center justify-between"
                               style={{ color: textColor }}
                             >
@@ -155,9 +158,9 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
                             </li>
                           );
                         })
-                      : potentialOthers.map((otherName, otherIndex) => (
+                      : potentialOthers.map((otherName) => (
                           <li
-                            key={otherName}
+                            key={`other-${otherName}`}
                             className="flex items-center"
                             style={{ color: textColor }}
                           >
@@ -198,10 +201,7 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
         }
 
         return (
-          <li
-            key={industryName}
-            style={{ display: 'flex', alignItems: 'center', color: textColor }}
-          >
+          <li key={uniqueKey} style={{ display: 'flex', alignItems: 'center', color: textColor }}>
             <img
               src={iconPath}
               alt={`${industryName} icon`}
@@ -276,7 +276,7 @@ export const IndustryDistribution: React.FC<IndustryDistributionProps> = ({
               >
                 {data.map((entry, index) => (
                   <Cell
-                    key={`cell-${entry.name}`}
+                    key={`cell-${entry.name}-${index}`}
                     fill={getThemedIndustryColor(entry.name, currentTheme)}
                   />
                 ))}

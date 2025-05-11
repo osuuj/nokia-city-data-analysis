@@ -147,12 +147,25 @@ async def get_industry_distribution_endpoint(
     """
     city_list = filter_city_list(cities) if cities else None
     try:
-        # This typing inconsistency is intentional - FastAPI handles serialization
+        # Get the result from the service layer
         result = await get_industry_distribution(
             db, city_list
         )  # pyright: ignore[reportReturnType]
+
+        # Ensure we have a valid result
+        if not result:
+            return []
+
+        # Validate the result is a list before returning
+        if not isinstance(result, list):
+            print(f"Warning: Expected list but got {type(result)}, converting to list")
+            if result:
+                return [result]
+            return []
+
         return result
     except Exception as e:
+        print(f"Error in get_industry_distribution_endpoint: {e}")
         raise HTTPException(
             status_code=500, detail=f"Error getting industry distribution: {str(e)}"
         )
