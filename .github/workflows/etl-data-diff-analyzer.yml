@@ -56,7 +56,7 @@ jobs:
             --overrides '{
               "containerOverrides":[
                 {
-                  "name":"etl",
+                  "name":"'"$ETL_CONTAINER_NAME"'",
                   "command":["python","-m","etl.utils.change_detection"],
                   "environment":[
                     {"name":"PREV_SNAPSHOT_DATE","value":"${{ github.event.inputs.PREV_SNAPSHOT_DATE }}"},
