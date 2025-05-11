@@ -20,13 +20,13 @@ RUN apt-get update \
     && update-ca-certificates
 
 # Copy requirements
-COPY requirements.txt .
-COPY requirements-dev.txt .
+COPY server/requirements.txt ./requirements.txt
+COPY server/requirements-dev.txt ./requirements-dev.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir -r requirements-dev.txt
+    && pip install --no-cache-dir -r ./requirements.txt \
+    && pip install --no-cache-dir -r ./requirements-dev.txt
 
 # Set environment variables
 ENV PYTHONPATH=/app \

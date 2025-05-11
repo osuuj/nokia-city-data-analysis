@@ -129,5 +129,6 @@ temp/
 *.ipynb
 .ipynb_checkpoints/ 
 
-# Development requirements
+# Development requirements and scripts
 requirements-dev.txt
+scripts/setup_dev_env.sh
