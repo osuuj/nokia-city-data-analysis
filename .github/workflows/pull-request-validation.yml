@@ -1,4 +1,4 @@
-name: Pre-Commit Hooks
+name: Pull Request Validation
 
 on:
   pull_request:
