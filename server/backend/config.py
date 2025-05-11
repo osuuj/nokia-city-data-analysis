@@ -100,8 +100,10 @@ class Settings(BaseSettings):
         Returns:
             Fixed list of allowed origins
         """
-        # Ignore any input value, always return this hardcoded list
-        return ["http://localhost:3000"]
+        # Parse environment variable if provided, otherwise use default
+        origins_str = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000")
+        origins = [origin.strip() for origin in origins_str.split(",")]
+        return origins
 
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
@@ -131,5 +133,6 @@ class Settings(BaseSettings):
 # Create settings instance with default values
 settings = Settings()
 
-# Force set BACKEND_CORS_ORIGINS after initialization
-settings.BACKEND_CORS_ORIGINS = ["http://localhost:3000"]
+# Force set BACKEND_CORS_ORIGINS after initialization if not set from environment
+if not settings.BACKEND_CORS_ORIGINS:
+    settings.BACKEND_CORS_ORIGINS = ["http://localhost:3000"]

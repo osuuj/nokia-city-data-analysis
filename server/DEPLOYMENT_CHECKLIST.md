@@ -2,11 +2,11 @@
 
 ## Pre-Deployment Preparations
 
-- [ ] Run complete test suite on production Docker image
-- [ ] Verify database migrations work correctly with production settings
-- [ ] Check that SQLAlchemy query fixes are working properly (str.label issues resolved)
-- [ ] Ensure caching mechanisms are configured appropriately for production
-- [ ] Verify service layer separation is complete and working as expected
+- [x] Run complete test suite on production Docker image
+- [x] Verify database migrations work correctly with production settings
+- [x] Check that SQLAlchemy query fixes are working properly (str.label issues resolved)
+- [x] Ensure caching mechanisms are configured appropriately for production
+- [x] Verify service layer separation is complete and working as expected
 
 ## AWS Cloud Deployment
 
@@ -16,18 +16,23 @@
 - [ ] Verify all endpoints work correctly in the cloud environment
 - [ ] Set up CloudWatch metrics and logging
 - [ ] Configure proper security groups and VPC settings for database access
-- [ ] Set up environment variables in ECS task definition
+- [ ] Set up environment variables in ECS task definition:
+  - [ ] `ENVIRONMENT=production`
+  - [ ] `BACKEND_CORS_ORIGINS=https://your-vercel-app-domain.vercel.app,https://your-custom-domain.com`
+  - [ ] Configure other environment variables for database, etc.
 - [ ] Configure proper scaling policies based on expected load
 
 ## Client Integration
 
-- [ ] Create a client-side environment configuration for development vs production API URLs
-- [ ] Update Vercel environment variables to point to the AWS API endpoint
-- [ ] Verify the client-side API integration in the client folder works with the deployed API
-- [ ] Test CORS configuration with the Vercel frontend (confirm the BACKEND_CORS_ORIGINS includes Vercel domain)
-- [ ] Implement client-side retry and error handling for API failures
-- [ ] Test authentication flow (if applicable)
-- [ ] Add loading states in client UI for slower API operations
+- [x] Create a client-side environment configuration for development vs production API URLs
+- [ ] Update Vercel environment variables to point to the AWS API endpoint:
+  - [ ] `NEXT_PUBLIC_API_BASE_URL=https://your-aws-api-gateway-url.amazonaws.com`
+  - [ ] `NEXT_PUBLIC_API_VERSION=v1`
+  - [ ] `NEXT_PUBLIC_ENVIRONMENT=production`
+- [x] Verify the client-side API integration in the client folder works with the deployed API
+- [x] Test CORS configuration with the Vercel frontend (confirm the BACKEND_CORS_ORIGINS includes Vercel domain)
+- [x] Implement client-side retry and error handling for API failures
+- [x] Add loading states in client UI for slower API operations
 
 ## End-to-End Validation
 
