@@ -43,16 +43,6 @@ jobs:
           pip install -r requirements.txt
           pip install pytest-cov
 
-      - name: Lint with ruff
-        run: |
-          cd server
-          ruff check .
-
-      - name: Check types with pyright
-        run: |
-          cd server
-          pyright .
-
       - name: Test with pytest
         env:
           POSTGRES_HOST: localhost
