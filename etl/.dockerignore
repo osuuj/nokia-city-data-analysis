@@ -64,5 +64,4 @@ scripts/setup_dev_env.sh
 requirements-dev.txt
 
 # Production scripts - keep in Docker image
-run_etl_load.sh
 scripts/run_etl_load.sh 

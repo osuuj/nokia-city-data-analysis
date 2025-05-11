@@ -29,9 +29,8 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r ./requirements-dev.txt
 
 # Set environment variables
-ENV PYTHONPATH=/app \
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT=dev \
     LOG_LEVEL=DEBUG \
     PORT=8000

@@ -47,6 +47,11 @@ pip install --upgrade pip
 log "Installing development dependencies..."
 pip install -r "$PROJECT_ROOT/etl/requirements-dev.txt"
 
+# Install ETL package in development mode
+log "Installing ETL package in development mode..."
+cd "$PROJECT_ROOT"
+pip install -e .
+
 # Check installation
 log "Verifying installation..."
 pip list
