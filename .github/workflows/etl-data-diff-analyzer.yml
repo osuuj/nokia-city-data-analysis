@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECR_REPOSITORY: ${{ secrets.ETL_ECR_REPOSITORY }}
       ECS_CLUSTER: ${{ secrets.ETL_ECS_CLUSTER }}
       ETL_TASK_DEF: ${{ secrets.ETL_TASK_DEF }}
       ETL_CONTAINER_NAME: ${{ secrets.ETL_CONTAINER_NAME }}
