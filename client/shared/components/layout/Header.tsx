@@ -60,7 +60,18 @@ export const Header = () => {
   // Get the query param
   const { data: cities } = useQuery({
     queryKey: ['cities'],
-    queryFn: () => fetch(`${BASE_URL}/api/v1/cities`).then((res) => res.json()),
+    queryFn: () =>
+      fetch(`${BASE_URL}/api/v1/cities`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache',
+      }).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch cities: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      }),
     staleTime: 300000, // 5 minutes (same as the SWR dedupingInterval)
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -70,7 +81,17 @@ export const Header = () => {
   const { data: companies } = useQuery({
     queryKey: ['companies', 'geojson', 'Helsinki'],
     queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/companies.geojson?city=Helsinki`).then((res) => res.json()),
+      fetch(`${BASE_URL}/api/v1/companies.geojson?city=Helsinki`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache',
+      }).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch companies: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      }),
     staleTime: 60000, // 1 minute (same as the SWR dedupingInterval)
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
