@@ -29,7 +29,7 @@ async def test_get_industry_distribution(db: AsyncSession):
         pytest.skip("No cities available for testing")
 
     # Make request
-    response = client.get(f"/api/analytics/industry_distribution?city={test_city}")
+    response = client.get(f"/api/v1/analytics/industry-distribution?city={test_city}")
 
     # Remove the dependency override
     app.dependency_overrides.clear()
@@ -41,10 +41,8 @@ async def test_get_industry_distribution(db: AsyncSession):
     # If we have results, validate the structure
     if response.json():
         first_item = response.json()[0]
-        assert "industry_letter" in first_item
-        assert "count" in first_item
-        assert "percentage" in first_item
-        assert "industry_description" in first_item
+        assert "name" in first_item
+        assert "value" in first_item
 
 
 @pytest.mark.asyncio
@@ -64,7 +62,7 @@ async def test_get_company_growth(db: AsyncSession):
         pytest.skip("No cities available for testing")
 
     # Make request
-    response = client.get(f"/api/analytics/company_growth?city={test_city}")
+    response = client.get(f"/api/v1/analytics/company-growth?city={test_city}")
 
     # Remove the dependency override
     app.dependency_overrides.clear()
@@ -98,7 +96,7 @@ async def test_get_industry_comparison(db: AsyncSession):
 
     # Make request
     response = client.get(
-        f"/api/analytics/industry_comparison?city1={cities[0]}&city2={cities[1]}"
+        f"/api/v1/analytics/city-comparison?cities={cities[0]},{cities[1]}"
     )
 
     # Remove the dependency override
@@ -111,13 +109,7 @@ async def test_get_industry_comparison(db: AsyncSession):
     # If we have results, validate the structure
     if response.json():
         first_item = response.json()[0]
-        assert "industry_letter" in first_item
-        assert "industry_description" in first_item
-        assert "city1_count" in first_item
-        assert "city2_count" in first_item
-        assert "city1_percentage" in first_item
-        assert "city2_percentage" in first_item
-        assert "difference" in first_item
+        assert "industry" in first_item
 
 
 @pytest.mark.asyncio
@@ -138,7 +130,7 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
 
     # Make request
     response = client.get(
-        f"/api/analytics/industry_comparison_by_cities?city1={cities[0]}&city2={cities[1]}"
+        f"/api/v1/analytics/industry_comparison_by_cities?city1={cities[0]}&city2={cities[1]}"
     )
 
     # Remove the dependency override
