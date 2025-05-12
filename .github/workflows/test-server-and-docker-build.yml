@@ -13,7 +13,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: testdb
         ports:
           - 5432:5432
         options: >-
@@ -24,6 +24,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,8 +35,13 @@ jobs:
         run: |
           cd server
           python -m pip install --upgrade pip
+          # Pin SQLAlchemy to a specific version known to work with asyncio
+          pip install 'sqlalchemy[asyncio]==2.0.30' 'greenlet>=2.0.0' 'asyncpg==0.29.0'
+          # Install other requirements
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
+          # Ensure we have pytest-asyncio
+          pip install 'pytest-asyncio>=0.23.0'
 
       - name: Setup databases
         env:
@@ -66,10 +72,15 @@ jobs:
           PYTHONASYNCIODEBUG: "1"
         run: |
           cd server
-          # Set default asyncio event loop policy
+          # Debug info
           python -c "import asyncio; print(f'Using event loop: {asyncio.get_event_loop_policy().__class__.__name__}')"
-          # Run tests one by one to avoid concurrent database access issues
-          python -m pytest --no-header -v tests/ --tb=short
+          python -c "import sqlalchemy; print(f'SQLAlchemy version: {sqlalchemy.__version__}')"
+          python -c "import asyncpg; print(f'AsyncPG version: {asyncpg.__version__}')"
+          python -c "import pytest; print(f'Pytest version: {pytest.__version__}')"
+          python -c "import pytest_asyncio; print(f'Pytest-asyncio version: {pytest_asyncio.__version__}')"
+          
+          # Run tests with verbose output
+          python -m pytest --no-header -vvs tests/ --tb=native
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v3
