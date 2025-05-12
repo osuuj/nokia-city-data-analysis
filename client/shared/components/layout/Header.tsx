@@ -61,7 +61,7 @@ export const Header = () => {
   const { data: cities } = useQuery({
     queryKey: ['cities'],
     queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/companies/cities`, {
+      fetch(`${BASE_URL}/api/v1/cities`, {
         headers: {
           'Content-Type': 'application/json',
         },

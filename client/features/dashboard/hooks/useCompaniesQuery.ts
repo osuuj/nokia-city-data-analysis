@@ -67,7 +67,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  const apiUrl = `${BASE_URL}/api/v1/companies/cities`;
+  const apiUrl = `${BASE_URL}/api/v1/cities`;
   logger.info(`Fetching cities from URL: ${apiUrl}`);
 
   try {
