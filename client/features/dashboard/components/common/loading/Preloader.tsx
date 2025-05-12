@@ -3,7 +3,12 @@
 import { useEffect } from 'react';
 import useSWR from 'swr';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+// Smart default URL based on environment
+const isProd = process.env.NODE_ENV === 'production';
+const PROD_DEFAULT = 'https://fastapi-osuuj-alb-95876527.eu-north-1.elb.amazonaws.com';
+const DEV_DEFAULT = 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
+
 const fetcher = async (url: string) => {
   try {
     const res = await fetch(url);

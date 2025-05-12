@@ -27,7 +27,11 @@ export interface TopCityData {
   count: number;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+// Smart default URL based on environment
+const isProd = process.env.NODE_ENV === 'production';
+const PROD_DEFAULT = 'https://fastapi-osuuj-alb-95876527.eu-north-1.elb.amazonaws.com';
+const DEV_DEFAULT = 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
 // Enhanced fetcher to handle different API response formats
 const fetcher = async (url: string) => {

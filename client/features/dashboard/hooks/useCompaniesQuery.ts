@@ -5,8 +5,11 @@ import { logger } from '@/shared/utils/logger';
 import { useQuery } from '@tanstack/react-query';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 
-// Default to http://localhost:8000, but allow override via .env
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+// Smart default URL based on environment
+const isProd = process.env.NODE_ENV === 'production';
+const PROD_DEFAULT = 'https://fastapi-osuuj-alb-95876527.eu-north-1.elb.amazonaws.com';
+const DEV_DEFAULT = 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
 // Fallback data in case API is down
 const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
