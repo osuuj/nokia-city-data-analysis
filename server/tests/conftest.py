@@ -79,22 +79,26 @@ async def verify_test_database():
                 await session.close()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def db():
-    """Create a fresh database session for each test function."""
+    """Create a fresh database session for each test function.
+
+    Returns the actual AsyncSession object, not a generator.
+    """
     # Create a new session for each test
     async_session = TestingSessionLocal()
 
-    # Override the get_db dependency to use our test session
+    # Override the get_db dependency
     async def override_get_db():
         try:
             yield async_session
         finally:
-            await async_session.close()
+            pass  # Don't close here, as we'll close it in the fixture cleanup
 
-    # Apply the override
+    # Apply the dependency override
     app.dependency_overrides[get_db] = override_get_db
 
+    # Yield the actual session object, not a generator
     try:
         yield async_session
     finally:
