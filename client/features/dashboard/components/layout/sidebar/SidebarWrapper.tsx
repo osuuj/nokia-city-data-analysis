@@ -4,6 +4,7 @@ import { OsuujLogo } from '@/shared/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
@@ -18,6 +19,7 @@ export const SidebarWrapper = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+  const router = useRouter();
 
   // Set mounted state after hydration
   useEffect(() => {
@@ -37,6 +39,15 @@ export const SidebarWrapper = () => {
   const handleToggle = () => {
     setIsCollapsed((prev) => !prev);
   };
+
+  // Handle navigation
+  const handleNavigation = (href: string) => {
+    router.push(href);
+  };
+
+  if (!mounted) {
+    return null; // Prevent flash of unstyled content
+  }
 
   return (
     <nav
