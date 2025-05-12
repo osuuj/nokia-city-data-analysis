@@ -1,93 +1,85 @@
 name: Deploy Server to AWS
 
 on:
-  # Only manual triggering - removed automatic push trigger
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy Server
+    name: Build and Deploy FastAPI to ECS
     runs-on: ubuntu-latest
-    
+
+    env:
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      ECR_REPOSITORY: ${{ secrets.FASTAPI_ECR_REPOSITORY }}
+      ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
+      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+      ECS_TASK_DEF: ${{ secrets.ECS_TASK_DEFINITION }}
+      IMAGE_TAG: ${{ github.sha }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
+
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-      
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.FASTAPI_ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
+
+      - name: Build and push Docker image to ECR
         run: |
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./server
+          docker build \
+            --no-cache \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            ./server
+
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-      
-      - name: Update ECS service with new task definition
-        env:
-          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
-          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
-          ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
-          IMAGE_URI: ${{ steps.build-image.outputs.image }}
+
+      - name: Update ECS Task Definition with new image
         run: |
-          # Get current task definition
-          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
-          
-          # Extract only the allowed fields for register-task-definition
-          jq '{
-            family: .taskDefinition.family,
-            containerDefinitions: .taskDefinition.containerDefinitions,
-            executionRoleArn: .taskDefinition.executionRoleArn,
-            taskRoleArn: .taskDefinition.taskRoleArn,
-            networkMode: .taskDefinition.networkMode,
-            volumes: .taskDefinition.volumes,
-            placementConstraints: .taskDefinition.placementConstraints,
-            requiresCompatibilities: .taskDefinition.requiresCompatibilities,
-            cpu: .taskDefinition.cpu,
-            memory: .taskDefinition.memory
-          } | with_entries(select(.value != null))' task-definition.json > cleaned-task-definition.json
-          
-          # Update container image
-          jq --arg IMAGE "$IMAGE_URI" '.containerDefinitions[0].image = $IMAGE' cleaned-task-definition.json > updated-task-definition.json
-          
-          # Register new task definition
-          NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
-          NEW_REVISION=$(echo $NEW_TASK_DEF | jq -r '.taskDefinition.revision')
-          
-          # Update the service to use the new task definition
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION --force-new-deployment
-      
-      - name: Add environment variables to task definition
-        env:
-          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
-          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+          IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+          aws ecs describe-task-definition \
+            --task-definition $ECS_TASK_DEF \
+            --output json > task-definition.json
+
+          jq \
+            --arg IMAGE "$IMAGE" \
+            '.taskDefinition |
+            {
+              family,
+              executionRoleArn,
+              taskRoleArn,
+              networkMode,
+              containerDefinitions,
+              volumes,
+              placementConstraints,
+              requiresCompatibilities,
+              cpu,
+              memory
+            } |
+            .containerDefinitions[0].image = $IMAGE' \
+            task-definition.json > updated-task-def.json
+
+          NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-def.json)
+          REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
+
+          echo "Registered new task definition: $ECS_TASK_DEF:$REVISION"
+
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $ECS_TASK_DEF:$REVISION \
+            --force-new-deployment
+
+      - name: Report ECS Deployment
         run: |
-          # Ensure we have the necessary AWS CLI tools
-          aws --version
-          
-          # Add environment variables to the task definition
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
-          
-          echo "FastAPI server deployed successfully to ECS"
-      
-      - name: Report deployment status
-        env:
-          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
-          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
-        run: |
-          echo "Deployment started. Check AWS ECS console for deployment status."
-          echo "Service: $ECS_SERVICE"
-          echo "Cluster: $ECS_CLUSTER" 
+          echo "✅ Deployment triggered!"
+          echo "🔁 ECS Cluster: $ECS_CLUSTER"
+          echo "🚀 ECS Service: $ECS_SERVICE"
