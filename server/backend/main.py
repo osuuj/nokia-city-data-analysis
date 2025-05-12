@@ -208,10 +208,11 @@ async def readiness() -> Response:
 
 @app.get("/api/health", tags=["Health"])
 @rate_limit_if_production(settings.RATE_LIMIT_HEALTH)
-async def health_check():
+async def health_check(request: Request):
     """Health check endpoint for monitoring and load balancers.
 
-    This endpoint is used by AWS ECS for container health checks.
+    Args:
+        request: The incoming HTTP request object.
 
     Returns:
         Dict with status information and timestamp
