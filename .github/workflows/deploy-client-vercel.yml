@@ -1,16 +1,7 @@
 name: Client Build & Deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'client/**'
-      - '.github/workflows/client-vercel-deploy.yml'
-  # pull_request:
-  #   branches: [main]
-  #   paths:
-  #     - 'client/**'
-  workflow_dispatch:
+  workflow_dispatch:  # Only manual trigger now
 
 jobs:
   lint:
@@ -71,12 +62,9 @@ jobs:
           path: client/.next
           retention-days: 1
 
-  # This job would be expanded with actual deployment steps
-  # when your Vercel deployment is set up
   deploy:
     name: Deploy to Vercel
     needs: build
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
     
@@ -94,12 +82,9 @@ jobs:
           name: build-output
           path: client/.next
       
-      # Add deployment steps here, which could be using the Vercel CLI or API
       - name: Install Vercel CLI
         run: npm install -g vercel
       
-      # This is a placeholder for the actual deployment step
-      # You would replace this with your actual Vercel deployment configuration
       - name: Deploy to Vercel (placeholder)
         run: |
           echo "This would deploy to Vercel in a real workflow"
