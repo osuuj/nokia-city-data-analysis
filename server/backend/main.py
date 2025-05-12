@@ -11,7 +11,12 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Dict
 
-from fastapi import FastAPI, Response, status  # pyright: ignore[reportMissingImports]
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    FastAPI,
+    Request,
+    Response,
+    status,
+)
 from fastapi.middleware.cors import (  # pyright: ignore[reportMissingImports]
     CORSMiddleware,
 )
@@ -152,8 +157,11 @@ def rate_limit_if_production(limit_string):
 
 @app.get("/", response_model=Dict[str, str])
 @rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
-async def read_root() -> Dict[str, str]:
+async def read_root(request: Request) -> Dict[str, str]:
     """Root endpoint that returns a welcome message.
+
+    Args:
+        request: The incoming HTTP request object.
 
     Returns:
         Dict[str, str]: A dictionary containing a welcome message.
