@@ -30,70 +30,30 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     return [];
   }
 
-  logger.info(
-    `Fetching companies from: ${city} using URL: ${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
-  );
+  const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
+  logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
 
   try {
-    // First try using the configured API URL
-    try {
-      const response = await fetch(
-        `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
-        {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          cache: 'no-cache',
-          // Add a timeout to prevent hanging requests
-          signal: AbortSignal.timeout(5000),
-        },
-      );
+    const response = await fetch(apiUrl, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache',
+      signal: AbortSignal.timeout(10000), // Increased timeout to 10s
+    });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
-      }
-
-      const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
-      logger.info('Companies fetched:', geojsonData);
-
-      // Extract company properties from GeoJSON features
-      return geojsonData.features.map((feature) => feature.properties);
-    } catch (apiError) {
-      logger.error('Error with primary API endpoint:', apiError);
-
-      // As fallback, try explicit localhost URL if BASE_URL was something different
-      if (BASE_URL !== 'http://localhost:8000') {
-        try {
-          const fallbackResponse = await fetch(
-            `http://localhost:8000/api/v1/companies.geojson?city=${encodeURIComponent(city)}`,
-            {
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              cache: 'no-cache',
-              signal: AbortSignal.timeout(5000),
-            },
-          );
-
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            logger.info('Companies fetched from fallback URL:', fallbackData);
-            return fallbackData.features.map(
-              (feature: Feature<Point, CompanyProperties>) => feature.properties,
-            );
-          }
-        } catch (fallbackError) {
-          logger.error('Fallback API also failed:', fallbackError);
-        }
-      }
-
-      // If all API attempts fail, return empty array but don't break the app
-      logger.warn('Returning empty companies array as fallback');
-      return [];
+    if (!response.ok) {
+      throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
     }
+
+    const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
+    logger.info(`Successfully fetched ${geojsonData.features.length} companies for ${city}`);
+
+    return geojsonData.features.map((feature) => feature.properties);
   } catch (error) {
-    logger.error('Critical error fetching companies:', error);
-    // Don't throw, just return empty array to prevent app from breaking
+    logger.error('Error fetching companies:', error);
+    // Return empty array instead of throwing to prevent app from breaking
     return [];
   }
 };
@@ -105,58 +65,28 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  logger.info(`Fetching cities from URL: ${BASE_URL}/api/v1/cities`);
+  const apiUrl = `${BASE_URL}/api/v1/cities`;
+  logger.info(`Fetching cities from URL: ${apiUrl}`);
 
   try {
-    // First try using the configured API URL
-    try {
-      const response = await fetch(`${BASE_URL}/api/v1/cities`, {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-cache',
-        // Add a timeout to prevent hanging requests
-        signal: AbortSignal.timeout(5000),
-      });
+    const response = await fetch(apiUrl, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache',
+      signal: AbortSignal.timeout(10000),
+    });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
-      }
-
-      const cities = await response.json();
-      logger.info('Cities fetched:', cities);
-      return cities;
-    } catch (apiError) {
-      logger.error('API error fetching cities:', apiError);
-
-      // Try fallback localhost URL if BASE_URL was something different
-      if (BASE_URL !== 'http://localhost:8000') {
-        try {
-          const fallbackResponse = await fetch('http://localhost:8000/api/v1/cities', {
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            cache: 'no-cache',
-            signal: AbortSignal.timeout(5000),
-          });
-
-          if (fallbackResponse.ok) {
-            const fallbackCities = await fallbackResponse.json();
-            logger.info('Cities fetched from fallback URL:', fallbackCities);
-            return fallbackCities;
-          }
-        } catch (fallbackError) {
-          logger.error('Fallback API also failed:', fallbackError);
-        }
-      }
-
-      // Return hardcoded fallback cities
-      logger.warn('Returning fallback cities list');
-      return FALLBACK_CITIES;
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
     }
+
+    const cities = await response.json();
+    logger.info(`Successfully fetched ${cities.length} cities`);
+    return cities;
   } catch (error) {
-    logger.error('Critical error fetching cities:', error);
-    // Return fallback data instead of throwing
+    logger.error('Error fetching cities:', error);
     return FALLBACK_CITIES;
   }
 };
@@ -171,13 +101,12 @@ export function useFetchCities() {
   return useQuery<string[], Error>({
     queryKey: ['cities'],
     queryFn: fetchCities,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 30, // Cache for 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    placeholderData: FALLBACK_CITIES, // Always provide fallback data
-    // Add retry logic to handle temporary API issues
-    retry: 2,
-    retryDelay: (attempt) => Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000),
+    refetchOnReconnect: true,
+    placeholderData: FALLBACK_CITIES,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -192,12 +121,12 @@ export function useFetchCompanies(city: string) {
   return useQuery<CompanyProperties[], Error>({
     queryKey: ['companies', city],
     queryFn: () => fetchCompanies(city),
-    enabled: !!city, // only fetch if a city is selected
-    staleTime: 1000 * 60 * 1, // 1 minute
+    enabled: !!city,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    placeholderData: [], // Provide empty array as placeholder
-    // Add retry logic
-    retry: 2,
+    refetchOnReconnect: true,
+    placeholderData: [],
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
