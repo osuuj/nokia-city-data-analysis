@@ -19,7 +19,15 @@ export const metadata: Metadata = {
     template: `%s - ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: ['company search', 'business analytics', 'data visualization', 'ETL', 'dashboard'],
+  keywords: [
+    'company search',
+    'business analytics',
+    'data visualization',
+    'ETL',
+    'dashboard',
+    'finland companies',
+    'business data',
+  ],
   authors: [{ name: 'Osuuj Team' }],
   creator: 'Osuuj Team',
   publisher: 'Osuuj',
@@ -27,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://osuuj.com',
+    url: 'https://osuuj.ai',
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
@@ -36,6 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: siteConfig.name,
     description: siteConfig.description,
+    site: '@osuuj',
   },
   icons: {
     icon: '/icon.png',
@@ -43,6 +52,7 @@ export const metadata: Metadata = {
     apple: '/icon.png',
   },
   manifest: '/site.webmanifest',
+  metadataBase: new URL('https://osuuj.ai'),
 };
 
 export const viewport: Viewport = {
