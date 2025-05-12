@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.main import app
 from server.tests.utils.test_helpers import (
-    create_test_session,
     get_test_cities,
     get_test_city,
     setup_test_dependencies,
@@ -25,9 +24,8 @@ async def test_get_industry_distribution(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get a test city using a dedicated session to avoid concurrent operation issues
-    async with create_test_session(db) as session:
-        test_city = await get_test_city(session)
+    # Get test data directly
+    test_city = await get_test_city(db)
 
     if not test_city:
         pytest.skip("No cities available for testing")
@@ -58,9 +56,8 @@ async def test_get_company_growth(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get a test city using a dedicated session to avoid concurrent operation issues
-    async with create_test_session(db) as session:
-        test_city = await get_test_city(session)
+    # Get test data directly
+    test_city = await get_test_city(db)
 
     if not test_city:
         pytest.skip("No cities available for testing")
@@ -90,9 +87,8 @@ async def test_get_industry_comparison(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get two test cities using a dedicated session
-    async with create_test_session(db) as session:
-        cities = await get_test_cities(session, 2)
+    # Get test data directly
+    cities = await get_test_cities(db, 2)
 
     if len(cities) < 2:
         pytest.skip("Not enough cities available for testing")
@@ -124,9 +120,8 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get two test cities using a dedicated session
-    async with create_test_session(db) as session:
-        cities = await get_test_cities(session, 2)
+    # Get test data directly
+    cities = await get_test_cities(db, 2)
 
     if len(cities) < 2:
         pytest.skip("Not enough cities available for testing")
