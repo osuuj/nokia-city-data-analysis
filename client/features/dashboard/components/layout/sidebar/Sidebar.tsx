@@ -13,6 +13,7 @@ import {
   cn,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useState } from 'react';
 
 export enum SidebarItemType {
@@ -64,6 +65,8 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
     ref,
   ) => {
     const [selected, setSelected] = useState<React.Key>(defaultSelectedKey);
+    const router = useRouter();
+    const pathname = usePathname();
 
     const sectionClasses = {
       ...sectionClassesProp,
@@ -85,6 +88,15 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
       }),
     };
 
+    const handleItemClick = useCallback(
+      (href: string) => {
+        if (href) {
+          router.push(href);
+        }
+      },
+      [router],
+    );
+
     const renderItem = useCallback(
       (item: SidebarItem): JSX.Element => {
         const isNestType =
@@ -94,10 +106,16 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           return renderNestItem(item);
         }
 
+        const isActive = item.href === pathname;
+
         return (
           <ListboxItem
             {...item}
             key={item.key}
+            className={cn(item.className, {
+              'bg-default-100': isActive,
+            })}
+            onClick={() => item.href && handleItemClick(item.href)}
             endContent={isCompact || hideEndContent ? null : (item.endContent ?? null)}
             startContent={
               isCompact ? null : item.icon ? (
@@ -105,6 +123,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                   className={cn(
                     'text-default-500 group-data-[selected=true]:text-foreground',
                     iconClassName,
+                    { 'text-foreground': isActive },
                   )}
                   icon={item.icon}
                   width={24}
@@ -124,6 +143,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                       className={cn(
                         'text-default-500 group-data-[selected=true]:text-foreground',
                         iconClassName,
+                        { 'text-foreground': isActive },
                       )}
                       icon={item.icon}
                       width={24}
@@ -137,7 +157,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           </ListboxItem>
         );
       },
-      [isCompact, hideEndContent, iconClassName],
+      [isCompact, hideEndContent, iconClassName, pathname, handleItemClick],
     );
 
     const renderNestItem = useCallback(
