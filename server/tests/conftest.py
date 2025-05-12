@@ -65,18 +65,16 @@ async def verify_test_database():
     """Verify that the test database is properly set up."""
     if os.getenv("GITHUB_ACTIONS"):
         print(f"Using database URL: {TEST_DATABASE_URL}")
-        session = TestingSessionLocal()
-        try:
-            # Check if the businesses table exists and has data
-            result = await session.execute(text("SELECT COUNT(*) FROM businesses"))
-            count = result.scalar()
-            print(f"Found {count} businesses in the test database")
-            if count == 0:
-                pytest.fail("Test database is empty. Check your database setup.")
-        except Exception as e:
-            pytest.fail(f"Test database verification failed: {str(e)}")
-        finally:
-            await session.close()
+        async with TestingSessionLocal() as session:
+            try:
+                # Check if the businesses table exists and has data
+                result = await session.execute(text("SELECT COUNT(*) FROM businesses"))
+                count = result.scalar()
+                print(f"Found {count} businesses in the test database")
+                if count == 0:
+                    pytest.fail("Test database is empty. Check your database setup.")
+            except Exception as e:
+                pytest.fail(f"Test database verification failed: {str(e)}")
 
 
 # Override get_db for all tests globally
@@ -106,7 +104,6 @@ async def db():
     app.dependency_overrides[get_db] = _get_db_override
 
     try:
-        # Return the actual session object
-        return session
+        yield session
     finally:
         await session.close()
