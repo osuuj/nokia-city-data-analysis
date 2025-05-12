@@ -43,6 +43,11 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
+      - name: Initialize test database
+        run: |
+          cd server
+          psql -h localhost -U postgres -d testdb -f db/schema.sql
+
       - name: Test with pytest
         env:
           POSTGRES_HOST: localhost
