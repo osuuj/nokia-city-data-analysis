@@ -102,7 +102,10 @@ class Settings(BaseSettings):
             Fixed list of allowed origins
         """
         # Parse environment variable if provided, otherwise use default
-        origins_str = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000")
+        origins_str = os.getenv(
+            "BACKEND_CORS_ORIGINS",
+            "http://osuuj.ai,http://www.osuuj.ai,https://osuuj.ai,https://www.osuuj.ai",
+        )
         origins = [origin.strip() for origin in origins_str.split(",")]
         return origins
 
