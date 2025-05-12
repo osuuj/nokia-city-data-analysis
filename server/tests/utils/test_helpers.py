@@ -3,9 +3,9 @@
 This module provides helper functions for common testing operations.
 """
 
-import asyncio
+import contextlib
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, AsyncGenerator, Callable, TypeVar
 
 from fastapi import FastAPI
 from sqlalchemy import text
@@ -33,9 +33,8 @@ def safe_db_query(func: Callable[..., T]) -> Callable[..., T]:
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
-            # Ensure we're using the current event loop
-            asyncio.get_event_loop()
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
+            return result
         except Exception as e:
             # Include better error details for debugging
             raise RuntimeError(
@@ -96,6 +95,25 @@ async def get_test_industry_letter(db: AsyncSession) -> str:
     return row[0] if row else None
 
 
+@contextlib.asynccontextmanager
+async def create_test_session(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
+    """Create a dedicated test session that won't interfere with other operations.
+
+    Args:
+        db: The original database session
+
+    Yields:
+        A new database session
+    """
+    try:
+        # Create a new transaction for this specific operation
+        async with db.begin():
+            yield db
+    finally:
+        # Ensure session is properly cleaned up
+        await db.close()
+
+
 def setup_test_dependencies(app: FastAPI, db: AsyncSession) -> None:
     """Set up test dependencies.
 
@@ -108,8 +126,11 @@ def setup_test_dependencies(app: FastAPI, db: AsyncSession) -> None:
 
     # Override the get_db dependency
     async def override_get_db():
-        # Use a single session per test to avoid connection issues
-        yield db
+        try:
+            yield db
+        finally:
+            # Don't close here, as it's closed in the fixture
+            pass
 
     app.dependency_overrides[get_db] = override_get_db
 
