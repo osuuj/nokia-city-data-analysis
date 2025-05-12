@@ -55,6 +55,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/testdb
           ENVIRONMENT: test
           BYPASS_RATE_LIMIT: "true"
+          GITHUB_ACTIONS: "true"
         run: |
           cd server
           python -m pytest --cov=backend --cov-report=xml tests/
