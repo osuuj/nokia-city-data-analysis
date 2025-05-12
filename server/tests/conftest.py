@@ -6,6 +6,7 @@ import random
 import string
 
 import pytest
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -30,7 +31,6 @@ if "test" not in TEST_DATABASE_URL and "memory" not in TEST_DATABASE_URL:
     )
     TEST_DATABASE_URL = TEST_DATABASE_URL.replace(db_name, f"{db_name}_test")
 
-# Add a unique identifier to prevent test interference when running in parallel
 # Skip this in GitHub Actions environment to avoid db name mismatch
 if not os.getenv("GITHUB_ACTIONS"):
     random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
@@ -40,11 +40,11 @@ if not os.getenv("GITHUB_ACTIONS"):
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
-    pool_size=5,
-    max_overflow=10,
+    pool_size=20,  # Increased pool size
+    max_overflow=20,  # Increased max overflow
     pool_pre_ping=True,
     pool_recycle=300,
-    isolation_level="AUTOCOMMIT",  # Important for test transactions
+    isolation_level="READ COMMITTED",  # Changed from AUTOCOMMIT
 )
 
 TestingSessionLocal = sessionmaker(
@@ -55,34 +55,49 @@ TestingSessionLocal = sessionmaker(
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an event loop for async tests."""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def verify_test_database():
+    """Verify that the test database is properly set up."""
+    if os.getenv("GITHUB_ACTIONS"):
+        print(f"Using database URL: {TEST_DATABASE_URL}")
+        async with TestingSessionLocal() as session:
+            try:
+                # Check if the businesses table exists and has data
+                result = await session.execute(text("SELECT COUNT(*) FROM businesses"))
+                count = result.scalar()
+                print(f"Found {count} businesses in the test database")
+                if count == 0:
+                    pytest.fail("Test database is empty. Check your database setup.")
+            except Exception as e:
+                pytest.fail(f"Test database verification failed: {str(e)}")
+            finally:
+                await session.close()
 
 
 @pytest.fixture(scope="function")
 async def db():
     """Create a fresh database session for each test function."""
     # Create a new session for each test
-    session = TestingSessionLocal()
+    async_session = TestingSessionLocal()
 
     # Override the get_db dependency to use our test session
     async def override_get_db():
         try:
-            # Use the same session for the entire test
-            yield session
-        except Exception as e:
-            await session.rollback()
-            raise e
+            yield async_session
+        finally:
+            await async_session.close()
 
     # Apply the override
     app.dependency_overrides[get_db] = override_get_db
 
     try:
-        yield session
+        yield async_session
     finally:
         # Clean up after the test
+        await async_session.close()
         app.dependency_overrides.clear()
-        await session.close()

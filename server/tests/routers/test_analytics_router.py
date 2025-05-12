@@ -1,11 +1,14 @@
 """Tests for analytics router endpoints."""
 
+import asyncio
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from server.backend.main import app
 from server.tests.utils.test_helpers import (
+    create_test_session,
     get_test_cities,
     get_test_city,
     setup_test_dependencies,
@@ -22,11 +25,15 @@ async def test_get_industry_distribution(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get a test city
-    test_city = await get_test_city(db)
+    # Get a test city using a dedicated session to avoid concurrent operation issues
+    async with create_test_session(db) as session:
+        test_city = await get_test_city(session)
 
     if not test_city:
         pytest.skip("No cities available for testing")
+
+    # Wait a moment to ensure previous operation completes
+    await asyncio.sleep(0.1)
 
     # Make request
     response = client.get(f"/api/v1/analytics/industry-distribution?city={test_city}")
@@ -35,7 +42,7 @@ async def test_get_industry_distribution(db: AsyncSession):
     teardown_test_dependencies(app)
 
     # Validate response
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Unexpected response: {response.text}"
     assert isinstance(response.json(), list)
 
     # If we have results, validate the structure
@@ -51,11 +58,15 @@ async def test_get_company_growth(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get a test city
-    test_city = await get_test_city(db)
+    # Get a test city using a dedicated session to avoid concurrent operation issues
+    async with create_test_session(db) as session:
+        test_city = await get_test_city(session)
 
     if not test_city:
         pytest.skip("No cities available for testing")
+
+    # Wait a moment to ensure previous operation completes
+    await asyncio.sleep(0.1)
 
     # Make request
     response = client.get(f"/api/v1/analytics/industries-by-city?cities={test_city}")
@@ -64,7 +75,7 @@ async def test_get_company_growth(db: AsyncSession):
     teardown_test_dependencies(app)
 
     # Validate response
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Unexpected response: {response.text}"
     assert isinstance(response.json(), list)
 
     # If we have results, validate the structure
@@ -79,11 +90,15 @@ async def test_get_industry_comparison(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get two test cities
-    cities = await get_test_cities(db, 2)
+    # Get two test cities using a dedicated session
+    async with create_test_session(db) as session:
+        cities = await get_test_cities(session, 2)
 
     if len(cities) < 2:
         pytest.skip("Not enough cities available for testing")
+
+    # Wait a moment to ensure previous operation completes
+    await asyncio.sleep(0.1)
 
     # Make request
     response = client.get(
@@ -94,7 +109,7 @@ async def test_get_industry_comparison(db: AsyncSession):
     teardown_test_dependencies(app)
 
     # Validate response
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Unexpected response: {response.text}"
     assert isinstance(response.json(), list)
 
     # If we have results, validate the structure
@@ -109,11 +124,15 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
     # Setup dependencies
     setup_test_dependencies(app, db)
 
-    # Get two test cities
-    cities = await get_test_cities(db, 2)
+    # Get two test cities using a dedicated session
+    async with create_test_session(db) as session:
+        cities = await get_test_cities(session, 2)
 
     if len(cities) < 2:
         pytest.skip("Not enough cities available for testing")
+
+    # Wait a moment to ensure previous operation completes
+    await asyncio.sleep(0.1)
 
     # Make request - using the correct endpoint path
     response = client.get(
@@ -124,7 +143,7 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
     teardown_test_dependencies(app)
 
     # Validate response
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Unexpected response: {response.text}"
     assert isinstance(response.json(), list)
 
     # If we have results, validate the structure
