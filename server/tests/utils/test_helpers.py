@@ -32,10 +32,18 @@ def safe_db_query(func: Callable[..., T]) -> Callable[..., T]:
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
+            # Debug info
+            import inspect
+
+            print(f"Calling {func.__name__} with session type: {type(args[0])}")
+            if inspect.isgenerator(args[0]) or inspect.isasyncgen(args[0]):
+                print(f"WARNING: Session is a generator in {func.__name__}")
+
             result = await func(*args, **kwargs)
             return result
         except Exception as e:
             # Include better error details for debugging
+            print(f"ERROR in {func.__name__}: {str(e)}")
             raise RuntimeError(
                 f"Database query failed: {str(e)}, in function {func.__name__}"
             ) from e
@@ -53,10 +61,25 @@ async def get_test_city(db: AsyncSession) -> str:
     Returns:
         City name or None if no cities found
     """
-    query = text("SELECT DISTINCT city FROM addresses LIMIT 1")
-    result = await db.execute(query)
-    row = result.first()
-    return row[0] if row else None
+    # Debug info
+    print(f"Executing query with session type: {type(db)}")
+
+    try:
+        query = text("SELECT DISTINCT city FROM addresses LIMIT 1")
+        result = await db.execute(query)
+        row = result.first()
+        return row[0] if row else None
+    except AttributeError as e:
+        # If db is a generator, try to get the actual session
+        if hasattr(db, "__anext__"):
+            print("Detected async generator, trying to get actual session")
+            real_db = await db.__anext__()
+            query = text("SELECT DISTINCT city FROM addresses LIMIT 1")
+            result = await real_db.execute(query)
+            row = result.first()
+            return row[0] if row else None
+        else:
+            raise e
 
 
 @safe_db_query

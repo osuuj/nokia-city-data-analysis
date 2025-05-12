@@ -14,6 +14,12 @@ from server.backend.config import settings
 from server.backend.database import get_db
 from server.backend.main import app
 
+
+def pytest_configure(config):
+    """Configure pytest to use asyncio properly."""
+    config.addinivalue_line("asyncio_mode", "auto")
+
+
 # Use a separate test database
 # Convert PostgresDsn to string first before manipulating it
 DATABASE_URL_STR = str(settings.DATABASE_URL)
@@ -65,43 +71,48 @@ async def verify_test_database():
     """Verify that the test database is properly set up."""
     if os.getenv("GITHUB_ACTIONS"):
         print(f"Using database URL: {TEST_DATABASE_URL}")
-        async with TestingSessionLocal() as session:
-            try:
-                # Check if the businesses table exists and has data
-                result = await session.execute(text("SELECT COUNT(*) FROM businesses"))
-                count = result.scalar()
-                print(f"Found {count} businesses in the test database")
-                if count == 0:
-                    pytest.fail("Test database is empty. Check your database setup.")
-            except Exception as e:
-                pytest.fail(f"Test database verification failed: {str(e)}")
-            finally:
-                await session.close()
+        session = TestingSessionLocal()
+        try:
+            # Check if the businesses table exists and has data
+            result = await session.execute(text("SELECT COUNT(*) FROM businesses"))
+            count = result.scalar()
+            print(f"Found {count} businesses in the test database")
+            if count == 0:
+                pytest.fail("Test database is empty. Check your database setup.")
+        except Exception as e:
+            pytest.fail(f"Test database verification failed: {str(e)}")
+        finally:
+            await session.close()
+
+
+# Override get_db for all tests globally
+@pytest.fixture(autouse=True)
+def override_dependency():
+    async def _temp_get_db():
+        # This will be replaced by the db fixture in each test
+        pass
+
+    app.dependency_overrides[get_db] = _temp_get_db
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 async def db():
     """Create a fresh database session for each test function.
 
-    Returns the actual AsyncSession object, not a generator.
+    This is a direct session object, not a generator.
     """
-    # Create a new session for each test
-    async_session = TestingSessionLocal()
+    session = TestingSessionLocal()
 
-    # Override the get_db dependency
-    async def override_get_db():
-        try:
-            yield async_session
-        finally:
-            pass  # Don't close here, as we'll close it in the fixture cleanup
+    # Override the dependency for this test
+    async def _get_db_override():
+        yield session
 
-    # Apply the dependency override
-    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db] = _get_db_override
 
-    # Yield the actual session object, not a generator
     try:
-        yield async_session
+        # Return the actual session object
+        return session
     finally:
-        # Clean up after the test
-        await async_session.close()
-        app.dependency_overrides.clear()
+        await session.close()
