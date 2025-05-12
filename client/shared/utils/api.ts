@@ -252,7 +252,7 @@ export const getBusinessesByIndustry = async (
 };
 
 export const getCities = async (): Promise<string[]> => {
-  const response = await api.get<string[]>('/companies/cities');
+  const response = await api.get<string[]>('/cities');
   return response.data;
 };
 
