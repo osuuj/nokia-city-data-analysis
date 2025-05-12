@@ -7,6 +7,7 @@ includes routers, and configures logging and startup/shutdown events.
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Dict
 
@@ -34,6 +35,46 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# Setup Prometheus metrics
+instrumentator = Instrumentator(
+    should_group_status_codes=True,
+    should_ignore_untemplated=True,
+    should_respect_env_var=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=[".*admin.*", "/metrics"],
+    env_var_name="ENABLE_METRICS",
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Actions to perform on application startup and shutdown.
+
+    - Initialize database tables
+    - Warm up connection pool
+    - Log application startup
+    - Initialize metrics
+    """
+    # Startup actions
+    logger.info(f"Starting {settings.PROJECT_NAME} in {settings.ENVIRONMENT} mode")
+
+    # Initialize database and schema
+    await create_db_and_tables()
+    await init_db(engine)
+
+    # Set up metrics endpoint
+    instrumentator.instrument(app).expose(
+        app, endpoint="/metrics", include_in_schema=False
+    )
+    logger.info("Prometheus metrics enabled at /metrics")
+
+    yield
+
+    # Shutdown actions
+    logger.info(f"Shutting down {settings.PROJECT_NAME}")
+    await close_db_connection()
+
+
 # Initialize FastAPI application
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -41,6 +82,7 @@ app = FastAPI(
     version=settings.VERSION,
     description="API for managing company data from the Finnish Patent and Registration Office (PRH)",
     docs_url="/docs",  # Always enable docs for development, configure via env in production
+    lifespan=lifespan,
 )
 
 # Configure middlewares (including security headers and rate limiting)
@@ -60,16 +102,6 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
-
-# Setup Prometheus metrics
-instrumentator = Instrumentator(
-    should_group_status_codes=True,
-    should_ignore_untemplated=True,
-    should_respect_env_var=True,
-    should_instrument_requests_inprogress=True,
-    excluded_handlers=[".*admin.*", "/metrics"],
-    env_var_name="ENABLE_METRICS",
-)
 
 # Include routers (with rate limiting)
 app.include_router(
@@ -116,39 +148,6 @@ def rate_limit_if_production(limit_string):
         return func
 
     return decorator
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Actions to perform on application startup.
-
-    - Initialize database tables
-    - Warm up connection pool
-    - Log application startup
-    - Initialize metrics
-    """
-    logger.info(f"Starting {settings.PROJECT_NAME} in {settings.ENVIRONMENT} mode")
-
-    # Initialize database and schema
-    await create_db_and_tables()
-    await init_db(engine)
-
-    # Set up metrics endpoint
-    instrumentator.instrument(app).expose(
-        app, endpoint="/metrics", include_in_schema=False
-    )
-    logger.info("Prometheus metrics enabled at /metrics")
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    """Actions to perform on application shutdown.
-
-    - Close database connections
-    - Release resources
-    """
-    logger.info(f"Shutting down {settings.PROJECT_NAME}")
-    await close_db_connection()
 
 
 @app.get("/", response_model=Dict[str, str])

@@ -13,7 +13,7 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
     HTTPException,
     Query,
 )
-from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
+from pydantic import BaseModel, ConfigDict  # pyright: ignore[reportMissingImports]
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -72,10 +72,7 @@ class IndustryDistributionItem(BaseModel):
     name: str  # Will hold industry_letter or 'Other'
     value: int
 
-    class Config:
-        """Pydantic model configuration."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # New model for detailed response
@@ -93,10 +90,7 @@ class CityComparisonItem(BaseModel):
     # Or potentially using Dict[str, int] if cities are not fixed
     # For simplicity, let's assume a fixed structure or handle transformation later
 
-    class Config:
-        """Pydantic model configuration."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Based on client/... -> IndustriesByCityData
@@ -105,10 +99,7 @@ class IndustriesByCityItem(BaseModel):
     # Similar to CityComparison, dynamic keys for industries
     # Example: Technology: int, Finance: int
 
-    class Config:
-        """Pydantic model configuration."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Based on client/... -> TopCityData
@@ -116,10 +107,7 @@ class TopCityItem(BaseModel):
     city: str
     count: int  # Represents active company count
 
-    class Config:
-        """Pydantic model configuration."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Add the missing model definition for IndustryComparisonResult
@@ -134,10 +122,7 @@ class IndustryComparisonResult(BaseModel):
     city2_percentage: float
     difference: float
 
-    class Config:
-        """Pydantic model configuration."""
-
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # --- Analytics API Endpoints ---
