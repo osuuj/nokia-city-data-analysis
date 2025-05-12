@@ -2,11 +2,15 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from server.backend.database import get_db
 from server.backend.main import app
+from server.tests.utils.test_helpers import (
+    get_test_cities,
+    get_test_city,
+    setup_test_dependencies,
+    teardown_test_dependencies,
+)
 
 # Create test client
 client = TestClient(app)
@@ -14,13 +18,9 @@ client = TestClient(app)
 
 @pytest.mark.asyncio
 async def test_get_industry_distribution(db: AsyncSession):
-    """Test the GET /analytics/industry_distribution endpoint."""
-
-    # Override the dependency to use our test database
-    async def override_get_db():
-        yield db
-
-    app.dependency_overrides[get_db] = override_get_db
+    """Test the GET /analytics/industry-distribution endpoint."""
+    # Setup dependencies
+    setup_test_dependencies(app, db)
 
     # Get a test city
     test_city = await get_test_city(db)
@@ -32,7 +32,7 @@ async def test_get_industry_distribution(db: AsyncSession):
     response = client.get(f"/api/v1/analytics/industry-distribution?city={test_city}")
 
     # Remove the dependency override
-    app.dependency_overrides.clear()
+    teardown_test_dependencies(app)
 
     # Validate response
     assert response.status_code == 200
@@ -47,13 +47,9 @@ async def test_get_industry_distribution(db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_company_growth(db: AsyncSession):
-    """Test the GET /analytics/company_growth endpoint."""
-
-    # Override the dependency to use our test database
-    async def override_get_db():
-        yield db
-
-    app.dependency_overrides[get_db] = override_get_db
+    """Test the GET /analytics/industries-by-city endpoint."""
+    # Setup dependencies
+    setup_test_dependencies(app, db)
 
     # Get a test city
     test_city = await get_test_city(db)
@@ -65,7 +61,7 @@ async def test_get_company_growth(db: AsyncSession):
     response = client.get(f"/api/v1/analytics/industries-by-city?cities={test_city}")
 
     # Remove the dependency override
-    app.dependency_overrides.clear()
+    teardown_test_dependencies(app)
 
     # Validate response
     assert response.status_code == 200
@@ -79,13 +75,9 @@ async def test_get_company_growth(db: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_industry_comparison(db: AsyncSession):
-    """Test the GET /analytics/industry_comparison endpoint."""
-
-    # Override the dependency to use our test database
-    async def override_get_db():
-        yield db
-
-    app.dependency_overrides[get_db] = override_get_db
+    """Test the GET /analytics/city-comparison endpoint."""
+    # Setup dependencies
+    setup_test_dependencies(app, db)
 
     # Get two test cities
     cities = await get_test_cities(db, 2)
@@ -99,7 +91,7 @@ async def test_get_industry_comparison(db: AsyncSession):
     )
 
     # Remove the dependency override
-    app.dependency_overrides.clear()
+    teardown_test_dependencies(app)
 
     # Validate response
     assert response.status_code == 200
@@ -114,12 +106,8 @@ async def test_get_industry_comparison(db: AsyncSession):
 @pytest.mark.asyncio
 async def test_industry_comparison_by_cities(db: AsyncSession):
     """Test the GET /analytics/industry_comparison_by_cities endpoint."""
-
-    # Override the dependency to use our test database
-    async def override_get_db():
-        yield db
-
-    app.dependency_overrides[get_db] = override_get_db
+    # Setup dependencies
+    setup_test_dependencies(app, db)
 
     # Get two test cities
     cities = await get_test_cities(db, 2)
@@ -133,7 +121,7 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
     )
 
     # Remove the dependency override
-    app.dependency_overrides.clear()
+    teardown_test_dependencies(app)
 
     # Validate response
     assert response.status_code == 200
@@ -155,24 +143,3 @@ async def test_industry_comparison_by_cities(db: AsyncSession):
             assert abs(response.json()[0]["difference"]) >= abs(
                 response.json()[1]["difference"]
             )
-
-
-# Helper functions
-
-
-async def get_test_city(db: AsyncSession) -> str:
-    """Get a city name for testing."""
-    query = text("SELECT city FROM addresses WHERE city IS NOT NULL LIMIT 1")
-    result = await db.execute(query)
-    row = result.first()
-    return row[0] if row else None
-
-
-async def get_test_cities(db: AsyncSession, count: int = 2) -> list:
-    """Get multiple city names for testing."""
-    query = text(
-        "SELECT DISTINCT city FROM addresses WHERE city IS NOT NULL LIMIT :count"
-    )
-    result = await db.execute(query, {"count": count})
-    rows = result.fetchall()
-    return [row[0] for row in rows] if rows else []
