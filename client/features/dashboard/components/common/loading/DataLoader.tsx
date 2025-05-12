@@ -54,7 +54,7 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
     data: cities,
     error: citiesError,
     mutate: refetchCities,
-  } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/cities` : null, fetcher, {
+  } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/companies/cities` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // Cache for 5 minutes
@@ -70,16 +70,20 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
     data: companies,
     error: companiesError,
     mutate: refetchCompanies,
-  } = useSWR(mounted ? `${BASE_URL}/api/v1/companies.geojson?city=Helsinki` : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 60000, // Cache for 1 minute
-    suspense: false,
-    onError: (err) => {
-      console.error('Failed to fetch companies:', err);
-      setError(err);
+  } = useSWR(
+    mounted ? `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // Cache for 1 minute
+      suspense: false,
+      onError: (err) => {
+        console.error('Failed to fetch companies:', err);
+        setError(err);
+      },
     },
-  });
+  );
 
   // Check if data is ready
   useEffect(() => {
