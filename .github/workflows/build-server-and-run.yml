@@ -109,9 +109,57 @@ jobs:
           echo "🔁 ECS Cluster: $ECS_CLUSTER"
           echo "🚀 ECS Service: $ECS_SERVICE"
           
-          # Wait for service to stabilize
-          aws ecs wait services-stable \
+          # Monitor deployment status with timeout
+          TIMEOUT=300  # 5 minutes timeout
+          INTERVAL=10  # Check every 10 seconds
+          ELAPSED=0
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            # Get deployment status
+            STATUS=$(aws ecs describe-services \
+              --cluster $ECS_CLUSTER \
+              --services $ECS_SERVICE \
+              --query 'services[0].deployments[0].status' \
+              --output text)
+            
+            RUNNING_COUNT=$(aws ecs describe-services \
+              --cluster $ECS_CLUSTER \
+              --services $ECS_SERVICE \
+              --query 'services[0].runningCount' \
+              --output text)
+            
+            DESIRED_COUNT=$(aws ecs describe-services \
+              --cluster $ECS_CLUSTER \
+              --services $ECS_SERVICE \
+              --query 'services[0].desiredCount' \
+              --output text)
+            
+            echo "📊 Deployment Status: $STATUS (Running: $RUNNING_COUNT/$DESIRED_COUNT)"
+            
+            if [ "$STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" = "$DESIRED_COUNT" ]; then
+              echo "🎉 Deployment completed successfully!"
+              exit 0
+            fi
+            
+            if [ "$STATUS" = "FAILED" ]; then
+              echo "❌ Deployment failed!"
+              aws ecs describe-services \
+                --cluster $ECS_CLUSTER \
+                --services $ECS_SERVICE \
+                --query 'services[0].events[0:5]' \
+                --output text
+              exit 1
+            fi
+            
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+            echo "⏳ Waiting for deployment... ($ELAPSED/$TIMEOUT seconds)"
+          done
+          
+          echo "❌ Deployment timed out after ${TIMEOUT} seconds"
+          aws ecs describe-services \
             --cluster $ECS_CLUSTER \
-            --services $ECS_SERVICE
-
-          echo "🎉 Deployment completed successfully!"
+            --services $ECS_SERVICE \
+            --query 'services[0].events[0:5]' \
+            --output text
+          exit 1
