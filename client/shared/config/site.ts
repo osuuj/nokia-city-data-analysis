@@ -2,8 +2,9 @@
  * Configuration object for site-wide metadata and navigation.
  */
 export const siteConfig = {
-  name: 'Next.js + HeroUI',
-  description: 'Make beautiful websites regardless of your design experience.',
+  name: 'Osuuj.ai',
+  description:
+    'Find Companies in Finland Close to You - Business Data Analytics and Visualization Platform',
 
   hero: {
     title: {
@@ -30,6 +31,7 @@ export const siteConfig = {
 
   links: {
     github: 'https://github.com/osuuj/nokia-city-data-analysis',
+    website: 'https://osuuj.ai',
   },
 
   socialLinks: [
