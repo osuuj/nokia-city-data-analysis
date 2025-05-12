@@ -38,7 +38,7 @@ jobs:
       
       - name: Update ECS service with new task definition
         env:
-          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
           ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
           IMAGE_URI: ${{ steps.build-image.outputs.image }}
@@ -72,7 +72,7 @@ jobs:
       
       - name: Add environment variables to task definition
         env:
-          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
         run: |
           # Ensure we have the necessary AWS CLI tools
@@ -85,7 +85,7 @@ jobs:
       
       - name: Report deployment status
         env:
-          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
         run: |
           echo "Deployment started. Check AWS ECS console for deployment status."
