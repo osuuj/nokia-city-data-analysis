@@ -1,4 +1,4 @@
-name: Client Build & Deploy
+name: Manual Client Deploy to Vercel
 
 on:
   workflow_dispatch:  # Only manual trigger now
