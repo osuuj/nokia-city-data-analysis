@@ -55,22 +55,23 @@ jobs:
             --output json > task-definition.json
 
           echo "🛠 Updating container image to: $IMAGE_URI"
-          jq --arg IMAGE "$IMAGE_URI" \
-            '.taskDefinition |
-            {
-              family,
-              executionRoleArn,
-              taskRoleArn,
-              networkMode,
-              containerDefinitions,
-              volumes,
-              placementConstraints,
-              requiresCompatibilities,
-              cpu,
-              memory
-            } |
-            .containerDefinitions[0].image = $IMAGE' \
-            task-definition.json > updated-task-definition.json
+          jq --arg IMAGE "$IMAGE_URI" '
+            .taskDefinition
+            | {
+                family,
+                executionRoleArn,
+                taskRoleArn,
+                networkMode,
+                containerDefinitions,
+                volumes,
+                placementConstraints,
+                requiresCompatibilities,
+                cpu,
+                memory
+              }
+            | with_entries(select(.value != null))
+            | (.containerDefinitions[0].image = $IMAGE)
+          ' task-definition.json > updated-task-definition.json
 
           echo "📜 Registering new task definition..."
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
