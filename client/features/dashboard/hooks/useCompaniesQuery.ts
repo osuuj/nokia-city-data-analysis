@@ -38,7 +38,6 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
 
   try {
     const response = await fetch(apiUrl, {
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -73,7 +72,6 @@ const fetchCities = async (): Promise<string[]> => {
 
   try {
     const response = await fetch(apiUrl, {
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
