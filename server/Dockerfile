@@ -55,7 +55,6 @@ COPY ./config /app/server/config
 COPY ./db /app/server/db
 COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
-COPY ./deployment /app/deployment
 COPY ./__init__.py /app/server/__init__.py
 
 # Set ownership and secure permissions
