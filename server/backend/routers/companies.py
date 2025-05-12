@@ -7,7 +7,12 @@ import logging
 import os
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query  # pyright: ignore[reportMissingImports]
+from fastapi import (  # pyright: ignore[reportMissingImports]
+    APIRouter,
+    Depends,
+    Query,
+    Request,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -60,12 +65,14 @@ router = APIRouter()
 @router.get("/businesses_by_city", response_model=List[BusinessData])
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def read_businesses_by_city(
+    request: Request,
     city: str = Query(..., description="City name to filter by"),
     db: AsyncSession = Depends(get_db),
 ) -> List[BusinessData]:
     """Retrieve business data by city.
 
     Args:
+        request: The incoming HTTP request object.
         city: City name to filter by
         db: Database session
 
@@ -83,6 +90,7 @@ async def read_businesses_by_city(
 @router.get("/businesses_by_industry", response_model=List[BusinessData])
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def read_businesses_by_industry(
+    request: Request,
     industry_letter: str = Query(..., description="Industry letter code to filter by"),
     city: Optional[str] = Query(None, description="Optional city to filter by"),
     limit: int = Query(
@@ -93,6 +101,7 @@ async def read_businesses_by_industry(
     """Retrieve business data by industry.
 
     Args:
+        request: The incoming HTTP request object.
         industry_letter: Industry letter code to filter by
         city: Optional city to filter by
         limit: Maximum number of results to return
@@ -113,10 +122,13 @@ async def read_businesses_by_industry(
 
 @router.get("/cities", response_model=List[str])
 @rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
-async def read_cities(db: AsyncSession = Depends(get_db)) -> List[str]:
+async def read_cities(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> List[str]:
     """Retrieve all cities.
 
     Args:
+        request: The incoming HTTP request object.
         db: Database session
 
     Returns:
@@ -132,10 +144,13 @@ async def read_cities(db: AsyncSession = Depends(get_db)) -> List[str]:
 
 @router.get("/industries", response_model=List[str])
 @rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
-async def read_industries(db: AsyncSession = Depends(get_db)) -> List[str]:
+async def read_industries(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> List[str]:
     """Retrieve all industry letter codes.
 
     Args:
+        request: The incoming HTTP request object.
         db: Database session
 
     Returns:
