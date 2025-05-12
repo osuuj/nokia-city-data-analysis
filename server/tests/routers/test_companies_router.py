@@ -26,7 +26,7 @@ async def test_get_cities(db: AsyncSession):
     test_city = await get_test_city(db)
 
     # Make request
-    response = client.get("/api/companies/cities")
+    response = client.get("/api/v1/companies/cities")
 
     # Remove the dependency override
     app.dependency_overrides.clear()
@@ -54,7 +54,7 @@ async def test_get_industries(db: AsyncSession):
     test_industry = await get_test_industry_letter(db)
 
     # Make request
-    response = client.get("/api/companies/industries")
+    response = client.get("/api/v1/companies/industries")
 
     # Remove the dependency override
     app.dependency_overrides.clear()
@@ -85,7 +85,7 @@ async def test_get_businesses_by_city(db: AsyncSession):
         pytest.skip("No cities available for testing")
 
     # Make request
-    response = client.get(f"/api/companies/businesses_by_city?city={test_city}")
+    response = client.get(f"/api/v1/companies/businesses_by_city?city={test_city}")
 
     # Remove the dependency override
     app.dependency_overrides.clear()
@@ -121,7 +121,7 @@ async def test_get_businesses_by_industry(db: AsyncSession):
 
     # Make request
     response = client.get(
-        f"/api/companies/businesses_by_industry?industry_letter={test_industry}"
+        f"/api/v1/companies/businesses_by_industry?industry_letter={test_industry}"
     )
 
     # Remove the dependency override

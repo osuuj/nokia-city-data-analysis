@@ -3,12 +3,6 @@ name: Server Test & Build
 on:
   # Only trigger manually - removed automatic push trigger
   workflow_dispatch:
-    inputs:
-      deploy_after_build:
-        description: 'Deploy to AWS after successful build'
-        required: false
-        default: 'false'
-        type: boolean
 
 jobs:
   test:
@@ -49,6 +43,7 @@ jobs:
         run: |
           cd server
           psql -h localhost -U postgres -d testdb -f db/schema.sql
+          psql -h localhost -U postgres -d testdb -f db/test_data.sql
 
       - name: Test with pytest
         env:
@@ -62,7 +57,7 @@ jobs:
           BYPASS_RATE_LIMIT: "true"
         run: |
           cd server
-          python -m pytest --cov=backend tests/
+          python -m pytest --cov=backend --cov-report=xml tests/
           
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v3
