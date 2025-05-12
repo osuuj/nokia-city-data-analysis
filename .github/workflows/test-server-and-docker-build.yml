@@ -13,7 +13,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -37,13 +37,19 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Initialize test database
+      - name: Setup databases
         env:
           PGPASSWORD: postgres
         run: |
           cd server
+          # Create test database
+          psql -h localhost -U postgres -c 'CREATE DATABASE testdb;'
+          # Initialize schema and test data
           psql -h localhost -U postgres -d testdb -f db/schema.sql
           psql -h localhost -U postgres -d testdb -f db/test_data.sql
+          # Verify database setup
+          psql -h localhost -U postgres -c '\l'
+          psql -h localhost -U postgres -d testdb -c '\dt'
 
       - name: Test with pytest
         env:
@@ -56,10 +62,15 @@ jobs:
           ENVIRONMENT: test
           BYPASS_RATE_LIMIT: "true"
           GITHUB_ACTIONS: "true"
+          PYTHONUNBUFFERED: "1"
+          PYTHONASYNCIODEBUG: "1"
         run: |
           cd server
-          python -m pytest --cov=backend --cov-report=xml tests/
-          
+          # Set default asyncio event loop policy
+          python -c "import asyncio; print(f'Using event loop: {asyncio.get_event_loop_policy().__class__.__name__}')"
+          # Run tests one by one to avoid concurrent database access issues
+          python -m pytest --no-header -v tests/ --tb=short
+
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v3
         with:
