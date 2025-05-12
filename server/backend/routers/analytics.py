@@ -12,6 +12,7 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
     Depends,
     HTTPException,
     Query,
+    Request,
 )
 from pydantic import BaseModel, ConfigDict  # pyright: ignore[reportMissingImports]
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,6 +137,7 @@ class IndustryComparisonResult(BaseModel):
 )
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_industry_distribution_endpoint(
+    request: Request,
     cities: Optional[str] = Query(
         None, description="Comma-separated cities. If None, calculates for all."
     ),
@@ -144,6 +146,7 @@ async def get_industry_distribution_endpoint(
     """Get industry distribution with breakdown of 'Other' category.
 
     Args:
+        request: The incoming HTTP request object.
         cities: Comma-separated list of cities to filter by
         db: Database session
 
@@ -184,12 +187,14 @@ async def get_industry_distribution_endpoint(
 )
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_city_comparison_endpoint(
+    request: Request,
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
     db: AsyncSession = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     """Compare normalized industry distribution across cities.
 
     Args:
+        request: The incoming HTTP request object.
         cities: Comma-separated list of cities to compare
         db: Database session
 
@@ -218,12 +223,14 @@ async def get_city_comparison_endpoint(
 )
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_industries_by_city_endpoint(
+    request: Request,
     cities: str = Query(..., description="Comma-separated list of cities (required)."),
     db: AsyncSession = Depends(get_db),
 ) -> List[Dict[str, Any]]:
     """Get Top 10 + Other industry counts for each city.
 
     Args:
+        request: The incoming HTTP request object.
         cities: Comma-separated list of cities to analyze
         db: Database session
 
@@ -252,12 +259,14 @@ async def get_industries_by_city_endpoint(
 )
 @rate_limit_if_production(settings.RATE_LIMIT_DEFAULT)
 async def get_top_cities_endpoint(
+    request: Request,
     limit: int = Query(10, description="Number of top cities to return", ge=1, le=50),
     db: AsyncSession = Depends(get_db),
 ) -> List[Dict[str, Any]]:  # pyright: ignore[reportReturnType]
     """Get top cities by active company count.
 
     Args:
+        request: The incoming HTTP request object.
         limit: Number of top cities to return
         db: Database session
 
@@ -279,6 +288,7 @@ async def get_top_cities_endpoint(
 )
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def compare_industry_by_cities_endpoint(
+    request: Request,
     city1: str = Query(..., description="First city to compare"),
     city2: str = Query(..., description="Second city to compare"),
     db: AsyncSession = Depends(get_db),
@@ -286,6 +296,7 @@ async def compare_industry_by_cities_endpoint(
     """Compare industry distribution between two cities.
 
     Args:
+        request: The incoming HTTP request object.
         city1: First city to compare
         city2: Second city to compare
         db: Database session
