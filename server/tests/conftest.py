@@ -54,10 +54,13 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def db():
     """Create a fresh database for testing."""
-    # For a real test, we would set up the schema in an empty test DB
-    # Here we'll just use the existing database but with a test session
+    # Get a clean connection for each test
     async with TestingSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            # Explicitly close the session
+            await session.close()
