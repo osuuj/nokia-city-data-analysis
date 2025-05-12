@@ -18,9 +18,13 @@ export function useMapTheme(): MapTheme {
   const [isDark, setIsDark] = useState(resolvedTheme === 'dark');
   const prevThemeRef = useRef(resolvedTheme);
 
-  // Mapbox style URLs - light and dark versions
-  const lightStyle = 'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
-  const darkStyle = 'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq';
+  // Mapbox style URLs from environment variables with fallbacks
+  const lightStyle =
+    process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT ||
+    'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
+  const darkStyle =
+    process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK ||
+    'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq';
 
   // Get current theme from all sources
   const getCurrentTheme = useCallback(() => {
