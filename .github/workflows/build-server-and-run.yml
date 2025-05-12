@@ -48,21 +48,34 @@ jobs:
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
           ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
           IMAGE_URI: ${{ steps.build-image.outputs.image }}
+          CONTAINER_NAME: "fastapi-container"
+          CONTAINER_PORT: "8000"
+          TARGET_GROUP_ARN: ${{ secrets.TARGET_GROUP_ARN }}
         run: |
           echo "🔍 Fetching current task definition..."
           aws ecs describe-task-definition \
             --task-definition $ECS_TASK_DEFINITION \
             --output json > task-definition.json
 
-          echo "🛠 Updating container image to: $IMAGE_URI"
-          jq --arg IMAGE "$IMAGE_URI" '
+          echo "🛠 Updating container image and port mappings..."
+          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" '
             .taskDefinition
             | {
                 family,
                 executionRoleArn,
                 taskRoleArn,
                 networkMode,
-                containerDefinitions,
+                containerDefinitions: [
+                  .containerDefinitions[0] * {
+                    image: $IMAGE,
+                    portMappings: [{
+                      "containerPort": ($PORT | tonumber),
+                      "hostPort": ($PORT | tonumber),
+                      "protocol": "tcp",
+                      "appProtocol": "http"
+                    }]
+                  }
+                ],
                 volumes,
                 placementConstraints,
                 requiresCompatibilities,
@@ -70,21 +83,24 @@ jobs:
                 memory
               }
             | with_entries(select(.value != null))
-            | (.containerDefinitions[0].image = $IMAGE)
           ' task-definition.json > updated-task-definition.json
 
           echo "📜 Registering new task definition..."
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
-          echo "🚀 Deploying new revision: $NEW_REVISION"
+          echo "🚀 Updating service with ALB configuration..."
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
             --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION \
-            --force-new-deployment
+            --force-new-deployment \
+            --desired-count 2 \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
+            --health-check-grace-period-seconds 60 \
+            --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=$CONTAINER_PORT"
 
-      - name: Report deployment status
+      - name: Monitor deployment
         env:
           ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
@@ -92,3 +108,10 @@ jobs:
           echo "✅ Deployment started!"
           echo "🔁 ECS Cluster: $ECS_CLUSTER"
           echo "🚀 ECS Service: $ECS_SERVICE"
+          
+          # Wait for service to stabilize
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE
+
+          echo "🎉 Deployment completed successfully!"

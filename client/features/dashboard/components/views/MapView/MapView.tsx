@@ -49,10 +49,13 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     };
   }, [geojson, hasSelections, selectedKeys]);
 
-  // Use the environment variable or a fallback for development
-  const mapboxToken =
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
-    'pk.eyJ1Ijoic3VwZXJqdXVzbyIsImEiOiJjbW00dnJueTcxeHZmM3FxbXgyYmgyaHg2In0.nNFxwPP_XXLKQrfmUFoTdw';
+  // Use the environment variable for Mapbox token
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  if (!mapboxToken && process.env.NODE_ENV === 'development') {
+    logger.warn(
+      'Mapbox access token is missing! Set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment.',
+    );
+  }
 
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
