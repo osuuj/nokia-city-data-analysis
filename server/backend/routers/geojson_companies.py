@@ -6,6 +6,7 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
     Depends,
     HTTPException,
     Query,
+    Request,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,6 +54,7 @@ router = APIRouter()
 @router.get("/companies.geojson", response_model=Dict[str, Any])
 @rate_limit_if_production(settings.RATE_LIMIT_HEAVY)
 async def get_companies_geojson(
+    request: Request,
     city: str = Query(..., description="City name to filter by"),
     limit: Optional[int] = Query(None, description="Optional limit for results"),
     db: AsyncSession = Depends(get_db),
@@ -60,6 +62,7 @@ async def get_companies_geojson(
     """Return business data as a GeoJSON FeatureCollection.
 
     Args:
+        request: The incoming HTTP request object.
         city (str): City name to filter by
         limit (Optional[int]): Optional limit for results
         db (AsyncSession): Database session
