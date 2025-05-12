@@ -54,7 +54,7 @@ export function DataLoader({ onDataReady, children }: DataLoaderProps) {
     data: cities,
     error: citiesError,
     mutate: refetchCities,
-  } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/companies/cities` : null, fetcher, {
+  } = useSWR<string[]>(mounted ? `${BASE_URL}/api/v1/cities` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // Cache for 5 minutes
