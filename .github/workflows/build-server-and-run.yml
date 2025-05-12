@@ -58,7 +58,7 @@ jobs:
             requiresCompatibilities: .taskDefinition.requiresCompatibilities,
             cpu: .taskDefinition.cpu,
             memory: .taskDefinition.memory
-          }' task-definition.json > cleaned-task-definition.json
+          } | with_entries(select(.value != null))' task-definition.json > cleaned-task-definition.json
           
           # Update container image
           jq --arg IMAGE "$IMAGE_URI" '.containerDefinitions[0].image = $IMAGE' cleaned-task-definition.json > updated-task-definition.json

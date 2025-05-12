@@ -14,12 +14,6 @@ from server.backend.config import settings
 from server.backend.database import get_db
 from server.backend.main import app
 
-
-def pytest_configure(config):
-    """Configure pytest to use asyncio properly."""
-    config.addinivalue_line("asyncio_mode", "auto")
-
-
 # Use a separate test database
 # Convert PostgresDsn to string first before manipulating it
 DATABASE_URL_STR = str(settings.DATABASE_URL)
