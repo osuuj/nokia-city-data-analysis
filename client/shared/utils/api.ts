@@ -4,8 +4,13 @@
 
 import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
+// Determine environment for better defaults
+const isProd = process.env.NODE_ENV === 'production';
+const PROD_DEFAULT = 'https://fastapi-osuuj-alb-95876527.eu-north-1.elb.amazonaws.com';
+const DEV_DEFAULT = 'http://localhost:8000';
+
 // Define API configuration from environment variables with fallbacks
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
 const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || 'development';
