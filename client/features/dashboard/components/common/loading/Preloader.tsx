@@ -35,7 +35,7 @@ const fetcher = async (url: string) => {
 export function Preloader() {
   // Prefetch cities data
   const { data: cities, error: citiesError } = useSWR<string[]>(
-    `${BASE_URL}/api/v1/companies/cities`,
+    `${BASE_URL}/api/v1/cities`,
     fetcher,
     {
       revalidateOnFocus: false,
