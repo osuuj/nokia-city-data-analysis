@@ -3,9 +3,8 @@
 This module provides helper functions for common testing operations.
 """
 
-import contextlib
 from functools import wraps
-from typing import Any, AsyncGenerator, Callable, TypeVar
+from typing import Any, Callable, TypeVar
 
 from fastapi import FastAPI
 from sqlalchemy import text
@@ -95,23 +94,19 @@ async def get_test_industry_letter(db: AsyncSession) -> str:
     return row[0] if row else None
 
 
-@contextlib.asynccontextmanager
-async def create_test_session(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
-    """Create a dedicated test session that won't interfere with other operations.
+# Simple function that doesn't use a context manager
+async def get_data_safely(db: AsyncSession):
+    """Simple wrapper to get data safely without a context manager.
 
     Args:
-        db: The original database session
+        db: Database session
 
-    Yields:
-        A new database session
+    Returns:
+        Tuple with (city, cities)
     """
-    try:
-        # Create a new transaction for this specific operation
-        async with db.begin():
-            yield db
-    finally:
-        # Ensure session is properly cleaned up
-        await db.close()
+    city = await get_test_city(db)
+    cities = await get_test_cities(db, 2)
+    return city, cities
 
 
 def setup_test_dependencies(app: FastAPI, db: AsyncSession) -> None:
