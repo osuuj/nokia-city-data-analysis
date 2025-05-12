@@ -35,7 +35,7 @@ const fetcher = async (url: string) => {
 export function Preloader() {
   // Prefetch cities data
   const { data: cities, error: citiesError } = useSWR<string[]>(
-    `${BASE_URL}/api/v1/cities`,
+    `${BASE_URL}/api/v1/companies/cities`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -47,7 +47,7 @@ export function Preloader() {
 
   // Prefetch initial company data (using a default city)
   const { error: companiesError } = useSWR(
-    `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`,
+    `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -74,12 +74,15 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          fetch(`${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`, {
-            headers: {
-              'Content-Type': 'application/json',
+          fetch(
+            `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              cache: 'no-cache',
             },
-            cache: 'no-cache',
-          })
+          )
             .then((res) => {
               if (!res.ok) {
                 throw new Error(`Failed to prefetch data for ${city}: ${res.status}`);

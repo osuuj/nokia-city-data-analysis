@@ -61,7 +61,7 @@ export const Header = () => {
   const { data: cities } = useQuery({
     queryKey: ['cities'],
     queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/cities`, {
+      fetch(`${BASE_URL}/api/v1/companies/cities`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -81,7 +81,7 @@ export const Header = () => {
   const { data: companies } = useQuery({
     queryKey: ['companies', 'geojson', 'Helsinki'],
     queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/companies.geojson?city=Helsinki`, {
+      fetch(`${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`, {
         headers: {
           'Content-Type': 'application/json',
         },

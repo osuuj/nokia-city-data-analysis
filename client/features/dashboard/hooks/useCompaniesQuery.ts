@@ -33,7 +33,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     return [];
   }
 
-  const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
+  const apiUrl = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
   logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
 
   try {
@@ -67,7 +67,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  const apiUrl = `${BASE_URL}/api/v1/cities`;
+  const apiUrl = `${BASE_URL}/api/v1/companies/cities`;
   logger.info(`Fetching cities from URL: ${apiUrl}`);
 
   try {
