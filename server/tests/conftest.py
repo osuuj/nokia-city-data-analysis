@@ -75,18 +75,7 @@ async def verify_test_database():
                     pytest.fail("Test database is empty. Check your database setup.")
             except Exception as e:
                 pytest.fail(f"Test database verification failed: {str(e)}")
-
-
-# Override get_db for all tests globally
-@pytest.fixture(autouse=True)
-def override_dependency():
-    async def _temp_get_db():
-        # This will be replaced by the db fixture in each test
-        pass
-
-    app.dependency_overrides[get_db] = _temp_get_db
     yield
-    app.dependency_overrides.clear()
 
 
 @pytest.fixture
