@@ -1,6 +1,7 @@
 """Test configuration and shared fixtures."""
 
 import asyncio
+import os
 import random
 import string
 
@@ -30,8 +31,10 @@ if "test" not in TEST_DATABASE_URL and "memory" not in TEST_DATABASE_URL:
     TEST_DATABASE_URL = TEST_DATABASE_URL.replace(db_name, f"{db_name}_test")
 
 # Add a unique identifier to prevent test interference when running in parallel
-random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
-TEST_DATABASE_URL = TEST_DATABASE_URL.replace("testdb", f"testdb_{random_suffix}")
+# Skip this in GitHub Actions environment to avoid db name mismatch
+if not os.getenv("GITHUB_ACTIONS"):
+    random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    TEST_DATABASE_URL = TEST_DATABASE_URL.replace("testdb", f"testdb_{random_suffix}")
 
 # Create a dedicated test engine with specific settings for tests
 test_engine = create_async_engine(
