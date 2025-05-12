@@ -11,7 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT :
 
 const fetcher = async (url: string) => {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache',
+    });
     if (!res.ok) {
       throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
     }
@@ -69,7 +74,12 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          fetch(`${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`)
+          fetch(`${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            cache: 'no-cache',
+          })
             .then((res) => {
               if (!res.ok) {
                 throw new Error(`Failed to prefetch data for ${city}: ${res.status}`);

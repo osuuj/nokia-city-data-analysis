@@ -12,11 +12,21 @@ const DEV_DEFAULT = 'http://localhost:8000';
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
 const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch data from ${url}: ${res.status} ${res.statusText}`);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-cache',
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch data from ${url}: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Failed to fetch from ${url}:`, error);
+    throw error;
   }
-  return res.json();
 };
 
 interface DataLoaderProps {
