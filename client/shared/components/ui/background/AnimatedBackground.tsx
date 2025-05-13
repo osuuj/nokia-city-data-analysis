@@ -3,7 +3,7 @@
 import { animationTiming, gradientColors } from '@/shared/utils/backgroundConfig';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface AnimatedBackgroundProps {
   /**
@@ -38,6 +38,8 @@ export const AnimatedBackground = memo(
     const [mounted, setMounted] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const isPriority = priority === 'high';
+    const [themeTransition, setThemeTransition] = useState(false);
+    const prevThemeRef = useRef(theme);
 
     // Setup mobile detection and initialization
     useEffect(() => {
@@ -64,6 +66,22 @@ export const AnimatedBackground = memo(
       };
     }, []);
 
+    // Handle theme transitions more smoothly
+    useEffect(() => {
+      if (mounted && prevThemeRef.current !== theme) {
+        // Theme is changing
+        setThemeTransition(true);
+
+        // Delay to align with other theme transitions
+        const timer = setTimeout(() => {
+          prevThemeRef.current = theme;
+          setThemeTransition(false);
+        }, 350); // Slightly longer than the theme transition duration
+
+        return () => clearTimeout(timer);
+      }
+    }, [theme, mounted]);
+
     // If not mounted yet, return an empty div with the same sizing
     if (!mounted) {
       return (
@@ -78,15 +96,22 @@ export const AnimatedBackground = memo(
     const isDark = theme === 'dark';
     const colors = isDark ? gradientColors.dark : gradientColors.light;
 
-    // Static background for mobile devices - optimized for performance
+    // Skip animations during theme transition to avoid visual conflicts
+    const skipAnimation = themeTransition;
+    const timings = {
+      primary: skipAnimation ? 0 : animationTiming.animatedGradient.primary,
+      secondary: skipAnimation ? 0 : animationTiming.animatedGradient.secondary,
+    };
+
+    // Mobile static version with transition support
     if (isMobile) {
       return (
         <div
-          className={`fixed inset-0 z-0 ${className}`}
+          key={`bg-${theme}`}
+          className={`fixed inset-0 z-0 transition-colors duration-300 ${className}`}
           style={{
-            background: isDark
-              ? `linear-gradient(to bottom, ${gradientColors.dark.primary.start}, ${gradientColors.dark.primary.end})`
-              : `linear-gradient(to bottom, ${gradientColors.light.primary.start}, ${gradientColors.light.primary.end})`,
+            background: `radial-gradient(circle at 50% 50%, ${colors.primary.start}, ${colors.primary.end})`,
+            backdropFilter: 'blur(8px)',
           }}
           aria-hidden="true"
           data-priority={isPriority ? 'high' : undefined}
@@ -94,41 +119,35 @@ export const AnimatedBackground = memo(
       );
     }
 
-    // Use animation durations based on priority
-    const timings = isPriority
-      ? {
-          primary: animationTiming.animatedGradient.highPriority.primary,
-          secondary: animationTiming.animatedGradient.highPriority.secondary,
-        }
-      : {
-          primary: animationTiming.animatedGradient.primary,
-          secondary: animationTiming.animatedGradient.secondary,
-        };
-
-    // Desktop animated version
+    // Desktop animated version with transition support
     return (
       <>
         {/* Primary animated layer */}
         <motion.div
-          key={`primary-${theme}`} // Force remount when theme changes
+          key={`primary-bg-${isDark ? 'dark' : 'light'}`}
           className={`fixed inset-0 z-0 ${className}`}
-          style={{ willChange: 'opacity, background' }}
+          style={{
+            willChange: 'opacity, background',
+            opacity: themeTransition ? 0.5 : 1, // Fade during transition
+          }}
           initial={{ opacity: 0 }}
           animate={{
-            opacity: 1,
-            background: [
-              `radial-gradient(circle at 20% 20%, ${colors.primary.start}, transparent 60%)`,
-              `radial-gradient(circle at 80% 80%, ${colors.primary.start}, transparent 60%)`,
-              `radial-gradient(circle at 80% 20%, ${colors.primary.start}, transparent 60%)`,
-              `radial-gradient(circle at 20% 80%, ${colors.primary.start}, transparent 60%)`,
-              `radial-gradient(circle at 20% 20%, ${colors.primary.start}, transparent 60%)`,
-            ],
+            opacity: themeTransition ? 0.5 : 1,
+            background: skipAnimation
+              ? `radial-gradient(circle at 50% 50%, ${colors.primary.start}, ${colors.primary.end})`
+              : [
+                  `radial-gradient(circle at 20% 20%, ${colors.primary.start}, transparent 60%)`,
+                  `radial-gradient(circle at 80% 80%, ${colors.primary.start}, transparent 60%)`,
+                  `radial-gradient(circle at 80% 20%, ${colors.primary.start}, transparent 60%)`,
+                  `radial-gradient(circle at 20% 80%, ${colors.primary.start}, transparent 60%)`,
+                  `radial-gradient(circle at 20% 20%, ${colors.primary.start}, transparent 60%)`,
+                ],
           }}
           transition={{
             opacity: { duration: 0.3 },
             background: {
               duration: timings.primary,
-              repeat: Number.POSITIVE_INFINITY,
+              repeat: skipAnimation ? 0 : Number.POSITIVE_INFINITY,
               ease: 'linear',
             },
           }}
@@ -136,27 +155,32 @@ export const AnimatedBackground = memo(
           data-priority={isPriority ? 'high' : undefined}
         />
 
-        {/* Secondary animated layer */}
+        {/* Secondary animated layer with transition support */}
         <motion.div
-          key={`secondary-${theme}`} // Force remount when theme changes
+          key={`secondary-bg-${isDark ? 'dark' : 'light'}`}
           className={`fixed inset-0 z-0 opacity-50 ${className}`}
-          style={{ willChange: 'opacity, background' }}
+          style={{
+            willChange: 'opacity, background',
+            opacity: themeTransition ? 0.2 : 0.5, // Fade during transition
+          }}
           initial={{ opacity: 0 }}
           animate={{
-            opacity: 0.5,
-            background: [
-              `radial-gradient(circle at 80% 80%, ${colors.primary.end}, transparent 50%)`,
-              `radial-gradient(circle at 20% 20%, ${colors.primary.end}, transparent 50%)`,
-              `radial-gradient(circle at 20% 80%, ${colors.primary.end}, transparent 50%)`,
-              `radial-gradient(circle at 80% 20%, ${colors.primary.end}, transparent 50%)`,
-              `radial-gradient(circle at 80% 80%, ${colors.primary.end}, transparent 50%)`,
-            ],
+            opacity: themeTransition ? 0.2 : 0.5,
+            background: skipAnimation
+              ? `radial-gradient(circle at 50% 50%, ${colors.primary.end}, transparent 50%)`
+              : [
+                  `radial-gradient(circle at 80% 80%, ${colors.primary.end}, transparent 50%)`,
+                  `radial-gradient(circle at 20% 20%, ${colors.primary.end}, transparent 50%)`,
+                  `radial-gradient(circle at 20% 80%, ${colors.primary.end}, transparent 50%)`,
+                  `radial-gradient(circle at 80% 20%, ${colors.primary.end}, transparent 50%)`,
+                  `radial-gradient(circle at 80% 80%, ${colors.primary.end}, transparent 50%)`,
+                ],
           }}
           transition={{
             opacity: { duration: 0.3 },
             background: {
               duration: timings.secondary,
-              repeat: Number.POSITIVE_INFINITY,
+              repeat: skipAnimation ? 0 : Number.POSITIVE_INFINITY,
               ease: 'linear',
             },
           }}
