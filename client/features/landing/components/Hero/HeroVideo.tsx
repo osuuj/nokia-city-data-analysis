@@ -1,6 +1,5 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import { type FC, useCallback, useEffect, useRef, useState } from 'react';
 
 /**
@@ -24,11 +23,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { resolvedTheme } = useTheme();
-
-  // Add transition handling
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const prevThemeRef = useRef(resolvedTheme);
 
   // We always use desktop video for initial render to avoid hydration mismatches
   // Then switch to mobile if needed after client-side mounting
@@ -60,24 +54,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Handle theme transitions
-  useEffect(() => {
-    if (!isMounted) return;
-
-    // Check if theme is changing
-    if (prevThemeRef.current !== resolvedTheme) {
-      setIsTransitioning(true);
-
-      // After a delay, update the previous theme reference and finish transition
-      const timer = setTimeout(() => {
-        prevThemeRef.current = resolvedTheme;
-        setIsTransitioning(false);
-      }, 300); // Match with theme transition duration
-
-      return () => clearTimeout(timer);
-    }
-  }, [resolvedTheme, isMounted]);
 
   // Handle video loading and errors
   useEffect(() => {
@@ -126,19 +102,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
     return null;
   }
 
-  const isDark = resolvedTheme === 'dark';
-
-  // Adjust overlay opacity based on theme and transition state
-  const overlayClass = `video-overlay absolute inset-0 ${
-    isTransitioning ? 'transition-opacity duration-300' : ''
-  }`;
-
-  const overlayStyle = {
-    backgroundColor: 'black',
-    opacity: isDark ? (isTransitioning ? 0.3 : 0.5) : isTransitioning ? 0.5 : 0.4,
-    transition: isTransitioning ? 'opacity 300ms ease' : undefined,
-  };
-
   return (
     <div className="video-container">
       {/* SVG background for immediate display */}
@@ -163,7 +126,11 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
         <track kind="captions" src={captionSrc} srcLang="en" label="English" />
         Your browser does not support the video tag.
       </video>
-      <div className={overlayClass} style={overlayStyle} aria-hidden="true" role="presentation" />
+      <div
+        className="video-overlay absolute inset-0 bg-black bg-opacity-40"
+        aria-hidden="true"
+        role="presentation"
+      />
     </div>
   );
 };
