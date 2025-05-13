@@ -97,32 +97,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 const savedTheme = localStorage.getItem('theme');
                 const finalTheme = savedTheme || systemTheme;
                 document.documentElement.setAttribute('data-theme', finalTheme);
-                
-                // Add class for dark mode immediately to prevent flash
-                if (finalTheme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                }
-
-                // Detect theme changes and add temporary class to prevent flash
-                let lastTheme = finalTheme;
-                const observer = new MutationObserver((mutations) => {
-                  mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'data-theme' || mutation.attributeName === 'class') {
-                      const newTheme = document.documentElement.getAttribute('data-theme') || 
-                                      (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-                      
-                      if (newTheme !== lastTheme) {
-                        document.documentElement.classList.add('theme-changing');
-                        lastTheme = newTheme;
-                        setTimeout(() => {
-                          document.documentElement.classList.remove('theme-changing');
-                        }, 300);
-                      }
-                    }
-                  });
-                });
-                
-                observer.observe(document.documentElement, { attributes: true });
               } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'dark');
               }

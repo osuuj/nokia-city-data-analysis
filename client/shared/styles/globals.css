@@ -24,49 +24,14 @@
     @apply bg-background transition-colors duration-300;
   }
   
-  /* Prevent flash during navigation by maintaining current theme background */
-  html.dark::before,
-  .dark body::before {
+  /* Change the white flashes to a more gradual transition */
+  body::before {
     content: "";
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
-    background-color: #000;
-    opacity: 0.8;
-    pointer-events: none;
-    visibility: hidden;
-    transition: visibility 0ms, opacity 300ms ease-in-out;
+    @apply bg-gradient-to-b from-primary/5 via-background/50 to-background/90;
   }
-  
-  /* Prevent white flash during theme change */
-  html.dark.theme-changing::before,
-  .dark.theme-changing body::before {
-    visibility: visible;
-    opacity: 0.8;
-  }
-}
-
-/* Smooth theme transitions for all components */
-.theme-transition {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Apply theme transitions to common components */
-.bg-background,
-.bg-card,
-.bg-popover,
-.bg-primary,
-.bg-secondary,
-.text-foreground,
-.border-border,
-[class*="Background"],
-.video-overlay {
-  @apply theme-transition;
 }
 
 /* Layout classes */

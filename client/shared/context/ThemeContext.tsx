@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import type React from 'react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 /**
  * Theme types supported by the application
@@ -98,61 +98,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [mounted, setMounted] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Add transition overlay to prevent white flash
-  const [showTransitionOverlay, setShowTransitionOverlay] = useState(false);
-  // Track previous theme to help with transitions
-  const previousThemeRef = useRef<ThemeType | null>(null);
 
   // Set mounted state when component mounts
   useEffect(() => {
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      // Apply dark mode immediately before hydration to prevent flash
-      document.documentElement.classList.add('dark');
-    }
-
     setMounted(true);
   }, []);
 
-  // Handle theme change with error handling and transition overlay
+  // Handle theme change with error handling
   const setTheme = useCallback(
     (theme: ThemeType) => {
       try {
-        // Start transition
         setIsChanging(true);
         setError(null);
-
-        // Store previous theme before changing
-        previousThemeRef.current = (resolvedTheme as ThemeType) || defaultTheme;
-
-        // Show transition overlay when going from light to dark or vice versa
-        if (
-          (previousThemeRef.current === 'light' && theme === 'dark') ||
-          (previousThemeRef.current === 'dark' && theme === 'light')
-        ) {
-          setShowTransitionOverlay(true);
-
-          // Apply the theme after a brief delay to ensure overlay is visible
-          setTimeout(() => {
-            setNextTheme(theme);
-          }, 50);
-        } else {
-          // No transition needed (system → light/dark)
-          setNextTheme(theme);
-        }
+        setNextTheme(theme);
       } catch (err) {
         setError(`Failed to set theme: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
-        // Complete transition after theme has been applied
-        const transitionDuration = 300; // Match with CSS transition duration
+        // Use a small timeout to simulate theme change completion
         setTimeout(() => {
           setIsChanging(false);
-          setShowTransitionOverlay(false);
-        }, transitionDuration);
+        }, 300);
       }
     },
-    [setNextTheme, resolvedTheme, defaultTheme],
+    [setNextTheme],
   );
 
   // Toggle between light and dark themes
@@ -183,16 +151,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         resetTheme,
       }}
     >
-      {/* Add transition overlay to prevent flash */}
-      {showTransitionOverlay && (
-        <div
-          className="fixed inset-0 bg-background z-[9999] pointer-events-none transition-opacity duration-300"
-          style={{
-            opacity: isChanging ? 0.8 : 0,
-          }}
-          aria-hidden="true"
-        />
-      )}
       {children}
     </ThemeContext.Provider>
   );
