@@ -36,7 +36,8 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     return [];
   }
 
-  const apiUrl = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
+  // Try the original path first (might be the correct one in production)
+  const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
 
   logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
   console.log(`Fetching companies API URL: ${apiUrl}`);
