@@ -207,17 +207,13 @@ export const AnalyticsView: React.FC = () => {
 
   // Determine URL for Industry Distribution fetch
   const distributionFetchUrl = useMemo(() => {
-    // Use proxy to avoid CORS issues
-    const useProxy = true;
-    const baseApiPath = useProxy ? '/api/proxy' : `${BASE_URL}/api/v1`;
-
     if (selectedCities.size === 1) {
       const city = Array.from(selectedCities)[0];
-      return `${baseApiPath}/analytics/industry-distribution?cities=${encodeURIComponent(city)}`;
+      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(city)}`;
     }
     if (selectedCities.size > 1 && pieChartFocusCity) {
       // Fetch only for the focused city when multiple are selected
-      return `${baseApiPath}/analytics/industry-distribution?cities=${encodeURIComponent(pieChartFocusCity)}`;
+      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(pieChartFocusCity)}`;
     }
     return null; // Don't fetch if 0 or >1 selected without focus
   }, [selectedCities, pieChartFocusCity]);
@@ -225,10 +221,6 @@ export const AnalyticsView: React.FC = () => {
   // Only fetch multi-city data if 1 to MAX_SELECTED_CITIES are selected
   const canFetchMultiCity = selectedCities.size > 0 && selectedCities.size <= MAX_SELECTED_CITIES;
   const multiCityQueryParam = canFetchMultiCity ? Array.from(selectedCities).join(',') : null;
-
-  // Use proxy to avoid CORS issues
-  const useProxy = true;
-  const baseApiPath = useProxy ? '/api/proxy' : `${BASE_URL}/api/v1`;
 
   // --- Fetch Raw Data ---
   const { data: rawIndustryDistributionData, isLoading: loadingIndustryDistribution } =
@@ -241,7 +233,7 @@ export const AnalyticsView: React.FC = () => {
   const { data: rawIndustriesByCityData, isLoading: loadingIndustriesByCity } = useSWR<PivotedData>(
     // Use multiCityQueryParam - runs only if 1-5 cities selected
     multiCityQueryParam
-      ? `${baseApiPath}/analytics/industries-by-city?cities=${multiCityQueryParam}`
+      ? `${BASE_URL}/api/v1/analytics/industries-by-city?cities=${multiCityQueryParam}`
       : null,
     fetcher,
     { fallbackData: [] },
@@ -250,15 +242,15 @@ export const AnalyticsView: React.FC = () => {
   const { data: rawCityComparisonData, isLoading: loadingCityComparison } = useSWR<PivotedData>(
     // Use multiCityQueryParam - runs only if 1-5 cities selected
     multiCityQueryParam
-      ? `${baseApiPath}/analytics/city-comparison?cities=${multiCityQueryParam}`
+      ? `${BASE_URL}/api/v1/analytics/city-comparison?cities=${multiCityQueryParam}`
       : null,
     fetcher,
     { fallbackData: [] },
   );
 
-  // Top cities fetch updated to use proxy
+  // Top cities fetch
   const { data: topCitiesData, isLoading: loadingTopCities } = useSWR<TopCityData[]>(
-    `${baseApiPath}/analytics/top-cities?limit=10`,
+    `${BASE_URL}/api/v1/analytics/top-cities?limit=10`,
     fetcher,
     { fallbackData: [] },
   );
