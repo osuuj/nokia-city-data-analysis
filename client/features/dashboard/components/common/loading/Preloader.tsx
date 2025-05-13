@@ -9,7 +9,14 @@ const PROD_DEFAULT = 'https://api.osuuj.ai';
 const DEV_DEFAULT = 'http://localhost:8000';
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
+// Log the API base URL on component load
+console.log('Preloader - API Base URL:', BASE_URL);
+
+// Use proxy endpoint to avoid CORS issues
+const USE_PROXY = true;
+
 const fetcher = async (url: string) => {
+  console.log(`Preloader - Fetching from: ${url}`);
   try {
     const res = await fetch(url, {
       headers: {
@@ -17,12 +24,31 @@ const fetcher = async (url: string) => {
       },
       cache: 'no-cache',
     });
+
+    console.log(`Preloader - Response status for ${url}: ${res.status}`);
+
     if (!res.ok) {
+      console.error(
+        `Preloader - Fetch failed for ${url}: Status ${res.status} - ${res.statusText}`,
+      );
       throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
     }
-    return res.json();
+
+    const data = await res.json();
+    console.log(`Preloader - Successfully fetched data from ${url}`);
+    return data;
   } catch (error) {
-    console.error(`Preloader fetch error for ${url}:`, error);
+    console.error(`Preloader - Fetch error for ${url}:`, error);
+    // Provide more detailed error information
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.error(
+          'This is likely a CORS or network error. Check if your API server is accessible and has proper CORS headers.',
+        );
+      }
+    }
     return null; // Return null instead of throwing to avoid breaking the component
   }
 };
@@ -33,29 +59,28 @@ const fetcher = async (url: string) => {
  * This helps reduce the perceived loading time when navigating to the home page
  */
 export function Preloader() {
+  // Determine API endpoints based on whether to use proxy
+  const citiesEndpoint = USE_PROXY ? '/api/proxy/cities' : `${BASE_URL}/api/v1/cities`;
+
+  const companiesEndpoint = USE_PROXY
+    ? '/api/proxy/geojson_companies/companies.geojson?city=Helsinki'
+    : `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`;
+
   // Prefetch cities data
-  const { data: cities, error: citiesError } = useSWR<string[]>(
-    `${BASE_URL}/api/v1/cities`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 300000, // Cache for 5 minutes
-      suspense: false,
-    },
-  );
+  const { data: cities, error: citiesError } = useSWR<string[]>(citiesEndpoint, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 300000, // Cache for 5 minutes
+    suspense: false,
+  });
 
   // Prefetch initial company data (using a default city)
-  const { error: companiesError } = useSWR(
-    `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      dedupingInterval: 60000, // Cache for 1 minute
-      suspense: false,
-    },
-  );
+  const { error: companiesError } = useSWR(companiesEndpoint, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000, // Cache for 1 minute
+    suspense: false,
+  });
 
   // Log errors if they occur
   useEffect(() => {
@@ -74,15 +99,16 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          fetch(
-            `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              cache: 'no-cache',
+          const cityEndpoint = USE_PROXY
+            ? `/api/proxy/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`
+            : `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
+
+          fetch(cityEndpoint, {
+            headers: {
+              'Content-Type': 'application/json',
             },
-          )
+            cache: 'no-cache',
+          })
             .then((res) => {
               if (!res.ok) {
                 throw new Error(`Failed to prefetch data for ${city}: ${res.status}`);
