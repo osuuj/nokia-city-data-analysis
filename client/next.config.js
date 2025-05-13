@@ -50,25 +50,16 @@ const nextConfig = {
   },
   // Keep webpack config for production builds
   webpack: (config) => {
+    // Alias mapbox-gl JS files to use the CSP-compatible version while preserving CSS path
     config.resolve.alias = {
-      ...(config.resolve.alias || {}),
-      '@': path.resolve(__dirname),
-      '@app': path.resolve(__dirname, 'app'),
-      '@features': path.resolve(__dirname, 'features'),
-      '@shared': path.resolve(__dirname, 'shared'),
-      '@components': path.resolve(__dirname, 'shared/components'),
-      '@hooks': path.resolve(__dirname, 'shared/hooks'),
-      '@layout': path.resolve(__dirname, 'shared/layout'),
-      '@config': path.resolve(__dirname, 'config'),
-      '@store': path.resolve(__dirname, 'store'),
-      '@icons': path.resolve(__dirname, 'shared/icons'),
-      '@types': path.resolve(__dirname, 'types'),
-      '@utils': path.resolve(__dirname, 'utils'),
-      '@dashboard': path.resolve(__dirname, 'features/dashboard'),
-      '@dashboard-components': path.resolve(__dirname, 'features/dashboard/components'),
-      '@dashboard-hooks': path.resolve(__dirname, 'features/dashboard/hooks'),
-      '@dashboard-types': path.resolve(__dirname, 'features/dashboard/types'),
-      '@dashboard-utils': path.resolve(__dirname, 'features/dashboard/utils'),
+      ...config.resolve.alias,
+      // Instead of replacing the entire module, only replace specific imports
+      // This ensures imports for CSS files still work
+      'mapbox-gl$': path.resolve(__dirname, 'node_modules/mapbox-gl/dist/mapbox-gl-csp.js'),
+      'mapbox-gl/dist/mapbox-gl': path.resolve(
+        __dirname,
+        'node_modules/mapbox-gl/dist/mapbox-gl-csp.js',
+      ),
     };
     return config;
   },

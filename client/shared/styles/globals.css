@@ -1,5 +1,6 @@
 /* Import external styles */
-@import 'mapbox-gl/dist/mapbox-gl.css'; /* ✅ Bringing in external map styles */
+/* Use the standard mapbox-gl CSS - this should still work with our updated webpack config */
+@import 'mapbox-gl/dist/mapbox-gl.css';
 
 /* Tailwind CSS directives */
 @tailwind base;
