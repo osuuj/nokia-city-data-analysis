@@ -12,9 +12,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT :
 // Log the API base URL on component load
 console.log('Preloader - API Base URL:', BASE_URL);
 
-// Use proxy endpoint to avoid CORS issues
-const USE_PROXY = true;
-
 const fetcher = async (url: string) => {
   console.log(`Preloader - Fetching from: ${url}`);
   try {
@@ -59,12 +56,8 @@ const fetcher = async (url: string) => {
  * This helps reduce the perceived loading time when navigating to the home page
  */
 export function Preloader() {
-  // Determine API endpoints based on whether to use proxy
-  const citiesEndpoint = USE_PROXY ? '/api/proxy/cities' : `${BASE_URL}/api/v1/cities`;
-
-  const companiesEndpoint = USE_PROXY
-    ? '/api/proxy/geojson_companies/companies.geojson?city=Helsinki'
-    : `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`;
+  const citiesEndpoint = `${BASE_URL}/api/v1/cities`;
+  const companiesEndpoint = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`;
 
   // Prefetch cities data
   const { data: cities, error: citiesError } = useSWR<string[]>(citiesEndpoint, fetcher, {
@@ -99,9 +92,7 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          const cityEndpoint = USE_PROXY
-            ? `/api/proxy/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`
-            : `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
+          const cityEndpoint = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
 
           fetch(cityEndpoint, {
             headers: {

@@ -104,7 +104,7 @@ class Settings(BaseSettings):
         # Parse environment variable if provided, otherwise use default
         origins_str = os.getenv(
             "BACKEND_CORS_ORIGINS",
-            "http://osuuj.ai,http://www.osuuj.ai,https://osuuj.ai,https://www.osuuj.ai",
+            "http://osuuj.ai,http://www.osuuj.ai,https://osuuj.ai,https://www.osuuj.ai,https://nokia-city-data-analysis-1khzuyi0g-osuujs-projects.vercel.app,https://nokia-city-data-analysis-osuujs-projects.vercel.app",
         )
         origins = [origin.strip() for origin in origins_str.split(",")]
         return origins
