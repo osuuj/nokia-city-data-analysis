@@ -57,7 +57,7 @@ const fetcher = async (url: string) => {
  */
 export function Preloader() {
   const citiesEndpoint = `${BASE_URL}/api/v1/cities`;
-  const companiesEndpoint = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`;
+  const companiesEndpoint = `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`;
 
   // Prefetch cities data
   const { data: cities, error: citiesError } = useSWR<string[]>(citiesEndpoint, fetcher, {
@@ -92,7 +92,7 @@ export function Preloader() {
       const topCities = cities.slice(0, 3);
       for (const city of topCities) {
         if (city !== 'Helsinki') {
-          const cityEndpoint = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
+          const cityEndpoint = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
 
           fetch(cityEndpoint, {
             headers: {
