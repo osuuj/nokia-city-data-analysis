@@ -28,15 +28,6 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
 
-  // Configure mapbox-gl worker URL for CSP compatibility
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.mapboxgl) {
-      // Now we can use the properly typed window.mapboxgl.workerUrl
-      window.mapboxgl.workerUrl =
-        'https://api.mapbox.com/mapbox-gl-js/v3.11.1/mapbox-gl-csp-worker.js';
-    }
-  }, []);
-
   // Use our custom map theme hook
   const { mapStyle, textColor, isDark } = useMapTheme();
 
