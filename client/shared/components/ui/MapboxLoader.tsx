@@ -25,11 +25,11 @@ export function MapboxLoader() {
         // Dynamically import the mapbox-gl module
         import('mapbox-gl')
           .then((mapboxgl) => {
-            // Set the worker URL to our proxy endpoint
+            // Set the worker URL to the static file we host ourselves
             // This avoids CORS issues by serving the worker from our own domain
-            (mapboxgl.default as MapboxGL).workerUrl = '/api/mapbox-worker';
+            (mapboxgl.default as MapboxGL).workerUrl = '/workers/mapbox-gl-csp-worker.js';
 
-            console.log('Mapbox GL initialized with proxied CSP-compatible worker');
+            console.log('Mapbox GL initialized with self-hosted worker');
           })
           .catch((err) => {
             console.error('Failed to load Mapbox GL:', err);

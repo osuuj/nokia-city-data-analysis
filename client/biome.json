@@ -14,7 +14,7 @@
     }
   },
   "files": {
-    "ignore": ["node_modules", ".next", "etl"]
+    "ignore": ["node_modules", ".next", "etl", "public/workers"]
   },
   "javascript": {
     "formatter": {
