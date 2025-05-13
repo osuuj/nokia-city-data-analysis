@@ -50,10 +50,10 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   }, [geojson, hasSelections, selectedKeys]);
 
   // Use the environment variable for Mapbox token
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   if (!mapboxToken && process.env.NODE_ENV === 'development') {
     logger.warn(
-      'Mapbox access token is missing! Set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment.',
+      'Mapbox access token is missing! Set NEXT_PUBLIC_MAPBOX_TOKEN in your environment.',
     );
   }
 
