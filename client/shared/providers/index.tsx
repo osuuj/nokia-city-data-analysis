@@ -1,13 +1,10 @@
 'use client';
 
-import { ThemeTransitionManager } from '@/shared/components/ui/theme';
-import { ThemeProvider, type ThemeType } from '@/shared/context/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { Attribute } from 'next-themes';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import type React from 'react';
-import '@/shared/styles/theme-transitions.css';
 
 /**
  * Default React Query client configuration
@@ -50,10 +47,7 @@ export function Providers({ children, themeProps = {} }: ProvidersProps) {
         defaultTheme={defaultTheme}
         enableSystem={enableSystem}
       >
-        <ThemeProvider defaultTheme={defaultTheme as ThemeType} enableSystem={enableSystem}>
-          <ThemeTransitionManager />
-          {children}
-        </ThemeProvider>
+        {children}
       </NextThemesProvider>
       {process.env.NODE_ENV !== 'production' && <ReactQueryDevtools />}
     </QueryClientProvider>
