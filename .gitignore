@@ -2,7 +2,7 @@
 etl/data/*
 # Do not ignore the resources directory itself
 !etl/data/resources/
-project_older_version/*
+project_older_versio/*
 # Do not ignore specific address files
 !etl/data/resources/01_addresses_2024-11-14.csv
 !etl/data/resources/02_addresses_2024-11-14.csv
