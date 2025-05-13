@@ -1,6 +1,5 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import { type FC, useCallback, useEffect, useRef, useState } from 'react';
 
 /**
@@ -24,7 +23,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { resolvedTheme } = useTheme();
 
   // We always use desktop video for initial render to avoid hydration mismatches
   // Then switch to mobile if needed after client-side mounting
@@ -104,11 +102,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
     return null;
   }
 
-  const isDark = resolvedTheme === 'dark';
-
-  // A simpler approach to overlay
-  const overlayOpacity = isDark ? 0.5 : 0.4;
-
   return (
     <div className="video-container">
       {/* SVG background for immediate display */}
@@ -134,10 +127,7 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
         Your browser does not support the video tag.
       </video>
       <div
-        className="video-overlay absolute inset-0 theme-transition bg-black"
-        style={{
-          opacity: overlayOpacity,
-        }}
+        className="video-overlay absolute inset-0 bg-black bg-opacity-40"
         aria-hidden="true"
         role="presentation"
       />
