@@ -92,12 +92,12 @@ repos:
         files: ^server/.*\.py$
 
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.0.0-beta.2" # Use the sha / tag you want to point at
+    rev: "v2.0.0-beta.3" # Use the sha / tag you want to point at
     hooks:
       - id: biome-check
-        additional_dependencies: ["@biomejs/biome@1.9.1"]
+        additional_dependencies: ["@biomejs/biome@1.9.4"]
         files: ^client/.*\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?)$
-        exclude: ^client/(ignored-folder|node_modules|\.next)/
+        exclude: ^client/(ignored-folder|node_modules|\.next|public/workers)/
         args: ["--config-path", "client/biome.json"]
         
   # Add basic npm audit as a pre-commit check for client code
