@@ -14,6 +14,12 @@ import MapboxMap from 'react-map-gl/mapbox';
 import { FeatureCardList } from './FeatureCardList';
 import { ThemeAwareMapWrapper } from './ThemeAwareMapWrapper';
 
+// Configure mapbox-gl worker URL for CSP compatibility
+// This is needed when worker-src: blob: is not allowed in CSP
+if (typeof window !== 'undefined' && window.mapboxgl) {
+  window.mapboxgl.workerUrl = 'https://api.mapbox.com/mapbox-gl-js/v3.11.1/mapbox-gl-csp-worker.js';
+}
+
 export interface MapViewProps {
   geojson: FeatureCollection<Point, CompanyProperties>;
   selectedBusinesses?: CompanyProperties[];

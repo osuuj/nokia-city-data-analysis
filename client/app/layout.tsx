@@ -87,6 +87,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preload site icon */}
         <link rel="preload" href="/icon.png" as="image" />
 
+        {/* Mapbox GL CSP-compatible scripts */}
+        <Script
+          id="mapbox-gl-csp"
+          src="https://api.mapbox.com/mapbox-gl-js/v3.11.1/mapbox-gl-csp.js"
+          strategy="beforeInteractive"
+        />
+        <Script id="mapbox-gl-csp-worker-config" strategy="beforeInteractive">
+          {`
+            if (typeof mapboxgl !== 'undefined') {
+              mapboxgl.workerUrl = "https://api.mapbox.com/mapbox-gl-js/v3.11.1/mapbox-gl-csp-worker.js";
+            }
+          `}
+        </Script>
+
         {/* Theme loader script to prevent flicker */}
         <Script id="theme-loader" strategy="beforeInteractive">
           {`
