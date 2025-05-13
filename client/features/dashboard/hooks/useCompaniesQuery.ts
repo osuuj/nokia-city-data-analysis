@@ -14,9 +14,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT :
 // Log the actual API URL being used for debugging
 console.log(`API Base URL: ${BASE_URL}`);
 
-// Use proxy endpoint to avoid CORS issues
-const USE_PROXY = true;
-
 // Fallback data in case API is down
 const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
 
@@ -39,10 +36,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     return [];
   }
 
-  // Use either the direct API or the proxy depending on the USE_PROXY flag
-  const apiUrl = USE_PROXY
-    ? `/api/proxy/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`
-    : `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
+  const apiUrl = `${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=${encodeURIComponent(city)}`;
 
   logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
   console.log(`Fetching companies API URL: ${apiUrl}`);
@@ -83,8 +77,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
  * @returns A promise that resolves to an array of city names
  */
 const fetchCities = async (): Promise<string[]> => {
-  // Use either the direct API or the proxy depending on the USE_PROXY flag
-  const apiUrl = USE_PROXY ? '/api/proxy/cities' : `${BASE_URL}/api/v1/cities`;
+  const apiUrl = `${BASE_URL}/api/v1/cities`;
 
   logger.info(`Fetching cities from URL: ${apiUrl}`);
   console.log(`Fetching cities API URL: ${apiUrl}`);
