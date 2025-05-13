@@ -1,0 +1,47 @@
+/* Theme Transition Styles
+   These styles ensure consistent theme transitions across the application
+*/
+
+:root {
+  --theme-transition-duration: 300ms;
+  --content-transition-delay: 50ms;
+  --theme-transition-timing: ease;
+}
+
+/* Apply transitions to all theme-sensitive elements */
+.theme-transitioning * {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+              color var(--theme-transition-duration) var(--theme-transition-timing),
+              border-color var(--theme-transition-duration) var(--theme-transition-timing),
+              fill var(--theme-transition-duration) var(--theme-transition-timing),
+              stroke var(--theme-transition-duration) var(--theme-transition-timing),
+              opacity var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Ensure all background components transition smoothly */
+.theme-transitioning [class*="Background"],
+.theme-transitioning [class*="-background"],
+.theme-transitioning .bg-background,
+.theme-transitioning .dark\:bg-background,
+.theme-transitioning .video-overlay {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+              opacity var(--theme-transition-duration) var(--theme-transition-timing) !important;
+}
+
+/* Ensure video background overlay transitions smoothly with theme */
+.theme-transitioning .video-overlay {
+  transition-delay: var(--content-transition-delay);
+}
+
+/* Prevent flash of wrong theme during page navigation */
+html.theme-transitioning {
+  color-scheme: normal; /* Prevent browser from applying its own theme during transition */
+}
+
+/* Optimize motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --theme-transition-duration: 0ms;
+    --content-transition-delay: 0ms;
+  }
+} 
