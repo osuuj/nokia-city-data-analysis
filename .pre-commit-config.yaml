@@ -97,7 +97,7 @@ repos:
       - id: biome-check
         additional_dependencies: ["@biomejs/biome@1.9.4"]
         files: ^client/.*\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?)$
-        exclude: ^client/(ignored-folder|node_modules|\.next)/
+        exclude: ^client/(ignored-folder|node_modules|\.next|public/workers)/
         args: ["--config-path", "client/biome.json"]
         
   # Add basic npm audit as a pre-commit check for client code
