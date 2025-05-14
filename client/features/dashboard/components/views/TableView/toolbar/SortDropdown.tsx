@@ -58,7 +58,7 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
   return (
     <Dropdown
       isOpen={isOpen}
-      onOpenChange={setIsOpen}
+      onOpenChange={(open) => setIsOpen(open)}
       closeOnSelect
       onKeyDown={handleKeyDown}
       classNames={{
@@ -101,6 +101,7 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
             column: key,
             direction: prev.column === key && prev.direction === 'asc' ? 'desc' : 'asc',
           }));
+          // We don't close here to let users click multiple times to toggle direction
         }}
       >
         {visibleColumns.map((item: TableColumnConfig) => {
