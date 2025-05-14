@@ -14,6 +14,9 @@ interface CitySearchProps {
 
   /** Additional class names */
   className?: string;
+
+  /** Label for the autocomplete */
+  label?: string;
 }
 
 /**
@@ -22,7 +25,12 @@ interface CitySearchProps {
  * This component uses the React Query based data hooks
  * for fetching cities from the API
  */
-export function CitySearch({ onCityChange, selectedCity = '', className = '' }: CitySearchProps) {
+export function CitySearch({
+  onCityChange,
+  selectedCity = '',
+  className = '',
+  label = 'Search by city',
+}: CitySearchProps) {
   const { cities, isLoading, searchTerm, setSearchTerm, setSelectedCity } =
     useCitySelect(selectedCity);
 
@@ -85,6 +93,7 @@ export function CitySearch({ onCityChange, selectedCity = '', className = '' }: 
       activeIndex={-1}
       highlightedCity={null}
       className={className}
+      label={label}
     />
   );
 }
