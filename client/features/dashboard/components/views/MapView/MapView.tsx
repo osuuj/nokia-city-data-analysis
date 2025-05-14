@@ -20,13 +20,18 @@ export interface MapViewProps {
 }
 
 export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
+  // State for feature selection
   const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
   const [activeFeature, setActiveFeature] = useState<Feature<
     Point,
     CompanyProperties & { addressType?: string }
   > | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
+
+  // Flag to track if a feature card is visible
+  const [isFeatureCardVisible, setIsFeatureCardVisible] = useState(false);
 
   // Use our custom map theme hook
   const { mapStyle, textColor, isDark } = useMapTheme();
@@ -52,9 +57,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   // Use the environment variable for Mapbox token
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
   if (!mapboxToken && process.env.NODE_ENV === 'development') {
-    logger.warn(
-      'Mapbox access token is missing! Set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment.',
-    );
+    // We could show a console warning in development if needed
   }
 
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
@@ -84,337 +87,210 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   const dataCache = useRef<{
     geojson: FeatureCollection<Point, CompanyProperties> | null;
     markers: Feature<Point, CompanyProperties>[] | null;
+    isCardCollapsed: boolean;
+    visibleFeatureId: string | null;
   }>({
     geojson: null,
     markers: null,
+    isCardCollapsed: false,
+    visibleFeatureId: null,
   });
 
-  // Handle map click event
-  const handleMapClick = useCallback((e: mapboxgl.MapMouseEvent) => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
+  // Function to show a specific feature
+  const showFeature = useCallback((feature: Feature<Point, CompanyProperties>) => {
+    setSelectedFeatures([feature]);
+    setActiveFeature(feature);
+    setIsCardCollapsed(false);
+    setIsFeatureCardVisible(true);
 
-    // Get all available layers to check if our target layers exist
-    const layers = ['company-icons', 'multi-marker-icons', 'cluster-count-layer'];
-    const availableLayers = layers.filter((layer) => map.getLayer(layer));
+    // Update cache
+    dataCache.current.visibleFeatureId = feature.properties.business_id;
+    dataCache.current.isCardCollapsed = false;
+  }, []);
 
-    // If none of our target layers exist yet, ignore the click
-    if (availableLayers.length === 0) {
-      logger.debug('Map layers not ready yet, ignoring click');
-      return;
-    }
+  // Function to toggle card collapsed state
+  const toggleCardCollapsed = useCallback((collapsed: boolean) => {
+    setIsCardCollapsed(collapsed);
 
-    // Only query layers that actually exist
-    const features = map.queryRenderedFeatures(e.point, {
-      layers: availableLayers,
-    }) as unknown as Feature<Point, CompanyProperties & { cluster_id?: number }>[];
+    // Update cache
+    dataCache.current.isCardCollapsed = collapsed;
+  }, []);
 
-    if (features.length > 0) {
-      const clicked = features[0];
+  // Function to close feature cards
+  const closeFeatureCards = useCallback(() => {
+    setSelectedFeatures([]);
+    setActiveFeature(null);
+    setIsFeatureCardVisible(false);
 
-      if ('cluster_id' in clicked.properties && clicked.properties.cluster_id !== undefined) {
-        const source = map.getSource('visiting-companies') as GeoJSONSource;
-        if (!source) {
-          logger.debug('Map source not ready yet');
+    // Update cache
+    dataCache.current.visibleFeatureId = null;
+  }, []);
+
+  // Simplified map click handler
+  const handleMapClick = useCallback(
+    (e: mapboxgl.MapMouseEvent) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      // Get rendered features at the clicked point
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
+      });
+
+      // Check if we clicked a feature
+      if (features.length > 0) {
+        const clicked = features[0] as unknown as Feature<
+          Point,
+          CompanyProperties & { cluster_id?: number }
+        >;
+
+        // Handle cluster click
+        if ('cluster_id' in clicked.properties && clicked.properties.cluster_id) {
+          const source = map.getSource('visiting-companies') as GeoJSONSource;
+          if (source) {
+            const clusterId = clicked.properties.cluster_id;
+            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err || !clicked.geometry) return;
+              const [lng, lat] = clicked.geometry.coordinates as [number, number];
+              map.easeTo({ center: [lng, lat], zoom: zoom ?? 10, duration: 500 });
+            });
+          }
           return;
         }
 
-        const clusterId = clicked.properties.cluster_id;
-
-        if (clusterId == null) return;
-
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err || !clicked.geometry || zoom == null) return;
-          const [lng, lat] = clicked.geometry.coordinates as [number, number];
-          map.easeTo({ center: [lng, lat], zoom: zoom ?? 10, duration: 500 });
-        });
-        return;
+        // Show the feature card for this marker
+        showFeature(clicked as Feature<Point, CompanyProperties>);
+      } else {
+        // Clicked on the map but not on a marker
+        closeFeatureCards();
       }
+    },
+    [closeFeatureCards, showFeature],
+  );
 
-      logger.debug('[Click] Set activeFeature:', clicked.properties.company_name);
-      setSelectedFeatures(features);
-      setActiveFeature(clicked);
-    } else {
-      setSelectedFeatures([]);
-      setActiveFeature(null);
-    }
-  }, []);
-
-  // Add a cleanup effect to preserve data during remounts
+  // Separate effect to restore the collapsed state only on mount
   useEffect(() => {
-    // Store original data reference
-    if (filteredGeojson && filteredGeojson.features.length > 0) {
-      dataCache.current.geojson = filteredGeojson;
-    }
+    // Only restore on mount, not on every render
+    setIsCardCollapsed(dataCache.current.isCardCollapsed);
 
+    // If we had a visible feature, try to restore it
+    if (dataCache.current.visibleFeatureId && filteredGeojson) {
+      const cachedFeature = filteredGeojson.features.find(
+        (f) => f.properties.business_id === dataCache.current.visibleFeatureId,
+      );
+
+      if (cachedFeature) {
+        setSelectedFeatures([cachedFeature]);
+        setActiveFeature(cachedFeature);
+        setIsFeatureCardVisible(true);
+      }
+    }
+  }, [filteredGeojson]);
+
+  // Preserve data during remounts
+  useEffect(() => {
     return () => {
       // This cleanup function runs when component unmounts
-      logger.debug('MapView unmounting, preserving data state', {
-        features: filteredGeojson?.features.length ?? 0,
-        selectedFeatures: selectedFeatures.length,
-        hasActiveFeature: !!activeFeature,
-      });
 
-      // Cache current state before unmounting
-      if (filteredGeojson) {
-        dataCache.current.geojson = filteredGeojson;
-      }
-      if (selectedFeatures.length > 0) {
-        dataCache.current.markers = selectedFeatures;
-      }
-    };
-  }, [filteredGeojson, selectedFeatures, activeFeature]);
-
-  // Handle map load event with improved error handling
-  const handleMapLoad = useCallback(() => {
-    logger.debug('Map loaded event fired', {
-      cachedData: !!dataCache.current.geojson,
-      selectedMarkers: dataCache.current.markers?.length ?? 0,
-    });
-    const map = mapRef.current?.getMap();
-
-    if (!map) {
-      logger.warn('Map reference not available');
-      return;
-    }
-
-    // Clean up existing listener first
-    map.off('style.load', () => {});
-
-    // Add style.load listener with proper error handling
-    const onStyleLoad = () => {
-      logger.debug('Map style.load event fired');
-      try {
-        // Set mapLoaded to true immediately to trigger data reload
-        setMapLoaded(true);
-
-        // Restore selected features if available in cache
-        if (dataCache.current.markers && dataCache.current.markers.length > 0) {
-          setTimeout(() => {
-            logger.debug('Restoring selected features after style load');
-            // Fix non-null assertion with proper null check
-            const cachedMarkers = dataCache.current.markers;
-            if (cachedMarkers) {
-              setSelectedFeatures(cachedMarkers);
-              // If there was an active feature, restore it
-              if (activeFeature) {
-                setActiveFeature(activeFeature);
-              }
-            }
-          }, 100);
-        }
-      } catch (error) {
-        logger.error('Error in style.load handler:', error);
-      }
-    };
-
-    map.on('style.load', onStyleLoad);
-
-    // If the style is already loaded, trigger immediately
-    if (map.isStyleLoaded()) {
-      logger.debug('Style already loaded, setting mapLoaded = true immediately');
-      setMapLoaded(true);
-    } else {
-      logger.debug('Style not yet loaded, waiting for style.load event');
-    }
-  }, [activeFeature]);
-
-  // Clean up map event listeners
-  useEffect(() => {
-    return () => {
-      const map = mapRef.current?.getMap();
-      if (map) {
-        logger.debug('Cleaning up map event listeners');
-        map.off('style.load', () => {});
-      }
-    };
-  }, []);
-
-  // Create a handler for theme changes from the wrapper
-  const handleMapThemeChange = useCallback(
-    (newIsDark: boolean) => {
-      logger.debug('Map received theme change notification:', newIsDark, {
-        dataPresent: !!dataCache.current.geojson,
-        featureCount: dataCache.current.geojson?.features.length ?? 0,
-      });
-
-      // Cache the current data before resetting state
+      // Cache current state
       if (filteredGeojson && filteredGeojson.features.length > 0) {
         dataCache.current.geojson = filteredGeojson;
       }
+
       if (selectedFeatures.length > 0) {
         dataCache.current.markers = selectedFeatures;
       }
 
-      // Force reload sources on next render
-      setMapLoaded(false);
+      dataCache.current.isCardCollapsed = isCardCollapsed;
 
-      // Add a longer timeout to ensure style is fully loaded first
-      const reloadTimer = setTimeout(() => {
-        const map = mapRef.current?.getMap();
+      if (activeFeature) {
+        dataCache.current.visibleFeatureId = activeFeature.properties.business_id;
+      }
+    };
+  }, [filteredGeojson, selectedFeatures, isCardCollapsed, activeFeature]);
 
-        if (map) {
-          logger.debug('Checking if map style is loaded after theme change');
+  // Handle map load event
+  const handleMapLoad = useCallback(() => {
+    setMapLoaded(true);
+  }, []);
 
-          // If style is already loaded, set mapLoaded to true
-          if (map.isStyleLoaded()) {
-            logger.debug('Map style already loaded, setting mapLoaded = true');
-            setMapLoaded(true);
+  // Create a handler for theme changes
+  const handleMapThemeChange = useCallback((newIsDark: boolean) => {
+    setMapLoaded(false);
 
-            // Restore layers with another small delay to ensure style is fully processed
-            setTimeout(() => {
-              if (dataCache.current.markers && dataCache.current.markers.length > 0) {
-                logger.debug('Restoring selected features from cache after style loaded', {
-                  count: dataCache.current.markers.length,
-                });
-                const cachedMarkers = dataCache.current.markers;
-                if (cachedMarkers) {
-                  setSelectedFeatures(cachedMarkers);
-                  if (activeFeature) {
-                    setActiveFeature(activeFeature);
-                  }
-                }
-              }
-            }, 200);
-          } else {
-            // If style is not loaded yet, set a listener
-            logger.debug('Style not fully loaded yet, setting up style.load listener');
-            map.once('style.load', () => {
-              logger.debug('Map style.load event fired after theme change');
-              setMapLoaded(true);
-
-              // Restore layers with another small delay
-              setTimeout(() => {
-                if (dataCache.current.markers && dataCache.current.markers.length > 0) {
-                  logger.debug('Restoring selected features from cache after style.load event', {
-                    count: dataCache.current.markers.length,
-                  });
-                  const cachedMarkers = dataCache.current.markers;
-                  if (cachedMarkers) {
-                    setSelectedFeatures(cachedMarkers);
-                    if (activeFeature) {
-                      setActiveFeature(activeFeature);
-                    }
-                  }
-                }
-              }, 200);
-            });
-          }
-        }
-      }, 500); // Increase timeout for more reliable loading
-
-      return () => clearTimeout(reloadTimer);
-    },
-    [filteredGeojson, selectedFeatures, activeFeature],
-  );
+    // Force reload sources on next render
+    setTimeout(() => {
+      setMapLoaded(true);
+    }, 500);
+  }, []);
 
   // Update map sources and layers when data or theme changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
 
-    logger.debug('Attempting to update map sources and layers', {
-      isStyleLoaded: map.isStyleLoaded(),
-      hasMarkers: filteredGeojson.features.length,
-    });
+    try {
+      // Count overlapping markers
+      const coordMap = new Map<string, number>();
+      for (const feature of filteredGeojson.features) {
+        const coords = feature.geometry.coordinates.join(',');
+        coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
+      }
 
-    // Check if the style is loaded before adding sources
-    if (!map.isStyleLoaded()) {
-      logger.debug('Map style is not loaded yet, waiting...');
+      // Tag features with overlap status and active state
+      const taggedGeojson: FeatureCollection<
+        Point,
+        CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+      > = {
+        ...filteredGeojson,
+        features: filteredGeojson.features.map((feature) => {
+          const coords = feature.geometry.coordinates.join(',');
+          const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
+          const isActive = feature.properties.business_id === activeBusinessId;
 
-      // Wait for the style to load before adding sources
-      const onStyleLoad = () => {
-        logger.debug('Style loaded event fired, updating sources');
-        updateMapSources(map);
-        map.off('style.load', onStyleLoad);
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              isOverlapping,
+              isActive,
+              industry_letter: feature.properties.industry_letter || 'broken',
+            },
+          };
+        }),
       };
 
-      map.on('style.load', onStyleLoad);
-      return;
-    }
+      // Source and layer setup
+      const sourceId = 'visiting-companies';
+      const existingSource = map.getSource(sourceId);
 
-    // Otherwise, proceed with adding sources
-    logger.debug('Map style is loaded, updating sources directly');
-    updateMapSources(map);
-
-    function updateMapSources(map: mapboxgl.Map) {
-      try {
-        // Count overlapping markers
-        const coordMap = new Map<string, number>();
-        for (const feature of filteredGeojson.features) {
-          const coords = feature.geometry.coordinates.join(',');
-          coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
-        }
-
-        // Tag features with overlap status and active state
-        const taggedGeojson: FeatureCollection<
-          Point,
-          CompanyProperties & { isOverlapping: boolean; isActive: boolean }
-        > = {
-          ...filteredGeojson,
-          features: filteredGeojson.features.map((feature) => {
-            const coords = feature.geometry.coordinates.join(',');
-            const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
-            const isActive = feature.properties.business_id === activeBusinessId;
-
-            if (isActive) {
-              logger.debug('[Map] Highlighting feature:', feature.properties.company_name);
-            }
-
-            return {
-              ...feature,
-              properties: {
-                ...feature.properties,
-                isOverlapping,
-                isActive,
-                industry_letter: feature.properties.industry_letter || 'broken',
-              },
-            };
-          }),
-        };
-
-        // Source and layer setup
-        const sourceId = 'visiting-companies';
-        const existingSource = map.getSource(sourceId);
-
-        logger.debug('Updating map source', {
-          hasExistingSource: !!existingSource,
-          featureCount: taggedGeojson.features.length,
-          activeBusinessId,
+      if (!existingSource) {
+        // Initial source and layer creation
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: taggedGeojson,
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
         });
 
-        if (!existingSource) {
-          // Initial source and layer creation
-          map.addSource(sourceId, {
-            type: 'geojson',
-            data: taggedGeojson,
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50,
-          });
+        // Add all required layers
+        addMapLayers(map, sourceId, textColor, selectedColor as string);
+      } else {
+        // Update existing source with new data
+        (existingSource as GeoJSONSource).setData(taggedGeojson);
 
-          // Add all required layers
-          addMapLayers(map, sourceId, textColor, selectedColor as string);
-        } else {
-          // Update existing source with new data
-          (existingSource as GeoJSONSource).setData(taggedGeojson);
-
-          // Update theme-dependent properties
-          if (map.getLayer('cluster-count-layer')) {
-            map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
-          }
-
-          if (map.getLayer('active-marker-highlight')) {
-            map.setPaintProperty(
-              'active-marker-highlight',
-              'circle-color',
-              selectedColor as string,
-            );
-          }
+        // Update theme-dependent properties
+        if (map.getLayer('cluster-count-layer')) {
+          map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
         }
-      } catch (error) {
-        logger.error('Error updating map:', error);
+
+        if (map.getLayer('active-marker-highlight')) {
+          map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor as string);
+        }
       }
+    } catch (error) {
+      // Handle error silently in production
     }
   }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, textColor]);
 
@@ -425,7 +301,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     textColor: string,
     highlightColor: string,
   ) => {
-    // Cluster count layer
+    // Add cluster count layer
     map.addLayer({
       id: 'cluster-count-layer',
       type: 'symbol',
@@ -441,7 +317,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       },
     });
 
-    // Multiple markers at same location
+    // Add multiple markers layer
     map.addLayer({
       id: 'multi-marker-icons',
       type: 'symbol',
@@ -454,7 +330,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       },
     });
 
-    // Individual company markers
+    // Add individual company markers
     map.addLayer({
       id: 'company-icons',
       type: 'symbol',
@@ -467,7 +343,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       },
     });
 
-    // Highlight for active marker
+    // Add highlight for active marker
     map.addLayer({
       id: 'active-marker-highlight',
       type: 'circle',
@@ -509,11 +385,10 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
       });
 
       if (matching) {
-        setActiveFeature(matching);
-        setSelectedFeatures([matching]);
+        showFeature(matching);
       }
     },
-    [filteredGeojson.features, activeBusinessId],
+    [filteredGeojson.features, activeBusinessId, showFeature],
   );
 
   // Determine which layers should be interactive (only after they're created)
@@ -544,16 +419,17 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
         />
       </ThemeAwareMapWrapper>
 
-      {(selectedFeatures.length > 0 || dataCache.current.markers?.length) && (
+      {isFeatureCardVisible && activeFeature && (
         <FeatureCardList
-          features={
-            selectedFeatures.length > 0 ? selectedFeatures : dataCache.current.markers || []
-          }
+          features={selectedFeatures}
           activeFeature={activeFeature}
-          onSelect={setActiveFeature}
+          onSelect={showFeature}
           selectedColor={selectedColor}
           isDark={isDark}
           flyTo={flyTo}
+          onClose={closeFeatureCards}
+          isCollapsed={isCardCollapsed}
+          onCollapseChange={toggleCardCollapsed}
         />
       )}
     </div>
