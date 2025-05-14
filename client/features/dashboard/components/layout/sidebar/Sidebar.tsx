@@ -115,7 +115,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
             className={cn(item.className, {
               'bg-default-100': isActive,
             })}
-            onClick={() => item.href && handleItemClick(item.href)}
+            onPress={() => item.href && handleItemClick(item.href)}
             endContent={isCompact || hideEndContent ? null : (item.endContent ?? null)}
             startContent={
               isCompact ? null : item.icon ? (
