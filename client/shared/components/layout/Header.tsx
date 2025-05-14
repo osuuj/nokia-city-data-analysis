@@ -15,7 +15,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { ThemeSwitch } from '@/shared/components/ui/theme';
-import { siteConfig } from '@shared/config';
+import { dedupeClasses, siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
 import Breadcrumbs from './Breadcrumbs';
 
@@ -109,6 +109,9 @@ export const Header = () => {
     };
   }, [isMenuOpen]);
 
+  // Only render client-side to prevent hydration issues
+  if (!isMounted) return null;
+
   return (
     <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100]">
       <div
@@ -131,25 +134,23 @@ export const Header = () => {
           onMenuOpenChange={setIsMenuOpen}
         >
           {/* Left: Logo + mobile toggle */}
-          {isMounted && (
-            <NavbarMenuToggle
-              className="sm:hidden relative w-8 h-8 flex items-center justify-center"
-              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              icon={
-                <div className="relative flex flex-col justify-center items-center w-6 h-6">
-                  <span
-                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
-                  />
-                  <span
-                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
-                  />
-                  <span
-                    className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`}
-                  />
-                </div>
-              }
-            />
-          )}
+          <NavbarMenuToggle
+            className="sm:hidden relative w-8 h-8 flex items-center justify-center"
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            icon={
+              <div className="relative flex flex-col justify-center items-center w-6 h-6">
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'rotate-45' : '-translate-y-1.5'}`}
+                />
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                />
+                <span
+                  className={`w-5 h-0.5 rounded-full bg-foreground absolute transition-all duration-300 ${isMenuOpen ? '-rotate-45' : 'translate-y-1.5'}`}
+                />
+              </div>
+            }
+          />
           <NavbarBrand className="flex-grow sm:flex-grow-0">
             <Link href="/" color="foreground" className="flex items-center gap-2">
               <OsuujLogo className="min-w-[40px] min-h-[40px]" />
@@ -161,7 +162,11 @@ export const Header = () => {
             justify="center"
             className="hidden sm:flex flex-grow gap-6 max-w-[500px] h-12"
           >
-            <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 backdrop-blur-md">
+            <div
+              className={dedupeClasses(
+                'flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 backdrop-blur-md',
+              )}
+            >
               {navbarItems.map((item) => (
                 <NavbarItem
                   key={item.href}

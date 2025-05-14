@@ -11,6 +11,21 @@ interface ResponsiveLoadingProps {
 }
 
 /**
+ * Check if navigation is between dashboard and landing page
+ * @param from The starting pathname
+ * @param to The destination pathname
+ * @returns True if navigation is between dashboard and landing page
+ */
+const isLandingDashboardNavigation = (from: string, to: string): boolean => {
+  const isDashboardPath = (path: string) => path.startsWith('/dashboard');
+  const isLandingPath = (path: string) => path === '/';
+
+  return (
+    (isLandingPath(from) && isDashboardPath(to)) || (isDashboardPath(from) && isLandingPath(to))
+  );
+};
+
+/**
  * ResponsiveLoading component that displays a loading indicator
  * when navigating between pages or when a loading state is active.
  *
@@ -26,13 +41,18 @@ export const ResponsiveLoading = ({ minLoadingTime = 300 }: ResponsiveLoadingPro
   // Track navigation changes
   useEffect(() => {
     if (latestPathname && latestPathname !== currentPathname) {
-      setShowLoading(true);
-
-      const timer = setTimeout(() => {
+      // Skip loading indicator for landing-dashboard navigation
+      if (isLandingDashboardNavigation(latestPathname, currentPathname)) {
         setShowLoading(false);
-      }, minLoadingTime);
+      } else {
+        setShowLoading(true);
 
-      return () => clearTimeout(timer);
+        const timer = setTimeout(() => {
+          setShowLoading(false);
+        }, minLoadingTime);
+
+        return () => clearTimeout(timer);
+      }
     }
 
     // Update latest pathname after initial render

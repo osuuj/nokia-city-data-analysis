@@ -7,7 +7,7 @@ import { LoadingProvider } from '@/shared/context/loading/LoadingContext';
 import '@/shared/styles/critical.css';
 import '@/shared/styles/globals.css';
 import { ConditionalLayout } from '@shared/components/layout';
-import { fontSans, siteConfig } from '@shared/config';
+import { fontSans, hydrationConfig, siteConfig } from '@shared/config';
 import { Providers } from '@shared/providers';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
@@ -103,6 +103,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             })();
           `}
         </Script>
+
+        {/* Suppress React hydration warnings (development only) */}
+        {process.env.NODE_ENV !== 'production' && hydrationConfig.suppressWarnings && (
+          <Script id="suppress-hydration-warnings" strategy="beforeInteractive">
+            {`
+              (function() {
+                // Save the original console.error
+                const originalConsoleError = console.error;
+                
+                // Override console.error to filter out hydration warnings
+                console.error = function(...args) {
+                  // Skip React hydration mismatch warnings
+                  if (
+                    typeof args[0] === 'string' && (
+                      args[0].includes('Warning: Text content did not match') ||
+                      args[0].includes('Warning: Prop') && args[0].includes('did not match') ||
+                      args[0].includes('does not match server-rendered HTML') ||
+                      args[0].includes('Hydration failed') ||
+                      args[0].includes('Expected server HTML to contain')
+                    )
+                  ) {
+                    return;
+                  }
+                  
+                  // Call original console.error for everything else
+                  return originalConsoleError.apply(console, args);
+                };
+              })();
+            `}
+          </Script>
+        )}
       </head>
       <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <ClientLayoutWrapper>
