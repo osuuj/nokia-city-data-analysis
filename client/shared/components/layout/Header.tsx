@@ -1,6 +1,5 @@
 'use client';
 
-import { LoadingOverlay } from '@/shared/components/loading';
 import {
   Button,
   Link,
@@ -12,7 +11,6 @@ import {
   NavbarMenuItem,
   NavbarMenuToggle,
 } from '@heroui/react';
-import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -29,12 +27,6 @@ const navbarItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-// Smart default URL based on environment
-const isProd = process.env.NODE_ENV === 'production';
-const PROD_DEFAULT = 'https://api.osuuj.ai';
-const DEV_DEFAULT = 'http://localhost:8000';
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
-
 /**
  * Header
  * Responsive site navigation bar with logo, navigation items, search, GitHub, and theme toggle.
@@ -42,8 +34,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT :
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [clickedItem, setClickedItem] = useState<string | null>(null);
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
-  const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const currentPathname = usePathname() || '';
@@ -56,49 +46,6 @@ export const Header = () => {
 
   // Check if we're on the landing page
   const isLandingPage = currentPathname === '/';
-
-  // Get the query param
-  const { data: cities } = useQuery({
-    queryKey: ['cities'],
-    queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/cities`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-cache',
-      }).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch cities: ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      }),
-    staleTime: 300000, // 5 minutes (same as the SWR dedupingInterval)
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  // Prefetch initial company data (using a default city)
-  const { data: companies } = useQuery({
-    queryKey: ['companies', 'geojson', 'Helsinki'],
-    queryFn: () =>
-      fetch(`${BASE_URL}/api/v1/geojson_companies/companies.geojson?city=Helsinki`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-cache',
-      }).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch companies: ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      }),
-    staleTime: 60000, // 1 minute (same as the SWR dedupingInterval)
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  // Check if data is ready
-  const isDataReady = cities && companies;
 
   // Check if current page should have black background
   const isBlackBgPage = false;
@@ -116,36 +63,12 @@ export const Header = () => {
     return currentPathname.startsWith(path);
   };
 
-  // When data is ready, stop any loading indicators
-  useEffect(() => {
-    if (isDataReady && showLoadingOverlay) {
-      setShowLoadingOverlay(false);
-    }
-  }, [isDataReady, showLoadingOverlay]);
-
-  // Reset navigation states when pathname changes
-  useEffect(() => {
-    if (currentPathname === '/dashboard' && isNavigatingToDashboard) {
-      // If we've reached the dashboard, stop the navigation loading state
-      setIsNavigatingToDashboard(false);
-      setShowLoadingOverlay(false);
-    }
-  }, [currentPathname, isNavigatingToDashboard]);
-
   // Handle item click for immediate visual feedback
   const handleItemClick = (href: string) => {
     // Set clicked item for visual feedback
     setClickedItem(href);
 
-    // Special handling for Dashboard link
-    if (href === '/dashboard') {
-      setShowLoadingOverlay(true);
-      setIsNavigatingToDashboard(true);
-      router.push('/dashboard');
-      return;
-    }
-
-    // For other links, navigate immediately
+    // Navigate to the destination
     router.push(href);
 
     // Reset clicked item after a short delay
@@ -195,8 +118,6 @@ export const Header = () => {
             : 'bg-background/90 backdrop-blur-md text-foreground'
         } ${isMenuOpen ? 'shadow-md' : ''}`}
       >
-        {isMounted && showLoadingOverlay && <LoadingOverlay message="Loading dashboard data..." />}
-
         <Navbar
           maxWidth="2xl"
           classNames={{
