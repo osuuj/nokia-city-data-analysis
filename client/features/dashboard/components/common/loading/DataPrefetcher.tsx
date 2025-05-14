@@ -10,10 +10,10 @@ const DEV_DEFAULT = 'http://localhost:8000';
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
 // Log the API base URL on component load
-console.log('Preloader - API Base URL:', BASE_URL);
+console.log('DataPrefetcher - API Base URL:', BASE_URL);
 
 const fetcher = async (url: string) => {
-  console.log(`Preloader - Fetching from: ${url}`);
+  console.log(`DataPrefetcher - Fetching from: ${url}`);
   try {
     const res = await fetch(url, {
       headers: {
@@ -22,20 +22,20 @@ const fetcher = async (url: string) => {
       cache: 'no-cache',
     });
 
-    console.log(`Preloader - Response status for ${url}: ${res.status}`);
+    console.log(`DataPrefetcher - Response status for ${url}: ${res.status}`);
 
     if (!res.ok) {
       console.error(
-        `Preloader - Fetch failed for ${url}: Status ${res.status} - ${res.statusText}`,
+        `DataPrefetcher - Fetch failed for ${url}: Status ${res.status} - ${res.statusText}`,
       );
       throw new Error(`Failed to fetch data: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
-    console.log(`Preloader - Successfully fetched data from ${url}`);
+    console.log(`DataPrefetcher - Successfully fetched data from ${url}`);
     return data;
   } catch (error) {
-    console.error(`Preloader - Fetch error for ${url}:`, error);
+    console.error(`DataPrefetcher - Fetch error for ${url}:`, error);
     // Provide more detailed error information
     if (error instanceof Error) {
       console.error('Error name:', error.name);
@@ -51,11 +51,10 @@ const fetcher = async (url: string) => {
 };
 
 /**
- * Preloader component
- * Fetches initial data for the home page when the landing page loads
- * This helps reduce the perceived loading time when navigating to the home page
+ * DataPrefetcher component
+ * Prefetches initial data for the dashboard to reduce loading time when navigating
  */
-export function Preloader() {
+export function DataPrefetcher() {
   const citiesEndpoint = `${BASE_URL}/api/v1/cities`;
   const companiesEndpoint = `${BASE_URL}/api/v1/companies.geojson?city=Helsinki`;
 
