@@ -21,9 +21,7 @@ import {
   Select,
   SelectItem,
   Spinner,
-  Tooltip,
 } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { useCallback, useMemo, useState } from 'react';
 import { CityComparison, CityIndustryBars, IndustryDistribution, TopCitiesChart } from './cards';
 
