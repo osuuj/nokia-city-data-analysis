@@ -5,3 +5,4 @@ export * from './iconTypes'; // Export icon types first to avoid ambiguity
 export * from './filters';
 export * from './table';
 export * from './view';
+export * from './addressTypes'; // Export address types
