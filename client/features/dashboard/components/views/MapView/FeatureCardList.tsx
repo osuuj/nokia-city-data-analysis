@@ -3,7 +3,6 @@
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { Button, Card, CardBody, CardHeader, Chip, Divider, ScrollShadow } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import type { PressEvent } from '@react-types/shared';
 import type { Feature, Point } from 'geojson';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
