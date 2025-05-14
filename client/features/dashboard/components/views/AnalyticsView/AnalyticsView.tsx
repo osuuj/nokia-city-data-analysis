@@ -356,27 +356,49 @@ export function AnalyticsView() {
 
   // Transform data for City Comparison chart
   const cityComparisonDataAll = useMemo(() => {
-    if (!cityComparisonData) return [];
+    if (!cityComparisonData || cityComparisonData.length === 0) return [];
 
-    return cityComparisonData.map((item) => {
-      // Cast initial object
-      const transformedData = {
-        industry: getIndustryName(item.industry as string),
-      } as TransformedCityComparison;
-      for (const key of Object.keys(item)) {
-        if (key !== 'industry') {
-          // Values associated with city keys should be numbers
-          transformedData[key] = Number(item[key]) || 0;
+    try {
+      return cityComparisonData.map((item) => {
+        // Cast initial object
+        const transformedData = {
+          industry: getIndustryName(item.industry as string),
+        } as TransformedCityComparison;
+
+        // Add city data by iterating through keys that aren't 'industry'
+        for (const key of Object.keys(item)) {
+          if (key !== 'industry') {
+            // Values associated with city keys should be numbers
+            transformedData[key] = Number(item[key]) || 0;
+          }
         }
-      }
-      return transformedData;
-    });
+
+        return transformedData;
+      });
+    } catch (error) {
+      console.error('Error transforming city comparison data:', error);
+      return [];
+    }
   }, [cityComparisonData, getIndustryName]);
 
   // Filter City Comparison data based on selected industries
   const filteredCityComparisonData = useMemo(() => {
-    if (!cityComparisonDataAll) return [];
-    return cityComparisonDataAll.filter((item) => selectedIndustryDisplayNames.has(item.industry));
+    if (!cityComparisonDataAll || cityComparisonDataAll.length === 0) return [];
+
+    try {
+      // Make sure we have data for each selected city
+      const filteredData = cityComparisonDataAll.filter((item) =>
+        selectedIndustryDisplayNames.has(item.industry),
+      );
+
+      // Log the filtered data for debugging
+      console.debug('City comparison data:', filteredData);
+
+      return filteredData;
+    } catch (error) {
+      console.error('Error filtering city comparison data:', error);
+      return [];
+    }
   }, [cityComparisonDataAll, selectedIndustryDisplayNames]);
 
   // Determine which industries are potentially grouped into "Others"
@@ -398,96 +420,122 @@ export function AnalyticsView() {
   return (
     <div className="w-full p-2 sm:p-4 flex flex-col gap-4">
       <div className="flex flex-col gap-4 mb-4">
-        <h1 className="text-xl md:text-2xl font-bold">Industry Analytics</h1>
-        <div className="flex flex-col lg:flex-row flex-wrap items-start gap-4">
-          {/* City selection section - made more responsive */}
-          <div className="flex flex-col items-start gap-1 w-full sm:w-auto">
-            <Tooltip
-              content={`Select up to ${MAX_SELECTED_CITIES} cities to compare.`}
-              placement="bottom"
-            >
-              <div className="w-full sm:w-auto">
-                <div className="flex flex-col gap-2 md:min-w-[280px]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-default-600">
-                      Selected Cities ({selectedCities.size}/{MAX_SELECTED_CITIES})
-                    </span>
-                    {selectedCities.size > 0 && (
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        color="danger"
-                        className="h-6 px-2 min-w-0"
-                        onPress={handleClearAllCities}
-                      >
-                        Clear All
-                      </Button>
-                    )}
-                  </div>
-
-                  <CitySearch selectedCity="" onCityChange={handleCitySelectionAdd} />
-
-                  {showMaxCityWarning && (
-                    <p className="text-danger text-xs">
-                      Maximum of {MAX_SELECTED_CITIES} cities can be selected.
-                    </p>
-                  )}
-
-                  {/* Display selected cities as chips */}
-                  {selectedCities.size > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {Array.from(selectedCities).map((city) => (
-                        <Chip
-                          key={city}
-                          onClose={() => handleCitySelectionRemove(city)}
-                          variant="flat"
-                          color="primary"
-                          size="sm"
-                          className={`my-1 ${pieChartFocusCity === city ? 'border-primary' : ''}`}
-                        >
-                          {city}
-                        </Chip>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        {/* Main controls section - all on one row */}
+        <div className="flex flex-col gap-4">
+          {/* Search bars side by side */}
+          <div className="flex flex-col md:flex-row gap-4 items-start">
+            {/* City search bar */}
+            <div className="w-full md:w-1/2 flex flex-wrap gap-2 items-end">
+              <div className="flex-grow min-w-0">
+                <CitySearch
+                  selectedCity=""
+                  onCityChange={handleCitySelectionAdd}
+                  className={isAtMaxCities ? 'opacity-50 pointer-events-none' : ''}
+                  label={`Cities (${selectedCities.size}/${MAX_SELECTED_CITIES})`}
+                />
               </div>
-            </Tooltip>
+
+              {selectedCities.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap"
+                  onPress={handleClearAllCities}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Industry selection bar */}
+            <div
+              className={`w-full md:w-1/2 flex flex-wrap gap-2 items-end ${selectedCities.size === 0 ? 'opacity-60' : ''}`}
+            >
+              <div className="flex-grow min-w-0">
+                <Select
+                  label={`Industries (${selectedIndustryNames.length}/${MAX_SELECTED_INDUSTRIES})`}
+                  labelPlacement="outside"
+                  placeholder="Select industries..."
+                  selectionMode="multiple"
+                  className="w-full"
+                  selectedKeys={new Set(selectedIndustryNames)}
+                  onSelectionChange={handleIndustrySelectionChange}
+                  isDisabled={selectedCities.size === 0}
+                >
+                  {availableSortedIndustries.map((industry) => (
+                    <SelectItem key={industry.name} textValue={industry.name}>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={getIndustryIconPath(industry.name)}
+                          alt={industry.name}
+                          className="w-4 h-4"
+                        />
+                        <span>{`${industry.name} (${industry.total})`}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+
+              {selectedIndustryNames.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap"
+                  onPress={handleClearAllIndustries}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* Industry selection section - made more responsive */}
-          {selectedCities.size > 0 && (
-            <div className="flex flex-col items-start gap-1 w-full sm:w-auto">
-              <Tooltip
-                content={`Select up to ${MAX_SELECTED_INDUSTRIES} industries to display.`}
-                placement="bottom"
-              >
-                <div className="w-full sm:w-auto">
-                  <Select
-                    label="Select Industries"
-                    placeholder="Defaults to Top 5"
-                    selectionMode="multiple"
-                    className="w-full sm:max-w-xs sm:min-w-[250px]"
-                    selectedKeys={selectedIndustryNames}
-                    onSelectionChange={handleIndustrySelectionChange}
-                  >
-                    {availableSortedIndustries.map((industry) => (
-                      <SelectItem key={industry.name} textValue={industry.name}>
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={getIndustryIconPath(industry.name)}
-                            alt={industry.name}
-                            className="w-4 h-4"
-                          />
-                          <span>{`${industry.name} (${industry.total})`}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </Select>
+          {/* Warning messages */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="w-full md:w-1/2">
+              {showMaxCityWarning && (
+                <p className="text-danger text-xs">
+                  Maximum of {MAX_SELECTED_CITIES} cities can be selected.
+                </p>
+              )}
+            </div>
+            <div className="w-full md:w-1/2">
+              {showMaxIndustryWarning && (
+                <p className="text-tiny text-danger">
+                  Max {MAX_SELECTED_INDUSTRIES} industries allowed.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Selected items (chips) */}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Selected cities as chips */}
+            <div className="w-full md:w-1/2">
+              {selectedCities.size > 0 && (
+                <div className="flex flex-wrap gap-1 w-full">
+                  {Array.from(selectedCities).map((city) => (
+                    <Chip
+                      key={city}
+                      onClose={() => handleCitySelectionRemove(city)}
+                      variant="flat"
+                      color="primary"
+                      size="sm"
+                      className={`${pieChartFocusCity === city ? 'border-primary' : ''}`}
+                    >
+                      {city}
+                    </Chip>
+                  ))}
                 </div>
-              </Tooltip>
+              )}
+            </div>
+
+            {/* Selected industries as chips */}
+            <div className="w-full md:w-1/2">
               {selectedIndustryNames.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 pt-1 w-full">
+                <div className="flex flex-wrap gap-1 w-full">
                   {selectedIndustryNames.map((name) => (
                     <Chip
                       key={name}
@@ -496,32 +544,17 @@ export function AnalyticsView() {
                       color="primary"
                       size="sm"
                       style={{
-                        backgroundColor: `${getIndustryColor(name)}40`, // Use template literal
+                        backgroundColor: `${getIndustryColor(name)}40`,
                         color: getIndustryColor(name),
                       }}
                     >
                       {name}
                     </Chip>
                   ))}
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    aria-label="Clear selected industries"
-                    onPress={handleClearAllIndustries}
-                    className="ml-auto"
-                  >
-                    <Icon icon="lucide:x" width={16} />
-                  </Button>
                 </div>
               )}
-              {showMaxIndustryWarning && (
-                <p className="text-tiny text-danger">
-                  Max {MAX_SELECTED_INDUSTRIES} industries allowed.
-                </p>
-              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -619,14 +652,20 @@ export function AnalyticsView() {
           <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
             {loadingCityComparison ? (
               <Spinner />
-            ) : selectedIndustryDisplayNames.size > 0 ? (
+            ) : selectedIndustryDisplayNames.size > 0 && filteredCityComparisonData.length > 0 ? (
               <CityComparison
                 data={filteredCityComparisonData}
                 cities={selectedCitiesArray}
                 theme={currentTheme}
               />
-            ) : (
+            ) : selectedCities.size <= 1 ? (
+              <p className="text-center text-default-500">Select at least two cities to compare.</p>
+            ) : selectedIndustryDisplayNames.size === 0 ? (
               <p className="text-center text-default-500">Select industries to compare cities.</p>
+            ) : (
+              <p className="text-center text-default-500">
+                No comparison data available for the selected cities and industries.
+              </p>
             )}
           </CardBody>
         </Card>
