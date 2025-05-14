@@ -19,7 +19,7 @@ export interface MapViewProps {
   selectedBusinesses?: CompanyProperties[];
 }
 
-export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
+export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: MapViewProps) => {
   // State for feature selection
   const [selectedFeatures, setSelectedFeatures] = useState<Feature<Point, CompanyProperties>[]>([]);
   const [activeFeature, setActiveFeature] = useState<Feature<
@@ -215,7 +215,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   }, []);
 
   // Create a handler for theme changes
-  const handleMapThemeChange = useCallback((newIsDark: boolean) => {
+  const handleMapThemeChange = useCallback((_newIsDark: boolean) => {
     setMapLoaded(false);
 
     // Force reload sources on next render

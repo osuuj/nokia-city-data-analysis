@@ -1,4 +1,5 @@
 import type { CheckboxProps, PopoverProps } from '@heroui/react';
+import type { IconStringProps } from './iconTypes';
 
 /**
  * Enum representing all supported filter types in the UI.
@@ -51,15 +52,6 @@ export interface Filter {
 }
 
 /**
- * Icon configuration for components that use icons
- */
-export type IconConfig = {
-  name: string;
-  width?: number;
-  color?: string;
-};
-
-/**
  * Props passed to the PopoverFilterWrapper component
  */
 export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
@@ -67,7 +59,7 @@ export type PopoverFilterWrapperProps = Omit<PopoverProps, 'children'> & {
   children: React.ReactNode;
   onApply?: () => void;
   onCancel?: () => void;
-  icon?: string | IconConfig;
+  icon?: string | IconStringProps;
   maxWidth?: string;
 };
 

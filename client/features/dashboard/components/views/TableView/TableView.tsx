@@ -55,7 +55,7 @@ export function TableView({
   currentPage,
   totalPages,
   onPageChange,
-  onPageSizeChange,
+  onPageSizeChange: _onPageSizeChange,
   isLoading,
   searchTerm,
   setSearchTerm,
