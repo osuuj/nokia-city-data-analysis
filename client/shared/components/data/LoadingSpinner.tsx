@@ -3,21 +3,21 @@
 import { Spinner } from '@heroui/react';
 import { motion } from 'framer-motion';
 
-interface PreloaderProps {
+interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   text?: string;
   fullScreen?: boolean;
 }
 
 /**
- * Preloader component for loading states
+ * LoadingSpinner component for visual loading states
  * Can be used as a Suspense fallback or standalone
  */
-export const Preloader = ({
+export const LoadingSpinner = ({
   size = 'md',
   text = 'Loading...',
   fullScreen = false,
-}: PreloaderProps) => {
+}: LoadingSpinnerProps) => {
   const spinnerSize = size as 'sm' | 'md' | 'lg';
 
   const containerClassName = `flex flex-col items-center justify-center gap-4 ${
