@@ -1,7 +1,6 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { usePathname, useSearchParams } from 'next/navigation';
 import { type ReactNode, Suspense, useEffect, useRef } from 'react';
 
 interface PageTransitionProps {

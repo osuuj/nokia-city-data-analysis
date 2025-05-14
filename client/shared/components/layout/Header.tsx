@@ -161,7 +161,7 @@ export const Header = () => {
             justify="center"
             className="hidden sm:flex flex-grow gap-6 max-w-[500px] h-12"
           >
-            <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 dark:bg-content1 backdrop-blur-md">
+            <div className="flex gap-1 px-2 py-1 rounded-full bg-content2 dark:bg-content1 backdrop-blur-md">
               {navbarItems.map((item) => (
                 <NavbarItem
                   key={item.href}
