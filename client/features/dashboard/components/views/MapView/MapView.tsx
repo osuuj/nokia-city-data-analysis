@@ -94,8 +94,19 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    // Get all available layers to check if our target layers exist
+    const layers = ['company-icons', 'multi-marker-icons', 'cluster-count-layer'];
+    const availableLayers = layers.filter((layer) => map.getLayer(layer));
+
+    // If none of our target layers exist yet, ignore the click
+    if (availableLayers.length === 0) {
+      logger.debug('Map layers not ready yet, ignoring click');
+      return;
+    }
+
+    // Only query layers that actually exist
     const features = map.queryRenderedFeatures(e.point, {
-      layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
+      layers: availableLayers,
     }) as unknown as Feature<Point, CompanyProperties & { cluster_id?: number }>[];
 
     if (features.length > 0) {
@@ -103,6 +114,11 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
       if ('cluster_id' in clicked.properties && clicked.properties.cluster_id !== undefined) {
         const source = map.getSource('visiting-companies') as GeoJSONSource;
+        if (!source) {
+          logger.debug('Map source not ready yet');
+          return;
+        }
+
         const clusterId = clicked.properties.cluster_id;
 
         if (clusterId == null) return;
@@ -235,27 +251,54 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
 
       // Add a longer timeout to ensure style is fully loaded first
       const reloadTimer = setTimeout(() => {
-        if (mapRef.current?.getMap()) {
-          logger.debug('Reloading map sources after theme change with cached data', {
-            dataPresent: !!dataCache.current.geojson,
-            featureCount: dataCache.current.geojson?.features.length ?? 0,
-          });
+        const map = mapRef.current?.getMap();
 
-          // First set map as loaded
-          setMapLoaded(true);
+        if (map) {
+          logger.debug('Checking if map style is loaded after theme change');
 
-          // Then restore any selected features if they were previously selected
-          if (dataCache.current.markers && dataCache.current.markers.length > 0) {
-            logger.debug('Restoring selected features from cache', {
-              count: dataCache.current.markers.length,
-            });
-            const cachedMarkers = dataCache.current.markers;
-            if (cachedMarkers) {
-              setSelectedFeatures(cachedMarkers);
-              if (activeFeature) {
-                setActiveFeature(activeFeature);
+          // If style is already loaded, set mapLoaded to true
+          if (map.isStyleLoaded()) {
+            logger.debug('Map style already loaded, setting mapLoaded = true');
+            setMapLoaded(true);
+
+            // Restore layers with another small delay to ensure style is fully processed
+            setTimeout(() => {
+              if (dataCache.current.markers && dataCache.current.markers.length > 0) {
+                logger.debug('Restoring selected features from cache after style loaded', {
+                  count: dataCache.current.markers.length,
+                });
+                const cachedMarkers = dataCache.current.markers;
+                if (cachedMarkers) {
+                  setSelectedFeatures(cachedMarkers);
+                  if (activeFeature) {
+                    setActiveFeature(activeFeature);
+                  }
+                }
               }
-            }
+            }, 200);
+          } else {
+            // If style is not loaded yet, set a listener
+            logger.debug('Style not fully loaded yet, setting up style.load listener');
+            map.once('style.load', () => {
+              logger.debug('Map style.load event fired after theme change');
+              setMapLoaded(true);
+
+              // Restore layers with another small delay
+              setTimeout(() => {
+                if (dataCache.current.markers && dataCache.current.markers.length > 0) {
+                  logger.debug('Restoring selected features from cache after style.load event', {
+                    count: dataCache.current.markers.length,
+                  });
+                  const cachedMarkers = dataCache.current.markers;
+                  if (cachedMarkers) {
+                    setSelectedFeatures(cachedMarkers);
+                    if (activeFeature) {
+                      setActiveFeature(activeFeature);
+                    }
+                  }
+                }
+              }, 200);
+            });
           }
         }
       }, 500); // Increase timeout for more reliable loading
@@ -448,7 +491,10 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
   const flyTo = useCallback(
     (coords: [number, number], addressType?: string) => {
       const map = mapRef.current?.getMap();
-      if (!map) return;
+      if (!map || !map.isStyleLoaded()) {
+        logger.debug('Map not ready for flyTo command');
+        return;
+      }
 
       map.flyTo({ center: coords, zoom: 14, duration: 800 });
 
@@ -470,6 +516,16 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
     [filteredGeojson.features, activeBusinessId],
   );
 
+  // Determine which layers should be interactive (only after they're created)
+  const interactiveLayerIds = useMemo(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded) return [];
+
+    return ['company-icons', 'multi-marker-icons', 'cluster-count-layer'].filter((layer) =>
+      map.getLayer(layer),
+    );
+  }, [mapLoaded]);
+
   return (
     <div className="relative w-full h-full">
       <ThemeAwareMapWrapper onThemeChange={handleMapThemeChange}>
@@ -482,7 +538,7 @@ export const MapView = ({ geojson, selectedBusinesses }: MapViewProps) => {
           mapboxAccessToken={mapboxToken}
           onLoad={handleMapLoad}
           onClick={handleMapClick}
-          interactiveLayerIds={['company-icons', 'multi-marker-icons', 'cluster-count-layer']}
+          interactiveLayerIds={interactiveLayerIds}
           preserveDrawingBuffer={true}
           renderWorldCopies={true}
         />

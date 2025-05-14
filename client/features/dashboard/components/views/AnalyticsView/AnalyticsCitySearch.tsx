@@ -1,63 +1,65 @@
 'use client';
 
-import { useCitySelect } from '@/shared/hooks/api/useCitySelect';
+import { CityAutocomplete } from '@/features/dashboard/components/common/CitySearch/Autocomplete';
 import { Icon } from '@iconify/react';
-import { useEffect, useState } from 'react';
-import { CityAutocomplete } from './Autocomplete';
+import { useState } from 'react';
 
-interface CitySearchProps {
+interface AnalyticsCitySearchProps {
   /** Callback when a city is selected */
   onCityChange: (city: string) => void;
 
   /** Currently selected city (controlled component) */
   selectedCity?: string;
 
+  /** Search query for filtering cities */
+  searchQuery: string;
+
+  /** Function to update search query */
+  setSearchQuery: (query: string) => void;
+
+  /** List of filtered cities based on search */
+  filteredCities: Array<{ name: string }>;
+
+  /** Whether data is loading */
+  isLoading?: boolean;
+
   /** Additional class names */
   className?: string;
 }
 
 /**
- * CitySearch component that uses our centralized data fetching
- *
- * This component uses the React Query based data hooks
- * for fetching cities from the API
+ * City search component specifically for the Analytics view
+ * Adapts the common CitySearch component to work with the useCitySelection hook
  */
-export function CitySearch({ onCityChange, selectedCity = '', className = '' }: CitySearchProps) {
-  const { cities, isLoading, searchTerm, setSearchTerm, setSelectedCity } =
-    useCitySelect(selectedCity);
-
-  // Sync selected city with the hook's state
-  useEffect(() => {
-    setSelectedCity(selectedCity);
-  }, [selectedCity, setSelectedCity]);
-
-  // Track local search term for the autocomplete component
-  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
-
-  // Track if a selection was made
+export function AnalyticsCitySearch({
+  onCityChange,
+  selectedCity = '',
+  searchQuery,
+  setSearchQuery,
+  filteredCities,
+  isLoading = false,
+  className = '',
+}: AnalyticsCitySearchProps) {
+  // Track if a selection was made to show selection indicator
   const [selectionMade, setSelectionMade] = useState(false);
 
   // Handle city selection
   const handleSelectionChange = (key: React.Key | null) => {
     if (key) {
       const selectedCityValue = key.toString();
-      setSelectedCity(selectedCityValue);
       onCityChange(selectedCityValue);
       setSelectionMade(true);
     }
   };
 
   // Handle search term changes
-  const handleLocalSearchChange = (term: string) => {
-    setLocalSearchTerm(term);
-    setSearchTerm(term);
+  const handleSearchChange = (term: string) => {
+    setSearchQuery(term);
   };
 
   // Handle clearing the selection
   const handleClear = () => {
-    setLocalSearchTerm('');
-    setSearchTerm('');
-    setSelectedCity('');
+    setSearchQuery('');
     onCityChange('');
     setSelectionMade(false);
   };
@@ -73,12 +75,12 @@ export function CitySearch({ onCityChange, selectedCity = '', className = '' }: 
 
   return (
     <CityAutocomplete
-      cities={cities}
+      cities={filteredCities}
       selectedCity={selectedCity}
       onClear={handleClear}
       isLoading={isLoading}
-      localSearchTerm={localSearchTerm}
-      onInputChange={handleLocalSearchChange}
+      localSearchTerm={searchQuery}
+      onInputChange={handleSearchChange}
       onSelectionChange={handleSelectionChange}
       showSelectionIndicator={true}
       selectionIndicator={selectionIndicator}

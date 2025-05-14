@@ -1,5 +1,6 @@
 import { Hero } from '@/features/landing/components/Hero/Hero';
 import { LandingErrorBoundary } from '@/features/landing/components/LandingErrorBoundary';
+import { LandingPagePrefetcher } from '@/features/landing/components/LandingPagePrefetcher';
 import { LoadingSpinner } from '@/shared/components/data/LoadingSpinner';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -25,6 +26,9 @@ export const metadata: Metadata = {
 export default function LandingPage(): JSX.Element {
   return (
     <LandingErrorBoundary>
+      {/* Prefetch data in the background */}
+      <LandingPagePrefetcher prefetchDelay={1500} />
+
       <Suspense fallback={<LoadingSpinner />}>
         <section className="relative flex flex-col items-center justify-center gap-4 py-8 md:py-10">
           <Hero />

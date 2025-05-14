@@ -159,6 +159,12 @@ export const filters: Filter[] = [
         icon: 'solar:globus-bold',
         color: { light: '#60A5FA', dark: '#4682B4' },
       },
+      {
+        title: 'Others',
+        value: 'Other',
+        icon: 'solar:widget-add-bold',
+        color: { light: '#71717A', dark: '#A1A1AA' },
+      },
     ],
   },
 ];

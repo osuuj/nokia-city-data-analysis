@@ -3,7 +3,7 @@
 import { useLoading } from '@/shared/context/loading/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { Suspense, useCallback, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 // Import components directly
 import { HeroContent } from './HeroContent';
 import { HeroSkeleton } from './HeroSkeleton';
@@ -24,7 +24,32 @@ export const Hero = (): JSX.Element => {
   const [videoError, setVideoError] = useState(false);
   const loading = useLoading();
 
+  // Use a ref to store the abort controller for navigation
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Create a new AbortController when the component mounts
+  useEffect(() => {
+    abortControllerRef.current = new AbortController();
+
+    return () => {
+      // Abort any in-flight requests when unmounting
+      if (abortControllerRef.current) {
+        console.debug('Aborting in-flight requests during navigation');
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const handleStartExploring = useCallback(() => {
+    // Abort any in-flight requests before navigation
+    if (abortControllerRef.current) {
+      console.debug('Aborting in-flight requests before navigation');
+      abortControllerRef.current.abort();
+
+      // Create a new abort controller for any new requests
+      abortControllerRef.current = new AbortController();
+    }
+
     // Start both the global loading indicator and local loading state
     const loadingId =
       loading?.startLoading({
@@ -33,8 +58,11 @@ export const Hero = (): JSX.Element => {
       }) || '';
     setIsLoading(true);
 
-    // Navigate to dashboard
-    router.push('/dashboard');
+    // Short delay to allow abort to complete
+    setTimeout(() => {
+      // Navigate to dashboard
+      router.push('/dashboard');
+    }, 50);
 
     // This will be cleaned up by the useEffect when pathname changes
     return () => {

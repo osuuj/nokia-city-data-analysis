@@ -20,10 +20,10 @@ interface ChartDataItem {
 
 interface TopCitiesChartProps {
   data: ChartDataItem[];
-  currentTheme?: 'light' | 'dark';
+  onCityClick?: (city: string) => void;
 }
 
-export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentTheme = 'light' }) => {
+export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, onCityClick }) => {
   // Use shared chart theme hook
   const {
     textColor,
@@ -49,6 +49,13 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
       </div>
     );
   }
+
+  // Handle bar click to select city
+  const handleBarClick = (data: ChartDataItem) => {
+    if (onCityClick && data && data.city) {
+      onCityClick(data.city);
+    }
+  };
 
   return (
     <div className="h-[300px] sm:h-[400px] w-full">
@@ -85,10 +92,7 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
             width={80}
           />
           <Tooltip
-            formatter={(value: number, name: string, props) => [
-              `${props.payload.count} companies`,
-              props.payload.city,
-            ]}
+            formatter={(_, __, props) => [`${props.payload.count} companies`, props.payload.city]}
             contentStyle={{
               backgroundColor: tooltipBgColor,
               borderRadius: '8px',
@@ -107,6 +111,8 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({ data, currentThe
             name="Active Companies"
             radius={[4, 4, 0, 0]}
             animationDuration={1500}
+            onClick={handleBarClick}
+            style={{ cursor: onCityClick ? 'pointer' : 'default' }}
           >
             <LabelList
               dataKey="formattedCount"

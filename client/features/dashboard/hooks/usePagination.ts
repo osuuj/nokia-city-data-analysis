@@ -1,3 +1,11 @@
+/**
+ * ADVANCED PAGINATION HOOK
+ * This is a more sophisticated pagination implementation with caching, chunking and optimizations.
+ *
+ * NOTE: Currently the dashboard is using the simpler useDashboardPagination.ts hook.
+ * This hook is kept for future implementation of advanced pagination features.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Define page cache interface
