@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
   useDisclosure,
 } from '@heroui/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 // Define icon configuration type
 type IconConfig = {
@@ -38,13 +38,13 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
     ref,
   ) => {
     const { isOpen, onOpenChange, onClose } = useDisclosure();
-    const [focusableElements, setFocusableElements] = useState<HTMLElement[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // Prevent body scrolling when popover is open
+    // Prevent body scrolling when popover is open but allow clicking on dropdown items
     useEffect(() => {
       if (isOpen) {
-        document.body.style.overflow = 'hidden';
+        // Use less aggressive scroll blocking that still allows interactions
+        document.body.style.overflow = 'auto';
       } else {
         document.body.style.overflow = '';
       }
@@ -64,46 +64,14 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
       return () => window.removeEventListener('resize', handleResize);
     }, [isOpen, onClose]);
 
-    // Set up focus trap when popover opens
-    useEffect(() => {
-      if (isOpen && contentRef.current) {
-        // Find all focusable elements
-        const focusable = contentRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        setFocusableElements(Array.from(focusable) as HTMLElement[]);
-
-        // Focus the first element
-        if (focusable.length > 0) {
-          (focusable[0] as HTMLElement).focus();
-        }
-      }
-    }, [isOpen]);
-
-    // Handle keyboard navigation
+    // Handle keyboard navigation - simplified to just escape key
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
           onClose();
-        } else if (e.key === 'Tab' && isOpen) {
-          // Implement focus trap
-          const firstFocusable = focusableElements[0];
-          const lastFocusable = focusableElements[focusableElements.length - 1];
-
-          if (e.shiftKey) {
-            if (document.activeElement === firstFocusable) {
-              e.preventDefault();
-              lastFocusable.focus();
-            }
-          } else {
-            if (document.activeElement === lastFocusable) {
-              e.preventDefault();
-              firstFocusable.focus();
-            }
-          }
         }
       },
-      [isOpen, onClose, focusableElements],
+      [onClose],
     );
 
     // Parse icon configuration
@@ -117,7 +85,7 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
         {...props}
         placement="bottom-start"
         onKeyDown={handleKeyDown}
-        shouldBlockScroll={true}
+        shouldBlockScroll={false} // Changed to false to avoid interference
         shouldFlip={true}
         classNames={{
           base: 'focus:outline-none focus:ring-0 z-50',
@@ -151,7 +119,6 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
           className="p-0 focus:outline-none focus:ring-0"
           style={{ maxWidth }}
           id={`${title.toLowerCase()}-filter-content`}
-          as="dialog"
           aria-modal="true"
           aria-label={`${title} filter options`}
           aria-hidden={!isOpen}

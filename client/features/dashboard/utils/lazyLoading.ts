@@ -7,6 +7,11 @@ import type { ComponentType } from 'react';
 import { lazy } from 'react';
 
 /**
+ * Flag for development environment
+ */
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+/**
  * Configuration for lazy loading a component
  */
 export interface LazyLoadConfig {
@@ -48,9 +53,12 @@ export function createLazyComponentLoader<T extends ComponentType<any>>(config: 
 export function preloadComponent(path: string, componentName: string): void {
   import(/* webpackChunkName: "[request]" */ `../components/${path}`)
     .then(() => {
-      console.log(`Preloaded component ${componentName} from ${path}`);
+      if (isDevelopment) {
+        console.log(`Preloaded component ${componentName} from ${path}`);
+      }
     })
     .catch((error) => {
+      // Always log errors, even in production
       console.error(`Error preloading component ${componentName} from ${path}:`, error);
     });
 }

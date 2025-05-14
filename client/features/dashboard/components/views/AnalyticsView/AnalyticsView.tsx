@@ -22,7 +22,7 @@ import {
   SelectItem,
   Spinner,
 } from '@heroui/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CityComparison, CityIndustryBars, IndustryDistribution, TopCitiesChart } from './cards';
 
 // Constants
@@ -55,6 +55,15 @@ type TransformedCityComparison = {
 export function AnalyticsView() {
   // Theme
   const { currentTheme } = useChartTheme();
+
+  // Track open state of search dropdowns
+  const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState(false);
+  const [isCitySearchOpen, setIsCitySearchOpen] = useState(false);
+  const [isFocusCityDropdownOpen, setIsFocusCityDropdownOpen] = useState(false);
+
+  // Refs for the dropdown elements
+  const citySearchRef = useRef<HTMLDivElement>(null);
+  const industrySelectRef = useRef<HTMLDivElement>(null);
 
   // Fetch cities using our React Query hook
   const { data: allCities = [], isLoading: citiesLoading } = useCities();
@@ -389,9 +398,6 @@ export function AnalyticsView() {
         selectedIndustryDisplayNames.has(item.industry),
       );
 
-      // Log the filtered data for debugging
-      console.debug('City comparison data:', filteredData);
-
       return filteredData;
     } catch (error) {
       console.error('Error filtering city comparison data:', error);
@@ -414,6 +420,26 @@ export function AnalyticsView() {
     handleCitySelectionAdd(city);
   };
 
+  // Close dropdowns on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      // Close all dropdowns when window is resized
+      setIsIndustryDropdownOpen(false);
+      setIsCitySearchOpen(false);
+      setIsFocusCityDropdownOpen(false);
+
+      // Also clear any search input focus
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   // --- UI LAYOUT FROM OLD VERSION ---
   return (
     <div className="w-full p-2 sm:p-4 flex flex-col gap-4">
@@ -423,43 +449,52 @@ export function AnalyticsView() {
           {/* Search bars side by side */}
           <div className="flex flex-col md:flex-row gap-4 items-start">
             {/* City search bar */}
-            <div className="w-full md:w-1/2 flex flex-wrap gap-2 items-end">
-              <div className="flex-grow min-w-0">
+            <div className="w-full md:w-1/2 flex flex-wrap gap-2 items-end" ref={citySearchRef}>
+              <div className="flex-grow min-w-0 flex items-end gap-2">
                 <CitySearch
                   selectedCity=""
-                  onCityChange={handleCitySelectionAdd}
+                  onCityChange={(city) => {
+                    handleCitySelectionAdd(city);
+                    setIsCitySearchOpen(false);
+                  }}
                   className={isAtMaxCities ? 'opacity-50 pointer-events-none' : ''}
                   label={`Cities (${selectedCities.size}/${MAX_SELECTED_CITIES})`}
                 />
-              </div>
 
-              {selectedCities.size > 0 && (
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="danger"
-                  className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap"
-                  onPress={handleClearAllCities}
-                >
-                  Clear
-                </Button>
-              )}
+                {selectedCities.size > 0 && (
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color="danger"
+                    className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
+                    onPress={handleClearAllCities}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Industry selection bar */}
             <div
               className={`w-full md:w-1/2 flex flex-wrap gap-2 items-end ${selectedCities.size === 0 ? 'opacity-60' : ''}`}
+              ref={industrySelectRef}
             >
-              <div className="flex-grow min-w-0">
+              <div className="flex-grow min-w-0 flex items-end gap-2">
                 <Select
                   label={`Industries (${selectedIndustryNames.length}/${MAX_SELECTED_INDUSTRIES})`}
                   labelPlacement="outside"
                   placeholder="Select industries..."
                   selectionMode="multiple"
-                  className="w-full"
+                  className="flex-grow max-w-[300px]"
                   selectedKeys={new Set(selectedIndustryNames)}
-                  onSelectionChange={handleIndustrySelectionChange}
+                  onSelectionChange={(keys) => {
+                    handleIndustrySelectionChange(keys);
+                    // Don't close dropdown on selection to allow multiple selections
+                  }}
                   isDisabled={selectedCities.size === 0}
+                  onOpenChange={setIsIndustryDropdownOpen}
+                  isOpen={isIndustryDropdownOpen}
                 >
                   {availableSortedIndustries.map((industry) => (
                     <SelectItem key={industry.name} textValue={industry.name}>
@@ -474,19 +509,19 @@ export function AnalyticsView() {
                     </SelectItem>
                   ))}
                 </Select>
-              </div>
 
-              {selectedIndustryNames.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="danger"
-                  className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap"
-                  onPress={handleClearAllIndustries}
-                >
-                  Clear
-                </Button>
-              )}
+                {selectedIndustryNames.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    color="danger"
+                    className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
+                    onPress={handleClearAllIndustries}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -494,9 +529,7 @@ export function AnalyticsView() {
           <div className="flex flex-col md:flex-row gap-3">
             <div className="w-full md:w-1/2">
               {showMaxCityWarning && (
-                <p className="text-danger text-xs">
-                  Maximum of {MAX_SELECTED_CITIES} cities can be selected.
-                </p>
+                <p className="text-tiny text-danger">Max {MAX_SELECTED_CITIES} cities allowed.</p>
               )}
             </div>
             <div className="w-full md:w-1/2">
@@ -584,6 +617,8 @@ export function AnalyticsView() {
                 popoverProps={{
                   className: 'min-w-[200px]', // Set minimum width for the dropdown popover
                 }}
+                onOpenChange={setIsFocusCityDropdownOpen}
+                isOpen={isFocusCityDropdownOpen}
               >
                 {Array.from(selectedCities)
                   .sort()
@@ -614,6 +649,28 @@ export function AnalyticsView() {
               </p>
             ) : (
               <p className="text-center text-default-500">Select a city first.</p>
+            )}
+          </CardBody>
+        </Card>
+
+        {/* Top Cities Card */}
+        <Card className="border border-default-200">
+          <CardHeader className="flex justify-between items-center px-3 sm:px-6">
+            <h2 className="text-lg font-bold">Top Cities by Active Company Count</h2>
+          </CardHeader>
+          <Divider className="my-1 sm:my-2" />
+          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
+            {loadingTopCities ? (
+              <Spinner />
+            ) : topCitiesData && topCitiesData.length > 0 ? (
+              <TopCitiesChart
+                data={topCitiesData}
+                currentTheme={currentTheme}
+                onCitySelect={handleTopCitySelect}
+                selectedCities={selectedCities}
+              />
+            ) : (
+              <p className="text-center text-default-500">Could not load top cities data.</p>
             )}
           </CardBody>
         </Card>
@@ -664,23 +721,6 @@ export function AnalyticsView() {
               <p className="text-center text-default-500">
                 No comparison data available for the selected cities and industries.
               </p>
-            )}
-          </CardBody>
-        </Card>
-
-        {/* Top Cities Card */}
-        <Card className="border border-default-200">
-          <CardHeader className="flex justify-between items-center px-3 sm:px-6">
-            <h2 className="text-lg font-bold">Top Cities by Active Company Count</h2>
-          </CardHeader>
-          <Divider className="my-1 sm:my-2" />
-          <CardBody className="px-2 sm:px-6 py-2 sm:py-4 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
-            {loadingTopCities ? (
-              <Spinner />
-            ) : topCitiesData && topCitiesData.length > 0 ? (
-              <TopCitiesChart data={topCitiesData} onCityClick={handleTopCitySelect} />
-            ) : (
-              <p className="text-center text-default-500">Could not load top cities data.</p>
             )}
           </CardBody>
         </Card>

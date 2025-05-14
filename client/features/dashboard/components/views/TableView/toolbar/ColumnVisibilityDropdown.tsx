@@ -54,7 +54,7 @@ export function ColumnVisibilityDropdown() {
   // Reset columns to default
   const handleResetColumns = useCallback(() => {
     resetColumns();
-    setIsOpen(false);
+    // Don't close dropdown after reset to allow users to see the changes
   }, [resetColumns]);
 
   // Close dropdown on window resize
@@ -71,7 +71,7 @@ export function ColumnVisibilityDropdown() {
   return (
     <Dropdown
       isOpen={isOpen}
-      onOpenChange={setIsOpen}
+      onOpenChange={(open) => setIsOpen(open)}
       closeOnSelect={false}
       onKeyDown={handleKeyDown}
       classNames={{

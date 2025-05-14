@@ -1,12 +1,14 @@
-import type {
-  AddressType as CompanyAddressType,
-  CompanyProperties,
-  Coordinates,
-} from '@/features/dashboard/types/business';
+import {
+  Address,
+  AddressTypeEnum,
+  type Coordinates,
+  getCoordinates,
+} from '@/features/dashboard/types/addressTypes';
+import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 
 // Extended address type that includes 'Default' for companies without coordinates
-export type AddressType = CompanyAddressType | 'Default';
+export type AddressType = AddressTypeEnum | 'Default';
 
 /**
  * Calculates distance in kilometers between two coordinates explicitly
@@ -74,27 +76,28 @@ export function transformCompanyGeoJSON(
     const props = feature.properties;
 
     // Get both address types
-    const visiting = props.addresses?.['Visiting address'];
-    const postal = props.addresses?.['Postal address'];
+    const visiting = props.addresses?.[AddressTypeEnum.VISITING];
+    const postal = props.addresses?.[AddressTypeEnum.POSTAL];
+
+    // Use getCoordinates utility to safely extract coordinates
+    const visitingCoords = getCoordinates(visiting);
+    const postalCoords = getCoordinates(postal);
 
     // Check if addresses are the same (based on coordinates)
     const sameAddress =
-      visiting?.latitude === postal?.latitude &&
-      visiting?.longitude === postal?.longitude &&
-      visiting?.latitude !== undefined &&
-      visiting?.longitude !== undefined;
+      visitingCoords && postalCoords && coordinatesEqual(visitingCoords, postalCoords);
 
     // Case 1: If addresses are the same, use postal address
-    if (sameAddress && postal?.latitude && postal?.longitude) {
+    if (sameAddress && postalCoords) {
       features.push({
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [postal.longitude, postal.latitude],
+          coordinates: [postalCoords.longitude, postalCoords.latitude],
         },
         properties: {
           ...props,
-          addressType: 'Postal address',
+          addressType: AddressTypeEnum.POSTAL,
         },
       });
       continue;
@@ -103,37 +106,37 @@ export function transformCompanyGeoJSON(
     // Case 2: If addresses are different, add both (if they have coordinates)
 
     // Add visiting address
-    if (visiting?.latitude && visiting?.longitude) {
+    if (visitingCoords) {
       features.push({
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [visiting.longitude, visiting.latitude],
+          coordinates: [visitingCoords.longitude, visitingCoords.latitude],
         },
         properties: {
           ...props,
-          addressType: 'Visiting address',
+          addressType: AddressTypeEnum.VISITING,
         },
       });
     }
 
     // Add postal address
-    if (postal?.latitude && postal?.longitude) {
+    if (postalCoords) {
       features.push({
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [postal.longitude, postal.latitude],
+          coordinates: [postalCoords.longitude, postalCoords.latitude],
         },
         properties: {
           ...props,
-          addressType: 'Postal address',
+          addressType: AddressTypeEnum.POSTAL,
         },
       });
     }
 
     // If neither address has coordinates (should not happen based on your description)
-    if (!visiting?.latitude && !visiting?.longitude && !postal?.latitude && !postal?.longitude) {
+    if (!visitingCoords && !postalCoords) {
       console.warn(`Company ${props.company_name} has no valid coordinates`);
     }
   }

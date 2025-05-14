@@ -1,5 +1,6 @@
 'use client';
 
+import { type Address, AddressTypeEnum } from '@/features/dashboard/types/addressTypes';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { Button, Card, CardBody, CardHeader, Chip, Divider, ScrollShadow } from '@heroui/react';
 import { Icon } from '@iconify/react';
@@ -19,20 +20,12 @@ interface FeatureCardListProps {
   onCollapseChange?: (collapsed: boolean) => void;
 }
 
-interface AddressDetail {
-  street?: string;
-  building_number?: string;
-  entrance?: string;
-  postal_code?: string;
-  city?: string;
-  post_office?: string;
-  latitude?: number;
-  longitude?: number;
-}
+// Use our shared Address type from the addressTypes.ts file
+type AddressDetail = Address;
 
 interface AddressMap {
-  'Visiting address'?: AddressDetail;
-  'Postal address'?: AddressDetail;
+  [AddressTypeEnum.VISITING]?: AddressDetail;
+  [AddressTypeEnum.POSTAL]?: AddressDetail;
   [key: string]: AddressDetail | undefined;
 }
 
@@ -387,8 +380,8 @@ export function FeatureCardList({
                       }
                     }
 
-                    const visiting = rawAddresses['Visiting address'];
-                    const postal = rawAddresses['Postal address'];
+                    const visiting = rawAddresses[AddressTypeEnum.VISITING];
+                    const postal = rawAddresses[AddressTypeEnum.POSTAL];
                     const coordsDiffer = areCoordinatesDifferent(visiting, postal);
 
                     if (!visiting && !postal) {
