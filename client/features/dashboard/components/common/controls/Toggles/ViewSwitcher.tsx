@@ -1,7 +1,6 @@
 'use client';
 
-import { FeatureErrorBoundary } from '@/shared/components/error';
-import { ErrorDisplay } from '@/shared/components/error';
+import { ErrorDisplay, FeatureErrorBoundary } from '@/shared/components/error';
 import { ChartSkeleton, MapSkeleton } from '@/shared/components/loading';
 import type { FeatureCollection, Point } from 'geojson';
 import { Suspense, lazy, memo, useCallback, useMemo } from 'react';
@@ -10,7 +9,7 @@ import type {
   SortDescriptor,
   TableColumnConfig,
   ViewMode,
-} from '../../../types';
+} from '../../../../types';
 
 // Define the ViewSwitcherProps type with all required properties
 export interface ViewSwitcherProps {
@@ -21,7 +20,9 @@ export interface ViewSwitcherProps {
   columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;
+  totalItems?: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   isLoading: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -35,9 +36,11 @@ export interface ViewSwitcherProps {
 
 // Lazy load components for code splitting - with dynamic import for better Next.js compatibility
 const AnalyticsView = lazy(() =>
-  import('@/features/dashboard/components/views/AnalyticsView/AnalyticsView').then((module) => ({
-    default: module.AnalyticsView,
-  })),
+  import('@/features/dashboard/components/views/AnalyticsView/AnalyticsViewProvider').then(
+    (module) => ({
+      default: module.AnalyticsViewProvider,
+    }),
+  ),
 );
 
 const MapView = lazy(() =>
@@ -64,6 +67,7 @@ function ViewSwitcherBase({
   currentPage,
   totalPages,
   onPageChange,
+  onPageSizeChange,
   isLoading,
   searchTerm,
   setSearchTerm,
@@ -72,6 +76,7 @@ function ViewSwitcherBase({
   allFilteredData,
   selectedBusinesses,
   pageSize,
+  totalItems,
 }: ViewSwitcherProps) {
   // Memoize the table view rendering to prevent unnecessary re-renders
   const renderTableView = useCallback(
@@ -82,7 +87,9 @@ function ViewSwitcherBase({
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalItems={totalItems}
         onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
         isLoading={isLoading}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -97,7 +104,9 @@ function ViewSwitcherBase({
       columns,
       currentPage,
       totalPages,
+      totalItems,
       onPageChange,
+      onPageSizeChange,
       isLoading,
       searchTerm,
       setSearchTerm,

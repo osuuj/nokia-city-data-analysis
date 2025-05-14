@@ -1,8 +1,8 @@
 'use client';
 
+import { DashboardHeader } from '@/features/dashboard/components/common/controls/DashboardHeader';
+import { ViewSwitcher } from '@/features/dashboard/components/common/controls/Toggles/ViewSwitcher';
 import { DashboardLoadingState } from '@/features/dashboard/components/common/loading/DashboardLoadingState';
-import { DashboardHeader } from '@/features/dashboard/components/controls/DashboardHeader';
-import { ViewSwitcher } from '@/features/dashboard/components/controls/Toggles/ViewSwitcher';
 import { columns as allColumns } from '@/features/dashboard/config/columns';
 import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
 import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
@@ -21,8 +21,6 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 // Default rows per page
 const DEFAULT_PAGE_SIZE = 20;
-// Maximum allowed page size
-const MAX_PAGE_SIZE = 50;
 
 /**
  * Main dashboard page component
@@ -50,7 +48,6 @@ export function DashboardPage() {
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
@@ -69,22 +66,6 @@ export function DashboardPage() {
       router.replace(`/dashboard?city=${encodeURIComponent(city)}`);
     },
     [setSelectedCity, router],
-  );
-
-  // Handle page size change with useCallback
-  const handlePageSizeChange = useCallback(
-    (newSize: number) => {
-      // Enforce maximum page size limit
-      const safeSize = Math.min(newSize, MAX_PAGE_SIZE);
-
-      // Calculate new page to keep approximately the same records visible
-      const firstItemIndex = (page - 1) * pageSize;
-      const newPage = Math.floor(firstItemIndex / safeSize) + 1;
-
-      setPageSize(safeSize);
-      setPage(newPage);
-    },
-    [page, pageSize],
   );
 
   // Memoize the page change handler
@@ -151,20 +132,13 @@ export function DashboardPage() {
     isFetching,
   });
 
-  // Pagination using the new hook
+  // Pagination using the enhanced hook
   const { paginated, totalPages } = useDashboardPagination({
     tableRows: filteredCompanies,
     currentPage: page,
     pageSize: pageSize,
     setCurrentPage: setPage,
   });
-
-  // Get filtered cities for autocomplete
-  const filteredCities = useMemo(() => {
-    return cities
-      .filter((city: string) => city.toLowerCase().includes(searchQuery.toLowerCase()))
-      .map((city: string) => ({ name: city }));
-  }, [cities, searchQuery]);
 
   // Create GeoJSON with proper transformation
   const geojsonData = useMemo(() => {
@@ -212,15 +186,11 @@ export function DashboardPage() {
       <DashboardHeader
         viewMode={viewMode}
         setViewMode={setViewMode}
-        cities={filteredCities}
         selectedCity={selectedCity}
         onCityChange={handleCityChange}
-        cityLoading={cityLoading}
-        searchTerm={searchQuery}
-        onSearchChange={setSearchQuery}
       />
     ),
-    [viewMode, filteredCities, selectedCity, handleCityChange, cityLoading, searchQuery],
+    [viewMode, selectedCity, handleCityChange],
   );
 
   // Memoize view switcher component to prevent re-renders

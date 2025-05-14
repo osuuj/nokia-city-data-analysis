@@ -3,7 +3,14 @@
 import { CitySearch } from '@/features/dashboard/components/common/CitySearch/CitySearch';
 import { getThemedIndustryColor, useChartTheme } from '@/features/dashboard/hooks/useChartTheme';
 import { useCitySelection } from '@/features/dashboard/hooks/useCitySelection';
-import { filters } from '@/features/dashboard/utils/filters'; // Import filters config
+import { filters } from '@/features/dashboard/utils/filters';
+import {
+  useCityComparison,
+  useIndustriesByCity,
+  useIndustryDistribution,
+  useTopCities,
+} from '@/shared/hooks/api/useAnalytics';
+import { useCities } from '@/shared/hooks/api/useData';
 import {
   Button,
   Card,
@@ -17,147 +24,42 @@ import {
   Tooltip,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import type React from 'react';
-import { useMemo, useState } from 'react';
-import useSWR from 'swr';
+import { useCallback, useMemo, useState } from 'react';
 import { CityComparison, CityIndustryBars, IndustryDistribution, TopCitiesChart } from './cards';
 
-export interface TopCityData {
-  city: string;
-  count: number;
-}
-
-// Smart default URL based on environment
-const isProd = process.env.NODE_ENV === 'production';
-const PROD_DEFAULT = 'https://api.osuuj.ai';
-const DEV_DEFAULT = 'http://localhost:8000';
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
-
-// Enhanced fetcher to handle different API response formats
-const fetcher = async (url: string) => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Ensure array data format is returned
-    if (url.includes('/industry-distribution')) {
-      // Handle industry distribution specific format
-      if (!data) {
-        console.error('Industry distribution response is empty');
-        return [];
-      }
-
-      if (!Array.isArray(data)) {
-        console.warn('Industry distribution response is not an array, fixing format:', data);
-        // If data is an object with a data property that's an array, use that
-        if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
-          return data.data;
-        }
-        // If it's a single object, wrap it in an array
-        if (data && typeof data === 'object') {
-          return [data];
-        }
-        return [];
-      }
-
-      // Validate that each item has required properties
-      return data.map((item, index) => {
-        if (!item || typeof item !== 'object') {
-          console.warn(`Invalid industry item at index ${index}:`, item);
-          return { name: `Unknown-${index}`, value: 0 };
-        }
-        return item;
-      });
-    }
-
-    // For other endpoints, ensure they return arrays
-    if (
-      url.includes('/top-cities') ||
-      url.includes('/city-comparison') ||
-      url.includes('/industries-by-city')
-    ) {
-      if (!Array.isArray(data)) {
-        console.warn(`Expected array response from ${url}, got:`, typeof data);
-        return [];
-      }
-    }
-
-    return data;
-  } catch (error) {
-    console.error(`Error fetching from ${url}:`, error);
-    // Return appropriate empty data structure based on endpoint
-    if (url.includes('/top-cities')) return [];
-    if (url.includes('/industry-distribution')) return [];
-    if (url.includes('/city-comparison')) return [];
-    if (url.includes('/industries-by-city')) return [];
-    return [];
-  }
-};
-
-// Define the name for the grouped category from backend
-const OTHER_CATEGORY_NAME_FROM_BACKEND = 'Other';
-const OTHER_CATEGORY_DISPLAY_NAME = 'Others'; // How to display it
-
-// Helper function to get industry name from letter or handle "Other"
-const getIndustryName = (key: string, map: Map<string, string>): string => {
-  if (key === OTHER_CATEGORY_NAME_FROM_BACKEND) {
-    return OTHER_CATEGORY_DISPLAY_NAME;
-  }
-  return map.get(key) || key; // Return letter if name not found (shouldn't happen for priority)
-};
-
+// Constants
 const MAX_SELECTED_CITIES = 5;
 const MAX_SELECTED_INDUSTRIES = 5;
+const OTHER_CATEGORY_NAME_FROM_BACKEND = 'Other';
+const OTHER_CATEGORY_DISPLAY_NAME = 'Others';
 
-// --- Type Definitions ---
-// Type for data coming from /industries-by-city and /city-comparison (after backend processing)
-// Keys will be city names or industry letters/'Other'
-type PivotedData = Array<Record<string, string | number>>; // Allow string (for city/industry name) or number (for counts)
-// Type for data from /industry-distribution (after backend processing)
-type DistributionItemRaw = {
-  name: string;
-  value: number;
-  others_breakdown?: Array<{ name: string; value: number }>; // Optional breakdown
-};
-type DistributionDataRaw = Array<DistributionItemRaw>;
-// Type for transformed data passed to charts (display names used)
+// Type definitions
 type TransformedIndustriesByCity = {
   city: string;
   [key: string]: string | number; // Allow string for city, number for others
 };
+
 type TransformedCityComparison = {
   industry: string;
   [key: string]: string | number; // Allow string for industry, number for others
 };
-type TransformedDistribution = Array<{ name: string; value: number }>;
 
-// Define interface for filter and option to fix type issues
-interface FilterItem {
-  key: string;
-  title: string;
-  options?: Array<{
-    title: string;
-    value: string;
-    description?: string;
-    icon?: string;
-    color?: string | { light: string; dark: string };
-  }>;
-}
-
-export const AnalyticsView: React.FC = () => {
-  // Use useChartTheme to get currentTheme
+/**
+ * AnalyticsView component that uses React Query hooks
+ *
+ * Key features:
+ * - Uses the centralized API hooks from shared/hooks/api
+ * - Implements proper caching with React Query
+ * - Better error handling and loading states
+ * - Consistent data fetching approach with the rest of the application
+ * - More efficient data transformations with proper memoization
+ */
+export function AnalyticsView() {
+  // Theme
   const { currentTheme } = useChartTheme();
 
-  // Move this after allCities is defined
-  const { data: allCities = [], isLoading: citiesLoading } = useSWR<string[]>(
-    `${BASE_URL}/api/v1/cities`,
-    fetcher,
-    { fallbackData: [] },
-  );
+  // Fetch cities using our React Query hook
+  const { data: allCities = [], isLoading: citiesLoading } = useCities();
 
   // Use our custom hook for city selection management
   const {
@@ -183,14 +85,14 @@ export const AnalyticsView: React.FC = () => {
     },
   });
 
-  // State for selected industries (store letters: 'A', 'C', etc.)
+  // Industry selection state
   const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
   const [showMaxIndustryWarning, setShowMaxIndustryWarning] = useState(false);
 
   // Create industry letter -> name map
   const industryNameMap = useMemo(() => {
     const map = new Map<string, string>();
-    const industryFilter = filters.find((f: FilterItem) => f.key === 'industries');
+    const industryFilter = filters.find((f) => f.key === 'industries');
     if (industryFilter?.options) {
       for (const opt of industryFilter.options) {
         map.set(opt.value, opt.title);
@@ -199,85 +101,188 @@ export const AnalyticsView: React.FC = () => {
     return map;
   }, []);
 
-  // Get the correct color based on theme and industry display name
-  const getIndustryColor = (industryName: string): string => {
-    const industryKey = getIndustryKeyFromName(industryName);
-    return getThemedIndustryColor(industryName, industryKey, filters, currentTheme);
+  // Helper function to get industry name from letter - MEMOIZED
+  const getIndustryName = useCallback(
+    (key: string): string => {
+      if (key === OTHER_CATEGORY_NAME_FROM_BACKEND) {
+        return OTHER_CATEGORY_DISPLAY_NAME;
+      }
+      return industryNameMap.get(key) || key;
+    },
+    [industryNameMap],
+  );
+
+  // Helper to get industry key from name - MEMOIZED
+  const getIndustryKeyFromName = useCallback(
+    (displayName: string): string | undefined => {
+      if (displayName === OTHER_CATEGORY_DISPLAY_NAME) {
+        return OTHER_CATEGORY_NAME_FROM_BACKEND;
+      }
+
+      // Reverse lookup in our map
+      for (const [key, name] of industryNameMap.entries()) {
+        if (name === displayName) {
+          return key;
+        }
+      }
+
+      return undefined;
+    },
+    [industryNameMap],
+  );
+
+  // Get industry icon path with proper fallback
+  const getIndustryIconPath = useCallback(
+    (industryName: string): string => {
+      // Special case for Others/Other category to avoid 404
+      if (
+        industryName === OTHER_CATEGORY_DISPLAY_NAME ||
+        industryName === OTHER_CATEGORY_NAME_FROM_BACKEND
+      ) {
+        return `/industries-${currentTheme || 'light'}/broken.svg`;
+      }
+
+      const key = getIndustryKeyFromName(industryName);
+      return `/industries-${currentTheme || 'light'}/${key || 'broken'}.svg`;
+    },
+    [getIndustryKeyFromName, currentTheme],
+  );
+
+  // Get industry color based on theme
+  const getIndustryColor = useCallback(
+    (industryName: string): string => {
+      const industryKey = getIndustryKeyFromName(industryName);
+      return getThemedIndustryColor(industryName, industryKey, filters, currentTheme);
+    },
+    [getIndustryKeyFromName, currentTheme],
+  );
+
+  // Handlers for industry selection
+  const handleIndustrySelectionChange = (keys: unknown) => {
+    if (!(keys instanceof Set)) return;
+    const currentSelectionKeys = keys as Set<React.Key>;
+
+    const namesToStore: string[] = [];
+    for (const key of currentSelectionKeys) {
+      if (typeof key === 'string') namesToStore.push(key);
+    }
+
+    if (namesToStore.length <= MAX_SELECTED_INDUSTRIES) {
+      setSelectedIndustryNames(namesToStore);
+      setShowMaxIndustryWarning(false);
+    } else {
+      setShowMaxIndustryWarning(true);
+      setTimeout(() => setShowMaxIndustryWarning(false), 3000);
+    }
   };
 
-  // Determine URL for Industry Distribution fetch
+  const handleIndustrySelectionRemove = (industryNameToRemove: string) => {
+    setSelectedIndustryNames((prev) => prev.filter((name) => name !== industryNameToRemove));
+    setShowMaxIndustryWarning(false);
+  };
+
+  const handleClearAllIndustries = () => {
+    setSelectedIndustryNames([]);
+    setShowMaxIndustryWarning(false);
+  };
+
+  // Get city arrays for queries
+  const selectedCitiesArray = useMemo(() => {
+    return Array.from(selectedCities);
+  }, [selectedCities]);
+
+  // Determine URL for industry distribution fetch based on selection
   const distributionFetchUrl = useMemo(() => {
     if (selectedCities.size === 1) {
-      const city = Array.from(selectedCities)[0];
-      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(city)}`;
+      return selectedCitiesArray[0];
     }
     if (selectedCities.size > 1 && pieChartFocusCity) {
-      // Fetch only for the focused city when multiple are selected
-      return `${BASE_URL}/api/v1/analytics/industry-distribution?cities=${encodeURIComponent(pieChartFocusCity)}`;
+      return pieChartFocusCity;
     }
-    return null; // Don't fetch if 0 or >1 selected without focus
-  }, [selectedCities, pieChartFocusCity]);
+    return null;
+  }, [selectedCities, selectedCitiesArray, pieChartFocusCity]);
 
-  // Only fetch multi-city data if 1 to MAX_SELECTED_CITIES are selected
+  // Fetch data using React Query hooks
+  const { data: industryDistributionData = [], isLoading: loadingIndustryDistribution } =
+    useIndustryDistribution(distributionFetchUrl);
+
+  const { data: industriesByCityData = [], isLoading: loadingIndustriesByCity } =
+    useIndustriesByCity(selectedCitiesArray);
+
+  const { data: cityComparisonData = [], isLoading: loadingCityComparison } =
+    useCityComparison(selectedCitiesArray);
+
+  const { data: topCitiesData = [], isLoading: loadingTopCities } = useTopCities();
+
+  // Only fetch multi-city data if at least one city is selected
   const canFetchMultiCity = selectedCities.size > 0 && selectedCities.size <= MAX_SELECTED_CITIES;
-  const multiCityQueryParam = canFetchMultiCity ? Array.from(selectedCities).join(',') : null;
 
-  // --- Fetch Raw Data ---
-  const { data: rawIndustryDistributionData, isLoading: loadingIndustryDistribution } =
-    useSWR<DistributionDataRaw>(
-      distributionFetchUrl, // Use dynamic URL
-      fetcher,
-      { fallbackData: [] },
-    );
+  // Determine overall loading state
+  const isMultiCityLoading = loadingIndustriesByCity || loadingCityComparison;
+  const isTopCityLoading = loadingTopCities;
+  const isLoading =
+    (!!distributionFetchUrl && loadingIndustryDistribution) ||
+    (canFetchMultiCity && isMultiCityLoading) ||
+    isTopCityLoading ||
+    citiesLoading;
 
-  const { data: rawIndustriesByCityData, isLoading: loadingIndustriesByCity } = useSWR<PivotedData>(
-    // Use multiCityQueryParam - runs only if 1-5 cities selected
-    multiCityQueryParam
-      ? `${BASE_URL}/api/v1/analytics/industries-by-city?cities=${multiCityQueryParam}`
-      : null,
-    fetcher,
-    { fallbackData: [] },
-  );
+  // Determine placeholder message for the main grid area
+  let gridPlaceholderMessage = '';
+  if (!isLoading && selectedCities.size === 0) {
+    gridPlaceholderMessage = 'Please select one or more cities to view analytics.';
+  }
 
-  const { data: rawCityComparisonData, isLoading: loadingCityComparison } = useSWR<PivotedData>(
-    // Use multiCityQueryParam - runs only if 1-5 cities selected
-    multiCityQueryParam
-      ? `${BASE_URL}/api/v1/analytics/city-comparison?cities=${multiCityQueryParam}`
-      : null,
-    fetcher,
-    { fallbackData: [] },
-  );
+  // Get available sorted industries to know which to display by default
+  const availableSortedIndustries = useMemo(() => {
+    if (!industriesByCityData || industriesByCityData.length === 0) return [];
 
-  // Top cities fetch
-  const { data: topCitiesData, isLoading: loadingTopCities } = useSWR<TopCityData[]>(
-    `${BASE_URL}/api/v1/analytics/top-cities?limit=10`,
-    fetcher,
-    { fallbackData: [] },
-  );
+    const industryTotals: Record<string, number> = {};
+    const industryKeys = new Set<string>();
 
-  // --- Transform Data for Charts ---
-  const industryDistributionDataAll: TransformedDistribution = useMemo(() => {
-    if (!rawIndustryDistributionData) return [];
-
-    // Check if rawIndustryDistributionData is an array
-    if (!Array.isArray(rawIndustryDistributionData)) {
-      console.error(
-        'Expected rawIndustryDistributionData to be an array but got:',
-        typeof rawIndustryDistributionData,
-      );
-      return []; // Return empty array as fallback
+    // Sum counts for each industry across all selected cities
+    for (const cityData of industriesByCityData) {
+      for (const key of Object.keys(cityData)) {
+        if (key !== 'city') {
+          const industryName = getIndustryName(key);
+          industryKeys.add(industryName);
+          industryTotals[industryName] =
+            (industryTotals[industryName] || 0) + (Number(cityData[key]) || 0);
+        }
+      }
     }
 
-    // Validate and transform each item
-    return rawIndustryDistributionData.map((item, index) => {
+    // Convert to array and sort
+    return Array.from(industryKeys)
+      .map((name) => ({ name, total: industryTotals[name] }))
+      .sort((a, b) => b.total - a.total);
+  }, [industriesByCityData, getIndustryName]);
+
+  // Select the top industries by default if none selected
+  const selectedIndustryDisplayNames = useMemo(() => {
+    if (selectedIndustryNames.length > 0) {
+      return new Set(selectedIndustryNames);
+    }
+    if (selectedCities.size > 0 && availableSortedIndustries.length > 0) {
+      return new Set(
+        availableSortedIndustries.slice(0, MAX_SELECTED_INDUSTRIES).map((i) => i.name),
+      );
+    }
+    return new Set<string>();
+  }, [selectedIndustryNames, availableSortedIndustries, selectedCities]);
+
+  // Transform industry distribution data for our component
+  const industryDistributionDataAll = useMemo(() => {
+    if (!industryDistributionData) return [];
+
+    return industryDistributionData.map((item, index) => {
       // Ensure the item is valid
       if (!item || typeof item !== 'object') {
         console.warn(`Invalid industry item at index ${index}:`, item);
         return { name: `Unknown-${index}`, value: 0 };
       }
 
-      // Get name with fallback
-      const name = item.name ? getIndustryName(item.name, industryNameMap) : `Unknown-${index}`;
+      // Get name with proper mapping
+      const name = item.name ? getIndustryName(item.name) : `Unknown-${index}`;
 
       // Ensure value is a number
       const value =
@@ -291,96 +296,36 @@ export const AnalyticsView: React.FC = () => {
         value,
       };
     });
-  }, [rawIndustryDistributionData, industryNameMap]);
+  }, [industryDistributionData, getIndustryName]);
 
-  const industriesByCityDataAll: TransformedIndustriesByCity[] = useMemo(() => {
-    if (!rawIndustriesByCityData) return [];
+  // Filter Industry Distribution data based on selected industries
+  const filteredIndustryDistributionData = useMemo(() => {
+    if (!industryDistributionDataAll) return [];
+    return industryDistributionDataAll.filter((item) =>
+      selectedIndustryDisplayNames.has(item.name),
+    );
+  }, [industryDistributionDataAll, selectedIndustryDisplayNames]);
 
-    // Check if rawIndustriesByCityData is an array
-    if (!Array.isArray(rawIndustriesByCityData)) {
-      console.error(
-        'Expected rawIndustriesByCityData to be an array but got:',
-        typeof rawIndustriesByCityData,
-      );
-      return []; // Return empty array as fallback
-    }
+  // Transform data for City Industry Bars chart
+  const industriesByCityDataAll = useMemo(() => {
+    if (!industriesByCityData) return [];
 
-    return rawIndustriesByCityData.map((cityData) => {
+    return industriesByCityData.map((cityData) => {
       // Cast initial object
       const transformedData = { city: cityData.city as string } as TransformedIndustriesByCity;
       for (const key of Object.keys(cityData)) {
         if (key !== 'city') {
+          // Get proper industry name
+          const industryName = getIndustryName(key);
           // Values associated with industry keys should be numbers
-          transformedData[getIndustryName(key, industryNameMap)] = Number(cityData[key]) || 0;
+          transformedData[industryName] = Number(cityData[key]) || 0;
         }
       }
       return transformedData;
     });
-  }, [rawIndustriesByCityData, industryNameMap]);
+  }, [industriesByCityData, getIndustryName]);
 
-  const cityComparisonDataAll: TransformedCityComparison[] = useMemo(() => {
-    if (!rawCityComparisonData) return [];
-
-    // Check if rawCityComparisonData is an array
-    if (!Array.isArray(rawCityComparisonData)) {
-      console.error(
-        'Expected rawCityComparisonData to be an array but got:',
-        typeof rawCityComparisonData,
-      );
-      return []; // Return empty array as fallback
-    }
-
-    return rawCityComparisonData.map((item) => {
-      // Cast initial object
-      const transformedData = {
-        industry: getIndustryName(item.industry as string, industryNameMap),
-      } as TransformedCityComparison;
-      for (const key of Object.keys(item)) {
-        if (key !== 'industry') {
-          // Values associated with city keys should be numbers
-          transformedData[key] = Number(item[key]) || 0;
-        }
-      }
-      return transformedData;
-    });
-  }, [rawCityComparisonData, industryNameMap]);
-
-  // Calculate available industries and sort them by total count across selected cities
-  const availableSortedIndustries = useMemo(() => {
-    if (!industriesByCityDataAll || industriesByCityDataAll.length === 0) return [];
-
-    const industryTotals: Record<string, number> = {};
-    const industryKeys = new Set<string>();
-
-    // Sum counts for each industry across all selected cities
-    for (const cityData of industriesByCityDataAll) {
-      // Use for...of
-      for (const key of Object.keys(cityData)) {
-        // Use for...of
-        if (key !== 'city') {
-          industryKeys.add(key);
-          // Ensure value is treated as number before adding
-          industryTotals[key] = (industryTotals[key] || 0) + (Number(cityData[key]) || 0);
-        }
-      }
-    }
-
-    // Convert to array and sort
-    return Array.from(industryKeys)
-      .map((name) => ({ name, total: industryTotals[name] }))
-      .sort((a, b) => b.total - a.total);
-  }, [industriesByCityDataAll]);
-
-  // Find corresponding key (letter or 'Other') for a given display name
-  const getIndustryKeyFromName = (displayName: string): string | undefined => {
-    if (displayName === OTHER_CATEGORY_DISPLAY_NAME) return OTHER_CATEGORY_NAME_FROM_BACKEND;
-    for (const [key, value] of industryNameMap.entries()) {
-      if (value === displayName) return key;
-    }
-    return undefined;
-  };
-
-  // Filter the data for the bar chart based on selected industries
+  // Filter Industries by City data based on selected industries
   const filteredIndustriesByCityData = useMemo(() => {
     if (!industriesByCityDataAll || industriesByCityDataAll.length === 0) return [];
 
@@ -399,7 +344,6 @@ export const AnalyticsView: React.FC = () => {
       // Cast initial object
       const filteredData = { city: cityData.city } as TransformedIndustriesByCity;
       for (const industryName of keysToShow) {
-        // Use for...of
         // Check using Object.hasOwn for safety
         if (Object.hasOwn(cityData, industryName)) {
           // Ensure value is treated as number
@@ -410,77 +354,26 @@ export const AnalyticsView: React.FC = () => {
     });
   }, [industriesByCityDataAll, selectedIndustryNames, availableSortedIndustries]);
 
-  // Handle industry selection change from Select dropdown
-  const handleIndustrySelectionChange = (keys: unknown) => {
-    if (!(keys instanceof Set)) return;
-    const currentSelectionKeys = keys as Set<React.Key>;
+  // Transform data for City Comparison chart
+  const cityComparisonDataAll = useMemo(() => {
+    if (!cityComparisonData) return [];
 
-    const namesToStore: string[] = [];
-    for (const key of currentSelectionKeys) {
-      // Use for...of
-      if (typeof key === 'string') namesToStore.push(key);
-    }
+    return cityComparisonData.map((item) => {
+      // Cast initial object
+      const transformedData = {
+        industry: getIndustryName(item.industry as string),
+      } as TransformedCityComparison;
+      for (const key of Object.keys(item)) {
+        if (key !== 'industry') {
+          // Values associated with city keys should be numbers
+          transformedData[key] = Number(item[key]) || 0;
+        }
+      }
+      return transformedData;
+    });
+  }, [cityComparisonData, getIndustryName]);
 
-    if (namesToStore.length <= MAX_SELECTED_INDUSTRIES) {
-      setSelectedIndustryNames(namesToStore); // Store the selected display names
-      setShowMaxIndustryWarning(false);
-    } else {
-      // Revert selection or just show warning
-      // To revert: setSelectedIndustryNames(selectedIndustryNames);
-      setShowMaxIndustryWarning(true);
-      setTimeout(() => setShowMaxIndustryWarning(false), 3000);
-    }
-  };
-
-  // Handle removing an industry via its Chip close button
-  const handleIndustrySelectionRemove = (industryNameToRemove: string) => {
-    setSelectedIndustryNames((prev) => prev.filter((name) => name !== industryNameToRemove));
-    setShowMaxIndustryWarning(false);
-  };
-
-  // Handle clearing all selected industries
-  const handleClearAllIndustries = () => {
-    setSelectedIndustryNames([]);
-    setShowMaxIndustryWarning(false);
-  };
-
-  // Determine overall loading state
-  const isMultiCityLoading = loadingIndustriesByCity || loadingCityComparison;
-  const isTopCityLoading = loadingTopCities;
-  const isLoading =
-    (!!distributionFetchUrl && loadingIndustryDistribution) ||
-    (canFetchMultiCity && isMultiCityLoading) ||
-    isTopCityLoading ||
-    citiesLoading;
-
-  // Determine placeholder message for the main grid area
-  let gridPlaceholderMessage = '';
-  if (!isLoading && selectedCities.size === 0) {
-    gridPlaceholderMessage = 'Please select one or more cities to view analytics.';
-  }
-
-  // --- Filtering Based on Selected Industries ---
-  const selectedIndustryDisplayNames = useMemo(() => {
-    if (selectedIndustryNames.length > 0) {
-      return new Set(selectedIndustryNames);
-    }
-    if (selectedCities.size > 0 && availableSortedIndustries.length > 0) {
-      return new Set(
-        availableSortedIndustries.slice(0, MAX_SELECTED_INDUSTRIES).map((i) => i.name),
-      );
-    }
-    return new Set<string>();
-  }, [selectedIndustryNames, availableSortedIndustries, selectedCities]);
-
-  // Filter Pie Chart Data
-  const filteredIndustryDistributionData = useMemo(() => {
-    if (!industryDistributionDataAll) return [];
-    return industryDistributionDataAll.filter((item) =>
-      selectedIndustryDisplayNames.has(item.name),
-    );
-  }, [industryDistributionDataAll, selectedIndustryDisplayNames]);
-
-  // Filter Radar Chart Data
+  // Filter City Comparison data based on selected industries
   const filteredCityComparisonData = useMemo(() => {
     if (!cityComparisonDataAll) return [];
     return cityComparisonDataAll.filter((item) => selectedIndustryDisplayNames.has(item.industry));
@@ -496,6 +389,12 @@ export const AnalyticsView: React.FC = () => {
     );
   }, [industryNameMap, selectedIndustryDisplayNames]);
 
+  // Handler for selecting a city from the TopCitiesChart
+  const handleTopCitySelect = (city: string) => {
+    handleCitySelectionAdd(city);
+  };
+
+  // --- UI LAYOUT FROM OLD VERSION ---
   return (
     <div className="w-full p-2 sm:p-4 flex flex-col gap-4">
       <div className="flex flex-col gap-4 mb-4">
@@ -526,15 +425,7 @@ export const AnalyticsView: React.FC = () => {
                     )}
                   </div>
 
-                  <CitySearch
-                    cities={filteredCitiesForSearch}
-                    selectedCity=""
-                    onCityChange={handleCitySelectionAdd}
-                    isLoading={citiesLoading}
-                    searchTerm={citySearchQuery}
-                    onSearchChange={setCitySearchQuery}
-                    className={isAtMaxCities ? 'opacity-50 pointer-events-none' : ''}
-                  />
+                  <CitySearch selectedCity="" onCityChange={handleCitySelectionAdd} />
 
                   {showMaxCityWarning && (
                     <p className="text-danger text-xs">
@@ -552,7 +443,7 @@ export const AnalyticsView: React.FC = () => {
                           variant="flat"
                           color="primary"
                           size="sm"
-                          className="my-1"
+                          className={`my-1 ${pieChartFocusCity === city ? 'border-primary' : ''}`}
                         >
                           {city}
                         </Chip>
@@ -581,8 +472,15 @@ export const AnalyticsView: React.FC = () => {
                     onSelectionChange={handleIndustrySelectionChange}
                   >
                     {availableSortedIndustries.map((industry) => (
-                      <SelectItem key={industry.name}>
-                        {`${industry.name} (${industry.total})`}
+                      <SelectItem key={industry.name} textValue={industry.name}>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={getIndustryIconPath(industry.name)}
+                            alt={industry.name}
+                            className="w-4 h-4"
+                          />
+                          <span>{`${industry.name} (${industry.total})`}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </Select>
@@ -597,6 +495,10 @@ export const AnalyticsView: React.FC = () => {
                       variant="flat"
                       color="primary"
                       size="sm"
+                      style={{
+                        backgroundColor: `${getIndustryColor(name)}40`, // Use template literal
+                        color: getIndustryColor(name),
+                      }}
                     >
                       {name}
                     </Chip>
@@ -667,6 +569,7 @@ export const AnalyticsView: React.FC = () => {
             ) : distributionFetchUrl && selectedIndustryDisplayNames.size > 0 ? (
               <IndustryDistribution
                 data={filteredIndustryDistributionData}
+                currentTheme={currentTheme}
                 getIndustryKeyFromName={getIndustryKeyFromName}
                 potentialOthers={potentialOthersIndustries}
                 industryNameMap={industryNameMap}
@@ -696,6 +599,7 @@ export const AnalyticsView: React.FC = () => {
             ) : selectedIndustryDisplayNames.size > 0 ? (
               <CityIndustryBars
                 data={filteredIndustriesByCityData}
+                currentTheme={currentTheme}
                 getIndustryKeyFromName={getIndustryKeyFromName}
                 potentialOthers={potentialOthersIndustries}
                 getThemedIndustryColor={getIndustryColor}
@@ -716,7 +620,11 @@ export const AnalyticsView: React.FC = () => {
             {loadingCityComparison ? (
               <Spinner />
             ) : selectedIndustryDisplayNames.size > 0 ? (
-              <CityComparison data={filteredCityComparisonData} />
+              <CityComparison
+                data={filteredCityComparisonData}
+                cities={selectedCitiesArray}
+                theme={currentTheme}
+              />
             ) : (
               <p className="text-center text-default-500">Select industries to compare cities.</p>
             )}
@@ -733,7 +641,7 @@ export const AnalyticsView: React.FC = () => {
             {loadingTopCities ? (
               <Spinner />
             ) : topCitiesData && topCitiesData.length > 0 ? (
-              <TopCitiesChart data={topCitiesData} />
+              <TopCitiesChart data={topCitiesData} onCityClick={handleTopCitySelect} />
             ) : (
               <p className="text-center text-default-500">Could not load top cities data.</p>
             )}
@@ -742,4 +650,4 @@ export const AnalyticsView: React.FC = () => {
       </div>
     </div>
   );
-};
+}

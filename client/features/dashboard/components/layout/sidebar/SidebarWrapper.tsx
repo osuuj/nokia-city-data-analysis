@@ -40,11 +40,6 @@ export const SidebarWrapper = () => {
     setIsCollapsed((prev) => !prev);
   };
 
-  // Handle navigation
-  const handleNavigation = (href: string) => {
-    router.push(href);
-  };
-
   if (!mounted) {
     return null; // Prevent flash of unstyled content
   }

@@ -34,12 +34,14 @@ interface TableViewProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   isLoading: boolean;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
+  totalItems?: number;
 }
 
 /**
@@ -53,12 +55,14 @@ export function TableView({
   currentPage,
   totalPages,
   onPageChange,
+  onPageSizeChange,
   isLoading,
   searchTerm,
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
   pageSize,
+  totalItems = allFilteredData?.length || 0,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
