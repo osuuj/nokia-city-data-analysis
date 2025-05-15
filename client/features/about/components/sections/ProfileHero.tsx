@@ -1,12 +1,38 @@
 'use client';
 
 import { AnimatedText } from '@/features/about/components/ui';
-import { juusoData } from '@/features/about/data/juusoData';
 import { Avatar, Button, Card, CardBody, Link, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
-export function JuusoHero() {
+type ProfileHeroProps = {
+  name: string;
+  typedStrings: string[];
+  avatarUrl: string;
+  bio: string;
+  socialLinks: Record<string, string>;
+  techIcons?: Array<{
+    name: string;
+    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  }>;
+};
+
+export function ProfileHero({
+  name,
+  typedStrings,
+  avatarUrl,
+  bio,
+  socialLinks,
+  techIcons = [],
+}: ProfileHeroProps) {
+  // Map position strings to actual CSS classes
+  const positionClasses = {
+    'top-left': '-top-4 -left-4',
+    'top-right': '-top-4 -right-4',
+    'bottom-left': '-bottom-4 -left-4',
+    'bottom-right': '-bottom-4 -right-4',
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-24 pb-16">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -27,7 +53,7 @@ export function JuusoHero() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-5xl md:text-6xl font-bold mb-4"
             >
-              Juuso
+              {name}
             </motion.h1>
 
             <AnimatedText
@@ -35,7 +61,7 @@ export function JuusoHero() {
               className="text-2xl md:text-3xl font-medium text-default-600 mb-6"
               delay={0.4}
               type="typed"
-              typedStrings={juusoData.typedStrings}
+              typedStrings={typedStrings}
             />
 
             <motion.p
@@ -44,8 +70,7 @@ export function JuusoHero() {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="text-default-600 mb-8 max-w-lg mx-auto md:mx-0"
             >
-              Crafting beautiful, responsive, and intuitive user interfaces. Passionate about design
-              systems, animations, and creating exceptional digital experiences.
+              {bio}
             </motion.p>
 
             <motion.div
@@ -81,57 +106,26 @@ export function JuusoHero() {
               transition={{ duration: 0.6, delay: 1 }}
               className="flex gap-5 mt-10 justify-center md:justify-start"
             >
-              <Tooltip content="GitHub">
-                <Button
-                  as={Link}
-                  isIconOnly
-                  href={juusoData.socialLinks.github}
-                  color="default"
-                  variant="flat"
-                  aria-label="GitHub"
+              {Object.entries(socialLinks).map(([platform, url]) => (
+                <Tooltip
+                  key={platform}
+                  content={platform.charAt(0).toUpperCase() + platform.slice(1)}
                 >
-                  <Icon icon="lucide:github" width={20} />
-                </Button>
-              </Tooltip>
-
-              <Tooltip content="LinkedIn">
-                <Button
-                  as={Link}
-                  isIconOnly
-                  href={juusoData.socialLinks.linkedin}
-                  color="default"
-                  variant="flat"
-                  aria-label="LinkedIn"
-                >
-                  <Icon icon="lucide:linkedin" width={20} />
-                </Button>
-              </Tooltip>
-
-              <Tooltip content="Twitter">
-                <Button
-                  as={Link}
-                  isIconOnly
-                  href={juusoData.socialLinks.twitter}
-                  color="default"
-                  variant="flat"
-                  aria-label="Twitter"
-                >
-                  <Icon icon="lucide:twitter" width={20} />
-                </Button>
-              </Tooltip>
-
-              <Tooltip content="Dribbble">
-                <Button
-                  as={Link}
-                  isIconOnly
-                  href={juusoData.socialLinks.dribbble}
-                  color="default"
-                  variant="flat"
-                  aria-label="Dribbble"
-                >
-                  <Icon icon="lucide:dribbble" width={20} />
-                </Button>
-              </Tooltip>
+                  <Button
+                    as={Link}
+                    isIconOnly
+                    href={url}
+                    color="default"
+                    variant="flat"
+                    aria-label={platform}
+                  >
+                    <Icon
+                      icon={platform === 'medium' ? 'lucide:book-open' : `lucide:${platform}`}
+                      width={20}
+                    />
+                  </Button>
+                </Tooltip>
+              ))}
             </motion.div>
           </div>
 
@@ -151,12 +145,12 @@ export function JuusoHero() {
                     className="flex justify-center"
                   >
                     <Avatar
-                      src={juusoData.avatarUrl}
+                      src={avatarUrl}
                       className="w-64 h-64 text-large shadow-xl z-10"
                       isBordered
                       color="primary"
                       showFallback
-                      name="Juuso"
+                      name={name}
                     />
                   </motion.div>
 
@@ -182,42 +176,22 @@ export function JuusoHero() {
                 </CardBody>
               </Card>
 
-              {/* Tech stack floating badges */}
-              <motion.div
-                initial={{ opacity: 0, x: 20, y: 20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.5, delay: 1.2 }}
-                className="absolute -bottom-4 -right-4 bg-content1 rounded-full shadow-lg p-3 border border-content2"
-              >
-                <Icon icon="logos:react" width={24} />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20, y: 20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.5, delay: 1.4 }}
-                className="absolute -bottom-4 -left-4 bg-content1 rounded-full shadow-lg p-3 border border-content2"
-              >
-                <Icon icon="logos:typescript-icon" width={24} />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20, y: -20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.5, delay: 1.6 }}
-                className="absolute -top-4 -right-4 bg-content1 rounded-full shadow-lg p-3 border border-content2"
-              >
-                <Icon icon="logos:tailwindcss-icon" width={24} />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20, y: -20 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.5, delay: 1.8 }}
-                className="absolute -top-4 -left-4 bg-content1 rounded-full shadow-lg p-3 border border-content2"
-              >
-                <Icon icon="logos:figma" width={24} />
-              </motion.div>
+              {/* Tech stack floating badges - dynamically from props */}
+              {techIcons.map((icon) => (
+                <motion.div
+                  key={`${icon.name}-${icon.position}`}
+                  initial={{
+                    opacity: 0,
+                    x: icon.position.includes('right') ? 20 : -20,
+                    y: icon.position.includes('top') ? -20 : 20,
+                  }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  transition={{ duration: 0.5, delay: 1.2 }}
+                  className={`absolute ${positionClasses[icon.position]} bg-content1 rounded-full shadow-lg p-3 border border-content2`}
+                >
+                  <Icon icon={icon.name} width={24} />
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>

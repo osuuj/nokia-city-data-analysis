@@ -1,3 +1,11 @@
+/**
+ * About page static content
+ *
+ * NOTE: These exports are not currently used directly in the codebase.
+ * The Team component has this content hardcoded, but in the future,
+ * these could be used to make the content dynamic and data-driven.
+ */
+
 export const aboutStory = {
   title: 'Our Story',
   paragraphs: [

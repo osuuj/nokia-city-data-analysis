@@ -1,6 +1,6 @@
 'use client';
 
-import type { TeamMember } from '@/features/about/types';
+import type { TeamMember } from '@/features/about/types/types';
 import { motion } from 'framer-motion';
 import { TeamMemberCard } from './TeamMemberCard';
 
