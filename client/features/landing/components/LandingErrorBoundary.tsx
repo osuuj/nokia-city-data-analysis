@@ -1,11 +1,7 @@
 'use client';
 
+import type { LandingErrorBoundaryProps } from '@/features/landing/types';
 import { FeatureErrorBoundary } from '@/shared/components/error';
-import type { ReactNode } from 'react';
-
-interface LandingErrorBoundaryProps {
-  children: ReactNode;
-}
 
 /**
  * Error boundary specifically for the landing page.

@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC, useCallback, useEffect, useRef, useState } from 'react';
+import { type FC, useEffect, useRef, useState } from 'react';
 
 /**
  * Props for the HeroVideo component.
@@ -19,10 +19,10 @@ export interface HeroVideoProps {
  * <HeroVideo onVideoError={() => console.log('Video error')} />
  */
 export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
-  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // We always use desktop video for initial render to avoid hydration mismatches
   // Then switch to mobile if needed after client-side mounting
@@ -71,6 +71,7 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
           if (playPromise !== undefined) {
             playPromise.catch((error) => {
               console.error('Error playing video:', error);
+              handleError();
             });
           }
         }
@@ -78,7 +79,7 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
 
       const handleError = () => {
         console.error('Error loading video');
-        setVideoError(true);
+        setHasError(true);
         onVideoError();
       };
 
@@ -93,12 +94,7 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
     }
   }, [onVideoError, isMounted]);
 
-  const handleVideoError = useCallback(() => {
-    setVideoError(true);
-    onVideoError();
-  }, [onVideoError]);
-
-  if (videoError) {
+  if (hasError) {
     return null;
   }
 
@@ -120,7 +116,6 @@ export const HeroVideo: FC<HeroVideoProps> = ({ onVideoError }) => {
         preload="metadata"
         poster={posterSrc}
         className="absolute left-0 top-0 h-full w-full object-cover"
-        onError={handleVideoError}
       >
         <source src={videoSrc} type="video/mp4" />
         <track kind="captions" src={captionSrc} srcLang="en" label="English" />

@@ -6,4 +6,6 @@
 
 // Add hooks here as they are created
 
-export { useHeroAnimation } from './useHeroAnimation';
+// NOTE: This hook is currently not used in any components.
+// If animations are needed in the future, this can be uncommented.
+// export { useHeroAnimation } from './useHeroAnimation';

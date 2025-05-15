@@ -1,13 +1,12 @@
 'use client';
 
+import type { HeroProps } from '@/features/landing/types';
 import { useLoading } from '@/shared/context/loading/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-// Import components directly
-import { HeroContent } from './HeroContent';
-import { HeroSkeleton } from './HeroSkeleton';
-import { HeroVideo } from './HeroVideo';
+import { useCallback, useEffect, useRef, useState } from 'react';
+// Import components from the barrel file
+import { HeroContent, HeroVideo } from '.';
 
 /**
  * Hero Component
@@ -70,10 +69,6 @@ export const Hero = (): JSX.Element => {
     };
   }, [loading, router]);
 
-  const handleVideoError = useCallback(() => {
-    setVideoError(true);
-  }, []);
-
   // Determine background color based on theme and video availability
   const bgColor = videoError ? (resolvedTheme === 'dark' ? 'bg-black' : 'bg-white') : '';
 
@@ -85,7 +80,7 @@ export const Hero = (): JSX.Element => {
     >
       {/* Simple structure: Video at the bottom, content at the top in z-index */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <HeroVideo onVideoError={handleVideoError} />
+        <HeroVideo onVideoError={() => setVideoError(true)} />
       </div>
 
       {/* Hero content positioned absolutely over the video */}
@@ -93,20 +88,5 @@ export const Hero = (): JSX.Element => {
         <HeroContent isLoading={isLoading} onStartExploring={handleStartExploring} />
       </div>
     </header>
-  );
-};
-
-/**
- * HeroWithSuspense Component
- *
- * Wraps the Hero component with Suspense and provides a skeleton loading state.
- *
- * @returns {JSX.Element} The rendered HeroWithSuspense component.
- */
-export const HeroWithSuspense = (): JSX.Element => {
-  return (
-    <Suspense fallback={<HeroSkeleton />}>
-      <Hero />
-    </Suspense>
   );
 };

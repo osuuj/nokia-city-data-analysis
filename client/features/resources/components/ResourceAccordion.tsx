@@ -1,3 +1,8 @@
+/**
+ * @deprecated - Use CategoryAccordionItem from client/app/resources/components instead.
+ * This component will be removed in a future update.
+ */
+
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';

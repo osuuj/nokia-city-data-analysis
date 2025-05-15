@@ -1,6 +1,4 @@
-import { Hero } from '@/features/landing/components/Hero/Hero';
-import { LandingErrorBoundary } from '@/features/landing/components/LandingErrorBoundary';
-import { LandingPagePrefetcher } from '@/features/landing/components/LandingPagePrefetcher';
+import { Hero, LandingErrorBoundary, LandingPagePrefetcher } from '@/features/landing/components';
 import { StandardFallback } from '@/shared/components/loading';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
