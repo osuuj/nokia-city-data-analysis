@@ -1,6 +1,6 @@
 import { Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { Project } from '../../types';
 
 interface ProjectOverviewProps {
@@ -14,14 +14,19 @@ interface ProjectOverviewProps {
  */
 export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
   const progressValue = project.status === 'active' ? 95 : 25;
+  const prefersReducedMotion = useReducedMotion();
+
+  // Skip animation if user prefers reduced motion
+  const animationProps = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+      };
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      aria-labelledby="overview-heading"
-    >
+    <motion.section {...animationProps} aria-labelledby="overview-heading">
       <Card shadow="lg">
         <CardBody className="space-y-6 p-6 sm:p-8">
           <div className="flex items-center justify-between">

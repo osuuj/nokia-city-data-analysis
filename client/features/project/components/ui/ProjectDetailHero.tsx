@@ -1,4 +1,5 @@
 import { Badge } from '@heroui/react';
+import Image from 'next/image';
 import { useState } from 'react';
 import type { Project } from '../../types';
 
@@ -17,14 +18,18 @@ export const ProjectDetailHero = ({ project }: ProjectDetailHeroProps) => {
   return (
     <header className="relative h-[40vh] overflow-hidden" aria-label="Project hero image">
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-10" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <img
+      <div className="absolute inset-0">
+        <Image
           src={project.image}
           alt={project.title}
-          className="w-full h-full object-cover scale-110"
-          loading="eager"
-          onLoad={() => setIsLoading(false)}
+          className={`scale-110 transition-opacity duration-300 ${isLoading ? 'opacity-70' : 'opacity-100'}`}
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: 'cover' }}
+          onLoadingComplete={() => setIsLoading(false)}
         />
+        {isLoading && <div className="absolute inset-0 bg-gray-700 animate-pulse" />}
       </div>
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4">
         <Badge

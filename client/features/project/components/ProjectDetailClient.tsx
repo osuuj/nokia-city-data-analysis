@@ -1,39 +1,29 @@
 // ProjectDetailClient.tsx
 'use client';
 
+import { BasicCardSkeleton } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui';
 import { ErrorMessage } from '@shared/components/error';
 import { useBreadcrumb } from '@shared/context';
-import { useScroll, useTransform } from 'framer-motion';
+import { useScroll } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useState } from 'react';
 import type { Project } from '../types';
 import { ProjectCallToAction, ProjectDetailHero, ProjectOverview, ProjectTeamSection } from './ui';
 
-// Loading placeholder component
-const CardSkeleton = () => (
-  <div className="animate-pulse space-y-4">
-    <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg" />
-    <div className="space-y-2">
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-    </div>
-  </div>
-);
-
 // Dynamically import components with loading fallbacks
 const GalleryViewer = dynamic(() => import('./ui/GalleryViewer'), {
-  loading: () => <CardSkeleton />,
+  loading: () => <BasicCardSkeleton withImage withFooter descriptionLines={2} />,
   ssr: false,
 });
 
 const TechStackShowcase = dynamic(() => import('./ui/TechStackShowcase'), {
-  loading: () => <CardSkeleton />,
+  loading: () => <BasicCardSkeleton tagCount={5} descriptionLines={1} />,
   ssr: false,
 });
 
 const TimelineSection = dynamic(() => import('./ui/TimelineSection'), {
-  loading: () => <CardSkeleton />,
+  loading: () => <BasicCardSkeleton descriptionLines={3} />,
   ssr: false,
 });
 
@@ -106,7 +96,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             <h2 className="text-2xl font-semibold mb-6" id="tech-stack-heading">
               Technologies
             </h2>
-            <Suspense fallback={<CardSkeleton />}>
+            <Suspense fallback={<BasicCardSkeleton tagCount={5} descriptionLines={1} />}>
               <TechStackShowcase tags={project.tags} />
             </Suspense>
           </section>
@@ -118,7 +108,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             <h2 className="text-2xl font-semibold mb-6" id="gallery-heading">
               Gallery
             </h2>
-            <Suspense fallback={<CardSkeleton />}>
+            <Suspense fallback={<BasicCardSkeleton withImage withFooter descriptionLines={2} />}>
               <GalleryViewer items={galleryItems} />
             </Suspense>
           </section>
@@ -130,7 +120,7 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
             <h2 className="text-2xl font-semibold mb-6" id="timeline-heading">
               Project Timeline
             </h2>
-            <Suspense fallback={<CardSkeleton />}>
+            <Suspense fallback={<BasicCardSkeleton descriptionLines={3} />}>
               <TimelineSection
                 timeline={
                   typeof project.timeline === 'string'
