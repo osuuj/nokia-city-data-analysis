@@ -1,57 +1,8 @@
-import ContactLoadingSkeleton from '@/features/contact/components/ContactLoadingSkeleton';
+import { ContactLoadingSkeleton, ContactPageWrapper } from '@/features/contact/components';
+import { teamMembers } from '@/features/contact/data';
 import { Suspense } from 'react';
-// Server Component
-import ContactPageWrapper from '../../features/contact/components/ContactPageWrapper';
 
-// Add explicit metadata export for better SEO
-export const metadata = {
-  title: 'Contact Us | Nokia City Data',
-  description:
-    'Get in touch with the Nokia City Data team. Contact information for our developers.',
-  openGraph: {
-    title: 'Contact the Nokia City Data Team',
-    description:
-      'Get in touch with our development team for any inquiries about city data analysis.',
-  },
-};
-
-// Team member data that will be passed to the client component
-const teamMembers = [
-  {
-    name: 'Juuso Juvonen',
-    role: 'Lead Developer',
-    email: 'superjuuso@gmail.com',
-    socialLinks: [
-      {
-        icon: 'logos:linkedin-icon',
-        href: 'https://linkedin.com/in/jutoju',
-        label: 'linkedin.com/in/jutoju',
-      },
-      {
-        icon: 'logos:github-icon',
-        href: 'https://github.com/osuuj',
-        label: 'github.com/osuuj',
-      },
-    ],
-  },
-  {
-    name: 'Kasperi Rautio',
-    role: 'Developer',
-    email: 'kasperi.rautio@gmail.com',
-    socialLinks: [
-      {
-        icon: 'logos:linkedin-icon',
-        href: 'https://linkedin.com/in/kasperi-rautio',
-        label: 'linkedin.com/in/kasperi-rautio',
-      },
-      {
-        icon: 'logos:github-icon',
-        href: 'https://github.com/kasperi-r',
-        label: 'github.com/kasperi-r',
-      },
-    ],
-  },
-];
+// Note: Metadata is now handled by the dedicated metadata.ts file
 
 /**
  * Contact page component.

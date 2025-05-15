@@ -5,19 +5,9 @@ import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import type React from 'react';
 import { memo, useState } from 'react';
+import type { TeamMember } from '../types/contact-types';
 
-interface SocialLink {
-  icon: string;
-  href: string;
-  label: string;
-}
-
-export interface TeamMemberProps {
-  name: string;
-  role: string;
-  email: string;
-  socialLinks: SocialLink[];
-}
+export type TeamMemberProps = TeamMember;
 
 /**
  * TeamMemberCard Component
