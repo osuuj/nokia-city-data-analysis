@@ -1,15 +1,11 @@
-/* Add appropriate base background colors to prevent page flashes */
-:root {
-  /* Light theme base background */
-  --background-color: #f5f7fa;
-}
+/*
+ * This file is kept minimal and only references the main styles
+ * All styling is now consolidated in shared/styles/globals.css
+ * 
+ * This file is imported at the app level to ensure proper CSS loading order
+ */
 
-/* Dark theme base background */
-[data-theme="dark"] {
-  --background-color: #121212;
-}
-
-body {
-  background-color: var(--background-color);
-  transition: background-color 0.3s ease;
-} 
+/* Import all styles from the shared directory */
+@import '../shared/styles/critical.css';
+@import '../shared/styles/globals.css';
+@import '../shared/styles/utilities.css'; 

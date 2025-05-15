@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" href="/icon.png" as="image" />
 
         {/* Theme initialization script - external for security */}
-        <script src="/shared/scripts/theme-init.js" />
+        <script src="/static/scripts/theme-init.js" />
 
         {/* Suppress React hydration warnings (development only) */}
         {process.env.NODE_ENV !== 'production' && hydrationConfig.suppressWarnings && (

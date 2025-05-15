@@ -39,13 +39,6 @@ const ResourceCard = dynamic(
   },
 );
 
-const ResourcesSkeleton = dynamic(
-  () => import('@/features/resources/components').then((mod) => mod.ResourcesSkeleton),
-  {
-    loading: () => <StandardFallback text="Loading resources..." />,
-  },
-);
-
 // Custom accordion item that visually matches HeroUI Accordion but avoids runtime errors
 const CategoryAccordionItem = ({ category }: { category: ResourceCategoryData }) => {
   const [isExpanded, setIsExpanded] = useState(category.id === 'getting-started');
