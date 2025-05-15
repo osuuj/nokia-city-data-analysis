@@ -3,27 +3,7 @@
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { useMemo } from 'react';
-
-// Types for team member data
-interface SocialLink {
-  icon: string;
-  href: string;
-  label: string;
-}
-
-interface TeamMember {
-  name: string;
-  role: string;
-  email: string;
-  socialLinks: SocialLink[];
-}
-
-interface ContactPageWrapperProps {
-  teamMembers: TeamMember[];
-  email: string;
-  description: string;
-  responseTime: string;
-}
+import type { ContactPageWrapperProps } from '../types/contact-types';
 
 /**
  * Client-side contact page wrapper component
