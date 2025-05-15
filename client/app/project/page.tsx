@@ -8,7 +8,8 @@ import { StandardFallback } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Suspense, lazy, useState } from 'react';
 
 // Lazy load the ProjectCard component for code splitting
 const ProjectCard = lazy(() =>
@@ -25,17 +26,16 @@ const ProjectCard = lazy(() =>
  */
 export default function ProjectPage(): JSX.Element {
   const { data: projects = [], isLoading, isError, error } = useProjects();
-  // Force loading state to be visible for at least a short time for testing
-  const [showLoading, setShowLoading] = useState(true);
+  const router = useRouter();
+  const [showEmptyState, setShowEmptyState] = useState(projects.length === 0);
 
-  useEffect(() => {
-    // Ensure the loading state is visible for at least 1 second for testing
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Function to handle resetting filters
+  const handleClearFilters = () => {
+    // For demonstration, simply refresh the page to clear any URL params
+    // In a real app, we would reset filter state and refetch data
+    router.refresh();
+    setShowEmptyState(false);
+  };
 
   if (isError) {
     return (
@@ -62,9 +62,9 @@ export default function ProjectPage(): JSX.Element {
 
         {/* 🧱 Projects Grid */}
         <Suspense fallback={<StandardFallback text="Loading projects..." />}>
-          {isLoading || showLoading ? (
+          {isLoading ? (
             <StandardFallback text="Loading projects..." />
-          ) : projects.length > 0 ? (
+          ) : projects.length > 0 || !showEmptyState ? (
             <div className="flex justify-center">
               <div
                 className={`
@@ -80,14 +80,20 @@ export default function ProjectPage(): JSX.Element {
               </div>
             </div>
           ) : (
-            <Card className="w-full py-12">
+            <Card className="w-full py-12 mb-8">
               <CardBody className="flex flex-col items-center justify-center">
                 <Icon icon="lucide:search-x" width={48} className="text-default-300 mb-4" />
                 <h3 className="text-xl font-medium">No projects found</h3>
-                <p className="text-default-500 text-center mt-2">
+                <p className="text-default-500 text-center mt-2 mb-4">
                   Try adjusting your search or filter criteria
                 </p>
-                <Button color="primary" variant="flat" className="mt-4" onPress={() => {}}>
+                <Button
+                  color="primary"
+                  variant="flat"
+                  startContent={<Icon icon="lucide:x-circle" />}
+                  className="mt-2 px-6"
+                  onPress={handleClearFilters}
+                >
                   Clear filters
                 </Button>
               </CardBody>
@@ -96,25 +102,27 @@ export default function ProjectPage(): JSX.Element {
         </Suspense>
 
         {/* 📣 Call to Action */}
-        <Card className="mt-6 border-b-1 border-divider bg-gradient-to-r from-default-100 via-danger-100 to-secondary-100 px-6 py-2 sm:px-3.5 sm:before:flex-1">
-          <CardBody className="py-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <Card className="mt-10 shadow-lg border-b-1 border-divider bg-gradient-to-r from-default-100 via-danger-50 to-secondary-100 px-6 rounded-xl overflow-hidden">
+          <CardBody className="py-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
-                <h3 className="text-2xl font-bold mb-2 text-black dark:text-white">
+                <h3 className="text-2xl font-bold mb-3 text-black dark:text-white">
                   Have a project idea?
                 </h3>
-                <p className="text-default-600 dark:text-gray-300">
-                  We're always looking for new challenges and collaborations.
+                <p className="text-default-600 dark:text-gray-300 max-w-lg">
+                  We're always looking for new challenges and collaborations. Reach out to discuss
+                  how we can bring your data visualization project to life.
                 </p>
               </div>
               <Button
                 as={Link}
-                className="group relative h-9 overflow-hidden bg-transparent text-small font-normal"
-                color="default"
+                size="lg"
+                className="group relative overflow-hidden bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg transition-all duration-300"
                 endContent={
                   <Icon
-                    className="flex-none outline-none transition-transform group-data-[hover=true]:translate-x-0.5 [&>path]:stroke-[2]"
+                    className="flex-none outline-none transition-transform group-data-[hover=true]:translate-x-1 [&>path]:stroke-[2]"
                     icon="solar:arrow-right-linear"
+                    width={20}
                   />
                 }
                 href="/contact"
