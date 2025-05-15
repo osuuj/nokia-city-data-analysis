@@ -22,6 +22,37 @@
 @layer base {
   html, body {
     @apply bg-background transition-colors duration-300;
+    /* Ensure the background covers the whole viewport */
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  /* Theme classes for instant background application */
+  html.dark-theme,
+  html.dark-theme body {
+    background-color: #0f0f0f;
+    color: #ffffff;
+  }
+  
+  html.light-theme,
+  html.light-theme body {
+    background-color: #ffffff;
+    color: #000000;
+  }
+  
+  /* Page transition content theming */
+  .dark-content {
+    background-color: #0f0f0f;
+    color: #ffffff;
+  }
+  
+  .light-content {
+    background-color: #ffffff;
+    color: #000000;
   }
   
   /* Change the white flashes to a more gradual transition */
@@ -31,10 +62,21 @@
     inset: 0;
     z-index: -1;
     @apply bg-gradient-to-b from-primary/5 via-background/50 to-background/90;
+    transition: background-color 0.3s ease;
   }
 }
 
 /* Layout classes */
 .content-main {
   padding-top: 5rem; /* Adds space for the fixed header */
+}
+
+/* Dashboard specific styles */
+.dashboard-main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }

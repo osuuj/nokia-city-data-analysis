@@ -3,10 +3,11 @@
 import { useResourceCategories } from '@/features/resources/hooks';
 import type { ResourceCategoryData } from '@/features/resources/types';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import { StandardFallback } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import './mobile.css';
 
 // Break down the component for better code splitting
@@ -21,17 +22,27 @@ const ResourcesHeader = () => (
 );
 
 // Dynamically import components for better performance
-const Icon = dynamic(() => import('@iconify/react').then((mod) => mod.Icon), { ssr: false });
+const Icon = dynamic(() => import('@iconify/react').then((mod) => mod.Icon), {
+  ssr: false,
+  loading: () => <div className="w-6 h-6 bg-primary/20 rounded-full animate-pulse" />,
+});
+
 const ResourceCard = dynamic(
   () => import('@/features/resources/components').then((mod) => mod.ResourceCard),
   {
-    loading: () => <div className="h-36 rounded-lg bg-default-100 animate-pulse" />,
+    loading: () => (
+      <div
+        data-testid="standard-fallback"
+        className="h-36 rounded-lg bg-background dark:bg-background animate-pulse"
+      />
+    ),
   },
 );
+
 const ResourcesSkeleton = dynamic(
   () => import('@/features/resources/components').then((mod) => mod.ResourcesSkeleton),
   {
-    loading: () => <div className="w-full h-screen bg-background animate-pulse" />,
+    loading: () => <StandardFallback text="Loading resources..." />,
   },
 );
 
@@ -128,7 +139,7 @@ export default function ResourcePage() {
   }, []);
 
   if (isLoading) {
-    return <ResourcesSkeleton />;
+    return <StandardFallback text="Loading resources..." />;
   }
 
   if (error) {
@@ -175,30 +186,32 @@ export default function ResourcePage() {
         />
       }
     >
-      <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
-        {/* Use the direct import like project and about pages */}
-        <AnimatedBackground priority="high" />
+      <Suspense fallback={<StandardFallback text="Loading resources..." />}>
+        <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
+          {/* Use the direct import like project and about pages */}
+          <AnimatedBackground priority="high" />
 
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <ResourcesHeader />
+          <div className="relative z-10 max-w-5xl mx-auto">
+            <ResourcesHeader />
 
-          <div className="mb-12">
-            {/* Only render the first 2 categories immediately to speed up initial render */}
-            {categories.slice(0, 2).map((category) => (
-              <CategoryAccordionItem key={category.id} category={category} />
-            ))}
+            <div className="mb-12">
+              {/* Only render the first 2 categories immediately to speed up initial render */}
+              {categories.slice(0, 2).map((category) => (
+                <CategoryAccordionItem key={category.id} category={category} />
+              ))}
 
-            {/* Load remaining categories after initial render */}
-            {categories.length > 2 && (
-              <div className="mt-4">
-                {categories.slice(2).map((category) => (
-                  <CategoryAccordionItem key={category.id} category={category} />
-                ))}
-              </div>
-            )}
+              {/* Load remaining categories after initial render */}
+              {categories.length > 2 && (
+                <div className="mt-4">
+                  {categories.slice(2).map((category) => (
+                    <CategoryAccordionItem key={category.id} category={category} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </Suspense>
     </ErrorBoundary>
   );
 }

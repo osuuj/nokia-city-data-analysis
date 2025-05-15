@@ -64,6 +64,7 @@ const ThemeSwitchBase: FC<ThemeSwitchProps> = ({ className }) => {
       onPress={toggleTheme}
       className={clsx('cursor-pointer transition-opacity hover:opacity-80', className)}
       aria-label={`Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
+      data-testid="theme-switch"
     >
       {buttonContent()}
     </Button>

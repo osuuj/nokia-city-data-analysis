@@ -88,21 +88,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preload site icon */}
         <link rel="preload" href="/icon.png" as="image" />
 
-        {/* Theme loader script to prevent flicker */}
-        <Script id="theme-loader" strategy="beforeInteractive">
-          {`
-            (function() {
-              try {
-                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                const savedTheme = localStorage.getItem('theme');
-                const finalTheme = savedTheme || systemTheme;
-                document.documentElement.setAttribute('data-theme', finalTheme);
-              } catch (e) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-              }
-            })();
-          `}
-        </Script>
+        {/* Theme initialization script - external for security */}
+        <script src="/shared/scripts/theme-init.js" />
 
         {/* Suppress React hydration warnings (development only) */}
         {process.env.NODE_ENV !== 'production' && hydrationConfig.suppressWarnings && (
@@ -135,7 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </Script>
         )}
       </head>
-      <body className={clsx('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
+      <body className={clsx('bg-background font-sans antialiased', fontSans.variable)}>
         <ClientLayoutWrapper>
           <ErrorBoundary fallback={<ErrorMessage />}>
             <LoadingProvider>

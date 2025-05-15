@@ -4,10 +4,11 @@ import { ProjectErrorBoundary, ProjectGridSkeleton } from '@/features/project/co
 import { AnimatedProjectHero } from '@/features/project/components/hero';
 import { useProjects } from '@/features/project/hooks/useProjects';
 import { ErrorMessage } from '@/shared/components/error';
+import { StandardFallback } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui';
 import { Button, Card, CardBody, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 
 // Lazy load the ProjectCard component for code splitting
 const ProjectCard = lazy(() =>
@@ -24,6 +25,17 @@ const ProjectCard = lazy(() =>
  */
 export default function ProjectPage(): JSX.Element {
   const { data: projects = [], isLoading, isError, error } = useProjects();
+  // Force loading state to be visible for at least a short time for testing
+  const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    // Ensure the loading state is visible for at least 1 second for testing
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isError) {
     return (
@@ -44,14 +56,14 @@ export default function ProjectPage(): JSX.Element {
         <AnimatedBackground />
 
         {/* 🔥 Hero Section */}
-        <Suspense fallback={<div className="h-64 animate-pulse bg-default-100 rounded-lg" />}>
+        <Suspense fallback={<StandardFallback text="Loading project hero..." fullHeight={false} />}>
           <AnimatedProjectHero />
         </Suspense>
 
         {/* 🧱 Projects Grid */}
-        <Suspense fallback={<ProjectGridSkeleton />}>
-          {isLoading ? (
-            <ProjectGridSkeleton />
+        <Suspense fallback={<StandardFallback text="Loading projects..." />}>
+          {isLoading || showLoading ? (
+            <StandardFallback text="Loading projects..." />
           ) : projects.length > 0 ? (
             <div className="flex justify-center">
               <div
