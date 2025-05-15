@@ -1,4 +1,7 @@
-/* Mobile-specific optimizations to improve performance */
+/* 
+ * Mobile-specific optimizations to improve performance 
+ * This file should be imported only by pages that need these optimizations
+ */
 
 @media (max-width: 768px) {
   /* Reduce animation complexity */

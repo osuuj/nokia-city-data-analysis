@@ -7,19 +7,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS below this line */
-
 /* 
- * If you're seeing linter errors with @tailwind directives:
- * 1. Add the VS Code CSS Validation extension or similar
- * 2. Add a .vscode/settings.json file with this setting:
- * {
- *   "css.lint.unknownAtRules": "ignore"
- * }
+ * THEME HANDLING AND BASE STYLES
+ * Consolidated from multiple files for consistent theme management
  */
-
-/* Base body styles to prevent white flash during navigation */
 @layer base {
+  :root {
+    /* Light theme variables */
+    --background-color: #f5f7fa;
+    color-scheme: light dark;
+  }
+
+  [data-theme="dark"] {
+    /* Dark theme variables */
+    --background-color: #121212;
+  }
+
   html, body {
     @apply bg-background transition-colors duration-300;
     /* Ensure the background covers the whole viewport */
@@ -29,30 +32,22 @@
     width: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+    background-color: var(--background-color);
   }
   
-  /* Theme classes for instant background application */
+  /* Instant theme application to prevent flashing */
   html.dark-theme,
-  html.dark-theme body {
-    background-color: #0f0f0f;
-    color: #ffffff;
+  html.dark-theme body,
+  .dark-content {
+    background-color: #0f0f0f !important;
+    color: #ffffff !important;
   }
   
   html.light-theme,
-  html.light-theme body {
-    background-color: #ffffff;
-    color: #000000;
-  }
-  
-  /* Page transition content theming */
-  .dark-content {
-    background-color: #0f0f0f;
-    color: #ffffff;
-  }
-  
+  html.light-theme body,
   .light-content {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
   
   /* Change the white flashes to a more gradual transition */
@@ -66,7 +61,9 @@
   }
 }
 
-/* Layout classes */
+/* 
+ * LAYOUT CLASSES 
+ */
 .content-main {
   padding-top: 5rem; /* Adds space for the fixed header */
 }
@@ -79,4 +76,50 @@
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+}
+
+/* 
+ * VIDEO AND HERO COMPONENTS
+ * Moved from critical.css
+ */
+.video-container { 
+  position: relative; 
+  width: 100%; 
+  height: 100%; 
+  overflow: hidden; 
+}
+
+.video-overlay { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.4); 
+}
+
+.hero-content { 
+  position: relative; 
+  z-index: 10; 
+}
+
+.hero-section { 
+  min-height: 45vh; 
+}
+
+.video-placeholder { 
+  background-color: #111827; 
+}
+
+/* 
+ * MOTION REDUCTION
+ * For users who prefer reduced motion
+ */
+@media (prefers-reduced-motion) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
