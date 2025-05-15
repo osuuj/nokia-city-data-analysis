@@ -1,24 +1,27 @@
 'use client';
 
-import { AboutErrorBoundary, AboutStory, AboutTeam } from '@/features/about/components';
+import { Team } from '@/features/about/components/Team';
+import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
+import { Header } from '@/shared/components/layout';
+import { StandardFallback } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui/background';
+import { Suspense } from 'react';
 
 /**
  * About page component that displays the team story and team members.
- * Uses React Query for data fetching with proper loading states.
  */
 export default function AboutPage() {
   return (
-    <AboutErrorBoundary>
-      <div className="relative w-full min-h-screen px-4 py-8 md:px-6">
-        {/* Animated background */}
-        <AnimatedBackground />
-
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <AboutStory />
-          <AboutTeam />
-        </div>
-      </div>
-    </AboutErrorBoundary>
+    <>
+      <AnimatedBackground priority="high" />
+      <Header />
+      <main className="relative z-10">
+        <ErrorBoundary fallback={<ErrorMessage />}>
+          <Suspense fallback={<StandardFallback />}>
+            <Team />
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    </>
   );
 }

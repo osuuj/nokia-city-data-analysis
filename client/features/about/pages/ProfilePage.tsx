@@ -1,23 +1,34 @@
 'use client';
 
-import {
-  KassuContact,
-  KassuExperience,
-  KassuHero,
-  KassuProjects,
-  KassuSkills,
-  KassuTestimonials,
-} from '@/features/about/components/sections';
 import { Header } from '@/shared/components/layout';
 import { ParticleBackground } from '@/shared/components/ui';
 import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
+import type { ReactNode } from 'react';
+
+interface ProfilePageProps {
+  heroSection: ReactNode;
+  skillsSection: ReactNode;
+  experienceSection: ReactNode;
+  projectsSection: ReactNode;
+  testimonialsSection: ReactNode;
+  contactSection: ReactNode;
+  name: string;
+}
 
 /**
- * KassuPage component that renders Kassu's profile
- * Uses a modular component approach with sections
+ * Reusable ProfilePage component that renders a team member profile
+ * Takes section components as props to allow customization while sharing structure
  */
-export default function KassuPage() {
+export function ProfilePage({
+  heroSection,
+  skillsSection,
+  experienceSection,
+  projectsSection,
+  testimonialsSection,
+  contactSection,
+  name,
+}: ProfilePageProps) {
   const { resolvedTheme } = useTheme();
 
   // Scroll to section on load if hash is present
@@ -36,40 +47,28 @@ export default function KassuPage() {
     }
   }, []);
 
-  // Add listener for theme changes
-  useEffect(() => {
-    const handleThemeChange = () => {
-      // No-op since 'mounted' state is removed
-    };
-
-    document.addEventListener('themechange', handleThemeChange);
-    return () => {
-      document.removeEventListener('themechange', handleThemeChange);
-    };
-  }, []);
-
   return (
-    <div key={`kassu-page-${resolvedTheme}`}>
+    <div key={`${name}-page-${resolvedTheme}`}>
       <Header />
       <ParticleBackground />
 
       {/* Hero Section */}
-      <KassuHero />
+      {heroSection}
 
       {/* Skills Section */}
-      <KassuSkills />
+      {skillsSection}
 
       {/* Experience Section */}
-      <KassuExperience />
+      {experienceSection}
 
       {/* Projects Section */}
-      <KassuProjects />
+      {projectsSection}
 
       {/* Testimonials Section */}
-      <KassuTestimonials />
+      {testimonialsSection}
 
       {/* Contact Section */}
-      <KassuContact />
+      {contactSection}
     </div>
   );
 }

@@ -1,17 +1,40 @@
 'use client';
 
-import { kassuData } from '@/features/about/data/kassuData';
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
-export function KassuContact() {
+type Contact = {
+  email: string;
+  location: string;
+  website: string;
+  availability?: {
+    status?: string;
+    response?: string;
+  };
+};
+
+type ProfileContactProps = {
+  contact: Contact;
+  socialLinks: Record<string, string>;
+  title?: string;
+  description?: string;
+  specialization?: string;
+};
+
+export function ProfileContact({
+  contact,
+  socialLinks,
+  title = 'Get In Touch',
+  description = "Interested in working together? Let's connect!",
+  specialization = 'development',
+}: ProfileContactProps) {
   return (
     <section id="contact" className="py-24 bg-default-50/50">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
-            Get In Touch
+            {title}
             <motion.span
               initial={{ width: 0 }}
               whileInView={{ width: '100%' }}
@@ -21,7 +44,7 @@ export function KassuContact() {
             />
           </h2>
           <p className="text-default-600 max-w-3xl mx-auto">
-            Interested in working together on backend development? Let's connect!
+            {description || `Interested in working together on ${specialization}? Let's connect!`}
           </p>
         </div>
 
@@ -43,11 +66,8 @@ export function KassuContact() {
                 </div>
                 <div>
                   <h4 className="font-medium text-default-700">Email</h4>
-                  <a
-                    href={`mailto:${kassuData.contact.email}`}
-                    className="text-primary hover:underline"
-                  >
-                    {kassuData.contact.email}
+                  <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                    {contact.email}
                   </a>
                 </div>
               </div>
@@ -59,12 +79,12 @@ export function KassuContact() {
                 <div>
                   <h4 className="font-medium text-default-700">Website</h4>
                   <a
-                    href={`https://${kassuData.contact.website}`}
+                    href={`https://${contact.website}`}
                     className="text-primary hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {kassuData.contact.website}
+                    {contact.website}
                   </a>
                 </div>
               </div>
@@ -75,50 +95,52 @@ export function KassuContact() {
                 </div>
                 <div>
                   <h4 className="font-medium text-default-700">Location</h4>
-                  <p className="text-default-600">{kassuData.contact.location}</p>
+                  <p className="text-default-600">{contact.location}</p>
                 </div>
               </div>
+
+              {contact.availability && (
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-primary-100 rounded-lg">
+                    <Icon icon="lucide:clock" className="text-primary text-xl" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-default-700">Availability</h4>
+                    <p className="text-default-600">{contact.availability.status}</p>
+                    {contact.availability.response && (
+                      <p className="text-xs text-default-500 mt-1">
+                        {contact.availability.response}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-8">
               <h4 className="font-medium text-default-700 mb-3">Connect with me</h4>
               <div className="flex gap-4">
-                <a
-                  href={kassuData.socialLinks.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-default-200 hover:bg-primary-100 rounded-full transition-colors"
-                  aria-label="GitHub"
-                >
-                  <Icon icon="lucide:github" className="text-xl" />
-                </a>
-                <a
-                  href={kassuData.socialLinks.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-default-200 hover:bg-primary-100 rounded-full transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <Icon icon="lucide:linkedin" className="text-xl" />
-                </a>
-                <a
-                  href={kassuData.socialLinks.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-default-200 hover:bg-primary-100 rounded-full transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Icon icon="lucide:twitter" className="text-xl" />
-                </a>
-                <a
-                  href={kassuData.socialLinks.medium}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-default-200 hover:bg-primary-100 rounded-full transition-colors"
-                  aria-label="Medium"
-                >
-                  <Icon icon="lucide:book" className="text-xl" />
-                </a>
+                {Object.entries(socialLinks).map(([platform, url]) => (
+                  <a
+                    key={platform}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 bg-default-200 hover:bg-primary-100 rounded-full transition-colors"
+                    aria-label={platform}
+                  >
+                    <Icon
+                      icon={
+                        platform === 'medium'
+                          ? 'lucide:book'
+                          : platform === 'dribbble'
+                            ? 'lucide:dribbble'
+                            : `lucide:${platform}`
+                      }
+                      className="text-xl"
+                    />
+                  </a>
+                ))}
               </div>
             </div>
           </motion.div>

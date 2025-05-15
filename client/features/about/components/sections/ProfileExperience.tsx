@@ -1,18 +1,36 @@
 'use client';
 
-import { juusoData } from '@/features/about/data/juusoData';
 import { TimelineItem } from '@/features/project/components/ui/TimelineItem';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
-export function JuusoExperience() {
+type Experience = {
+  year: string;
+  title: string;
+  company: string;
+  description: string;
+};
+
+type ProfileExperienceProps = {
+  experience: Experience[];
+  title?: string;
+  description?: string;
+  showCVButton?: boolean;
+};
+
+export function ProfileExperience({
+  experience,
+  title = 'Work Experience',
+  description = 'Professional journey and key achievements',
+  showCVButton = true,
+}: ProfileExperienceProps) {
   return (
     <section id="experience" className="py-24">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
-            Work Experience
+            {title}
             <motion.span
               initial={{ width: 0 }}
               whileInView={{ width: '100%' }}
@@ -21,9 +39,7 @@ export function JuusoExperience() {
               className="absolute bottom-0 left-0 h-1 bg-primary rounded"
             />
           </h2>
-          <p className="text-default-600 max-w-3xl mx-auto">
-            Frontend development journey and key achievements
-          </p>
+          <p className="text-default-600 max-w-3xl mx-auto">{description}</p>
         </div>
 
         <div className="relative mx-auto max-w-5xl">
@@ -32,7 +48,7 @@ export function JuusoExperience() {
 
           {/* Timeline items */}
           <div className="relative">
-            {juusoData.experience.map((item, index) => (
+            {experience.map((item, index) => (
               <TimelineItem
                 key={`${item.year}-${item.title}`}
                 year={item.year}
@@ -40,7 +56,7 @@ export function JuusoExperience() {
                 company={item.company}
                 description={item.description}
                 index={index}
-                isLast={index === juusoData.experience.length - 1}
+                isLast={index === experience.length - 1}
               />
             ))}
 
@@ -57,25 +73,27 @@ export function JuusoExperience() {
           </div>
 
           {/* Download CV button */}
-          <div className="mt-16 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <Button
-                endContent={<Icon icon="lucide:download" />}
-                color="primary"
-                size="lg"
-                as={Link}
-                href="#"
-                className="shadow-lg"
+          {showCVButton && (
+            <div className="mt-16 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
               >
-                Download CV
-              </Button>
-            </motion.div>
-          </div>
+                <Button
+                  endContent={<Icon icon="lucide:download" />}
+                  color="primary"
+                  size="lg"
+                  as={Link}
+                  href="#"
+                  className="shadow-lg"
+                >
+                  Download CV
+                </Button>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
     </section>
