@@ -113,7 +113,7 @@ export const Header = () => {
   if (!isMounted) return null;
 
   return (
-    <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100]">
+    <header ref={headerRef} className="fixed top-0 inset-x-0 z-[100]" data-testid="header">
       <div
         className={`w-full ${
           isBlackBgPage

@@ -3,6 +3,21 @@
   color-scheme: light dark; 
 }
 
+/* Instant theming to prevent flicker */
+html.dark-theme,
+html.dark-theme body,
+.dark-content {
+  background-color: #0f0f0f !important;
+  color: #ffffff !important;
+}
+
+html.light-theme,
+html.light-theme body,
+.light-content {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
 .video-container { 
   position: relative; 
   width: 100%; 
@@ -25,7 +40,7 @@
 }
 
 .hero-section { 
-  min-height: 50vh; 
+  min-height: 45vh; 
 }
 
 .video-placeholder { 

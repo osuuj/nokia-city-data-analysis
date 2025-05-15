@@ -33,6 +33,7 @@ export interface LoadingSpinnerProps {
 /**
  * LoadingSpinner component
  * A reusable spinner component for indicating loading states
+ * Ensures consistent styling across the application
  */
 export function LoadingSpinner({
   size = 'md',
@@ -43,8 +44,12 @@ export function LoadingSpinner({
 }: LoadingSpinnerProps) {
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
-      <Spinner size={size} color={color} aria-label="Loading" />
-      {showText && <p className="mt-2 text-sm text-default-600">{text}</p>}
+      <Spinner size={size} color={color} aria-label="Loading" className="transition-opacity" />
+      {showText && (
+        <p className="mt-2 text-sm text-default-600 dark:text-default-400 transition-colors">
+          {text}
+        </p>
+      )}
     </div>
   );
 }
