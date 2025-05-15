@@ -9,12 +9,14 @@ import { TransitionBackground } from '@/shared/components/ui/background';
 import { Card, CardBody, CardHeader } from '@heroui/react';
 
 /**
- * @deprecated - Individual parts should use shared skeleton components instead
- * This component will be updated in a future release to use shared components exclusively.
+ * @deprecated - Do not use this component in new code.
  *
- * Skeleton loading component for the Resources page.
- * Uses shared AnimatedBackgroundSkeleton for consistent background animation
- * and ResourceCardSkeleton for resource items.
+ * Use these alternatives instead:
+ * - HeaderSectionSkeleton from @/shared/components/loading for headers
+ * - ResourceCardSkeleton from @/shared/components/loading for resource cards
+ * - StandardFallback from @/shared/components/loading for simple loading states
+ *
+ * This component will be removed in a future release.
  */
 export function ResourcesSkeleton() {
   return (

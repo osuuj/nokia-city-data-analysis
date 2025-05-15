@@ -1,16 +1,9 @@
 'use client';
 
+import type { HeroSkeletonProps } from '@/features/landing/types';
 import { Skeleton } from '@heroui/react';
 import { useTheme } from 'next-themes';
 import type { FC } from 'react';
-
-/**
- * Props for the HeroSkeleton component.
- */
-export interface HeroSkeletonProps {
-  /** Optional className for custom styling */
-  className?: string;
-}
 
 /**
  * HeroSkeleton Component

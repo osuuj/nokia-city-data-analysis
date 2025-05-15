@@ -1,3 +1,7 @@
+/**
+ * @deprecated - Use ResourcesHeader from client/app/resources/components instead.
+ * This component will be removed in a future update.
+ */
 export function ResourcesHeader() {
   return (
     <div className="text-center mb-10">

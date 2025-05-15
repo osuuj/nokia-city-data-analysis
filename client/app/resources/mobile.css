@@ -1,28 +1,35 @@
 /* 
  * Mobile-specific optimizations to improve performance 
- * This file should be imported only by pages that need these optimizations
+ * 
+ * This file contains performance optimizations for mobile devices.
+ * It reduces visual complexity to improve render performance.
+ * 
+ * Usage:
+ * - Should be imported globally through _app.js or layout.tsx 
+ * - Or use in specific high-complexity pages through dynamic imports
+ * - Consider using CSS variables when possible instead of hard-coding values
  */
 
 @media (max-width: 768px) {
   /* Reduce animation complexity */
   * {
-    transition-duration: 0ms !important;
-    animation-duration: 0ms !important;
+    transition-duration: 0ms;
+    animation-duration: 0ms;
   }
   
   /* Disable backdrop blur which is expensive on mobile */
   .backdrop-blur-md {
-    backdrop-filter: none !important;
+    backdrop-filter: none;
   }
   
   /* Simplify box shadows */
   .shadow-sm, .shadow, .shadow-md {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
   
   /* Reduce border radius calculations */
   .rounded-large {
-    border-radius: 8px !important;
+    border-radius: 8px;
   }
   
   /* Use hardware acceleration for composited layers */
