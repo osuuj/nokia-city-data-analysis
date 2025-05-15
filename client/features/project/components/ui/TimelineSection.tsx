@@ -2,13 +2,15 @@
 
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface TimelineSectionProps {
   timeline: string;
 }
 
 export default function TimelineSection({ timeline }: TimelineSectionProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   const generateTimelineEvents = (timeline: string) => {
     const dateMatch = timeline.match(/(\w+\s\d{4})\s*-\s*(\w+\s\d{4})/);
 
@@ -108,6 +110,20 @@ export default function TimelineSection({ timeline }: TimelineSectionProps) {
 
   const timelineEvents = generateTimelineEvents(timeline);
 
+  // Get animation properties based on reduced motion preference
+  const getAnimationProps = (index: number) => {
+    if (prefersReducedMotion) {
+      return {};
+    }
+
+    return {
+      initial: { opacity: 0, y: 20 },
+      whileInView: { opacity: 1, y: 0 },
+      transition: { duration: 0.5, delay: index * 0.2 },
+      viewport: { once: true },
+    };
+  };
+
   return (
     <div className="relative">
       <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-default-200 dark:bg-default-700" />
@@ -116,10 +132,7 @@ export default function TimelineSection({ timeline }: TimelineSectionProps) {
         {timelineEvents.map((event, index) => (
           <motion.div
             key={`${event.date}-${event.title}`}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.2 }}
-            viewport={{ once: true }}
+            {...getAnimationProps(index)}
             className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
           >
             <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>

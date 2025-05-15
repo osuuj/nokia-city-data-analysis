@@ -1,5 +1,5 @@
 import { Card, CardBody } from '@heroui/react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type React from 'react';
 import { useInView } from 'react-intersection-observer';
 
@@ -20,12 +20,21 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
   index,
   isLast = false,
 }) => {
+  const prefersReducedMotion = useReducedMotion();
   const { ref, inView } = useInView({
     threshold: 0.2,
     triggerOnce: true,
   });
 
   const alignRight = index % 2 === 0;
+
+  // If user prefers reduced motion, provide empty animation objects
+  const getAnimationProps = () => {
+    if (prefersReducedMotion) {
+      return { initial: {}, animate: {}, exit: {} };
+    }
+    return {};
+  };
 
   return (
     <div
@@ -40,14 +49,20 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
       {/* Year marker */}
       <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/3 flex flex-col items-center">
         <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={inView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+          {...getAnimationProps()}
+          initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
+          animate={
+            prefersReducedMotion ? {} : inView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }
+          }
           transition={{ duration: 0.4, delay: index * 0.1 }}
           className="w-5 h-5 rounded-full bg-primary border-4 border-content1 z-10 shadow-sm"
         />
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          {...getAnimationProps()}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+          animate={
+            prefersReducedMotion ? {} : inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
+          }
           transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
           className="mt-2 py-1 px-3 bg-primary-100 dark:bg-primary-900 rounded-full text-xs font-medium text-primary-700 dark:text-primary-300"
         >
@@ -57,8 +72,15 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
 
       {/* Content Card */}
       <motion.div
-        initial={{ opacity: 0, x: alignRight ? 50 : -50 }}
-        animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: alignRight ? 50 : -50 }}
+        {...getAnimationProps()}
+        initial={prefersReducedMotion ? {} : { opacity: 0, x: alignRight ? 50 : -50 }}
+        animate={
+          prefersReducedMotion
+            ? {}
+            : inView
+              ? { opacity: 1, x: 0 }
+              : { opacity: 0, x: alignRight ? 50 : -50 }
+        }
         transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
         className={`md:w-5/12 z-10 ${alignRight ? 'md:ml-auto md:mr-8' : 'md:mr-auto md:ml-8'}`}
       >

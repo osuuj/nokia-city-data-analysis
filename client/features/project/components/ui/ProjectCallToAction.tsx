@@ -2,7 +2,7 @@
 
 import { Button, Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface ProjectCallToActionProps {
   isLoading: boolean;
@@ -12,13 +12,19 @@ interface ProjectCallToActionProps {
  * A call-to-action component for project details
  */
 export function ProjectCallToAction({ isLoading }: ProjectCallToActionProps) {
+  const prefersReducedMotion = useReducedMotion();
+
+  // Skip animation if user prefers reduced motion
+  const animationProps = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 },
+        transition: { duration: 0.6, delay: 0.6 },
+      };
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-      transition={{ duration: 0.6, delay: 0.6 }}
-      aria-labelledby="cta-heading"
-    >
+    <motion.section {...animationProps} aria-labelledby="cta-heading">
       <Card className="border-b-1 border-divider bg-gradient-to-r from-default-100 via-primary-100 to-secondary-100 px-6 py-2">
         <CardBody className="py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
