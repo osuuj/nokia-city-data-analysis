@@ -1,8 +1,10 @@
 'use client';
 
+import { DownloadResumeButton } from '@/features/about/components/ui/DownloadResumeButton';
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 
 type Contact = {
   email: string;
@@ -20,6 +22,7 @@ type ProfileContactProps = {
   title?: string;
   description?: string;
   specialization?: string;
+  profileId?: string;
 };
 
 export function ProfileContact({
@@ -28,7 +31,14 @@ export function ProfileContact({
   title = 'Get In Touch',
   description = "Interested in working together? Let's connect!",
   specialization = 'development',
+  profileId,
 }: ProfileContactProps) {
+  useEffect(() => {
+    if (profileId) {
+      console.log('ProfileContact mounted with profileId:', profileId);
+    }
+  }, [profileId]);
+
   return (
     <section id="contact" className="py-24 bg-default-50/50">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -143,6 +153,17 @@ export function ProfileContact({
                 ))}
               </div>
             </div>
+
+            {profileId && (
+              <div className="mt-8">
+                <DownloadResumeButton
+                  profileId={profileId}
+                  variant="solid"
+                  size="lg"
+                  className="w-full md:w-auto"
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* Contact Form */}

@@ -1,5 +1,6 @@
 'use client';
 
+import { DownloadResumeButton } from '@/features/about/components/ui/DownloadResumeButton';
 import { TimelineItem } from '@/features/project/components/ui/TimelineItem';
 import { Button, Link } from '@heroui/react';
 import { Icon } from '@iconify/react';
@@ -8,7 +9,7 @@ import { motion } from 'framer-motion';
 type Experience = {
   year: string;
   title: string;
-  company: string;
+  company?: string;
   description: string;
 };
 
@@ -17,6 +18,7 @@ type ProfileExperienceProps = {
   title?: string;
   description?: string;
   showCVButton?: boolean;
+  profileId?: string;
 };
 
 export function ProfileExperience({
@@ -24,6 +26,7 @@ export function ProfileExperience({
   title = 'Work Experience',
   description = 'Professional journey and key achievements',
   showCVButton = true,
+  profileId,
 }: ProfileExperienceProps) {
   return (
     <section id="experience" className="py-24">
@@ -73,7 +76,7 @@ export function ProfileExperience({
           </div>
 
           {/* Download CV button */}
-          {showCVButton && (
+          {showCVButton && profileId && (
             <div className="mt-16 text-center">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -81,16 +84,12 @@ export function ProfileExperience({
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true }}
               >
-                <Button
-                  endContent={<Icon icon="lucide:download" />}
-                  color="primary"
+                <DownloadResumeButton
+                  profileId={profileId}
+                  label="Download CV"
+                  variant="solid"
                   size="lg"
-                  as={Link}
-                  href="#"
-                  className="shadow-lg"
-                >
-                  Download CV
-                </Button>
+                />
               </motion.div>
             </div>
           )}

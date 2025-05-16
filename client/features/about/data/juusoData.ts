@@ -56,25 +56,37 @@ export const juusoData = {
 
   experience: [
     {
-      year: '2021-Present',
-      title: 'Senior Frontend Developer',
-      company: 'TechNova Solutions',
+      year: '10/2024-Present',
+      title: 'Lead Developer',
       description:
-        'Lead the frontend development of multiple high-traffic web applications, collaborating with designers and backend developers to create seamless user experiences.',
+        'Led the development of the Osuuj Search Platform, enabling company search and analysis across Finnish cities. Built the frontend with Next.js and TypeScript, implemented responsive UI with HeroUI, and developed interactive map visualizations and advanced search features. Collaborated on geospatial data integration and established frontend coding standards.',
     },
     {
-      year: '2019-2021',
-      title: 'Frontend Developer',
-      company: 'Digital Horizon Inc.',
+      year: '11/2022-8/2024',
+      title: 'Production Worker',
+      company: 'Nokian Tyres',
       description:
-        'Developed and maintained multiple client-facing web applications using React, Redux, and modern CSS frameworks.',
+        'Operated an assembly machine, ensuring production efficiency and continuous improvement. Trained new employees in both Finnish and English, strengthening my communication skills and ability to collaborate to achieve goals.',
     },
     {
-      year: '2017-2019',
-      title: 'UI Developer',
-      company: 'CreativeWeb Studios',
+      year: '3/2022-7/2022',
+      title: 'Production Worker',
+      company: 'Purso',
+      description: 'Packaging of aluminum profiles.',
+    },
+    {
+      year: '4/2020',
+      title: 'Master of Science in Economics',
+      company: 'Turku School of Economics',
       description:
-        'Created interactive websites and user interfaces for small to medium businesses.',
+        'Specialized in Mathematical Finance. Developed a neural network-based model for economic timeseries forecasting in my thesis, showcasing advanced analytical skills and the ability to apply theoretical knowledge to practical problem-solving.',
+    },
+    {
+      year: '6/2014',
+      title: 'Electronics Engineer',
+      company: 'Turku University of Applied Sciences',
+      description:
+        'Specialized in electronics production. Thesis: Application of Lean Thinking in Electronics Contract Manufacturing.',
     },
   ],
 
