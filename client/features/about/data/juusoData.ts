@@ -2,6 +2,8 @@
  * Data for Juuso's profile page
  */
 
+import { ProjectCategory } from '@/features/project/types';
+
 export const juusoData = {
   skills: [
     { name: 'React', level: 85 },
@@ -31,26 +33,29 @@ export const juusoData = {
       image: '/images/projects/osuuj-platform.webp',
       link: '/project/1',
       hasDemo: true,
+      category: ProjectCategory.Web,
     },
     {
       id: '2',
-      title: 'Travel Companion App',
+      title: 'Alpha Vantage Data ETL Pipeline',
       description:
-        'Mobile application for travelers to discover local experiences, plan itineraries and connect with other adventurers.',
-      tech: ['React Native', 'Firebase', 'Maps API', 'Redux'],
-      image: '/images/projects/travel-app.webp',
-      link: '/project/2',
+        'This project provides an ETL (Extract, Transform, Load) pipeline to fetch financial data from Alpha Vantage and save it as structured JSON files in specified directories. The pipeline leverages asynchronous processing to optimize data retrieval and supports multiple data types, such as stocks, forex, cryptocurrencies, commodities, treasury yields, and economic indicators.',
+      tech: ['Python', 'Pandas'],
+      image: '/images/projects/juuso-etl.webp',
+      link: 'https://github.com/osuuj/alpha-vantage-etl',
       hasDemo: false,
+      category: ProjectCategory.Other,
     },
     {
-      id: '2',
-      title: 'Healthcare Portal',
+      id: '3',
+      title: 'MWAA Alpha Vantage Dags',
       description:
-        'Secure patient portal for scheduling appointments, accessing medical records and communicating with healthcare providers.',
-      tech: ['Next.js', 'GraphQL', 'TailwindCSS', 'Auth0'],
-      image: '/images/projects/healthcare-portal.webp',
-      link: '/project/2',
+        'This repository provides Airflow DAGs designed to automate the retrieval of financial data from Alpha Vantage. The DAGs are optimized for use with AWS Managed Workflows for Apache Airflow (MWAA), making it easy to incorporate financial data into your workflows. The project includes all necessary Python modules, configurations, and a requirements.txt file for dependency management.',
+      tech: ['Python', 'Airflow', 'Docker', 'AWS'],
+      image: '/images/projects/juuso-mwaa.webp',
+      link: 'https://github.com/osuuj/mwaa-alpha-vantage-dags',
       hasDemo: false,
+      category: ProjectCategory.Other,
     },
   ],
 
@@ -121,8 +126,8 @@ export const juusoData = {
   },
 
   socialLinks: {
-    github: 'https://github.com/juuso',
-    linkedin: 'https://linkedin.com/in/juuso',
+    github: 'https://github.com/osuuj',
+    linkedin: 'https://linkedin.com/in/jutoju',
   },
 
   avatarUrl: '/images/team/juuso-juvonen.svg',

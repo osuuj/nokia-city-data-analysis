@@ -17,19 +17,19 @@ export const projectsData: Project[] = [
     image: '/images/projects/osuuj-platform.webp',
     gallery: [
       {
-        src: '/images/projects/osuuj-search.webp',
-        alt: 'Company search interface',
+        src: '/images/projects/osuuj-dashboard-table.webp',
+        alt: 'Table view',
         caption: 'Interactive search interface with multiple filtering options',
       },
       {
-        src: '/images/projects/osuuj-details.webp',
-        alt: 'Company details view',
-        caption: 'Detailed company information with industry analytics',
+        src: '/images/projects/osuuj-dashboard-map.webp',
+        alt: 'Map view',
+        caption: 'Detailed company information with geospatial visualization',
       },
       {
-        src: '/images/projects/osuuj-map.webp',
-        alt: 'Map visualization',
-        caption: 'Geographic distribution of Finnish companies',
+        src: '/images/projects/osuuj-dashboard-analytics.webp',
+        alt: 'Analytics view',
+        caption: 'Analytics of Finnish companies across different cities',
       },
     ],
     category: ProjectCategory.Web,

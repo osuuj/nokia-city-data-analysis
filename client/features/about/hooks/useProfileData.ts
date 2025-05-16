@@ -9,6 +9,18 @@ type TechIcon = {
   position: IconPosition;
 };
 
+// Define Project type with optional category
+type Project = {
+  id: string;
+  title: string;
+  description: string;
+  tech?: string[];
+  image?: string;
+  link?: string;
+  hasDemo?: boolean;
+  category?: ProjectCategory;
+};
+
 /**
  * Hook to get profile data by profile ID
  * @param profileId The ID of the profile to get data for
@@ -78,7 +90,11 @@ export function useProfileData(profileId: string) {
     projects: {
       title: 'Featured Projects',
       description: projectDescription,
-      items: profileInfo.projects,
+      items: profileInfo.projects.map((project) => ({
+        ...project,
+        category:
+          (project as Project).category || (isFrontend ? ProjectCategory.Web : ProjectCategory.AI),
+      })),
       categoryDefault: isFrontend ? ProjectCategory.Web : ProjectCategory.AI,
     },
   };
