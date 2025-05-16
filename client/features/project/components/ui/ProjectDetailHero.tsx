@@ -1,3 +1,4 @@
+import { useAnimationProps } from '@/shared/hooks';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -14,6 +15,47 @@ interface ProjectDetailHeroProps {
  */
 export const ProjectDetailHero = ({ project }: ProjectDetailHeroProps) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  // Format the status display text
+  const getStatusDisplay = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completed';
+      case 'active':
+        return 'Active Project';
+      case 'planning':
+        return 'In Planning';
+      case 'on_hold':
+        return 'On Hold';
+      default:
+        return 'Project';
+    }
+  };
+
+  // Get the status color
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-success-500';
+      case 'active':
+        return 'bg-primary-500';
+      case 'planning':
+        return 'bg-default-500';
+      case 'on_hold':
+        return 'bg-warning-500';
+      default:
+        return 'bg-default-500';
+    }
+  };
+
+  // Animation props for the underline
+  const underlineAnimProps = useAnimationProps('fadeIn', {
+    whileInView: true,
+    duration: 0.8,
+    delay: 0.4,
+    initial: { width: 0 },
+    animate: { width: '100%' },
+  });
 
   return (
     <header
@@ -45,21 +87,16 @@ export const ProjectDetailHero = ({ project }: ProjectDetailHeroProps) => {
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4">
         <div className="mb-4">
           <span
-            className={`px-3 py-1 rounded-full text-white font-medium ${
-              project.status === 'active' ? 'bg-success-500' : 'bg-default-500'
-            }`}
-            aria-label={`Project status: ${project.status === 'active' ? 'Active' : 'In Planning'}`}
+            className={`px-3 py-1 rounded-full text-white font-medium ${getStatusColor(project.status)}`}
+            aria-label={`Project status: ${getStatusDisplay(project.status)}`}
           >
-            {project.status === 'active' ? 'Active Project' : 'In Planning'}
+            {getStatusDisplay(project.status)}
           </span>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-white text-shadow-xl inline-block relative">
           {project.title}
           <motion.span
-            initial={{ width: 0 }}
-            whileInView={{ width: '100%' }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            viewport={{ once: true }}
+            {...underlineAnimProps}
             className="absolute bottom-0 left-0 h-1 bg-primary rounded"
           />
         </h1>

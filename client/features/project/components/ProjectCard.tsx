@@ -1,11 +1,13 @@
 'use client';
 
+import { useAnimationProps } from '@/shared/hooks';
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback } from 'react';
 import type { Project } from '../types';
+import { formatCategoryName, getCategoryColor, getCategoryIcon } from '../utils/categoryUtils';
 
 /**
  * Props for the ProjectCard component
@@ -44,39 +46,6 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
   const isPlanning = project.status === 'planning';
   const imageSrc = project.image || '/images/placeholder-project.jpg';
   const showDemoButton = project.hasDemo !== false;
-
-  /**
-   * Mapping of project categories to their corresponding icons
-   */
-  const categoryIcons: Record<string, string> = useMemo(
-    () => ({
-      web: 'lucide:globe',
-      mobile: 'lucide:smartphone',
-      ai: 'lucide:brain',
-      design: 'lucide:palette',
-    }),
-    [],
-  );
-
-  /**
-   * Mapping of project categories to their corresponding colors
-   */
-  const categoryColors: Record<
-    string,
-    'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'default'
-  > = useMemo(
-    () => ({
-      web: 'primary',
-      mobile: 'secondary',
-      ai: 'success',
-      design: 'warning',
-      etl: 'warning',
-      api: 'secondary',
-      map: 'secondary',
-      analytics: 'danger',
-    }),
-    [],
-  );
 
   /**
    * Handles navigation to the project detail page
@@ -152,20 +121,14 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
       <CardBody className="pb-0">
         <div className="flex items-center gap-2 mb-2">
           <Chip
-            color={categoryColors[project.category || ''] || 'default'}
+            color={getCategoryColor(project.category || '')}
             variant="flat"
             size="sm"
             startContent={
-              <Icon
-                icon={categoryIcons[project.category || ''] || 'lucide:folder'}
-                width={16}
-                height={16}
-              />
+              <Icon icon={getCategoryIcon(project.category || '')} width={16} height={16} />
             }
           >
-            {project.category
-              ? project.category.charAt(0).toUpperCase() + project.category.slice(1)
-              : 'Other'}
+            {formatCategoryName(project.category || 'Other')}
           </Chip>
         </div>
         <h3 className="text-xl font-bold mb-2">{project.title}</h3>

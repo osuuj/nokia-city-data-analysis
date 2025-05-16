@@ -1,8 +1,8 @@
+import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Project } from '../../types';
-import { ProjectStatus } from '../../types';
 
 interface ProjectOverviewProps {
   project: Project;
@@ -15,13 +15,13 @@ interface ProjectOverviewProps {
  */
 export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
   // Calculate progress value based on project status
-  const getProgressValue = (status?: ProjectStatus) => {
+  const getProgressValue = (status?: string) => {
     switch (status) {
-      case ProjectStatus.Completed:
+      case 'completed':
         return 100;
-      case ProjectStatus.Active:
+      case 'active':
         return 75;
-      case ProjectStatus.Planning:
+      case 'planning':
         return 25;
       default:
         return 50;
@@ -29,16 +29,9 @@ export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
   };
 
   const progressValue = getProgressValue(project.status);
-  const prefersReducedMotion = useReducedMotion();
 
-  // Skip animation if user prefers reduced motion
-  const animationProps = prefersReducedMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.6 },
-      };
+  // Get animation props from shared hook
+  const animationProps = useAnimationProps('fadeInUp', { duration: 0.6 });
 
   return (
     <motion.section {...animationProps} aria-labelledby="overview-heading">
@@ -87,7 +80,7 @@ export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
             </p>
             <Progress
               value={progressValue}
-              color={project.status === ProjectStatus.Completed ? 'success' : 'primary'}
+              color={project.status === 'completed' ? 'success' : 'primary'}
               size="md"
               aria-label={`Project progress: ${progressValue}%`}
             />

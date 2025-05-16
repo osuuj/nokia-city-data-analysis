@@ -125,5 +125,5 @@ export const juusoData = {
     linkedin: 'https://linkedin.com/in/juuso',
   },
 
-  avatarUrl: '/images/team/juuso.webp',
+  avatarUrl: '/images/team/juuso-juvonen.svg',
 };

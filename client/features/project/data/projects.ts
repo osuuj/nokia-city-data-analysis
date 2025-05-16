@@ -67,15 +67,28 @@ export const projectsData: Project[] = [
   },
   {
     id: '2',
+    title: 'AI Business Assistant',
+    subtitle: 'Intelligent assistant for company data insights',
+    description:
+      'An AI-powered assistant that helps users navigate company data, generate insights, and answer business intelligence questions based on the processed data in the platform.',
+    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=1',
+    category: ProjectCategory.AI,
+    tags: ['AI', 'NLP', 'Python', 'Machine Learning', 'LLM', 'Data Insights'],
+    demoUrl: '/coming-soon',
+    status: ProjectStatus.Planning,
+    timeline: 'Q3 2025',
+  },
+  {
+    id: '3',
     title: 'Data Pipeline Extensions',
     subtitle: 'Enhanced ETL processes for additional data sources',
     description:
       'Planned extensions to the ETL pipeline to incorporate additional Finnish business data sources and provide more comprehensive analytics capabilities.',
-    image: '/images/projects/ai-chat.webp',
+    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=4',
     category: ProjectCategory.AI,
     tags: ['Python', 'ETL', 'Pandas', 'PostgreSQL', 'Data Engineering'],
     demoUrl: '/coming-soon',
     status: ProjectStatus.Planning,
-    timeline: 'Q3 2025',
+    timeline: 'Q4 2025',
   },
 ];
