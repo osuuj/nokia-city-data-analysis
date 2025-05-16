@@ -1,9 +1,6 @@
 'use client';
 
-import { DownloadResumeButton } from '@/features/about/components/ui/DownloadResumeButton';
 import { TimelineItem } from '@/features/project/components/ui/TimelineItem';
-import { Button, Link } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
 type Experience = {
@@ -17,7 +14,6 @@ type ProfileExperienceProps = {
   experience: Experience[];
   title?: string;
   description?: string;
-  showCVButton?: boolean;
   profileId?: string;
 };
 
@@ -25,7 +21,6 @@ export function ProfileExperience({
   experience,
   title = 'Work Experience',
   description = 'Professional journey and key achievements',
-  showCVButton = true,
   profileId,
 }: ProfileExperienceProps) {
   return (
@@ -46,8 +41,8 @@ export function ProfileExperience({
         </div>
 
         <div className="relative mx-auto max-w-5xl">
-          {/* Timeline line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-default-200 transform -translate-x-1/2" />
+          {/* Timeline line for desktop - hidden on mobile */}
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-default-200 transform -translate-x-1/2" />
 
           {/* Timeline items */}
           <div className="relative">
@@ -63,9 +58,22 @@ export function ProfileExperience({
               />
             ))}
 
-            {/* Final marker */}
+            {/* Final marker - Mobile version */}
+            <div className="md:hidden relative pl-14 mb-12">
+              <motion.div
+                className="absolute left-5 top-0 -translate-x-1/2"
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                viewport={{ once: true }}
+              >
+                <div className="w-5 h-5 rounded-full bg-primary-200 border-4 border-primary" />
+              </motion.div>
+            </div>
+
+            {/* Final marker - Desktop version */}
             <motion.div
-              className="absolute left-1/2 bottom-0 transform -translate-x-1/2 flex flex-col items-center"
+              className="hidden md:block absolute left-1/2 bottom-0 transform -translate-x-1/2 flex flex-col items-center"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.4, delay: 0.3 }}
@@ -74,25 +82,6 @@ export function ProfileExperience({
               <div className="w-5 h-5 rounded-full bg-primary-200 border-4 border-primary z-10" />
             </motion.div>
           </div>
-
-          {/* Download CV button */}
-          {showCVButton && profileId && (
-            <div className="mt-16 text-center">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-              >
-                <DownloadResumeButton
-                  profileId={profileId}
-                  label="Download CV"
-                  variant="solid"
-                  size="lg"
-                />
-              </motion.div>
-            </div>
-          )}
         </div>
       </div>
     </section>
