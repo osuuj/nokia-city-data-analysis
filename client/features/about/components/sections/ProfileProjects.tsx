@@ -2,8 +2,6 @@
 
 import { ProjectCard } from '@/features/project/components';
 import { ProjectCategory, ProjectStatus } from '@/features/project/types';
-import { Button, Link } from '@heroui/react';
-import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
 type Project = {
@@ -21,7 +19,6 @@ type ProfileProjectsProps = {
   projects: Project[];
   title?: string;
   description?: string;
-  showAllLink?: boolean;
   categoryDefault?: ProjectCategory;
 };
 
@@ -29,7 +26,6 @@ export function ProfileProjects({
   projects,
   title = 'Featured Projects',
   description = 'Explore some of my recent work',
-  showAllLink = true,
   categoryDefault = ProjectCategory.Web,
 }: ProfileProjectsProps) {
   return (
@@ -74,20 +70,6 @@ export function ProfileProjects({
             );
           })}
         </div>
-
-        {showAllLink && (
-          <div className="flex justify-center mt-12">
-            <Button
-              as={Link}
-              href="/projects"
-              color="primary"
-              variant="bordered"
-              endContent={<Icon icon="lucide:arrow-right" />}
-            >
-              View All Projects
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );

@@ -58,7 +58,6 @@ export default function DynamicProfilePage({ profileId }: DynamicProfilePageProp
                 : 'Backend engineering journey and key achievements'
             }
             profileId={profileId}
-            showCVButton={false}
           />
         }
         projectsSection={
