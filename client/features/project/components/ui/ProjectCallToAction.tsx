@@ -1,8 +1,9 @@
 'use client';
 
+import { useAnimationProps } from '@/shared/hooks';
 import { Button, Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface ProjectCallToActionProps {
   isLoading: boolean;
@@ -12,16 +13,11 @@ interface ProjectCallToActionProps {
  * A call-to-action component for project details
  */
 export function ProjectCallToAction({ isLoading }: ProjectCallToActionProps) {
-  const prefersReducedMotion = useReducedMotion();
-
-  // Skip animation if user prefers reduced motion
-  const animationProps = prefersReducedMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 },
-        transition: { duration: 0.6, delay: 0.6 },
-      };
+  const animationProps = useAnimationProps('fadeInUp', {
+    duration: 0.6,
+    delay: 0.6,
+    animate: isLoading ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
+  });
 
   return (
     <motion.section {...animationProps} aria-labelledby="cta-heading">

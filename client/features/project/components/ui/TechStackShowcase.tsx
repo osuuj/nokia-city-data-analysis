@@ -1,8 +1,9 @@
 'use client';
 
+import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody, Tab, Tabs, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import React from 'react';
 import { getCategoryForTech, getTechIcon } from '../../data/techStack';
 
@@ -12,31 +13,12 @@ interface TechStackShowcaseProps {
 
 export default function TechStackShowcase({ tags }: TechStackShowcaseProps) {
   const [activeTab, setActiveTab] = React.useState<string>('all');
-  const prefersReducedMotion = useReducedMotion();
 
   const filteredTags =
     activeTab === 'all' ? tags : tags.filter((tag) => getCategoryForTech(tag) === activeTab);
 
-  // Animation props based on reduced motion preference
-  const getContainerAnimationProps = () => {
-    if (prefersReducedMotion) return {};
-
-    return {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      transition: { duration: 0.5 },
-    };
-  };
-
-  const getItemAnimationProps = (index: number) => {
-    if (prefersReducedMotion) return {};
-
-    return {
-      initial: { opacity: 0, scale: 0.8 },
-      animate: { opacity: 1, scale: 1 },
-      transition: { duration: 0.3, delay: index * 0.05 },
-    };
-  };
+  // Animation props
+  const containerAnimationProps = useAnimationProps('fadeIn');
 
   return (
     <div>
@@ -59,11 +41,11 @@ export default function TechStackShowcase({ tags }: TechStackShowcaseProps) {
 
       <motion.div
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-        {...getContainerAnimationProps()}
+        {...containerAnimationProps}
       >
         {filteredTags.length > 0 ? (
           filteredTags.map((tech, index) => (
-            <motion.div key={tech} {...getItemAnimationProps(index)}>
+            <motion.div key={tech} {...useAnimationProps('scale', { delay: 0.05 }, index)}>
               <Tooltip content={tech}>
                 <Card className="hover:shadow-lg transition-shadow duration-300">
                   <CardBody className="flex flex-col items-center justify-center p-4">

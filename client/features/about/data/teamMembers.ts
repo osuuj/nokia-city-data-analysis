@@ -8,7 +8,7 @@ export const teamMembers: TeamMember[] = [
     bio: 'Specializes in creating intuitive, beautiful user interfaces with modern web technologies.',
     shortBio: 'Full-stack developer with a passion for UI/UX design.',
     portfolioLink: '/about/juuso',
-    avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juuso',
+    avatarSrc: '/images/team/juuso-juvonen.svg',
     skills: [
       'Data Engineering',
       'ETL',
@@ -40,7 +40,7 @@ export const teamMembers: TeamMember[] = [
     bio: 'Expert in building robust server architectures and efficient database solutions.',
     shortBio: 'Backend developer focused on scalable architectures.',
     portfolioLink: '/about/kasperi',
-    avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=kasperi',
+    avatarSrc: '/images/team/kasperi-rautio.svg',
     skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'AWS', 'Data Engineering', 'ETL'],
     socialLinks: {
       github: 'https://github.com/kasperi',

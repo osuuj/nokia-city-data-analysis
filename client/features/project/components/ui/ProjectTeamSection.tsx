@@ -1,7 +1,8 @@
 'use client';
 
 import { TeamMemberGrid } from '@/features/about/components';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useAnimationProps } from '@/shared/hooks';
+import { motion } from 'framer-motion';
 
 interface ProjectTeamSectionProps {
   team: string[];
@@ -13,20 +14,31 @@ interface ProjectTeamSectionProps {
  * Displays the team members for a project
  */
 export function ProjectTeamSection({ team, projectTitle, isLoading }: ProjectTeamSectionProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   if (!team || team.length === 0) {
     return null;
   }
 
-  // Skip animation if user prefers reduced motion
-  const animationProps = prefersReducedMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 },
-        transition: { duration: 0.6, delay: 0.5 },
-      };
+  const animationProps = useAnimationProps('fadeInUp', {
+    duration: 0.6,
+    delay: 0.5,
+    animate: isLoading ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
+  });
+
+  // Get avatar source based on team member name
+  const getAvatarSrc = (name: string) => {
+    const firstName = name.split(' ')[0].toLowerCase();
+
+    // Use SVG files for known team members
+    if (firstName === 'juuso') {
+      return '/images/team/juuso-juvonen.svg';
+    }
+    if (firstName === 'kasperi') {
+      return '/images/team/kasperi-rautio.svg';
+    }
+
+    // Fallback to generated avatar
+    return `/api/avatar?seed=${encodeURIComponent(name)}`;
+  };
 
   return (
     <motion.section {...animationProps} aria-labelledby="team-heading">
@@ -40,7 +52,7 @@ export function ProjectTeamSection({ team, projectTitle, isLoading }: ProjectTea
           jobTitle: 'Team Member',
           bio: `Team member for ${projectTitle}`,
           portfolioLink: `/about/${name.split(' ')[0].toLowerCase()}`,
-          avatarSrc: `/api/avatar?seed=${encodeURIComponent(name)}`,
+          avatarSrc: getAvatarSrc(name),
         }))}
       />
     </motion.section>

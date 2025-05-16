@@ -1,9 +1,10 @@
 'use client';
 
 import { type TimelineEvent, getTimelineEvents } from '@/features/project/data/timeline';
+import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface TimelineSectionProps {
   timeline: string;
@@ -11,26 +12,10 @@ interface TimelineSectionProps {
 }
 
 export default function TimelineSection({ timeline, projectId }: TimelineSectionProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   // Get timeline events from either projectId or timeline string
   const timelineEvents: TimelineEvent[] = projectId
     ? getTimelineEvents(projectId)
     : getTimelineEvents(timeline);
-
-  // Get animation properties based on reduced motion preference
-  const getAnimationProps = (index: number) => {
-    if (prefersReducedMotion) {
-      return {};
-    }
-
-    return {
-      initial: { opacity: 0, y: 20 },
-      whileInView: { opacity: 1, y: 0 },
-      transition: { duration: 0.5, delay: index * 0.2 },
-      viewport: { once: true },
-    };
-  };
 
   return (
     <div className="relative">
@@ -40,7 +25,11 @@ export default function TimelineSection({ timeline, projectId }: TimelineSection
         {timelineEvents.map((event, index) => (
           <motion.div
             key={`${event.date}-${event.title}`}
-            {...getAnimationProps(index)}
+            {...useAnimationProps(
+              'fadeInUp',
+              { whileInView: true, once: true, duration: 0.5, delay: 0.2 },
+              index,
+            )}
             className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
           >
             <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>

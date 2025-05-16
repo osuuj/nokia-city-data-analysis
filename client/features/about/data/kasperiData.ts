@@ -117,5 +117,5 @@ export const kasperiData = {
     medium: 'https://medium.com/@kasperi',
   },
 
-  avatarUrl: '/images/team/kasperi.webp',
+  avatarUrl: '/images/team/kasperi-rautio.svg',
 };
