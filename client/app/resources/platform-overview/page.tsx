@@ -35,7 +35,7 @@ export default function PlatformOverviewPage() {
             </h1>
           </div>
           <p className="text-lg text-default-600 mt-2">
-            Learn about the Nokia City Data Analysis platform and its key features
+            Learn about the Osuuj Data Analysis platform and its key features
           </p>
           <div className="flex gap-2 mt-4">
             <span className="text-xs px-2 py-1 bg-default-100 rounded-full">overview</span>
@@ -49,9 +49,9 @@ export default function PlatformOverviewPage() {
           <CardBody className="p-6 md:p-8">
             <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
             <p className="mb-4">
-              The Nokia City Data Analysis platform is a comprehensive tool designed to help
-              researchers, analysts, and business professionals explore and analyze Finnish company
-              data through interactive visualizations.
+              The Osuuj Data Analysis platform is a comprehensive tool designed to help researchers,
+              analysts, and business professionals explore and analyze Finnish company data through
+              interactive visualizations.
             </p>
 
             <p className="mb-4">

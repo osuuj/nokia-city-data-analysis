@@ -4,15 +4,19 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Nokia City Data Analysis - Home',
-  description:
-    "Explore city data analytics and insights powered by Nokia's advanced data processing capabilities.",
+  title: 'Osuuj Data Analysis - Home',
+  description: 'Explore Finnish companies with interactive data visualizations',
   openGraph: {
-    title: 'Nokia City Data Analysis',
+    title: 'Osuuj Data Analysis',
     description:
       "Explore city data analytics and insights powered by Nokia's advanced data processing capabilities.",
     type: 'website',
   },
+};
+
+export const viewport = {
+  title: 'Osuuj Data Analysis',
+  // Other viewport config
 };
 
 /**

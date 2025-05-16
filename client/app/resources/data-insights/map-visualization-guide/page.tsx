@@ -78,7 +78,7 @@ export default function MapVisualizationGuidePage() {
                 </div>
               </div>
               <p className="text-sm text-default-500 mt-2 italic">
-                The Nokia City Data Analysis map interface with company data visualization
+                The Osuuj Data Analysis map interface with company data visualization
               </p>
             </div>
 

@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 export const ResourcesHeader = () => (
   <div className="text-center mb-10">
     <h1 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
-      Nokia City Data Resources
+      Osuuj Data Resources
       <motion.span
         initial={{ width: 0 }}
         whileInView={{ width: '100%' }}
@@ -20,8 +20,7 @@ export const ResourcesHeader = () => (
       />
     </h1>
     <p className="text-lg text-default-600 max-w-2xl mx-auto">
-      Documentation and guides to help you get the most out of the Nokia City Data Analysis
-      platform.
+      Documentation and guides to help you get the most out of the Osuuj Data Analysis platform.
       <span className="block mt-2 text-warning-500 text-sm">
         Note: This documentation is currently under development.
       </span>
