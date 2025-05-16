@@ -6,7 +6,7 @@ import { useInView } from 'react-intersection-observer';
 interface TimelineItemProps {
   year: string;
   title: string;
-  company: string;
+  company?: string;
   description: string;
   index: number;
   isLast?: boolean;
@@ -87,7 +87,7 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
         <Card className="shadow-md">
           <CardBody>
             <h3 className="text-lg font-semibold mb-1">{title}</h3>
-            <p className="text-sm text-primary-500 mb-3">{company}</p>
+            {company && <p className="text-sm text-primary-500 mb-3">{company}</p>}
             <p className="text-sm text-default-600">{description}</p>
           </CardBody>
         </Card>

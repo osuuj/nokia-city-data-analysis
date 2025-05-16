@@ -57,6 +57,8 @@ export default function DynamicProfilePage({ profileId }: DynamicProfilePageProp
                 ? 'Development journey and key achievements'
                 : 'Backend engineering journey and key achievements'
             }
+            profileId={profileId}
+            showCVButton={false}
           />
         }
         projectsSection={
@@ -73,6 +75,7 @@ export default function DynamicProfilePage({ profileId }: DynamicProfilePageProp
             contact={data.contact}
             socialLinks={data.socialLinks}
             specialization={profileId === 'juuso' ? 'frontend development' : 'backend architecture'}
+            profileId={profileId}
           />
         }
       />
