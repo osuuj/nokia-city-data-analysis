@@ -45,10 +45,7 @@ export function ProfileTestimonials({
               content={testimonial.content}
               name={testimonial.name}
               title={testimonial.title}
-              avatarSrc={
-                testimonial.avatarSrc ||
-                `https://img.heroui.chat/image/avatar?w=100&h=100&u=${testimonial.name}`
-              }
+              avatarSrc={testimonial.avatarSrc || '/images/team/default-avatar.svg'}
               index={index}
             />
           ))}
