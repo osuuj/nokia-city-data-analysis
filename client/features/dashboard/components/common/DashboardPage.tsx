@@ -231,7 +231,7 @@ export function DashboardPage() {
   );
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex w-full flex-col h-full">
       {/* Show loading overlay for initial data fetch */}
       {isInitialLoading && <LoadingOverlay />}
 
@@ -254,7 +254,7 @@ export function DashboardPage() {
         <FeatureErrorBoundary featureName="Dashboard" fallback={<DashboardLoadingState />}>
           {dashboardHeader}
 
-          <div className="flex-1 overflow-auto px-6 py-6 md:px-10">
+          <div className="flex-1 px-6 py-6 md:px-10">
             <Suspense fallback={<DashboardLoadingState />}>{viewSwitcherComponent}</Suspense>
           </div>
         </FeatureErrorBoundary>

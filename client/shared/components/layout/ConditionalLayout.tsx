@@ -15,8 +15,9 @@ export const ConditionalLayout = ({ children }: { children: React.ReactNode }) =
   const pathname = usePathname();
   const isDashboardPage = pathname?.startsWith('/dashboard') ?? false;
 
+  // Apply different wrapper classes for dashboard vs standard pages
   return (
-    <PageTransition>
+    <PageTransition isDashboard={isDashboardPage}>
       <div className={isDashboardPage ? 'invisible opacity-0 absolute' : 'visible opacity-100'}>
         <Header />
       </div>

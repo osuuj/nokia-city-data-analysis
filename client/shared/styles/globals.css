@@ -70,12 +70,20 @@
 
 /* Dashboard specific styles */
 .dashboard-main {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: hidden;
   margin: 0;
   padding: 0;
+}
+
+/* Dashboard page specific body class */
+.dashboard-page {
+  overflow: hidden !important;
+  height: 100vh !important;
+  position: fixed !important;
+  width: 100% !important;
 }
 
 /* 
