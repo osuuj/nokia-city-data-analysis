@@ -2,6 +2,7 @@ import { Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Project } from '../../types';
+import { ProjectStatus } from '../../types';
 
 interface ProjectOverviewProps {
   project: Project;
@@ -13,7 +14,21 @@ interface ProjectOverviewProps {
  * Displays the overview section of a project including description, goals, and progress.
  */
 export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
-  const progressValue = project.status === 'active' ? 95 : 25;
+  // Calculate progress value based on project status
+  const getProgressValue = (status?: ProjectStatus) => {
+    switch (status) {
+      case ProjectStatus.Completed:
+        return 100;
+      case ProjectStatus.Active:
+        return 75;
+      case ProjectStatus.Planning:
+        return 25;
+      default:
+        return 50;
+    }
+  };
+
+  const progressValue = getProgressValue(project.status);
   const prefersReducedMotion = useReducedMotion();
 
   // Skip animation if user prefers reduced motion
@@ -72,7 +87,7 @@ export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
             </p>
             <Progress
               value={progressValue}
-              color={project.status === 'active' ? 'success' : 'default'}
+              color={project.status === ProjectStatus.Completed ? 'success' : 'primary'}
               size="md"
               aria-label={`Project progress: ${progressValue}%`}
             />

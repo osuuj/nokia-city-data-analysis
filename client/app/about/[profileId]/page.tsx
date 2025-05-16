@@ -1,6 +1,6 @@
 'use client';
 
-import { profileDataMap } from '@/features/about/data';
+import { profileData } from '@/features/about/data';
 import DynamicProfilePage from '@/features/about/pages/DynamicProfilePage';
 import { ErrorMessage } from '@/shared/components/error';
 import { Header } from '@/shared/components/layout';
@@ -21,7 +21,7 @@ export default function Page() {
   const profileId = pathname.split('/').pop() || '';
 
   // Validate that the profile exists in our data map
-  const isValidProfile = profileId in profileDataMap;
+  const isValidProfile = profileId in profileData;
 
   // Redirect to about page for invalid profiles
   useEffect(() => {
