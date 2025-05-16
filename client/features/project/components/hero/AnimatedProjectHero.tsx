@@ -165,12 +165,19 @@ export function AnimatedProjectHero() {
           </div>
         </div>
 
-        {/* 📝 Heading */}
+        {/* 💡 Title */}
         <motion.h1
-          className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500"
+          className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500 inline-block relative"
           {...getAnimationProps(0.8, 0.2)}
         >
           Our Projects
+          <motion.span
+            initial={{ width: 0 }}
+            whileInView={{ width: '100%' }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="absolute bottom-0 left-0 h-1 bg-primary rounded"
+          />
         </motion.h1>
 
         {/* 💬 Description */}

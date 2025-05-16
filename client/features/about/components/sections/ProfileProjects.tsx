@@ -13,6 +13,8 @@ type Project = {
   image?: string;
   link?: string;
   subtitle?: string;
+  id?: string;
+  hasDemo?: boolean;
 };
 
 type ProfileProjectsProps = {
@@ -34,7 +36,7 @@ export function ProfileProjects({
     <section id="projects" className="py-24">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
             {title}
             <motion.span
               initial={{ width: 0 }}
@@ -48,46 +50,42 @@ export function ProfileProjects({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => (
-            <ProjectCard
-              key={project.title}
-              project={{
-                title: project.title,
-                description: project.description,
-                subtitle: project.subtitle,
-                id: project.title.toLowerCase().replace(/\s+/g, '-'),
-                status: ProjectStatus.Active,
-                category: categoryDefault,
-                tags: project.tech || [],
-                image:
-                  project.image ||
-                  `https://img.heroui.chat/image/project?w=600&h=400&u=${project.title}`,
-                demoUrl: project.link || '#',
-                featured: index === 0,
-              }}
-            />
-          ))}
+          {projects.map((project, index) => {
+            const projectId = project.id || project.title.toLowerCase().replace(/\s+/g, '-');
+
+            return (
+              <ProjectCard
+                key={project.title}
+                project={{
+                  title: project.title,
+                  description: project.description,
+                  subtitle: project.subtitle,
+                  id: projectId,
+                  status: ProjectStatus.Active,
+                  category: categoryDefault,
+                  tags: project.tech || [],
+                  image: project.image || `/images/projects/${projectId}.webp`,
+                  // Always provide demoUrl (required by schema) but use hasDemo flag to control visibility
+                  demoUrl: project.link || '#',
+                  hasDemo: project.hasDemo,
+                  featured: index === 0,
+                }}
+              />
+            );
+          })}
         </div>
 
         {showAllLink && (
-          <div className="mt-16 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
+          <div className="flex justify-center mt-12">
+            <Button
+              as={Link}
+              href="/projects"
+              color="primary"
+              variant="bordered"
+              endContent={<Icon icon="lucide:arrow-right" />}
             >
-              <Button
-                as={Link}
-                href="/projects"
-                color="primary"
-                variant="ghost"
-                size="lg"
-                endContent={<Icon icon="lucide:arrow-right" />}
-              >
-                View All Projects
-              </Button>
-            </motion.div>
+              View All Projects
+            </Button>
           </div>
         )}
       </div>

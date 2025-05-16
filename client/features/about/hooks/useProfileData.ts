@@ -32,10 +32,11 @@ export function useProfileData(profileId: string) {
       return [
         { name: 'logos:react', position: 'bottom-right' as IconPosition },
         { name: 'logos:typescript-icon', position: 'bottom-left' as IconPosition },
-        { name: 'logos:tailwindcss-icon', position: 'top-right' as IconPosition },
-        { name: 'logos:figma', position: 'top-left' as IconPosition },
+        { name: 'logos:python', position: 'top-right' as IconPosition },
+        { name: 'logos:aws', position: 'top-left' as IconPosition },
       ];
     }
+    // Kassu's tech icons
     return [
       { name: 'logos:nodejs-icon', position: 'bottom-right' as IconPosition },
       { name: 'logos:python', position: 'bottom-left' as IconPosition },
@@ -47,15 +48,15 @@ export function useProfileData(profileId: string) {
   // Get profile type-specific descriptions
   const isFrontend = profileId === 'juuso';
   const bio = isFrontend
-    ? 'Crafting beautiful, responsive, and intuitive user interfaces. Passionate about design systems, animations, and creating exceptional digital experiences.'
+    ? 'Crafting data-driven, responsive, and intuitive digital experiences. Passionate about design systems, automation, and building solutions where analytics, code, and business insight come together.'
     : 'Building robust, scalable backend solutions that power modern applications. Specialized in high-performance APIs, database optimization, and cloud infrastructure.';
 
   const skillDescription = isFrontend
-    ? 'Frontend expertise and proficiency levels'
+    ? 'Full Stack expertise and proficiency levels'
     : 'Backend expertise and proficiency levels';
 
   const projectDescription = isFrontend
-    ? 'Explore some of my recent frontend work'
+    ? 'Explore some of my recent work'
     : 'Explore some of my recent backend and infrastructure work';
 
   // Transform raw data to the format required by components
