@@ -1,4 +1,4 @@
-import { Badge } from '@heroui/react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useState } from 'react';
 import type { Project } from '../../types';
@@ -16,35 +16,78 @@ export const ProjectDetailHero = ({ project }: ProjectDetailHeroProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <header className="relative h-[40vh] overflow-hidden" aria-label="Project hero image">
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-10" />
+    <header
+      className="relative h-[40vh] overflow-hidden bg-gradient-to-b from-gray-900 to-gray-800"
+      aria-label="Project hero image"
+    >
+      {/* Stronger dark overlay to improve text readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/65 z-10" />
+
+      {/* Image container - full width/height */}
       <div className="absolute inset-0">
         <Image
           src={project.image}
           alt={project.title}
-          className={`scale-110 transition-opacity duration-300 ${isLoading ? 'opacity-70' : 'opacity-100'}`}
+          className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
           fill
           priority
           sizes="100vw"
-          style={{ objectFit: 'cover' }}
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center center',
+          }}
           onLoadingComplete={() => setIsLoading(false)}
         />
         {isLoading && <div className="absolute inset-0 bg-gray-700 animate-pulse" />}
       </div>
+
+      {/* Content overlay */}
       <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4">
-        <Badge
-          color={project.status === 'active' ? 'success' : 'default'}
-          variant="solid"
-          className="mb-4"
-          aria-label={`Project status: ${project.status === 'active' ? 'Active' : 'In Planning'}`}
-        >
-          {project.status === 'active' ? 'Active Project' : 'In Planning'}
-        </Badge>
-        <h1 className="text-4xl md:text-5xl font-bold">{project.title}</h1>
+        <div className="mb-4">
+          <span
+            className={`px-3 py-1 rounded-full text-white font-medium ${
+              project.status === 'active' ? 'bg-success-500' : 'bg-default-500'
+            }`}
+            aria-label={`Project status: ${project.status === 'active' ? 'Active' : 'In Planning'}`}
+          >
+            {project.status === 'active' ? 'Active Project' : 'In Planning'}
+          </span>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-white text-shadow-xl inline-block relative">
+          {project.title}
+          <motion.span
+            initial={{ width: 0 }}
+            whileInView={{ width: '100%' }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="absolute bottom-0 left-0 h-1 bg-primary rounded"
+          />
+        </h1>
         {project.subtitle && (
-          <p className="mt-2 text-lg md:text-xl text-default-300 max-w-2xl">{project.subtitle}</p>
+          <p className="mt-2 text-base md:text-lg text-white/95 max-w-2xl font-medium text-shadow-md">
+            {project.subtitle}
+          </p>
         )}
       </div>
     </header>
   );
 };
+
+/**
+ * Adds a custom text-shadow utility to improve text readability over images
+ */
+const addTextShadowUtilities = () => {
+  if (typeof document !== 'undefined') {
+    // Add text shadow styles to improve readability over varied backgrounds
+    const style = document.createElement('style');
+    style.textContent = `
+      .text-shadow-md { text-shadow: 0 2px 4px rgba(0,0,0,0.7); }
+      .text-shadow-lg { text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+      .text-shadow-xl { text-shadow: 0 3px 6px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.5); }
+    `;
+    document.head.appendChild(style);
+  }
+};
+
+// Add text shadow utilities when component is imported
+addTextShadowUtilities();

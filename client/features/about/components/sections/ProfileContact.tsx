@@ -33,7 +33,7 @@ export function ProfileContact({
     <section id="contact" className="py-24 bg-default-50/50">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
             {title}
             <motion.span
               initial={{ width: 0 }}

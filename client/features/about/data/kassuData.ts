@@ -16,26 +16,32 @@ export const kassuData = {
 
   projects: [
     {
-      title: 'API Gateway Service',
+      id: '1',
+      title: 'Osuuj Company Search Platform',
       description:
-        'High-performance API gateway with integrated rate limiting and advanced authentication patterns',
-      tech: ['Node.js', 'Redis', 'Docker', 'Express'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=1',
-      link: '/projects/api-gateway',
+        'A comprehensive company discovery platform designed for analysts, researchers, and job seekers to explore and analyze organizations across regions.',
+      tech: ['Python', 'Pandas', 'Postgres', 'ETL', 'FastAPI', 'React', 'Next.js', 'TypeScript'],
+      image: '/images/projects/osuuj-platform.webp',
+      link: '/project/1',
+      hasDemo: true,
     },
     {
+      id: '2',
       title: 'Data Pipeline System',
       description: 'Automated ETL pipeline for processing large datasets with real-time monitoring',
       tech: ['Python', 'Apache Airflow', 'PostgreSQL', 'Pandas'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=2',
-      link: '/projects/data-pipeline',
+      image: '/images/projects/data-pipeline.webp',
+      link: '/project/2',
+      hasDemo: false,
     },
     {
+      id: '2',
       title: 'Cloud Infrastructure',
       description: 'Infrastructure as Code solution for automated cloud deployment and scaling',
       tech: ['AWS', 'Terraform', 'Docker', 'Ansible'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=3',
-      link: '/projects/cloud-infra',
+      image: '/images/projects/cloud-infra.webp',
+      link: '/project/2',
+      hasDemo: false,
     },
   ],
 
@@ -69,21 +75,21 @@ export const kassuData = {
         'Kassu is an exceptional developer who delivers high-quality code ahead of schedule. His deep knowledge of backend systems saved our project from serious performance issues.',
       name: 'Alex Morgan',
       title: 'CTO at TechVision',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=100&h=100&u=10',
+      avatarSrc: '/images/team/alex.webp',
     },
     {
       content:
         'Working with Kassu was a game-changer for our data infrastructure. He quickly identified bottlenecks and implemented elegant solutions that scaled beautifully.',
       name: 'Sarah Chen',
       title: 'Lead Engineer at DataFlow',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=100&h=100&u=11',
+      avatarSrc: '/images/team/sarah.webp',
     },
     {
       content:
         "Kassu's expertise in cloud architecture helped us reduce our AWS costs by 35% while improving system reliability. His documentation is also top-notch.",
       name: 'Michael Torres',
       title: 'Product Manager',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=100&h=100&u=12',
+      avatarSrc: '/images/team/michael.webp',
     },
   ],
 
@@ -111,5 +117,5 @@ export const kassuData = {
     medium: 'https://medium.com/@kassu',
   },
 
-  avatarUrl: 'https://img.heroui.chat/image/avatar?w=400&h=400&u=kassu456',
+  avatarUrl: '/images/team/kassu.webp',
 };

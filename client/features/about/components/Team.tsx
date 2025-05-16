@@ -18,7 +18,7 @@ export function Team() {
         {/* Team Story Section */}
         <div className="mb-20">
           <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
               Our Story
               <motion.span
                 initial={{ width: 0 }}
@@ -35,7 +35,7 @@ export function Team() {
               We first met back in 2010 at Turku University of Applied Sciences, both studying
               electronic engineering. Back then, we shared a clear goal — we wanted to work at
               Nokia. At the time, it was the place to be if you were an engineer in Finland. But
-              things didn’t quite go the way we planned. Before we even finished our degrees, Nokia
+              things didn't quite go the way we planned. Before we even finished our degrees, Nokia
               started going through big changes. The opportunities we had hoped for were suddenly
               gone, and we had to start thinking about new directions for our futures.
             </p>
@@ -49,7 +49,7 @@ export function Team() {
               And then came another challenge. Just as we were both finishing our studies and
               getting ready to enter the job market, the COVID-19 pandemic hit. Everything slowed
               down. Companies froze hiring, and the uncertainty made it hard to plan anything. Kassu
-              was lucky and managed to land a job in software development. For Juuso, it wasn’t that
+              was lucky and managed to land a job in software development. For Juuso, it wasn't that
               simple. There were a lot of applications sent, a lot of waiting, and not many replies.
               It was a tough period — full of setbacks and second-guessing — but we both kept going.
             </p>
@@ -58,28 +58,28 @@ export function Team() {
               Generative AI was just starting to take off, and it opened up a whole new world of
               possibilities. We found ourselves talking more, bouncing around ideas, and realizing
               that we still had that drive to create something meaningful — something of our own. AI
-              became like a quiet third team member. It didn’t solve everything, but it gave us
+              became like a quiet third team member. It didn't solve everything, but it gave us
               momentum — the ability to prototype faster, test ideas quickly, and keep moving even
-              when we weren’t sure what the next step was. That made all the difference.
+              when we weren't sure what the next step was. That made all the difference.
             </p>
             <p className="mb-6 text-default-700">
-              But there’s some irony, too. The same AI that helped us build this project is also
+              But there's some irony, too. The same AI that helped us build this project is also
               making it harder for people like us to get hired. Many companies are hiring less,
               especially for junior-level roles, because they expect AI to fill the gaps. So while
               AI opened one door, it closed another — at least for now.
             </p>
             <p className="mb-6 text-default-700">
               Still, we decided to build something real. Not just a tech demo or portfolio project,
-              but something people could actually use. That’s how this platform started — as a way
+              but something people could actually use. That's how this platform started — as a way
               to help people discover local businesses, find opportunities close to home, and
-              connect with their communities in a more meaningful way. It hasn’t been easy. We’ve
+              connect with their communities in a more meaningful way. It hasn't been easy. We've
               had to learn everything by doing — from tech to design to understanding what people
-              actually need. We’ve made mistakes, changed directions, and hit plenty of dead ends.
-              But we’re still here. Still building. Still listening to feedback and improving as we
+              actually need. We've made mistakes, changed directions, and hit plenty of dead ends.
+              But we're still here. Still building. Still listening to feedback and improving as we
               go.
             </p>
             <p className="mb-6 text-default-700">
-              We don’t have all the answers. But we believe in what we’re doing, and we’re not
+              We don't have all the answers. But we believe in what we're doing, and we're not
               giving up.
             </p>
           </div>
@@ -87,7 +87,7 @@ export function Team() {
 
         {/* Team Members Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
             Meet the Team
             <motion.span
               initial={{ width: 0 }}

@@ -14,7 +14,12 @@ interface ProjectCardProps {
   /**
    * The project data to display in the card
    */
-  project: Project;
+  project: Project & {
+    /**
+     * Flag to indicate if the project has a live demo available
+     */
+    hasDemo?: boolean;
+  };
 }
 
 /**
@@ -38,6 +43,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
   const router = useRouter();
   const isPlanning = project.status === 'planning';
   const imageSrc = project.image || '/images/placeholder-project.jpg';
+  const showDemoButton = project.hasDemo !== false;
 
   /**
    * Mapping of project categories to their corresponding icons
@@ -176,7 +182,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
 
       {!isPlanning && (
         <CardFooter className="flex justify-between mt-4">
-          {project.demoUrl && (
+          {showDemoButton && project.demoUrl && (
             <Button
               color="primary"
               variant="flat"

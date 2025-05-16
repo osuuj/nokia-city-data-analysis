@@ -4,40 +4,53 @@
 
 export const juusoData = {
   skills: [
-    { name: 'React & React Native', level: 95 },
-    { name: 'TypeScript', level: 90 },
+    { name: 'React', level: 85 },
+    { name: 'Next.js', level: 80 },
+    { name: 'TypeScript', level: 80 },
+    { name: 'Component Libraries (e.g., HeroUI)', level: 90 },
     { name: 'UI/UX Design', level: 85 },
-    { name: 'Animation & Motion', level: 82 },
-    { name: 'Testing & Accessibility', level: 88 },
-    { name: 'Next.js', level: 92 },
-    { name: 'TailwindCSS', level: 94 },
-    { name: 'Component Libraries', level: 89 },
+    { name: 'Animation & Motion', level: 65 },
+    { name: 'Testing & Accessibility', level: 70 },
+    { name: 'Python', level: 90 },
+    { name: 'SQL', level: 75 },
+    { name: 'ETL Development', level: 80 },
+    { name: 'Machine Learning (ML)', level: 80 },
+    { name: 'Apache Airflow', level: 65 },
+    { name: 'Power BI', level: 75 },
+    { name: 'Cloud (AWS / GCP)', level: 70 },
+    { name: 'Git & GitHub', level: 80 },
   ],
 
   projects: [
     {
-      title: 'E-commerce Dashboard',
+      id: '1',
+      title: 'Osuuj Company Search Platform',
       description:
-        'A comprehensive analytics dashboard for online stores with real-time data visualization and customer insights.',
-      tech: ['React', 'TypeScript', 'D3.js', 'REST API'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=ecom123',
-      link: '/projects/ecommerce-dashboard',
+        'A comprehensive company discovery platform designed for analysts, researchers, and job seekers to explore and analyze organizations across regions.',
+      tech: ['Python', 'Pandas', 'Postgres', 'ETL', 'FastAPI', 'React', 'Next.js', 'TypeScript'],
+      image: '/images/projects/osuuj-platform.webp',
+      link: '/project/1',
+      hasDemo: true,
     },
     {
+      id: '2',
       title: 'Travel Companion App',
       description:
         'Mobile application for travelers to discover local experiences, plan itineraries and connect with other adventurers.',
       tech: ['React Native', 'Firebase', 'Maps API', 'Redux'],
-      image: 'https://img.heroui.chat/image/places?w=600&h=400&u=travel456',
-      link: '/projects/travel-app',
+      image: '/images/projects/travel-app.webp',
+      link: '/project/2',
+      hasDemo: false,
     },
     {
+      id: '2',
       title: 'Healthcare Portal',
       description:
         'Secure patient portal for scheduling appointments, accessing medical records and communicating with healthcare providers.',
       tech: ['Next.js', 'GraphQL', 'TailwindCSS', 'Auth0'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=health789',
-      link: '/projects/healthcare-portal',
+      image: '/images/projects/healthcare-portal.webp',
+      link: '/project/2',
+      hasDemo: false,
     },
   ],
 
@@ -67,46 +80,38 @@ export const juusoData = {
 
   testimonials: [
     {
-      content:
-        'Juuso is an exceptional frontend developer who consistently delivers beyond expectations. His attention to detail and commitment to user experience sets him apart.',
-      name: 'Sarah Johnson',
-      title: 'Product Manager at TechNova',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=sarah123',
-    },
-    {
-      content:
-        'Working with Juuso was transformative for our project. His technical expertise combined with design sensibility resulted in a product that our users love.',
-      name: 'Alex Chen',
-      title: 'CTO at Digital Solutions',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=alex456',
-    },
-    {
-      content:
-        'As a designer, I appreciate developers who respect the design vision while enhancing it with technical insights. Juuso is that rare talent who bridges both worlds perfectly.',
-      name: 'Maya Rodriguez',
-      title: 'UI/UX Designer',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=maya789',
+      content: 'Juuso is an ...',
+      name: '???',
+      title: '???',
+      avatarSrc: '',
     },
   ],
 
-  typedStrings: ['Frontend Developer', 'UI/UX Specialist', 'React Expert', 'Animation Enthusiast'],
+  typedStrings: [
+    'Electronics Engineer',
+    'Master of Science in Economics',
+    'Full Stack Developer',
+    'UI/UX Specialist',
+    'Animation Enthusiast',
+    '...',
+    'and',
+    '"By the power of Grayskull … I have the power!"',
+  ],
 
   contact: {
-    email: 'juuso@example.com',
-    location: 'Helsinki, Finland',
-    website: 'www.juuso.dev',
+    email: 'juuso.juvonen@osuuj.ai',
+    location: 'Nokia, Finland',
+    website: 'www.osuuj.ai',
     availability: {
-      status: 'Open to new projects',
-      response: 'Will respond within 48 hours',
+      status: 'Open to new projects and challenges',
+      response: 'Will respond within 24 hours',
     },
   },
 
   socialLinks: {
     github: 'https://github.com/juuso',
     linkedin: 'https://linkedin.com/in/juuso',
-    twitter: 'https://twitter.com/juuso',
-    dribbble: 'https://dribbble.com/juuso',
   },
 
-  avatarUrl: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juusodev',
+  avatarUrl: '/images/team/juuso.webp',
 };

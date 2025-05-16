@@ -10,7 +10,7 @@ import { type Project, ProjectCategory, ProjectStatus } from '../types';
  * @remarks
  * - Each project has a unique ID and required fields (title, description)
  * - Optional fields demonstrate different use cases and data structures
- * - Images use placeholder URLs from HeroUI's image service
+ * - Images use local files from the public directory
  * - Tags and categories follow the defined enums
  *
  * @example
@@ -29,15 +29,15 @@ export const projectsData: Project[] = [
     subtitle: 'A fast, scalable way to search and analyze companies by location and industry.',
     description:
       'A comprehensive company discovery platform designed for analysts, researchers, and job seekers to explore and analyze organizations across regions. Using open-source data processed through an ETL pipeline, the platform maps Finnish companies geographically and delivers actionable industry insights through intuitive analytics.',
-    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=1',
+    image: '/images/projects/osuuj-platform.webp',
     gallery: [
       {
-        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=3',
+        src: '/images/projects/osuuj-search.webp',
         alt: 'Company search interface',
         caption: 'Main search interface with filters',
       },
       {
-        src: 'https://img.heroui.chat/image/ai?w=800&h=500&u=4',
+        src: '/images/projects/osuuj-details.webp',
         alt: 'Company details view',
         caption: 'Detailed company information page',
       },
@@ -78,7 +78,7 @@ export const projectsData: Project[] = [
     id: '2',
     title: 'Osuuj AI Chat',
     description: 'In Progress ...',
-    image: 'https://img.heroui.chat/image/ai?w=800&h=500&u=2',
+    image: '/images/projects/ai-chat.webp',
     category: ProjectCategory.AI,
     tags: ['Next.js', 'TypeScript'],
     demoUrl: '/dashboard',
