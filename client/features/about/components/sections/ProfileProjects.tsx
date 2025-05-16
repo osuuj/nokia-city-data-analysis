@@ -13,6 +13,7 @@ type Project = {
   subtitle?: string;
   id?: string;
   hasDemo?: boolean;
+  category?: ProjectCategory;
 };
 
 type ProfileProjectsProps = {
@@ -58,10 +59,10 @@ export function ProfileProjects({
                   subtitle: project.subtitle,
                   id: projectId,
                   status: ProjectStatus.Active,
-                  category: categoryDefault,
+                  category: project.category || categoryDefault,
                   tags: project.tech || [],
                   image: project.image || `/images/projects/${projectId}.webp`,
-                  // Always provide demoUrl (required by schema) but use hasDemo flag to control visibility
+                  // Use the external link directly if provided
                   demoUrl: project.link || '#',
                   hasDemo: project.hasDemo,
                   featured: index === 0,

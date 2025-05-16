@@ -51,8 +51,13 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
    * Handles navigation to the project detail page
    */
   const handleCardPress = useCallback(() => {
-    router.push(`/project/${project.id}`);
-  }, [router, project.id]);
+    // Check if project has an external link (starting with http)
+    if (project.demoUrl?.startsWith('http')) {
+      window.open(project.demoUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      router.push(`/project/${project.id}`);
+    }
+  }, [router, project.id, project.demoUrl]);
 
   /**
    * Handles the demo button click

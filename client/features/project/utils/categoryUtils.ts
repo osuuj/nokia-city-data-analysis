@@ -1,4 +1,4 @@
-import { TECH_CATEGORIES, getTechIcon } from '../data/techStack';
+import { TECH_CATEGORIES } from '../data/techStack';
 import { ProjectCategory } from '../types';
 
 /**
