@@ -4,7 +4,6 @@
  * This file exports data used in the about feature.
  */
 
-export * from './aboutContent';
 export * from './teamMembers';
 
 // Export profile data
