@@ -30,7 +30,7 @@ export function TeamMemberCard(props: TeamMemberCardProps) {
     bio = '',
     shortBio = bio,
     portfolioLink = '#',
-    avatarSrc = `https://img.heroui.chat/image/avatar?w=200&h=200&u=${name.toLowerCase()}`,
+    avatarSrc = '/images/team/default-avatar.svg',
     skills = [],
     socialLinks = {},
   } = member;

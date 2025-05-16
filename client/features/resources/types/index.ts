@@ -17,12 +17,22 @@ export type ResourceCategory =
   | 'templates'
   | 'api'
   | 'faq'
-  | 'community';
+  | 'community'
+  | 'data-insights'
+  | 'api-documentation';
 
 /**
  * Resource type
  */
-export type ResourceType = 'Guide' | 'FAQ' | 'PDF' | 'Template' | 'API' | 'Video' | 'Link';
+export type ResourceType =
+  | 'Guide'
+  | 'FAQ'
+  | 'PDF'
+  | 'Template'
+  | 'API'
+  | 'Video'
+  | 'Link'
+  | 'Documentation';
 
 /**
  * Resource interface
@@ -38,6 +48,7 @@ export interface Resource {
   tags?: string[];
   createdAt?: string;
   updatedAt?: string;
+  isWorkInProgress?: boolean;
 }
 
 /**
