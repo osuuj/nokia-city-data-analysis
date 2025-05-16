@@ -1,4 +1,4 @@
-import { profileDataMap } from '@/features/about/data';
+import { profileData } from '@/features/about/data';
 import { ProjectCategory } from '@/features/project/types';
 
 // Define the allowed position types
@@ -16,7 +16,7 @@ type TechIcon = {
  */
 export function useProfileData(profileId: string) {
   // Type guard to ensure profileId is a valid key
-  if (!(profileId in profileDataMap)) {
+  if (!(profileId in profileData)) {
     return {
       data: null,
       isLoading: false,
@@ -24,7 +24,7 @@ export function useProfileData(profileId: string) {
     };
   }
 
-  const profileData = profileDataMap[profileId as keyof typeof profileDataMap];
+  const profileInfo = profileData[profileId as keyof typeof profileData];
 
   // Define tech icons based on profile type
   const getTechIcons = (id: string): TechIcon[] => {
@@ -36,7 +36,7 @@ export function useProfileData(profileId: string) {
         { name: 'logos:aws', position: 'top-left' as IconPosition },
       ];
     }
-    // Kassu's tech icons
+    // Kasperi's tech icons
     return [
       { name: 'logos:nodejs-icon', position: 'bottom-right' as IconPosition },
       { name: 'logos:python', position: 'bottom-left' as IconPosition },
@@ -61,24 +61,24 @@ export function useProfileData(profileId: string) {
 
   // Transform raw data to the format required by components
   const transformedData = {
-    ...profileData,
+    ...profileInfo,
     hero: {
       name: profileId.charAt(0).toUpperCase() + profileId.slice(1),
-      typedStrings: profileData.typedStrings,
-      avatarUrl: profileData.avatarUrl,
+      typedStrings: profileInfo.typedStrings,
+      avatarUrl: profileInfo.avatarUrl,
       bio,
-      socialLinks: profileData.socialLinks,
+      socialLinks: profileInfo.socialLinks,
       techIcons: getTechIcons(profileId),
     },
     skills: {
       title: 'Technical Skills',
       description: skillDescription,
-      items: profileData.skills,
+      items: profileInfo.skills,
     },
     projects: {
       title: 'Featured Projects',
       description: projectDescription,
-      items: profileData.projects,
+      items: profileInfo.projects,
       categoryDefault: isFrontend ? ProjectCategory.Web : ProjectCategory.AI,
     },
   };

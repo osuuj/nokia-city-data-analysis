@@ -4,17 +4,19 @@
  * This file exports data used in the about feature.
  */
 
+// Data exports for the About feature
+// This index file collects and re-exports all data-related modules
+
+// Profile data
+export * from './kasperiData';
 export * from './teamMembers';
 
-// Export profile data
-export * from './juusoData';
-export * from './kassuData';
-
-// Export a map of profile IDs to their data for easy lookup
+// Import all profile data for the profileData map
 import { juusoData } from './juusoData';
-import { kassuData } from './kassuData';
+import { kasperiData } from './kasperiData';
 
-export const profileDataMap = {
+// Map of all profile data by id
+export const profileData = {
   juuso: juusoData,
-  kassu: kassuData,
+  kasperi: kasperiData,
 };

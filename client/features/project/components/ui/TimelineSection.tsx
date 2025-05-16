@@ -1,114 +1,22 @@
 'use client';
 
+import { type TimelineEvent, getTimelineEvents } from '@/features/project/data/timeline';
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion, useReducedMotion } from 'framer-motion';
 
 interface TimelineSectionProps {
   timeline: string;
+  projectId?: string;
 }
 
-export default function TimelineSection({ timeline }: TimelineSectionProps) {
+export default function TimelineSection({ timeline, projectId }: TimelineSectionProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  const generateTimelineEvents = (timeline: string) => {
-    const dateMatch = timeline.match(/(\w+\s\d{4})\s*-\s*(\w+\s\d{4})/);
-
-    if (dateMatch) {
-      const startDate = dateMatch[1];
-      const endDate = dateMatch[2];
-
-      return [
-        {
-          date: startDate,
-          title: 'Project Kickoff',
-          description: 'Initial planning and requirement gathering phase',
-          icon: 'lucide:flag',
-        },
-        {
-          date: getMiddleDate(startDate, endDate),
-          title: 'Development Phase',
-          description: 'Core functionality implementation and testing',
-          icon: 'lucide:code',
-        },
-        {
-          date: endDate,
-          title: 'Project Completion',
-          description: 'Final testing, documentation and deployment',
-          icon: 'lucide:check-circle',
-        },
-      ];
-    }
-
-    return [
-      {
-        date: 'Project Start',
-        title: 'Project Kickoff',
-        description: 'Initial planning and requirement gathering phase',
-        icon: 'lucide:flag',
-      },
-      {
-        date: 'Development',
-        title: 'Development Phase',
-        description: 'Core functionality implementation and testing',
-        icon: 'lucide:code',
-      },
-      {
-        date: 'Completion',
-        title: 'Project Completion',
-        description: 'Final testing, documentation and deployment',
-        icon: 'lucide:check-circle',
-      },
-    ];
-  };
-
-  const getMiddleDate = (startDateStr: string, endDateStr: string) => {
-    try {
-      const months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-
-      const [startMonthName, startYearStr] = startDateStr.split(' ');
-      const [endMonthName, endYearStr] = endDateStr.split(' ');
-
-      const startMonth = months.indexOf(startMonthName);
-      const endMonth = months.indexOf(endMonthName);
-
-      const startYear = Number.parseInt(startYearStr);
-      const endYear = Number.parseInt(endYearStr);
-
-      let middleMonth: number;
-      let middleYear: number;
-
-      if (startYear === endYear) {
-        middleMonth = Math.floor((startMonth + endMonth) / 2);
-        middleYear = startYear;
-      } else {
-        const totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth);
-        const halfMonths = Math.floor(totalMonths / 2);
-
-        middleYear = startYear + Math.floor((startMonth + halfMonths) / 12);
-        middleMonth = (startMonth + halfMonths) % 12;
-      }
-
-      return `${months[middleMonth]} ${middleYear}`;
-    } catch {
-      return 'Mid-Project';
-    }
-  };
-
-  const timelineEvents = generateTimelineEvents(timeline);
+  // Get timeline events from either projectId or timeline string
+  const timelineEvents: TimelineEvent[] = projectId
+    ? getTimelineEvents(projectId)
+    : getTimelineEvents(timeline);
 
   // Get animation properties based on reduced motion preference
   const getAnimationProps = (index: number) => {

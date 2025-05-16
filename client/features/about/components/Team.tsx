@@ -41,17 +41,18 @@ export function Team() {
             </p>
             <p className="mb-6 text-default-700">
               After that, life took us on different paths. Juuso decided to dive into finance and
-              continued his studies at the Turku School of Economics. Kassu, on the other hand,
+              continued his studies at the Turku School of Economics. Kasperi, on the other hand,
               found a new passion in programming and went on to study computer science at the
               University of Turku.
             </p>
             <p className="mb-6 text-default-700">
               And then came another challenge. Just as we were both finishing our studies and
               getting ready to enter the job market, the COVID-19 pandemic hit. Everything slowed
-              down. Companies froze hiring, and the uncertainty made it hard to plan anything. Kassu
-              was lucky and managed to land a job in software development. For Juuso, it wasn't that
-              simple. There were a lot of applications sent, a lot of waiting, and not many replies.
-              It was a tough period — full of setbacks and second-guessing — but we both kept going.
+              down. Companies froze hiring, and the uncertainty made it hard to plan anything.
+              Kasperi was lucky and managed to land a job in software development. For Juuso, it
+              wasn't that simple. There were a lot of applications sent, a lot of waiting, and not
+              many replies. It was a tough period — full of setbacks and second-guessing — but we
+              both kept going.
             </p>
             <p className="mb-6 text-default-700">
               Eventually, our paths crossed again — and this time, it felt like the right moment.

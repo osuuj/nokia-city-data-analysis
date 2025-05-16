@@ -1,8 +1,8 @@
 /**
- * Data for Kassu's profile page
+ * Data for Kasperi's profile page
  */
 
-export const kassuData = {
+export const kasperiData = {
   skills: [
     { name: 'Node.js', level: 92 },
     { name: 'Python', level: 88 },
@@ -72,21 +72,21 @@ export const kassuData = {
   testimonials: [
     {
       content:
-        'Kassu is an exceptional developer who delivers high-quality code ahead of schedule. His deep knowledge of backend systems saved our project from serious performance issues.',
+        'Kasperi is an exceptional developer who delivers high-quality code ahead of schedule. His deep knowledge of backend systems saved our project from serious performance issues.',
       name: 'Alex Morgan',
       title: 'CTO at TechVision',
       avatarSrc: '/images/team/alex.webp',
     },
     {
       content:
-        'Working with Kassu was a game-changer for our data infrastructure. He quickly identified bottlenecks and implemented elegant solutions that scaled beautifully.',
+        'Working with Kasperi was a game-changer for our data infrastructure. He quickly identified bottlenecks and implemented elegant solutions that scaled beautifully.',
       name: 'Sarah Chen',
       title: 'Lead Engineer at DataFlow',
       avatarSrc: '/images/team/sarah.webp',
     },
     {
       content:
-        "Kassu's expertise in cloud architecture helped us reduce our AWS costs by 35% while improving system reliability. His documentation is also top-notch.",
+        "Kasperi's expertise in cloud architecture helped us reduce our AWS costs by 35% while improving system reliability. His documentation is also top-notch.",
       name: 'Michael Torres',
       title: 'Product Manager',
       avatarSrc: '/images/team/michael.webp',
@@ -101,9 +101,9 @@ export const kassuData = {
   ],
 
   contact: {
-    email: 'hello@kassu.com',
+    email: 'hello@kasperi.com',
     location: 'Berlin, Germany',
-    website: 'www.kassu.com',
+    website: 'www.kasperi.com',
     availability: {
       status: 'Available for new projects',
       response: 'Typical response time is within 24 hours',
@@ -111,11 +111,11 @@ export const kassuData = {
   },
 
   socialLinks: {
-    github: 'https://github.com/kassu',
-    linkedin: 'https://linkedin.com/in/kassu',
-    twitter: 'https://twitter.com/kassu',
-    medium: 'https://medium.com/@kassu',
+    github: 'https://github.com/kasperi',
+    linkedin: 'https://linkedin.com/in/kasperi',
+    twitter: 'https://twitter.com/kasperi',
+    medium: 'https://medium.com/@kasperi',
   },
 
-  avatarUrl: '/images/team/kassu.webp',
+  avatarUrl: '/images/team/kasperi.webp',
 };

@@ -34,17 +34,17 @@ export const teamMembers: TeamMember[] = [
     ],
   },
   {
-    id: 'kassu',
-    name: 'Kassu',
+    id: 'kasperi',
+    name: 'Kasperi',
     jobTitle: 'Developer',
     bio: 'Expert in building robust server architectures and efficient database solutions.',
     shortBio: 'Backend developer focused on scalable architectures.',
-    portfolioLink: '/about/kassu',
-    avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=kassu',
+    portfolioLink: '/about/kasperi',
+    avatarSrc: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=kasperi',
     skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'AWS', 'Data Engineering', 'ETL'],
     socialLinks: {
-      github: 'https://github.com/kassu',
-      linkedin: 'https://linkedin.com/in/kassu',
+      github: 'https://github.com/kasperi',
+      linkedin: 'https://linkedin.com/in/kasperi',
     },
     projects: ['1'],
     achievements: [
