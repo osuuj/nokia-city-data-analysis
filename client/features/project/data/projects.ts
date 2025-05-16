@@ -1,7 +1,7 @@
 import { type Project, ProjectCategory, ProjectStatus } from '../types';
 
 /**
- * Project data for the Nokia City Data Analysis platform
+ * Project data for the Osuuj Data Analysis platform
  *
  * This file contains the production project data for display throughout the application.
  * The data follows the Project interface structure and includes all relevant project information.
@@ -9,7 +9,7 @@ import { type Project, ProjectCategory, ProjectStatus } from '../types';
 export const projectsData: Project[] = [
   {
     id: '1',
-    title: 'Nokia City Data Analysis Platform',
+    title: 'Osuuj Data Analysis Platform',
     subtitle:
       'A comprehensive data pipeline and visualization system for analyzing Finnish company data.',
     description:

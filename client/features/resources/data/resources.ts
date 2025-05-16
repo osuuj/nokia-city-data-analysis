@@ -1,7 +1,7 @@
 import type { ResourceData } from '../types';
 
 /**
- * Resource data for Nokia City Data Analysis platform
+ * Resource data for Osuuj Data Analysis platform
  */
 export const resourcesData: ResourceData = {
   categories: [
@@ -9,13 +9,13 @@ export const resourcesData: ResourceData = {
       id: 'getting-started',
       title: 'Getting Started',
       description:
-        'Essential information to help you get started with the Nokia City Data Analysis platform',
+        'Essential information to help you get started with the Osuuj Data Analysis platform',
       icon: 'lucide:rocket',
       resources: [
         {
           id: 'platform-overview',
           title: 'Platform Overview',
-          description: 'Learn about the Nokia City Data Analysis platform and its key features.',
+          description: 'Learn about the Osuuj Data Analysis platform and its key features.',
           icon: 'lucide:layers',
           type: 'Guide',
           category: 'getting-started',
