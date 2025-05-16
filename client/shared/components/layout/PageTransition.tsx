@@ -1,17 +1,19 @@
 'use client';
 
+import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
+  isDashboard?: boolean;
 }
 
 /**
  * PageTransition
  * Prevents flash during page transitions and provides a consistent background
  */
-export function PageTransition({ children }: PageTransitionProps) {
+export function PageTransition({ children, isDashboard = false }: PageTransitionProps) {
   return (
     <Suspense
       fallback={
@@ -20,6 +22,7 @@ export function PageTransition({ children }: PageTransitionProps) {
           style={{
             minHeight: '100vh',
             width: '100%',
+            overflow: isDashboard ? 'hidden' : 'auto',
           }}
         >
           {children}
@@ -27,9 +30,11 @@ export function PageTransition({ children }: PageTransitionProps) {
       }
     >
       <div
-        className="page-transition bg-background"
+        className={clsx('page-transition bg-background', {
+          'h-screen overflow-hidden': isDashboard,
+        })}
         style={{
-          minHeight: '100vh',
+          minHeight: isDashboard ? undefined : '100vh',
           width: '100%',
           transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out',
         }}
