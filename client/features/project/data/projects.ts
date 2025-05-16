@@ -1,0 +1,81 @@
+import { type Project, ProjectCategory, ProjectStatus } from '../types';
+
+/**
+ * Project data for the Nokia City Data Analysis platform
+ *
+ * This file contains the production project data for display throughout the application.
+ * The data follows the Project interface structure and includes all relevant project information.
+ */
+export const projectsData: Project[] = [
+  {
+    id: '1',
+    title: 'Nokia City Data Analysis Platform',
+    subtitle:
+      'A comprehensive data pipeline and visualization system for analyzing Finnish company data.',
+    description:
+      'A full-stack platform combining ETL data processing with interactive visualization tools to provide insights into Finnish company distributions and market trends. Built with a Python ETL pipeline, FastAPI backend, and Next.js frontend with responsive visualization dashboards.',
+    image: '/images/projects/osuuj-platform.webp',
+    gallery: [
+      {
+        src: '/images/projects/osuuj-search.webp',
+        alt: 'Company search interface',
+        caption: 'Interactive search interface with multiple filtering options',
+      },
+      {
+        src: '/images/projects/osuuj-details.webp',
+        alt: 'Company details view',
+        caption: 'Detailed company information with industry analytics',
+      },
+      {
+        src: '/images/projects/osuuj-map.webp',
+        alt: 'Map visualization',
+        caption: 'Geographic distribution of Finnish companies',
+      },
+    ],
+    category: ProjectCategory.Web,
+    tags: [
+      'Python',
+      'Pandas',
+      'PostgreSQL',
+      'ETL',
+      'FastAPI',
+      'REST API',
+      'SQLAlchemy',
+      'React',
+      'Next.js',
+      'TypeScript',
+      'Tailwind CSS',
+      'Data visualization',
+      'Mapbox',
+      'Docker',
+      'GitHub Actions',
+    ],
+    goals: [
+      'Build an end-to-end data processing and visualization platform',
+      'Extract, transform, and load Finnish company data into a structured database',
+      'Create interactive dashboards with map, table, and analytics views',
+      'Provide a user-friendly interface for exploring company data by location and industry',
+      'Implement a responsive design for multiple device types',
+    ],
+    timeline: 'Q4 2024 – Q2 2025',
+    role: 'Full-Stack Development Team',
+    team: ['Juuso Juvonen', 'Kasper Rautio'],
+    demoUrl: '/dashboard',
+    repoUrl: 'https://github.com/osuuj/nokia-city-data-analysis',
+    featured: true,
+    status: ProjectStatus.Active,
+  },
+  {
+    id: '2',
+    title: 'Data Pipeline Extensions',
+    subtitle: 'Enhanced ETL processes for additional data sources',
+    description:
+      'Planned extensions to the ETL pipeline to incorporate additional Finnish business data sources and provide more comprehensive analytics capabilities.',
+    image: '/images/projects/ai-chat.webp',
+    category: ProjectCategory.AI,
+    tags: ['Python', 'ETL', 'Pandas', 'PostgreSQL', 'Data Engineering'],
+    demoUrl: '/coming-soon',
+    status: ProjectStatus.Planning,
+    timeline: 'Q3 2025',
+  },
+];

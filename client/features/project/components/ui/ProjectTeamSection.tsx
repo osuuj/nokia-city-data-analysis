@@ -39,7 +39,7 @@ export function ProjectTeamSection({ team, projectTitle, isLoading }: ProjectTea
           name,
           jobTitle: 'Team Member',
           bio: `Team member for ${projectTitle}`,
-          portfolioLink: '#',
+          portfolioLink: `/about/${name.split(' ')[0].toLowerCase()}`,
           avatarSrc: `/api/avatar?seed=${encodeURIComponent(name)}`,
         }))}
       />

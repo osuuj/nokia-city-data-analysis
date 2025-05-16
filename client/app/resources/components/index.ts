@@ -6,3 +6,4 @@
 
 export { CategoryAccordionItem } from './CategoryAccordionItem';
 export { ResourcesHeader } from './ResourcesHeader';
+export { UseCaseBox } from './UseCaseBox';

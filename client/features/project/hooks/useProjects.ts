@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { projectsData } from '../data/sampleProjects';
+import { projectsData } from '../data/projects';
 import type { Project } from '../types';
 
 /**
