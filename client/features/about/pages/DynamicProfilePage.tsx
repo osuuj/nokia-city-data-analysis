@@ -54,7 +54,7 @@ export default function DynamicProfilePage({ profileId }: DynamicProfilePageProp
             experience={data.experience}
             description={
               profileId === 'juuso'
-                ? 'Frontend development journey and key achievements'
+                ? 'Development journey and key achievements'
                 : 'Backend engineering journey and key achievements'
             }
           />

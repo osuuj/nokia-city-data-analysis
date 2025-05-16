@@ -27,10 +27,10 @@ export const AnimatedSkillBar: React.FC<SkillProps> = ({
     >
       <div className="flex justify-between items-center mb-2">
         <div>
-          <span className="text-sm font-medium">{name}</span>
+          <span className="text-sm font-medium text-black dark:text-white">{name}</span>
         </div>
         <motion.span
-          className="text-sm text-default-500"
+          className="text-sm font-semibold text-[#D4D4D8]"
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
@@ -38,7 +38,7 @@ export const AnimatedSkillBar: React.FC<SkillProps> = ({
           {level}%
         </motion.span>
       </div>
-      <div className="h-2 bg-default-100 rounded-full overflow-hidden">
+      <div className="h-2 bg-default-100 dark:bg-default-700 rounded-full overflow-hidden">
         <motion.div
           className={`h-full bg-${color}`}
           initial={{ width: 0 }}
