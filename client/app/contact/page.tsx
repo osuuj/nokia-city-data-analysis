@@ -14,7 +14,7 @@ export default function ContactPage() {
     <Suspense fallback={<ContactLoadingSkeleton />}>
       <ContactPageWrapper
         teamMembers={teamMembers}
-        email="team@nokiacitydata.com"
+        email="team@osuuj.ai"
         description="Have questions about our city data analysis projects? Feel free to reach out to our team via email."
         responseTime="We typically respond to inquiries within 1-2 business days."
       />

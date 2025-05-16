@@ -1,7 +1,7 @@
 /**
  * Team members data for the Contact page
  */
-import type { TeamMember } from '../types';
+import type { TeamMember } from '../types/contact-types.ts';
 
 /**
  * List of team members with their contact information
@@ -10,7 +10,7 @@ export const teamMembers: TeamMember[] = [
   {
     name: 'Juuso Juvonen',
     role: 'Lead Developer',
-    email: 'superjuuso@gmail.com',
+    email: 'juuso.juvonen@osuuj.ai',
     socialLinks: [
       {
         icon: 'logos:linkedin-icon',
