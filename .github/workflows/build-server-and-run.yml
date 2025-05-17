@@ -34,6 +34,7 @@ jobs:
           docker build --no-cache \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             ./server
 
           echo "📦 Pushing image to ECR..."
