@@ -191,6 +191,10 @@ jobs:
                       {
                         "name": "DB_SSL_MODE",
                         "value": "require"
+                      },
+                      {
+                        "name": "PGSSLMODE",
+                        "value": "no-verify"
                       }
                     ]
                   }
