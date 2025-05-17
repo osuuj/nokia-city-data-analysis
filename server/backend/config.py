@@ -6,6 +6,7 @@ with environment variables.
 """
 
 import json
+import logging
 import os
 from typing import Any, List, Optional, Set
 
@@ -49,12 +50,11 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", "30"))
     DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # 30 minutes
 
-    # Security settings - JWT not implemented yet but ready when needed
-    JWT_SECRET_KEY: str = os.getenv(
-        "JWT_SECRET_KEY", "placeholder_jwt_secret_key_for_dev_only"
-    )
-    JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    # Security settings - JWT not currently in use
+    # Disabled as JWT authentication is not implemented
+    JWT_SECRET_KEY: Optional[str] = None  # JWT not in use
+    JWT_ALGORITHM: Optional[str] = None  # JWT not in use
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = None  # JWT not in use
 
     # CORS settings - Hard-coded for local development
     # Define as Any to avoid validation, but override with field_validator
@@ -93,19 +93,34 @@ class Settings(BaseSettings):
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def set_cors_origins(cls, v: Any) -> List[str]:
-        """Completely override any value with a fixed list.
+        """Validate and set CORS origins with production safeguards.
 
         Args:
             v: Any input value (ignored)
 
         Returns:
-            Fixed list of allowed origins
+            List of allowed origins
         """
-        # Parse environment variable if provided, otherwise use default
-        origins_str = os.getenv(
-            "BACKEND_CORS_ORIGINS",
-            "BACKEND_CORS_ORIGINS=BACKEND_CORS_ORIGINS=https://osuuj.ai,https://www.osuuj.ai,https://nokia-city-data-analysis-jj32k1jaw-osuujs-projects.vercel.app",
-        )
+        # Check if we're in production environment
+        is_production = os.environ.get("ENVIRONMENT", "dev") == "production"
+
+        # Get CORS origins from environment variable
+        origins_str = os.getenv("BACKEND_CORS_ORIGINS")
+
+        # In production, REQUIRE environment variable to be set
+        if is_production:
+            if not origins_str:
+                # Log a critical warning that we're missing required config
+                logging.critical(
+                    "SECURITY RISK: BACKEND_CORS_ORIGINS not set in production environment"
+                )
+                # Default to very restrictive setting rather than permissive
+                return ["https://osuuj.ai"]  # Strict fallback for safety
+        else:
+            # In development, allow fallback values
+            origins_str = origins_str or "http://localhost:3000,http://localhost:8000"
+
+        # Parse the string into a list
         origins = [origin.strip() for origin in origins_str.split(",")]
         return origins
 
