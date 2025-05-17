@@ -116,7 +116,7 @@ jobs:
                       },
                       {
                         "name": "DATABASE_NAME",
-                        "value": "nokia_city_data"
+                        "value": "etl_db"
                       },
                       {
                         "name": "BACKEND_CORS_ORIGINS",
