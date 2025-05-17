@@ -1,0 +1,19 @@
+{
+  "family": "busybox-postgres",
+  "containerDefinitions": [
+    {
+      "name": "postgres-test",
+      "image": "busybox:latest",
+      "essential": true,
+      "command": ["sh", "-c", "echo 'Waiting...' && sleep 3600"]
+    }
+  ],
+  "executionRoleArn": "arn:aws:iam::802872447524:role/ecsExecutionRole-fastapi",
+  "taskRoleArn": "arn:aws:iam::802872447524:role/etl-container-role",
+  "networkMode": "awsvpc",
+  "cpu": "256",
+  "memory": "512",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ]
+} 
