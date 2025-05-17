@@ -84,14 +84,8 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v
 
-
         # Get SSL mode from environment with fallback to class default
         values = info.data
-        ssl_mode = values.get("DB_SSL_MODE") or "prefer"
-
-        # Always use SSL in production
-        if values.get("ENVIRONMENT") == "production":
-            ssl_mode = "require"
 
         # AWS Secrets in production
         if os.environ.get("ENVIRONMENT", "dev") == "production":
@@ -108,8 +102,10 @@ class Settings(BaseSettings):
                     host = db_credentials.get("host")
                     port = int(db_credentials.get("port", 5432))
 
-                    # Build connection string with SSL parameters
-                    return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
+                    # Build connection string WITHOUT sslmode in the URL
+                    # SQLAlchemy + asyncpg handle SSL differently
+                    # SSL will be configured at engine creation time
+                    return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
             except Exception as e:
                 print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
 
@@ -120,7 +116,9 @@ class Settings(BaseSettings):
         port = values.get("POSTGRES_PORT")
         db_name = values.get("POSTGRES_DB") or ""
 
-        return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
+        # Return URL without sslmode parameter
+        return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
+
 
 # Instantiate settings globally
 settings = Settings()
