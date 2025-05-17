@@ -8,7 +8,8 @@ with environment variables.
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, List, Optional, Set
+from urllib.parse import quote_plus
 
 from pydantic import PostgresDsn, field_validator
 from pydantic_settings import (  # pyright: ignore[reportMissingImports]
@@ -37,11 +38,15 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Database settings - we'll override these manually later
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "nokia_city_data")
+    POSTGRES_HOST: str = os.getenv("DB_HOST", os.getenv("POSTGRES_HOST", "localhost"))
+    POSTGRES_PORT: str = os.getenv("DB_PORT", os.getenv("POSTGRES_PORT", "5432"))
+    POSTGRES_USER: str = os.getenv("DB_USER", os.getenv("POSTGRES_USER", "postgres"))
+    POSTGRES_PASSWORD: str = os.getenv(
+        "DB_PASS", os.getenv("POSTGRES_PASSWORD", "postgres")
+    )
+    POSTGRES_DB: str = os.getenv(
+        "DATABASE_NAME", os.getenv("POSTGRES_DB", "nokia_city_data")
+    )
     DATABASE_URL: Optional[PostgresDsn] = None
     DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "prefer")  # Use "require" in prod
 
@@ -126,19 +131,10 @@ class Settings(BaseSettings):
         return origins
 
     @field_validator("DATABASE_URL", mode="before")
-    def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
-        """Assemble database URL if not provided.
-
-        Args:
-            v: Database URL
-            info: Field validator info
-
-        Returns:
-            Database URL
-        """
-        # If explicit DATABASE_URL is provided, use it
+    def assemble_db_connection(cls, v: Optional[str], info) -> str:
+        """Assemble the full database URL from environment or secrets."""
         if isinstance(v, str):
-            return PostgresDsn(v)
+            return v
 
         # Get SSL mode from environment with fallback to class default
         values = info.data
@@ -148,43 +144,34 @@ class Settings(BaseSettings):
         if values.get("ENVIRONMENT") == "production":
             ssl_mode = "require"
 
-        # Prepare SSL query params
-        query_params: Dict[str, str] = {"sslmode": ssl_mode}
-
-        # For production environment with AWS Secrets
+        # AWS Secrets in production
         if os.environ.get("ENVIRONMENT", "dev") == "production":
             try:
-                # Get credentials from AWS Secrets Manager (auto-loaded to environment)
                 if "DATABASE_CREDENTIALS" in os.environ:
                     db_credentials = json.loads(
                         os.environ.get("DATABASE_CREDENTIALS", "{}")
                     )
                     db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
 
-                    # Build connection string from credentials
-                    return PostgresDsn.build(
-                        scheme="postgresql+asyncpg",
-                        username=db_credentials.get("username"),
-                        password=db_credentials.get("password"),
-                        host=db_credentials.get("host"),
-                        port=int(db_credentials.get("port", 5432)),
-                        path=f"{db_name}",
-                        query=query_params,
-                    )
-            except Exception as e:
-                print(f"Error loading AWS Secrets: {e}")
-                # Fall through to default handling
+                    # Use quote_plus for password to ensure special characters are encoded
+                    username = db_credentials.get("username")
+                    password = quote_plus(db_credentials.get("password", ""))
+                    host = db_credentials.get("host")
+                    port = int(db_credentials.get("port", 5432))
 
-        # Default behavior using individual environment variables
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_HOST"),
-            port=int(values.get("POSTGRES_PORT")),
-            path=f"{values.get('POSTGRES_DB') or ''}",
-            query=query_params,
-        )
+                    # Build connection string with SSL parameters
+                    return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
+            except Exception as e:
+                print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
+
+        # Fallback for development - combine both approaches
+        username = values.get("POSTGRES_USER")
+        password = quote_plus(values.get("POSTGRES_PASSWORD", ""))
+        host = values.get("POSTGRES_HOST")
+        port = values.get("POSTGRES_PORT")
+        db_name = values.get("POSTGRES_DB") or ""
+
+        return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
 
 
 # Create settings instance with default values
