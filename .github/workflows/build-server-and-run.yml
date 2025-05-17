@@ -42,6 +42,35 @@ jobs:
 
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Configure RDS security group
+        env:
+          RDS_SG_ID: ${{ secrets.RDS_SECURITY_GROUP_ID || '' }}
+          ECS_SG_ID: ${{ secrets.SECURITY_GROUP_ID }}
+        run: |
+          if [ -n "$RDS_SG_ID" ]; then
+            echo "🔒 Adding ECS security group to RDS ingress rules..."
+            
+            # Check if the rule already exists
+            EXISTING_RULE=$(aws ec2 describe-security-groups --group-ids $RDS_SG_ID \
+              --query "SecurityGroups[0].IpPermissions[?FromPort==\`5432\` && ToPort==\`5432\` && contains(UserIdGroupPairs[*].GroupId, \`$ECS_SG_ID\`)]" \
+              --output text)
+            
+            if [ -z "$EXISTING_RULE" ]; then
+              echo "✅ Adding new security group rule..."
+              aws ec2 authorize-security-group-ingress \
+                --group-id $RDS_SG_ID \
+                --protocol tcp \
+                --port 5432 \
+                --source-group $ECS_SG_ID
+              echo "✅ Security group rule added successfully"
+            else
+              echo "✅ Security group rule already exists"
+            fi
+          else
+            echo "⚠️ RDS_SECURITY_GROUP_ID not set, skipping security group configuration"
+            echo "⚠️ Make sure ECS security group has access to your RDS instance"
+          fi
+
       - name: Update ECS service with new task definition
         env:
           ECS_CLUSTER: ${{ secrets.FASTAPI_ECS_CLUSTER }}
@@ -88,6 +117,14 @@ jobs:
                       {
                         "name": "DATABASE_NAME",
                         "value": "nokia_city_data"
+                      },
+                      {
+                        "name": "BACKEND_CORS_ORIGINS",
+                        "value": "https://osuuj.ai"
+                      },
+                      {
+                        "name": "DB_SSL_MODE",
+                        "value": "require"
                       }
                     ]
                   }
