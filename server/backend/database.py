@@ -15,6 +15,33 @@ from .config import settings
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Debug: print the DATABASE_URL (with password masked)
+db_url = str(settings.DATABASE_URL)
+masked_url = db_url
+if ":" in db_url and "@" in db_url:
+    parts = db_url.split("@")
+    if len(parts) >= 2:
+        creds = parts[0].split(":")
+        if len(creds) >= 3:  # protocol:user:pass
+            masked_url = f"{creds[0]}:{creds[1]}:********@{parts[1]}"
+logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
+
+# Check for sslmode in URL
+if "sslmode=" in db_url:
+    logger.warning(
+        "Found 'sslmode=' in DATABASE_URL, this may cause issues with asyncpg"
+    )
+    # Remove sslmode from URL
+    db_url_parts = db_url.split("?")
+    if len(db_url_parts) > 1:
+        base_url = db_url_parts[0]
+        query_parts = db_url_parts[1].split("&")
+        new_query_parts = [p for p in query_parts if not p.startswith("sslmode=")]
+        db_url = base_url
+        if new_query_parts:
+            db_url += "?" + "&".join(new_query_parts)
+        logger.info(f"Removed sslmode from URL: {db_url}")
+
 # SSL configuration for asyncpg connection
 ssl_mode = "require" if settings.ENVIRONMENT == "production" else settings.DB_SSL_MODE
 connect_args: Dict[str, Any] = {}
@@ -26,7 +53,7 @@ if ssl_mode in ("require", "verify-ca", "verify-full"):
 
 # Create the SQLAlchemy engine with SSL settings
 engine = create_async_engine(
-    str(settings.DATABASE_URL),
+    db_url,  # Use modified URL without sslmode
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
