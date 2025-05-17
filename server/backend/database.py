@@ -5,6 +5,7 @@ and the creation of database tables.
 """
 
 import logging
+import os
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -15,7 +16,25 @@ from .config import settings
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Create the SQLAlchemy engine
+# Determine SSL settings based on environment
+is_production = os.environ.get("ENVIRONMENT", "dev") == "production"
+ssl_args = {}
+
+if is_production:
+    logger.info(
+        "Production environment detected, configuring SSL for database connection"
+    )
+    ssl_args = {
+        "ssl": True,
+        "connect_args": {
+            "ssl_mode": "require",
+        },
+    }
+    logger.info("SSL enabled for database connection")
+else:
+    logger.info("Development environment, SSL not required for database connection")
+
+# Create the SQLAlchemy engine with SSL support in production
 engine = create_async_engine(
     str(settings.DATABASE_URL),
     echo=settings.SQLALCHEMY_ECHO,
@@ -24,6 +43,7 @@ engine = create_async_engine(
     max_overflow=settings.DB_MAX_OVERFLOW,
     pool_timeout=settings.DB_POOL_TIMEOUT,
     pool_recycle=settings.DB_POOL_RECYCLE,
+    **ssl_args,
 )
 
 # Create the SessionLocal class

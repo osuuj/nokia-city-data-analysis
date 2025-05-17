@@ -51,14 +51,15 @@ jobs:
           CONTAINER_NAME: "fastapi-container"
           CONTAINER_PORT: "8000"
           TARGET_GROUP_ARN: ${{ secrets.TARGET_GROUP_ARN }}
+          DATABASE_SECRET_ARN: ${{ secrets.DATABASE_SECRET_ARN }}
         run: |
           echo "🔍 Fetching current task definition..."
           aws ecs describe-task-definition \
             --task-definition $ECS_TASK_DEFINITION \
             --output json > task-definition.json
 
-          echo "🛠 Updating container image and port mappings..."
-          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" '
+          echo "🛠 Updating container image, port mappings, and environment variables..."
+          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" --arg DB_SECRET_ARN "$DATABASE_SECRET_ARN" '
             .taskDefinition
             | {
                 family,
@@ -73,7 +74,23 @@ jobs:
                       "hostPort": ($PORT | tonumber),
                       "protocol": "tcp",
                       "appProtocol": "http"
-                    }]
+                    }],
+                    environment: [
+                      {
+                        "name": "ENVIRONMENT",
+                        "value": "production"
+                      },
+                      {
+                        "name": "LOG_LEVEL",
+                        "value": "INFO"
+                      }
+                    ],
+                    secrets: [
+                      {
+                        "name": "DATABASE_CREDENTIALS",
+                        "valueFrom": $DB_SECRET_ARN
+                      }
+                    ]
                   }
                 ],
                 volumes,
