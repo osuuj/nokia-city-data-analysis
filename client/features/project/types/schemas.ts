@@ -10,7 +10,7 @@ import { ProjectCategory, ProjectStatus } from './enums';
 
 // Gallery item schema
 export const GalleryItemSchema = z.object({
-  src: z.string().url(),
+  src: z.string(),
   alt: z.string().min(1),
   caption: z.string().optional(),
 });
@@ -21,7 +21,7 @@ export const ProjectSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
   description: z.string().min(1),
-  image: z.string().url(),
+  image: z.string(),
   gallery: z.array(GalleryItemSchema).optional(),
   category: z.nativeEnum(ProjectCategory),
   tags: z.array(z.string()).min(1),
@@ -29,8 +29,8 @@ export const ProjectSchema = z.object({
   timeline: z.string().optional(),
   role: z.string().optional(),
   team: z.array(z.string()).optional(),
-  demoUrl: z.string().url(),
-  repoUrl: z.string().url().optional(),
+  demoUrl: z.string(),
+  repoUrl: z.string().optional(),
   featured: z.boolean().optional(),
   status: z.nativeEnum(ProjectStatus).optional().default(ProjectStatus.Active),
 });

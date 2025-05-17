@@ -19,16 +19,24 @@ interface ChartDataItem {
 
 interface CityComparisonProps {
   data: ChartDataItem[];
+  cities?: string[];
+  theme?: 'light' | 'dark';
 }
 
-export const CityComparison: React.FC<CityComparisonProps> = ({ data }) => {
-  const cities = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'industry') : [];
+export const CityComparison: React.FC<CityComparisonProps> = ({ data, cities = [], theme }) => {
+  // Use provided cities array or extract from data
+  const cityNames =
+    cities.length > 0
+      ? cities
+      : data.length > 0
+        ? Object.keys(data[0]).filter((key) => key !== 'industry')
+        : [];
 
   // Use shared chart theme hook
   const { textColor, secondaryTextColor, gridColor, tooltipBgColor, tooltipBorderColor } =
     useChartTheme();
 
-  if (!data || data.length === 0 || cities.length === 0) {
+  if (!data || data.length === 0 || cityNames.length === 0) {
     // Return null or a placeholder/message component
     return (
       <div className="flex items-center justify-center h-full text-default-500">
@@ -63,7 +71,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({ data }) => {
             }}
             iconSize={10}
           />
-          {cities.map((city, index) => {
+          {cityNames.map((city, index) => {
             // Use default Recharts fill or a simpler color scheme if needed
             const defaultFillColors = ['#8884d8', '#82ca9d', '#ffc658', '#00C49F', '#FF8042'];
             const fill = defaultFillColors[index % defaultFillColors.length];

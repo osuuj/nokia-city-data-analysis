@@ -1,13 +1,12 @@
 'use client';
 
+import type { HeroProps } from '@/features/landing/types';
 import { useLoading } from '@/shared/context/loading/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { Suspense, useCallback, useState } from 'react';
-// Import components directly
-import { HeroContent } from './HeroContent';
-import { HeroSkeleton } from './HeroSkeleton';
-import { HeroVideo } from './HeroVideo';
+import { useCallback, useEffect, useRef, useState } from 'react';
+// Import components from the barrel file
+import { HeroContent, HeroVideo } from '.';
 
 /**
  * Hero Component
@@ -24,7 +23,32 @@ export const Hero = (): JSX.Element => {
   const [videoError, setVideoError] = useState(false);
   const loading = useLoading();
 
+  // Use a ref to store the abort controller for navigation
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Create a new AbortController when the component mounts
+  useEffect(() => {
+    abortControllerRef.current = new AbortController();
+
+    return () => {
+      // Abort any in-flight requests when unmounting
+      if (abortControllerRef.current) {
+        console.debug('Aborting in-flight requests during navigation');
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const handleStartExploring = useCallback(() => {
+    // Abort any in-flight requests before navigation
+    if (abortControllerRef.current) {
+      console.debug('Aborting in-flight requests before navigation');
+      abortControllerRef.current.abort();
+
+      // Create a new abort controller for any new requests
+      abortControllerRef.current = new AbortController();
+    }
+
     // Start both the global loading indicator and local loading state
     const loadingId =
       loading?.startLoading({
@@ -33,18 +57,17 @@ export const Hero = (): JSX.Element => {
       }) || '';
     setIsLoading(true);
 
-    // Navigate to dashboard
-    router.push('/dashboard');
+    // Short delay to allow abort to complete
+    setTimeout(() => {
+      // Navigate to dashboard
+      router.push('/dashboard');
+    }, 50);
 
     // This will be cleaned up by the useEffect when pathname changes
     return () => {
       if (loadingId) loading?.stopLoading(loadingId);
     };
   }, [loading, router]);
-
-  const handleVideoError = useCallback(() => {
-    setVideoError(true);
-  }, []);
 
   // Determine background color based on theme and video availability
   const bgColor = videoError ? (resolvedTheme === 'dark' ? 'bg-black' : 'bg-white') : '';
@@ -57,7 +80,7 @@ export const Hero = (): JSX.Element => {
     >
       {/* Simple structure: Video at the bottom, content at the top in z-index */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <HeroVideo onVideoError={handleVideoError} />
+        <HeroVideo onVideoError={() => setVideoError(true)} />
       </div>
 
       {/* Hero content positioned absolutely over the video */}
@@ -65,20 +88,5 @@ export const Hero = (): JSX.Element => {
         <HeroContent isLoading={isLoading} onStartExploring={handleStartExploring} />
       </div>
     </header>
-  );
-};
-
-/**
- * HeroWithSuspense Component
- *
- * Wraps the Hero component with Suspense and provides a skeleton loading state.
- *
- * @returns {JSX.Element} The rendered HeroWithSuspense component.
- */
-export const HeroWithSuspense = (): JSX.Element => {
-  return (
-    <Suspense fallback={<HeroSkeleton />}>
-      <Hero />
-    </Suspense>
   );
 };

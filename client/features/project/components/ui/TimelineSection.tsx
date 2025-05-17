@@ -1,112 +1,21 @@
 'use client';
 
+import { type TimelineEvent, getTimelineEvents } from '@/features/project/data/timeline';
+import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
 interface TimelineSectionProps {
   timeline: string;
+  projectId?: string;
 }
 
-export default function TimelineSection({ timeline }: TimelineSectionProps) {
-  const generateTimelineEvents = (timeline: string) => {
-    const dateMatch = timeline.match(/(\w+\s\d{4})\s*-\s*(\w+\s\d{4})/);
-
-    if (dateMatch) {
-      const startDate = dateMatch[1];
-      const endDate = dateMatch[2];
-
-      return [
-        {
-          date: startDate,
-          title: 'Project Kickoff',
-          description: 'Initial planning and requirement gathering phase',
-          icon: 'lucide:flag',
-        },
-        {
-          date: getMiddleDate(startDate, endDate),
-          title: 'Development Phase',
-          description: 'Core functionality implementation and testing',
-          icon: 'lucide:code',
-        },
-        {
-          date: endDate,
-          title: 'Project Completion',
-          description: 'Final testing, documentation and deployment',
-          icon: 'lucide:check-circle',
-        },
-      ];
-    }
-
-    return [
-      {
-        date: 'Project Start',
-        title: 'Project Kickoff',
-        description: 'Initial planning and requirement gathering phase',
-        icon: 'lucide:flag',
-      },
-      {
-        date: 'Development',
-        title: 'Development Phase',
-        description: 'Core functionality implementation and testing',
-        icon: 'lucide:code',
-      },
-      {
-        date: 'Completion',
-        title: 'Project Completion',
-        description: 'Final testing, documentation and deployment',
-        icon: 'lucide:check-circle',
-      },
-    ];
-  };
-
-  const getMiddleDate = (startDateStr: string, endDateStr: string) => {
-    try {
-      const months = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-
-      const [startMonthName, startYearStr] = startDateStr.split(' ');
-      const [endMonthName, endYearStr] = endDateStr.split(' ');
-
-      const startMonth = months.indexOf(startMonthName);
-      const endMonth = months.indexOf(endMonthName);
-
-      const startYear = Number.parseInt(startYearStr);
-      const endYear = Number.parseInt(endYearStr);
-
-      let middleMonth: number;
-      let middleYear: number;
-
-      if (startYear === endYear) {
-        middleMonth = Math.floor((startMonth + endMonth) / 2);
-        middleYear = startYear;
-      } else {
-        const totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth);
-        const halfMonths = Math.floor(totalMonths / 2);
-
-        middleYear = startYear + Math.floor((startMonth + halfMonths) / 12);
-        middleMonth = (startMonth + halfMonths) % 12;
-      }
-
-      return `${months[middleMonth]} ${middleYear}`;
-    } catch {
-      return 'Mid-Project';
-    }
-  };
-
-  const timelineEvents = generateTimelineEvents(timeline);
+export default function TimelineSection({ timeline, projectId }: TimelineSectionProps) {
+  // Get timeline events from either projectId or timeline string
+  const timelineEvents: TimelineEvent[] = projectId
+    ? getTimelineEvents(projectId)
+    : getTimelineEvents(timeline);
 
   return (
     <div className="relative">
@@ -116,10 +25,11 @@ export default function TimelineSection({ timeline }: TimelineSectionProps) {
         {timelineEvents.map((event, index) => (
           <motion.div
             key={`${event.date}-${event.title}`}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.2 }}
-            viewport={{ once: true }}
+            {...useAnimationProps(
+              'fadeInUp',
+              { whileInView: true, once: true, duration: 0.5, delay: 0.2 },
+              index,
+            )}
             className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
           >
             <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>

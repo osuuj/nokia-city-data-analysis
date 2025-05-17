@@ -11,6 +11,8 @@ on:
     paths:
       - 'client/package.json'
       - 'client/package-lock.json'
+      - 'client/.env*'
+      - '.env*'
   # Allows manual triggering
   workflow_dispatch:
   # Run a security audit weekly
@@ -72,3 +74,10 @@ jobs:
         run: |
           npx license-checker --production --onlyAllow="MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;CC0-1.0" --summary
         continue-on-error: true 
+        
+      # Check for sensitive public environment variables
+      - name: Audit environment variables
+        run: |
+          chmod +x scripts/check-env-vars.js
+          node scripts/check-env-vars.js
+        # Ensure this check passes - don't allow continue-on-error 

@@ -9,3 +9,9 @@ export * from './Hero';
 
 // Button component
 export { ButtonStart } from './ButtonStart';
+
+// Error handling
+export { LandingErrorBoundary } from './LandingErrorBoundary';
+
+// Data prefetching
+export { LandingPagePrefetcher } from './LandingPagePrefetcher';

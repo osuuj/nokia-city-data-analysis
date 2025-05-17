@@ -1,10 +1,11 @@
 'use client';
 
-import type { Skill, TeamMember } from '@/features/about/types';
+import type { Skill, TeamMember } from '@/features/about/types/profileTypes';
 import { Button, Card, CardBody, CardFooter, CardHeader, Chip, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 interface TeamMemberCardProps {
   member?: TeamMember;
@@ -30,10 +31,30 @@ export function TeamMemberCard(props: TeamMemberCardProps) {
     bio = '',
     shortBio = bio,
     portfolioLink = '#',
-    avatarSrc = `https://img.heroui.chat/image/avatar?w=200&h=200&u=${name.toLowerCase()}`,
+    avatarSrc: providedAvatarSrc,
     skills = [],
     socialLinks = {},
   } = member;
+
+  // Determine the avatar source with special handling for Juuso and Kasperi
+  const avatarSrc = useMemo(() => {
+    if (providedAvatarSrc && !providedAvatarSrc.includes('?seed=')) {
+      return providedAvatarSrc;
+    }
+
+    // Get the first name to determine which avatar to use
+    const firstName = name.split(' ')[0].toLowerCase();
+
+    if (firstName === 'juuso') {
+      return '/images/team/juuso-juvonen.svg';
+    }
+    if (firstName === 'kasperi') {
+      return '/images/team/kasperi-rautio.svg';
+    }
+
+    // Fallback to provided avatar or default
+    return providedAvatarSrc || '/images/team/default-avatar.svg';
+  }, [name, providedAvatarSrc]);
 
   return (
     <motion.div

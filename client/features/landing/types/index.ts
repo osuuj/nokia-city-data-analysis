@@ -28,6 +28,8 @@ export interface ButtonStartProps {
   disabled?: boolean;
   /** Callback function to execute when the button is clicked */
   onPress?: () => void;
+  /** ARIA label (defaults to label prop) */
+  'aria-label'?: string;
 }
 
 /**

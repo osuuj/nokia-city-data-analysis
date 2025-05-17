@@ -1,11 +1,11 @@
 /**
- * Resources Components
+ * Resource Page Components
  *
- * This file exports all components for the resources feature.
+ * This file exports components used in the Resources page.
  */
 
-export { ResourceAccordion } from './ResourceAccordion';
+// Main components used in the Resources page
+export { CategoryAccordionItem } from './CategoryAccordionItem';
+export { ResourcesHeader } from './ResourcesHeader';
+export { UseCaseBox } from './UseCaseBox';
 export { ResourceCard } from './ResourceCard';
-export { ResourcesSkeleton } from './ResourcesSkeleton';
-
-// Add any additional component exports here

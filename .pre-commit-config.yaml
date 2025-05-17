@@ -39,7 +39,7 @@ repos:
         files: ^server/.*\.py$
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.11.9
+    rev: v0.11.10
     hooks:
       - id: ruff
         args: ["--config", "etl/ruff.toml"]
@@ -92,7 +92,7 @@ repos:
         files: ^server/.*\.py$
 
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.0.0-beta.3" # Use the sha / tag you want to point at
+    rev: "v2.0.0-beta.4" # Use the sha / tag you want to point at
     hooks:
       - id: biome-check
         additional_dependencies: ["@biomejs/biome@1.9.4"]
@@ -108,5 +108,12 @@ repos:
         entry: bash -c 'cd client && npm audit --audit-level=high'
         language: system
         files: ^client/package.json|^client/package-lock.json$
+        pass_filenames: false
+
+      - id: check-env-vars
+        name: 🔍 Check for sensitive public environment variables
+        entry: node client/scripts/check-env-vars.js
+        language: node
+        files: ^\.env.*$|^client/\.env.*$
         pass_filenames: false
 

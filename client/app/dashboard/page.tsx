@@ -12,12 +12,22 @@ import { useEffect } from 'react';
 export default function Page(): JSX.Element {
   // Add a class to the body element for dashboard-specific styling
   useEffect(() => {
-    // Add both dashboard and theme classes
+    // Add dashboard class and apply fixed positioning
     document.body.classList.add('dashboard-page');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
 
     // Clean up function
     return () => {
       document.body.classList.remove('dashboard-page');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, []);
 

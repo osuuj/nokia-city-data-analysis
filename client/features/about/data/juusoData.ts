@@ -2,111 +2,133 @@
  * Data for Juuso's profile page
  */
 
+import { ProjectCategory } from '@/features/project/types';
+
 export const juusoData = {
   skills: [
-    { name: 'React & React Native', level: 95 },
-    { name: 'TypeScript', level: 90 },
+    { name: 'React', level: 85 },
+    { name: 'Next.js', level: 80 },
+    { name: 'TypeScript', level: 80 },
+    { name: 'Component Libraries (e.g., HeroUI)', level: 90 },
     { name: 'UI/UX Design', level: 85 },
-    { name: 'Animation & Motion', level: 82 },
-    { name: 'Testing & Accessibility', level: 88 },
-    { name: 'Next.js', level: 92 },
-    { name: 'TailwindCSS', level: 94 },
-    { name: 'Component Libraries', level: 89 },
+    { name: 'Animation & Motion', level: 65 },
+    { name: 'Testing & Accessibility', level: 70 },
+    { name: 'Python', level: 90 },
+    { name: 'SQL', level: 75 },
+    { name: 'ETL Development', level: 80 },
+    { name: 'Machine Learning (ML)', level: 80 },
+    { name: 'Apache Airflow', level: 65 },
+    { name: 'Power BI', level: 75 },
+    { name: 'Cloud (AWS / GCP)', level: 70 },
+    { name: 'Git & GitHub', level: 80 },
   ],
 
   projects: [
     {
-      title: 'E-commerce Dashboard',
+      id: '1',
+      title: 'Osuuj Company Search Platform',
       description:
-        'A comprehensive analytics dashboard for online stores with real-time data visualization and customer insights.',
-      tech: ['React', 'TypeScript', 'D3.js', 'REST API'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=ecom123',
-      link: '/projects/ecommerce-dashboard',
+        'A comprehensive company discovery platform designed for analysts, researchers, and job seekers to explore and analyze organizations across regions.',
+      tech: ['Python', 'Pandas', 'Postgres', 'ETL', 'FastAPI', 'React', 'Next.js', 'TypeScript'],
+      image: '/images/projects/osuuj-platform.webp',
+      link: '/project/1',
+      hasDemo: true,
+      category: ProjectCategory.Web,
     },
     {
-      title: 'Travel Companion App',
+      id: '2',
+      title: 'Alpha Vantage Data ETL Pipeline',
       description:
-        'Mobile application for travelers to discover local experiences, plan itineraries and connect with other adventurers.',
-      tech: ['React Native', 'Firebase', 'Maps API', 'Redux'],
-      image: 'https://img.heroui.chat/image/places?w=600&h=400&u=travel456',
-      link: '/projects/travel-app',
+        'This project provides an ETL (Extract, Transform, Load) pipeline to fetch financial data from Alpha Vantage and save it as structured JSON files in specified directories. The pipeline leverages asynchronous processing to optimize data retrieval and supports multiple data types, such as stocks, forex, cryptocurrencies, commodities, treasury yields, and economic indicators.',
+      tech: ['Python', 'Pandas'],
+      image: '/images/projects/juuso-etl.webp',
+      link: 'https://github.com/osuuj/alpha-vantage-etl',
+      hasDemo: false,
+      category: ProjectCategory.Other,
     },
     {
-      title: 'Healthcare Portal',
+      id: '3',
+      title: 'MWAA Alpha Vantage Dags',
       description:
-        'Secure patient portal for scheduling appointments, accessing medical records and communicating with healthcare providers.',
-      tech: ['Next.js', 'GraphQL', 'TailwindCSS', 'Auth0'],
-      image: 'https://img.heroui.chat/image/dashboard?w=600&h=400&u=health789',
-      link: '/projects/healthcare-portal',
+        'This repository provides Airflow DAGs designed to automate the retrieval of financial data from Alpha Vantage. The DAGs are optimized for use with AWS Managed Workflows for Apache Airflow (MWAA), making it easy to incorporate financial data into your workflows. The project includes all necessary Python modules, configurations, and a requirements.txt file for dependency management.',
+      tech: ['Python', 'Airflow', 'Docker', 'AWS'],
+      image: '/images/projects/juuso-mwaa.webp',
+      link: 'https://github.com/osuuj/mwaa-alpha-vantage-dags',
+      hasDemo: false,
+      category: ProjectCategory.Other,
     },
   ],
 
   experience: [
     {
-      year: '2021-Present',
-      title: 'Senior Frontend Developer',
-      company: 'TechNova Solutions',
+      year: '10/2024-Present',
+      title: 'Lead Developer',
       description:
-        'Lead the frontend development of multiple high-traffic web applications, collaborating with designers and backend developers to create seamless user experiences.',
+        'Led the development of the Osuuj Search Platform, enabling company search and analysis across Finnish cities. Built the frontend with Next.js and TypeScript, implemented responsive UI with HeroUI, and developed interactive map visualizations and advanced search features. Collaborated on geospatial data integration and established frontend coding standards.',
     },
     {
-      year: '2019-2021',
-      title: 'Frontend Developer',
-      company: 'Digital Horizon Inc.',
+      year: '11/2022-8/2024',
+      title: 'Production Worker',
+      company: 'Nokian Tyres',
       description:
-        'Developed and maintained multiple client-facing web applications using React, Redux, and modern CSS frameworks.',
+        'Operated an assembly machine, ensuring production efficiency and continuous improvement. Trained new employees in both Finnish and English, strengthening my communication skills and ability to collaborate to achieve goals.',
     },
     {
-      year: '2017-2019',
-      title: 'UI Developer',
-      company: 'CreativeWeb Studios',
+      year: '3/2022-7/2022',
+      title: 'Production Worker',
+      company: 'Purso',
+      description: 'Packaging of aluminum profiles.',
+    },
+    {
+      year: '4/2020',
+      title: 'Master of Science in Economics',
+      company: 'Turku School of Economics',
       description:
-        'Created interactive websites and user interfaces for small to medium businesses.',
+        'Specialized in Mathematical Finance. Developed a neural network-based model for economic timeseries forecasting in my thesis, showcasing advanced analytical skills and the ability to apply theoretical knowledge to practical problem-solving.',
+    },
+    {
+      year: '6/2014',
+      title: 'Electronics Engineer',
+      company: 'Turku University of Applied Sciences',
+      description:
+        'Specialized in electronics production. Thesis: Application of Lean Thinking in Electronics Contract Manufacturing.',
     },
   ],
 
   testimonials: [
     {
-      content:
-        'Juuso is an exceptional frontend developer who consistently delivers beyond expectations. His attention to detail and commitment to user experience sets him apart.',
-      name: 'Sarah Johnson',
-      title: 'Product Manager at TechNova',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=sarah123',
-    },
-    {
-      content:
-        'Working with Juuso was transformative for our project. His technical expertise combined with design sensibility resulted in a product that our users love.',
-      name: 'Alex Chen',
-      title: 'CTO at Digital Solutions',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=alex456',
-    },
-    {
-      content:
-        'As a designer, I appreciate developers who respect the design vision while enhancing it with technical insights. Juuso is that rare talent who bridges both worlds perfectly.',
-      name: 'Maya Rodriguez',
-      title: 'UI/UX Designer',
-      avatarSrc: 'https://img.heroui.chat/image/avatar?w=150&h=150&u=maya789',
+      content: 'Juuso is an ...',
+      name: '???',
+      title: '???',
+      avatarSrc: '',
     },
   ],
 
-  typedStrings: ['Frontend Developer', 'UI/UX Specialist', 'React Expert', 'Animation Enthusiast'],
+  typedStrings: [
+    'Electronics Engineer',
+    'Master of Science in Economics',
+    'Full Stack Developer',
+    'UI/UX Specialist',
+    'Animation Enthusiast',
+    '...',
+    'and',
+    '"By the power of Grayskull … I have the power!"',
+  ],
 
   contact: {
-    email: 'juuso@example.com',
-    location: 'Helsinki, Finland',
-    website: 'www.juuso.dev',
+    email: 'juuso.juvonen@osuuj.ai',
+    location: 'Nokia, Finland',
+    website: 'www.osuuj.ai',
     availability: {
-      status: 'Open to new projects',
-      response: 'Will respond within 48 hours',
+      status: 'Open to new projects and challenges',
+      response: 'Will respond within 24 hours',
     },
   },
 
   socialLinks: {
-    github: 'https://github.com/juuso',
-    linkedin: 'https://linkedin.com/in/juuso',
-    twitter: 'https://twitter.com/juuso',
-    dribbble: 'https://dribbble.com/juuso',
+    github: 'https://github.com/osuuj',
+    linkedin: 'https://linkedin.com/in/jutoju',
   },
 
-  avatarUrl: 'https://img.heroui.chat/image/avatar?w=200&h=200&u=juusodev',
+  avatarUrl: '/images/team/juuso-juvonen.svg',
 };

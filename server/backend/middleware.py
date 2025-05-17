@@ -63,32 +63,53 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Referrer-Policy controls what referrer information is sent
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # Skip CSP in development mode for Swagger UI to work properly
-        if os.environ.get(
-            "ENVIRONMENT", "dev"
-        ) != "dev" and not request.url.path.startswith("/docs"):
-            # Content-Security-Policy restricts resource loading
-            response.headers["Content-Security-Policy"] = (
-                "default-src 'self'; "
-                "img-src 'self' data:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "font-src 'self' data:; "
-                "connect-src 'self'; "
-                "frame-ancestors 'none'"
-            )
+        # Environment-specific Content Security Policy (CSP)
+        environment = os.environ.get("ENVIRONMENT", "dev")
+        is_docs_path = request.url.path.startswith("/docs")
 
-            # Permissions-Policy (formerly Feature-Policy) restricts browser features
-            response.headers["Permissions-Policy"] = (
-                "accelerometer=(), "
-                "camera=(), "
-                "geolocation=(), "
-                "gyroscope=(), "
-                "magnetometer=(), "
-                "microphone=(), "
-                "payment=(), "
-                "usb=()"
-            )
+        # Set appropriate CSP based on environment
+        if environment == "production" or environment == "staging":
+            # Skip strict CSP for Swagger docs even in production
+            if not is_docs_path:
+                # Strict CSP for production environment
+                response.headers["Content-Security-Policy"] = (
+                    "default-src 'self'; "
+                    "img-src 'self' data:; "
+                    "script-src 'self'; "  # No unsafe-inline/eval in production
+                    "style-src 'self'; "
+                    "font-src 'self' data:; "
+                    "connect-src 'self'; "
+                    "frame-ancestors 'none'; "
+                    "object-src 'none'; "
+                    "base-uri 'self'"
+                )
+
+                # Permissions-Policy restricts browser features
+                response.headers["Permissions-Policy"] = (
+                    "accelerometer=(), "
+                    "camera=(), "
+                    "geolocation=(), "
+                    "gyroscope=(), "
+                    "magnetometer=(), "
+                    "microphone=(), "
+                    "payment=(), "
+                    "usb=()"
+                )
+        elif environment == "dev" or environment == "test":
+            # For development: either no CSP or a relaxed one for tooling
+            # Docs automatically get relaxed CSP by skipping the check above
+            if not is_docs_path:
+                # Relaxed CSP for development environment - allows dev tools to work
+                response.headers["Content-Security-Policy"] = (
+                    "default-src 'self'; "
+                    "img-src 'self' data: blob: *; "  # Allow any images for dev
+                    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "  # Allow for dev tools
+                    "style-src 'self' 'unsafe-inline'; "  # Allow for dev tools
+                    "font-src 'self' data: *; "  # Allow any fonts for dev
+                    "connect-src 'self' *; "  # Allow any APIs for dev
+                    "worker-src 'self' blob: data:; "  # For dev tools
+                    "frame-src 'self' *"  # For dev tools
+                )
 
         # HSTS tells browsers to only use HTTPS (only in production)
         if request.url.scheme == "https":

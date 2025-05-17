@@ -1,5 +1,6 @@
 'use client';
 
+import { type Address, AddressTypeEnum } from '@/features/dashboard/types/addressTypes';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { Button, Card, CardBody, CardHeader, Chip, Divider, ScrollShadow } from '@heroui/react';
 import { Icon } from '@iconify/react';
@@ -14,22 +15,17 @@ interface FeatureCardListProps {
   selectedColor: string;
   isDark?: boolean;
   flyTo?: (coords: [number, number], addressType?: string) => void;
+  onClose?: () => void;
+  isCollapsed?: boolean;
+  onCollapseChange?: (collapsed: boolean) => void;
 }
 
-interface AddressDetail {
-  street?: string;
-  building_number?: string;
-  entrance?: string;
-  postal_code?: string;
-  city?: string;
-  post_office?: string;
-  latitude?: number;
-  longitude?: number;
-}
+// Use our shared Address type from the addressTypes.ts file
+type AddressDetail = Address;
 
 interface AddressMap {
-  'Visiting address'?: AddressDetail;
-  'Postal address'?: AddressDetail;
+  [AddressTypeEnum.VISITING]?: AddressDetail;
+  [AddressTypeEnum.POSTAL]?: AddressDetail;
   [key: string]: AddressDetail | undefined;
 }
 
@@ -64,20 +60,40 @@ function hasValidIndustryDescription(
 
 export function FeatureCardList({
   features,
+  activeFeature,
   isDark = false,
   onSelect,
   flyTo,
+  onClose,
+  isCollapsed = false,
+  onCollapseChange,
 }: FeatureCardListProps) {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
-  const currentIds = features
-    .map((f) => f.properties.business_id)
-    .sort()
-    .join(',');
-  const previousIdsRef = useRef('');
+  const cardContainerRef = useRef<HTMLDivElement>(null);
 
+  // Handle collapse/expand state
+  const handleCollapse = () => {
+    if (onCollapseChange) {
+      onCollapseChange(true);
+    }
+  };
+
+  const handleExpand = () => {
+    if (onCollapseChange) {
+      onCollapseChange(false);
+    }
+  };
+
+  // Simple close handler
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  // Detect mobile/compact view
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -91,29 +107,44 @@ export function FeatureCardList({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Set the selected business when features or active feature changes
   useEffect(() => {
-    if (previousIdsRef.current !== currentIds) {
-      previousIdsRef.current = currentIds;
+    if (activeFeature) {
+      setSelectedBusinessId(activeFeature.properties.business_id);
+    } else if (features.length > 0) {
+      setSelectedBusinessId(features[0].properties.business_id);
+    } else {
       setSelectedBusinessId(null);
     }
-  }, [currentIds]);
+  }, [features, activeFeature]);
+
+  // Handle feature list item click
+  const handleFeatureSelect = (feature: Feature<Point, CompanyProperties>) => {
+    onSelect(feature);
+  };
+
+  // Reset selection to show all features
+  const reset = () => {
+    setSelectedBusinessId(null);
+  };
 
   const isMulti = features.length > 1;
-  const selectedFeature = isMulti
-    ? (features.find((f) => f.properties.business_id === selectedBusinessId) ?? null)
-    : features[0];
+  const selectedFeature =
+    isMulti && selectedBusinessId
+      ? features.find((f) => f.properties.business_id === selectedBusinessId) || features[0]
+      : activeFeature || features[0];
 
-  const reset = () => setSelectedBusinessId(null);
   const showList = isMulti && !selectedBusinessId;
   const showDetails = selectedFeature != null;
 
+  // Get the letter for the icon
   const letter = selectedFeature
     ? (selectedFeature.properties.industry_letter || 'broken').trim().toUpperCase()
     : features.length > 0
       ? (features[0].properties.industry_letter || 'broken').trim().toUpperCase()
       : 'broken';
 
-  // Determine if we should use the multi icon
+  // Determine if we should use the multi icon for multiple businesses
   const useMultiIcon = isMulti && !selectedBusinessId;
 
   const areCoordinatesDifferent = (a?: AddressDetail, b?: AddressDetail) => {
@@ -170,31 +201,56 @@ export function FeatureCardList({
   };
 
   return (
-    <>
-      <div className={`absolute z-[100] top-4 left-4 ${isCollapsed ? 'block' : 'hidden'}`}>
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          isIconOnly
-          className="shadow-md bg-background/80 backdrop-blur-md border border-default-200 hover:bg-primary-100 active:bg-primary-200 transition-colors"
-          onPress={() => setIsCollapsed(false)}
-        >
-          <Image
-            src={`/industries-${isDark ? 'dark' : 'light'}/${useMultiIcon ? 'multi' : letter}.svg`}
-            alt="industry"
-            width={isMobile ? 18 : 24}
-            height={isMobile ? 18 : 24}
-          />
-        </Button>
+    <div
+      ref={cardContainerRef}
+      className="feature-card-wrapper"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      tabIndex={-1}
+      role="presentation"
+    >
+      {/* Collapsed view */}
+      <div
+        className={`absolute z-[100] top-4 left-4 ${isCollapsed ? 'block' : 'hidden'} feature-card-container`}
+      >
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="flat"
+            color="primary"
+            isIconOnly
+            className="shadow-md bg-background/80 backdrop-blur-md border border-default-200 hover:bg-primary-100 active:bg-primary-200 transition-colors"
+            onPress={handleExpand}
+          >
+            <Image
+              src={`/industries-${isDark ? 'dark' : 'light'}/${useMultiIcon ? 'multi' : letter}.svg`}
+              alt="industry"
+              width={isMobile ? 18 : 24}
+              height={isMobile ? 18 : 24}
+            />
+          </Button>
+          {onClose && (
+            <Button
+              size="sm"
+              variant="flat"
+              color="danger"
+              isIconOnly
+              className="shadow-md bg-background/80 backdrop-blur-md border border-default-200 hover:bg-danger-100 active:bg-danger-200 transition-colors"
+              onPress={handleClose}
+            >
+              <Icon icon="lucide:x" width={isMobile ? 18 : 24} />
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* Expanded view */}
       <div
         className={`z-50 ${isCollapsed ? 'hidden' : 'block'} ${
           isMobile
             ? 'absolute bottom-4 left-4 right-4 max-w-[280px] mx-auto'
             : 'absolute top-4 left-4 max-w-xs'
-        }`}
+        } feature-card-container`}
       >
         <Card className="shadow-md border border-default-200">
           <CardHeader
@@ -216,15 +272,28 @@ export function FeatureCardList({
                 )}
               </div>
 
-              <Button
-                size="sm"
-                isIconOnly
-                variant="light"
-                onPress={() => setIsCollapsed(true)}
-                className="w-6 h-6 hover:bg-default-200 active:bg-default-300 transition-colors"
-              >
-                <Icon icon="lucide:minimize-2" width={16} />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  isIconOnly
+                  variant="light"
+                  onPress={handleCollapse}
+                  className="w-6 h-6 hover:bg-default-200 active:bg-default-300 transition-colors"
+                >
+                  <Icon icon="lucide:minimize-2" width={16} />
+                </Button>
+                {onClose && (
+                  <Button
+                    size="sm"
+                    isIconOnly
+                    variant="light"
+                    onPress={handleClose}
+                    className="w-6 h-6 hover:bg-danger-100 active:bg-danger-200 transition-colors"
+                  >
+                    <Icon icon="lucide:x" width={16} />
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
 
@@ -248,7 +317,7 @@ export function FeatureCardList({
                       key={feature.properties.business_id}
                       variant="flat"
                       className="justify-start w-full text-left px-2 py-2 mb-1 bg-content1 border border-default-200 hover:bg-default-50 active:bg-default-100 focus:outline-none focus:ring-0 outline-none transition-colors"
-                      onPress={() => setSelectedBusinessId(feature.properties.business_id)}
+                      onPress={() => handleFeatureSelect(feature)}
                     >
                       <div className="flex items-center gap-2 w-full">
                         <div
@@ -311,8 +380,8 @@ export function FeatureCardList({
                       }
                     }
 
-                    const visiting = rawAddresses['Visiting address'];
-                    const postal = rawAddresses['Postal address'];
+                    const visiting = rawAddresses[AddressTypeEnum.VISITING];
+                    const postal = rawAddresses[AddressTypeEnum.POSTAL];
                     const coordsDiffer = areCoordinatesDifferent(visiting, postal);
 
                     if (!visiting && !postal) {
@@ -406,6 +475,6 @@ export function FeatureCardList({
           </CardBody>
         </Card>
       </div>
-    </>
+    </div>
   );
 }

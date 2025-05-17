@@ -8,4 +8,3 @@ export { getThemedIndustryColor, useChartTheme } from './useChartTheme';
 export { useFetchCities, useFetchCompanies } from './useCompaniesQuery';
 export { useFilteredBusinesses } from './useFilteredBusinesses';
 export { useMapTheme } from './useMapTheme';
-export { usePagination } from './usePagination';

@@ -1,19 +1,22 @@
-import { Hero } from '@/features/landing/components/Hero/Hero';
-import { LandingErrorBoundary } from '@/features/landing/components/LandingErrorBoundary';
-import { Preloader } from '@/shared/components/data/Preloader';
+import { Hero, LandingErrorBoundary, LandingPagePrefetcher } from '@/features/landing/components';
+import { StandardFallback } from '@/shared/components/loading';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Nokia City Data Analysis - Home',
-  description:
-    "Explore city data analytics and insights powered by Nokia's advanced data processing capabilities.",
+  title: 'Osuuj Data Analysis - Home',
+  description: 'Explore Finnish companies with interactive data visualizations',
   openGraph: {
-    title: 'Nokia City Data Analysis',
+    title: 'Osuuj Data Analysis',
     description:
       "Explore city data analytics and insights powered by Nokia's advanced data processing capabilities.",
     type: 'website',
   },
+};
+
+export const viewport = {
+  title: 'Osuuj Data Analysis',
+  // Other viewport config
 };
 
 /**
@@ -25,7 +28,10 @@ export const metadata: Metadata = {
 export default function LandingPage(): JSX.Element {
   return (
     <LandingErrorBoundary>
-      <Suspense fallback={<Preloader />}>
+      {/* Prefetch data in the background */}
+      <LandingPagePrefetcher prefetchDelay={1500} />
+
+      <Suspense fallback={<StandardFallback text="Loading landing page..." />}>
         <section className="relative flex flex-col items-center justify-center gap-4 py-8 md:py-10">
           <Hero />
         </section>

@@ -64,7 +64,7 @@ const Row = React.memo(
         return (
           <div
             key={`${item.business_id}-${column.key as string}`}
-            className={`flex items-center px-4 truncate text-xs md:text-sm ${
+            className={`flex items-center px-4 truncate text-xs md:text-sm text-foreground ${
               column.key === 'company_name' ? 'flex-1 min-w-[200px]' : 'w-40 flex-shrink-0'
             }`}
             title={value as string}
