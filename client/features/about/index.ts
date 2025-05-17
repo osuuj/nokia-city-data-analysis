@@ -1,21 +1,32 @@
 /**
  * About Feature
  *
- * This file exports all components, hooks, and utilities for the about feature.
- * It serves as the main entry point for the about feature.
+ * This is the main export file for the About feature.
+ * It exports components, hooks, and types that should be accessible from outside the feature.
  */
 
-// Components
-export * from './components';
+// Export components
+export * from './components/Team';
+export * from './components/ui/TeamMemberCard';
 
-// Hooks
+// Export profile section components
+export * from './components/sections/ProfileContact';
+export * from './components/sections/ProfileExperience';
+export * from './components/sections/ProfileHero';
+export * from './components/sections/ProfileProjects';
+export * from './components/sections/ProfileSkills';
+export * from './components/sections/ProfileTestimonials';
+
+// Export dynamic profile page components
+export { default as DynamicProfilePage } from './pages/DynamicProfilePage';
+export { ProfilePage } from './pages/ProfilePage';
+
+// Export hooks for data access
 export * from './hooks';
 
-// Types
-export * from './types';
-
-// Data
+// Export data model and types
 export * from './data';
+export * from './types/profileTypes';
 
 // Note: Store exports are commented out until they contain actual exports
 // export * from './store';

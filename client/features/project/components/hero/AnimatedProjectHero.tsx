@@ -1,7 +1,7 @@
 'use client';
 
 import { Icon } from '@iconify/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import React from 'react';
 
 /**
@@ -16,39 +16,61 @@ const categories = [
     id: 'web',
     name: 'Web Platform',
     icon: 'lucide:globe',
-    color: 'primary',
+    color: 'primary-500',
   },
   {
     id: 'ai',
     name: 'AI & ML',
     icon: 'lucide:brain',
-    color: 'success',
+    color: 'success-500',
   },
   {
     id: 'etl',
     name: 'Data Pipeline (ETL)',
     icon: 'lucide:database',
-    color: 'warning',
+    color: 'warning-500',
   },
   {
     id: 'api',
     name: 'Backend API',
     icon: 'lucide:server',
-    color: 'secondary',
+    color: 'secondary-500',
   },
   {
     id: 'map',
     name: 'Geospatial (Mapbox)',
     icon: 'lucide:map',
-    color: 'default',
+    color: 'default-500',
   },
   {
     id: 'analytics',
     name: 'Company Analytics',
     icon: 'lucide:bar-chart-2',
-    color: 'danger',
+    color: 'danger-500',
   },
 ] as const;
+
+/**
+ * Get the appropriate CSS class for a category's color
+ */
+const getCategoryColorClass = (color: string) => {
+  switch (color) {
+    case 'primary-500':
+      return 'text-primary-500';
+    case 'success-500':
+      return 'text-success-500';
+    case 'warning-500':
+      return 'text-warning-500';
+    case 'secondary-500':
+      return 'text-secondary-500';
+    case 'default-500':
+      return 'text-default-500';
+    case 'danger-500':
+      return 'text-danger-500';
+    default:
+      return 'text-primary-500';
+  }
+};
 
 /**
  * Animated hero section for the projects page
@@ -58,6 +80,7 @@ const categories = [
  * - Animated background blobs
  * - Gradient text effects
  * - Responsive design
+ * - Respects user's reduced motion preference
  *
  * @example
  * ```tsx
@@ -67,13 +90,41 @@ const categories = [
 export function AnimatedProjectHero() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const currentCategory = categories[currentIndex];
+  const prefersReducedMotion = useReducedMotion();
 
   React.useEffect(() => {
+    if (prefersReducedMotion) return; // Don't animate if user prefers reduced motion
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % categories.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
+
+  const getAnimationProps = (duration = 0.8, delay = 0) => {
+    if (prefersReducedMotion) {
+      return { initial: {}, animate: {}, exit: {} };
+    }
+    return {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration, delay },
+    };
+  };
+
+  const getBlobAnimationProps = (options: { duration?: number } = {}) => {
+    if (prefersReducedMotion) return {};
+
+    return {
+      animate: { scale: [1, 1.2, 1], x: [0, 20, 0], y: [0, -20, 0] },
+      transition: {
+        duration: 8,
+        repeat: Number.POSITIVE_INFINITY,
+        repeatType: 'reverse' as const,
+        ...options,
+      },
+    };
+  };
 
   return (
     <div className="relative overflow-hidden pt-1 pb-1 md:pt-3 md:pb-3">
@@ -82,21 +133,11 @@ export function AnimatedProjectHero() {
         <motion.div className="absolute inset-0 bg-gradient-to-b from-background to-content2" />
         <motion.div
           className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary-100 dark:bg-primary-900/30 opacity-30 blur-3xl"
-          animate={{ scale: [1, 1.2, 1], x: [0, 20, 0], y: [0, -20, 0] }}
-          transition={{
-            duration: 8,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: 'reverse',
-          }}
+          {...getBlobAnimationProps()}
         />
         <motion.div
           className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-secondary-100 dark:bg-secondary-900/30 opacity-30 blur-3xl"
-          animate={{ scale: [1, 1.3, 1], x: [0, -20, 0], y: [0, 20, 0] }}
-          transition={{
-            duration: 10,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: 'reverse',
-          }}
+          {...getBlobAnimationProps({ duration: 10 })}
         />
       </div>
 
@@ -107,16 +148,16 @@ export function AnimatedProjectHero() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentCategory.id}
-                initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.8 }}
+                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.8 }}
+                animate={prefersReducedMotion ? {} : { opacity: 1, y: 0, scale: 1 }}
+                exit={prefersReducedMotion ? {} : { opacity: 0, y: -20, scale: 0.8 }}
                 transition={{ duration: 0.5 }}
                 className="relative"
               >
                 <div className="flex items-center justify-center w-16 h-16 mx-auto">
                   <Icon
                     icon={currentCategory.icon}
-                    className={`text-${currentCategory.color}-500 text-4xl`}
+                    className={`${getCategoryColorClass(currentCategory.color)} text-4xl`}
                   />
                 </div>
               </motion.div>
@@ -124,22 +165,25 @@ export function AnimatedProjectHero() {
           </div>
         </div>
 
-        {/* 📝 Heading */}
+        {/* 💡 Title */}
         <motion.h1
-          className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-secondary-500 inline-block relative"
+          {...getAnimationProps(0.8, 0.2)}
         >
           Our Projects
+          <motion.span
+            initial={{ width: 0 }}
+            whileInView={{ width: '100%' }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="absolute bottom-0 left-0 h-1 bg-primary rounded"
+          />
         </motion.h1>
 
         {/* 💬 Description */}
         <motion.p
           className="text-default-600 text-base md:text-lg max-w-2xl mx-auto mb-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          {...getAnimationProps(0.8, 0.4)}
         >
           Discover our diverse portfolio of cutting-edge projects, each driven by innovation,
           collaboration, and a passion for solving real-world challenges. From concept to execution,

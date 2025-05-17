@@ -1,13 +1,22 @@
 /**
- * About Data
+ * About Feature Data
  *
- * This file exports all data modules for the about feature.
+ * This file exports data used in the about feature.
  */
 
-// Add data fetching functions here as they are created
+// Data exports for the About feature
+// This index file collects and re-exports all data-related modules
 
-// Export specific items to avoid name conflicts
-export { aboutStory, teamSection } from './aboutContent';
-export { juusoData } from './juusoData';
-export { kassuData } from './kassuData';
-export { teamMembers } from './teamMembers';
+// Profile data
+export * from './kasperiData';
+export * from './teamMembers';
+
+// Import all profile data for the profileData map
+import { juusoData } from './juusoData';
+import { kasperiData } from './kasperiData';
+
+// Map of all profile data by id
+export const profileData = {
+  juuso: juusoData,
+  kasperi: kasperiData,
+};

@@ -1,16 +1,21 @@
 /**
  * Global styles organization
  *
- * Directory structure:
- * - base/      : Base styles and global CSS imports
- * - utilities/ : Utility styles and custom CSS utilities
- * - components/: Component-specific styles
+ * Files:
+ * - critical.css  : Minimal styles to prevent flash of unstyled content (should be inlined in head)
+ * - globals.css   : Main stylesheet with theme handling and base styles
+ * - utilities.css : Utility classes and custom CSS utilities
+ * - mobile.css    : Mobile-specific optimizations (imported by specific pages that need it)
  */
 
-import './base';
-import './components';
-import './utilities';
+// Import critical CSS first to ensure it's loaded before other styles
+import './critical.css';
 
-// This file is intentionally empty.
-// It's used to make the styles directory importable.
-// The actual styles are imported in the app/layout.tsx file.
+// Import main styles
+import './globals.css';
+
+// Import utilities
+import './utilities.css';
+
+// This file serves as a central import point for all shared styles
+// The actual styles are imported in the app/layout.tsx file via app/globals.css

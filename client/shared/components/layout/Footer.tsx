@@ -11,7 +11,10 @@ export const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-background py-12 md:py-12 sm:py-6 xs:py-4 px-6">
+    <footer
+      className="w-full bg-background py-12 md:py-12 sm:py-6 xs:py-4 px-6"
+      data-testid="footer"
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center">
         <div className="flex items-center justify-center">
           <OsuujLogo className="min-w-[40px] min-h-[40px] sm:scale-90 xs:scale-75" />

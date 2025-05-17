@@ -31,7 +31,7 @@ interface ResourceCardProps {
  */
 export const ResourceCard = memo(function ResourceCard({ resource, className }: ResourceCardProps) {
   const router = useRouter();
-  const { title, description, icon, type, link, tags = [] } = resource;
+  const { title, description, icon, type, link, tags = [], isWorkInProgress } = resource;
 
   // Optimize navigation by preparing it early but only executing when needed
   const handleClick = useCallback(() => {
@@ -46,7 +46,9 @@ export const ResourceCard = memo(function ResourceCard({ resource, className }: 
   const buttonText = type === 'PDF' || type === 'Template' ? 'Download' : 'View';
 
   return (
-    <Card className={`backdrop-blur-md bg-opacity-90 ${className || ''}`}>
+    <Card
+      className={`backdrop-blur-md bg-opacity-90 ${className || ''} ${isWorkInProgress ? 'border border-warning-400' : ''}`}
+    >
       <CardBody>
         <div className="flex gap-3">
           <div className="flex-shrink-0">
@@ -58,7 +60,15 @@ export const ResourceCard = memo(function ResourceCard({ resource, className }: 
             </div>
           </div>
           <div className="flex-grow">
-            <h3 className="font-semibold text-lg">{title}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{title}</h3>
+              {isWorkInProgress && (
+                <span className="text-xs px-2 py-1 bg-warning-100 text-warning-700 rounded-full flex items-center gap-1">
+                  <Icon icon="lucide:construction" width={12} />
+                  Coming Soon
+                </span>
+              )}
+            </div>
             <p className="text-default-500 text-sm mt-1 mb-3 line-clamp-2">{description}</p>
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3">
@@ -82,8 +92,9 @@ export const ResourceCard = memo(function ResourceCard({ resource, className }: 
                 size="sm"
                 endContent={<Icon icon="lucide:arrow-right" />}
                 onPress={handleClick}
+                isDisabled={isWorkInProgress}
               >
-                {buttonText}
+                {isWorkInProgress ? 'Coming Soon' : buttonText}
               </Button>
             </div>
           </div>

@@ -5,19 +5,9 @@ import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import type React from 'react';
 import { memo, useState } from 'react';
+import type { TeamMember } from '../types/contact-types';
 
-interface SocialLink {
-  icon: string;
-  href: string;
-  label: string;
-}
-
-export interface TeamMemberProps {
-  name: string;
-  role: string;
-  email: string;
-  socialLinks: SocialLink[];
-}
+export type TeamMemberProps = TeamMember;
 
 /**
  * TeamMemberCard Component
@@ -32,9 +22,22 @@ export interface TeamMemberProps {
  */
 export const TeamMemberCard: React.FC<TeamMemberProps> = memo(
   ({ name, role, email, socialLinks }) => {
-    // Generate file name for team member image
-    const imageName = name.toLowerCase().replace(/\s+/g, '-');
-    const [imageSrc, setImageSrc] = useState(`/images/team/${imageName}.svg`);
+    // Get the first name to determine which avatar to use
+    const firstName = name.split(' ')[0].toLowerCase();
+
+    // Use specific SVG files for known team members
+    let initialImageSrc = '/images/default-avatar.svg';
+    if (firstName === 'juuso') {
+      initialImageSrc = '/images/team/juuso-juvonen.svg';
+    } else if (firstName === 'kasperi') {
+      initialImageSrc = '/images/team/kasperi-rautio.svg';
+    } else {
+      // For other team members, try to use a name-based image
+      const imageName = name.toLowerCase().replace(/\s+/g, '-');
+      initialImageSrc = `/images/team/${imageName}.svg`;
+    }
+
+    const [imageSrc, setImageSrc] = useState(initialImageSrc);
 
     // Handle image loading error
     const handleImageError = () => {

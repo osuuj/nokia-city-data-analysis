@@ -1,3 +1,4 @@
+import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody, Divider, Progress } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
@@ -13,15 +14,27 @@ interface ProjectOverviewProps {
  * Displays the overview section of a project including description, goals, and progress.
  */
 export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
-  const progressValue = project.status === 'active' ? 95 : 25;
+  // Calculate progress value based on project status
+  const getProgressValue = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return 100;
+      case 'active':
+        return 75;
+      case 'planning':
+        return 25;
+      default:
+        return 50;
+    }
+  };
+
+  const progressValue = getProgressValue(project.status);
+
+  // Get animation props from shared hook
+  const animationProps = useAnimationProps('fadeInUp', { duration: 0.6 });
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      aria-labelledby="overview-heading"
-    >
+    <motion.section {...animationProps} aria-labelledby="overview-heading">
       <Card shadow="lg">
         <CardBody className="space-y-6 p-6 sm:p-8">
           <div className="flex items-center justify-between">
@@ -67,7 +80,7 @@ export const ProjectOverview = ({ project }: ProjectOverviewProps) => {
             </p>
             <Progress
               value={progressValue}
-              color={project.status === 'active' ? 'success' : 'default'}
+              color={project.status === 'completed' ? 'success' : 'primary'}
               size="md"
               aria-label={`Project progress: ${progressValue}%`}
             />

@@ -4,22 +4,13 @@
  * This file exports modular section components used to build profile pages.
  */
 
-// Core about page sections
-export * from './AboutStory';
-export * from './AboutTeam';
+// Generic profile components
+export * from './ProfileHero';
+export * from './ProfileSkills';
+export * from './ProfileExperience';
+export * from './ProfileProjects';
+export * from './ProfileTestimonials';
+export * from './ProfileContact';
 
-// Juuso profile sections
-export * from './JuusoContact';
-export * from './JuusoExperience';
-export * from './JuusoHero';
-export * from './JuusoProjects';
-export * from './JuusoSkills';
-export * from './JuusoTestimonials';
-
-// Kassu profile sections
-export * from './KassuContact';
-export * from './KassuExperience';
-export * from './KassuHero';
-export * from './KassuProjects';
-export * from './KassuSkills';
-export * from './KassuTestimonials';
+// The deprecated profile-specific components (Juuso* and Kassu*) have been removed
+// in favor of the generic profile components above, which use a data-driven approach.

@@ -143,7 +143,7 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
         >
           <div className="flex items-center gap-2">
             <Icon icon="lucide:map-pin" className="text-primary-500" width={16} />
-            <span>{item.name}</span>
+            <span className="text-foreground">{item.name}</span>
           </div>
         </AutocompleteItem>
       );

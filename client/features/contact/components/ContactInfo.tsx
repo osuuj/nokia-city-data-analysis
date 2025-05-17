@@ -2,15 +2,11 @@
 
 import { Card, CardBody } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type React from 'react';
-import { memo, useEffect, useState } from 'react';
-
-interface ContactInfoProps {
-  email: string;
-  description: string;
-  responseTime?: string;
-}
+import { memo } from 'react';
+import { useAnimationSettings } from '../hooks';
+import type { ContactInfoProps } from '../types/contact-types';
 
 /**
  * ContactInfo Component
@@ -25,52 +21,14 @@ interface ContactInfoProps {
  */
 export const ContactInfo: React.FC<ContactInfoProps> = memo(
   ({ email, description, responseTime }) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const prefersReducedMotion = useReducedMotion();
-
-    // Efficient mobile detection using matchMedia
-    useEffect(() => {
-      const mobileMediaQuery = window.matchMedia('(max-width: 768px)');
-      const handleMobileChange = (e: MediaQueryListEvent | MediaQueryList) => {
-        setIsMobile(e.matches);
-      };
-
-      // Initial check
-      handleMobileChange(mobileMediaQuery);
-
-      // Add listener with browser compatibility
-      if (typeof mobileMediaQuery.addEventListener === 'function') {
-        mobileMediaQuery.addEventListener('change', handleMobileChange);
-        return () => mobileMediaQuery.removeEventListener('change', handleMobileChange);
-      }
-
-      // Fallback for older browsers
-      window.addEventListener('resize', () => {
-        setIsMobile(window.innerWidth <= 768);
-      });
-      return () =>
-        window.removeEventListener('resize', () => {
-          setIsMobile(window.innerWidth <= 768);
-        });
-    }, []);
-
-    // Determine if animations should be used
-    const shouldAnimate = !prefersReducedMotion && !isMobile;
-
-    // Motion props based on animation preference
-    const motionProps = shouldAnimate
-      ? {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.4 },
-        }
-      : {};
+    // Use the shared animation settings hook
+    const { shouldAnimate, fadeInProps } = useAnimationSettings();
 
     // Component wrapper based on animation preference
     const WrapperComponent = shouldAnimate ? motion.div : 'div';
 
     return (
-      <WrapperComponent {...motionProps} className="mb-12">
+      <WrapperComponent {...fadeInProps} className="mb-12">
         <Card className="backdrop-blur-md bg-opacity-90 transition-colors">
           <CardBody className="p-6">
             <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-4 text-center">

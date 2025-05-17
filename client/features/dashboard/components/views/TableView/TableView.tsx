@@ -34,12 +34,14 @@ interface TableViewProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   isLoading: boolean;
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
+  totalItems?: number;
 }
 
 /**
@@ -53,12 +55,14 @@ export function TableView({
   currentPage,
   totalPages,
   onPageChange,
+  onPageSizeChange: _onPageSizeChange,
   isLoading,
   searchTerm,
   setSearchTerm,
   sortDescriptor,
   setSortDescriptor,
   pageSize,
+  totalItems = allFilteredData?.length || 0,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -183,7 +187,7 @@ export function TableView({
           base: 'max-h-[680px]',
           table: 'min-h-[400px]',
           th: 'text-xs md:text-sm',
-          td: 'text-xs md:text-sm',
+          td: 'text-xs md:text-sm text-foreground',
           tr: '@media(hover: hover){hover:bg-default-50} data-[selected=true]:bg-primary-50',
         }}
         selectionMode="multiple"

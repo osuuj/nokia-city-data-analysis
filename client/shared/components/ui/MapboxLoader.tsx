@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 /**
  * Type definition for MapboxGL with workerUrl property
@@ -11,15 +12,25 @@ interface MapboxGL {
 }
 
 /**
+ * Check if the current page is a map-related page that needs Mapbox
+ */
+function isMapRelatedPage(pathname: string): boolean {
+  // Only initialize Mapbox on dashboard pages or other map-related routes
+  return pathname.startsWith('/dashboard');
+}
+
+/**
  * MapboxLoader
  * Ensures proper initialization of Mapbox GL with CSP compatibility
- * This component should be included in the layout or any parent component
- * that uses Mapbox GL to ensure proper initialization
+ * This component now only initializes Mapbox on relevant pages
  */
 export function MapboxLoader() {
+  const pathname = usePathname();
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    // Load the CSP-compatible Mapbox GL worker
-    if (typeof window !== 'undefined') {
+    // Only load Mapbox on dashboard or other map-related pages
+    if (typeof window !== 'undefined' && isMapRelatedPage(pathname) && !isInitialized) {
       try {
         // This will execute in the browser environment only
         // Dynamically import the mapbox-gl module
@@ -29,7 +40,12 @@ export function MapboxLoader() {
             // This avoids CORS issues by serving the worker from our own domain
             (mapboxgl.default as MapboxGL).workerUrl = '/workers/mapbox-gl-csp-worker.js';
 
-            console.log('Mapbox GL initialized with self-hosted worker');
+            // For debugging in development only
+            if (process.env.NODE_ENV === 'development') {
+              console.debug('Mapbox GL initialized with self-hosted worker');
+            }
+
+            setIsInitialized(true);
           })
           .catch((err) => {
             console.error('Failed to load Mapbox GL:', err);
@@ -38,7 +54,7 @@ export function MapboxLoader() {
         console.error('Error initializing Mapbox GL:', error);
       }
     }
-  }, []);
+  }, [pathname, isInitialized]);
 
   // This component doesn't render anything
   return null;

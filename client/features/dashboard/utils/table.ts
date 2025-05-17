@@ -1,3 +1,4 @@
+import { AddressTypeEnum } from '@/features/dashboard/types/addressTypes';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type {
   CompanyTableKey,
@@ -20,7 +21,7 @@ export function getVisibleColumns(columns: TableColumnConfig[]): TableColumnConf
 export const sortCompanies = (
   data: CompanyProperties[],
   descriptor: SortDescriptor,
-  addressType: 'Visiting address' | 'Postal address' = 'Visiting address',
+  addressType: AddressTypeEnum = AddressTypeEnum.VISITING,
 ): CompanyProperties[] => {
   const { column, direction } = descriptor;
 
@@ -92,7 +93,7 @@ export const applyIndustryFilter = (
 export function getCellValue(
   item: CompanyProperties,
   columnKey: CompanyTableKey,
-  addressType: 'Visiting address' | 'Postal address' = 'Visiting address',
+  addressType: AddressTypeEnum = AddressTypeEnum.VISITING,
 ): string {
   const address = item.addresses?.[addressType];
 

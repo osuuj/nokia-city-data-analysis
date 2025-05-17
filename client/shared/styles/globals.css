@@ -1,5 +1,4 @@
 /* Import external styles */
-/* Use the standard mapbox-gl CSS - this should still work with our updated webpack config */
 @import 'mapbox-gl/dist/mapbox-gl.css';
 
 /* Tailwind CSS directives */
@@ -7,34 +6,124 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS below this line */
-
-/* 
- * If you're seeing linter errors with @tailwind directives:
- * 1. Add the VS Code CSS Validation extension or similar
- * 2. Add a .vscode/settings.json file with this setting:
- * {
- *   "css.lint.unknownAtRules": "ignore"
- * }
+/*
+ * THEME HANDLING AND BASE STYLES
  */
-
-/* Base body styles to prevent white flash during navigation */
 @layer base {
-  html, body {
-    @apply bg-background transition-colors duration-300;
+
+  html,
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
-  
-  /* Change the white flashes to a more gradual transition */
+
+  /* Legacy fallback background color for non-token styles */
+  html,
+  body {
+    background-color: var(--background-color, #ffffff);
+  }
+
+  /* Instant theme application to prevent flashing */
+  html.dark-theme,
+  html.dark-theme body,
+  .dark-content {
+    background-color: #0f0f0f !important;
+    color: #ffffff !important;
+  }
+
+  html.light-theme,
+  html.light-theme body,
+  .light-content {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Safe gradient without Tailwind apply (manual fix) */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    @apply bg-gradient-to-b from-primary/5 via-background/50 to-background/90;
+    background-image: linear-gradient(to bottom,
+        rgba(59, 130, 246, 0.05),
+        var(--background-color, #ffffff) 50%,
+        var(--background-color, #ffffff) 90%);
+    transition: background-color 0.3s ease;
   }
 }
 
-/* Layout classes */
+/*
+ * LAYOUT CLASSES
+ */
 .content-main {
-  padding-top: 5rem; /* Adds space for the fixed header */
+  padding-top: 5rem;
+  /* Adds space for the fixed header */
+}
+
+.dashboard-main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-page {
+  overflow: hidden !important;
+  height: 100vh !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/*
+ * VIDEO AND HERO COMPONENTS
+ */
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+}
+
+.hero-section {
+  min-height: 45vh;
+}
+
+.video-placeholder {
+  background-color: #111827;
+}
+
+/*
+ * MOTION REDUCTION
+ */
+@media (prefers-reduced-motion) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

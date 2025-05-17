@@ -2,28 +2,9 @@
 
 import { ContactInfo, TeamMemberCard } from '@/features/contact/components';
 import { AnimatedBackground } from '@/shared/components/ui/background';
+import { motion } from 'framer-motion';
 import { useMemo } from 'react';
-
-// Types for team member data
-interface SocialLink {
-  icon: string;
-  href: string;
-  label: string;
-}
-
-interface TeamMember {
-  name: string;
-  role: string;
-  email: string;
-  socialLinks: SocialLink[];
-}
-
-interface ContactPageWrapperProps {
-  teamMembers: TeamMember[];
-  email: string;
-  description: string;
-  responseTime: string;
-}
+import type { ContactPageWrapperProps } from '../types/contact-types';
 
 /**
  * Client-side contact page wrapper component
@@ -56,11 +37,22 @@ export default function ContactPageWrapper({
       <AnimatedBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-primary mb-12">Contact Us</h1>
+        <div className="text-center mb-16">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
+            Contact Us
+            <motion.span
+              initial={{ width: 0 }}
+              whileInView={{ width: '100%' }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="absolute bottom-0 left-0 h-1 bg-primary rounded"
+            />
+          </h1>
+        </div>
 
         {/* Team contacts section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-semibold text-default-800 dark:text-default-200 mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-black dark:text-white mb-6 text-center">
             Our Team
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">{teamMembersList}</div>

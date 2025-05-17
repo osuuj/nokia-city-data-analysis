@@ -6,6 +6,6 @@ export * from './config';
 export * from './context';
 export * from './hooks';
 export * from './icons';
-export * from './providers/QueryProvider';
+export * from './providers/AppProviders';
 export * from './types';
 export * from './utils';

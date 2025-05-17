@@ -1,15 +1,6 @@
 /**
- * Resources Hooks
- *
- * This file exports all hooks for the resources feature.
+ * @deprecated - Use direct imports from './resourceHooks' instead.
+ * This file will be removed in a future update.
  */
 
-export {
-  getAllResources,
-  getResourcesByCategory,
-  getResourcesByTag,
-  resourceKeys,
-  useResource,
-  useResourceCategories,
-  useResourceCategory,
-} from './useResources';
+export * from './resourceHooks';

@@ -1,1 +1,1 @@
-export * from './Preloader';
+export * from './LoadingSpinner';

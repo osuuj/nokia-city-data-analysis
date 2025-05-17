@@ -1,6 +1,7 @@
 'use client';
 
 import { TeamMemberGrid } from '@/features/about/components';
+import { useAnimationProps } from '@/shared/hooks';
 import { motion } from 'framer-motion';
 
 interface ProjectTeamSectionProps {
@@ -17,13 +18,30 @@ export function ProjectTeamSection({ team, projectTitle, isLoading }: ProjectTea
     return null;
   }
 
+  const animationProps = useAnimationProps('fadeInUp', {
+    duration: 0.6,
+    delay: 0.5,
+    animate: isLoading ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
+  });
+
+  // Get avatar source based on team member name
+  const getAvatarSrc = (name: string) => {
+    const firstName = name.split(' ')[0].toLowerCase();
+
+    // Use SVG files for known team members
+    if (firstName === 'juuso') {
+      return '/images/team/juuso-juvonen.svg';
+    }
+    if (firstName === 'kasperi') {
+      return '/images/team/kasperi-rautio.svg';
+    }
+
+    // Fallback to generated avatar
+    return `/api/avatar?seed=${encodeURIComponent(name)}`;
+  };
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 20 : 0 }}
-      transition={{ duration: 0.6, delay: 0.5 }}
-      aria-labelledby="team-heading"
-    >
+    <motion.section {...animationProps} aria-labelledby="team-heading">
       <h2 className="text-2xl font-semibold mb-6" id="team-heading">
         Project Team
       </h2>
@@ -33,8 +51,8 @@ export function ProjectTeamSection({ team, projectTitle, isLoading }: ProjectTea
           name,
           jobTitle: 'Team Member',
           bio: `Team member for ${projectTitle}`,
-          portfolioLink: '#',
-          avatarSrc: `/api/avatar?seed=${encodeURIComponent(name)}`,
+          portfolioLink: `/about/${name.split(' ')[0].toLowerCase()}`,
+          avatarSrc: getAvatarSrc(name),
         }))}
       />
     </motion.section>

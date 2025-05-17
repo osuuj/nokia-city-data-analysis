@@ -127,7 +127,7 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
               key={uniqueKey}
               content={
                 <div className="p-1 text-tiny">
-                  <p className="font-bold mb-1">Includes:</p>
+                  <p className="font-bold mb-1 text-foreground">Includes:</p>
                   <ul className="list-none pl-0 max-h-40 overflow-y-auto">
                     {breakdownData
                       ? breakdownData.map((detail) => {

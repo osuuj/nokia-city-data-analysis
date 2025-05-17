@@ -11,7 +11,7 @@ import React from 'react';
  */
 export const TagGroupItem = React.forwardRef<HTMLLabelElement, TagGroupItemProps>(
   ({ icon, size = 'md', ...props }, ref) => {
-    const { children, isSelected, getBaseProps, getLabelProps, getInputProps } = useCheckbox(props);
+    const { children, isSelected, getBaseProps, getInputProps } = useCheckbox(props);
 
     return (
       <label {...getBaseProps()} ref={ref} className="cursor-pointer">
