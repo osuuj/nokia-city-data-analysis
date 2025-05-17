@@ -44,66 +44,78 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable sending cookies in cross-origin requests
+  // We're not using cookie-based authentication, so withCredentials is not needed
+  // withCredentials: true, // Enable sending cookies in cross-origin requests
 });
 
 /**
- * Categorize errors into more usable types
+ * Categorize errors into more usable types with environment-specific messages
+ * Uses generic messages in production to prevent information leakage
  */
 const categorizeError = (error: AxiosError): ApiError => {
   if (!error.response) {
     return {
       type: ApiErrorType.NETWORK,
-      message: 'Network error. Please check your connection.',
+      message: isProd ? 'Network connection error' : 'Network error. Please check your connection.',
     };
   }
 
   const status = error.response.status;
   const data = error.response.data as Record<string, unknown>;
 
+  // Get a generic error message that doesn't leak implementation details
+  const getSecureErrorMessage = (defaultMsg: string): string => {
+    if (!isProd) return defaultMsg;
+
+    // In production, use generic messages that don't reveal system details
+    return data?.message && typeof data.message === 'string'
+      ? data.message.replace(/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+/g, '[redacted]') // Remove paths and technical details
+      : defaultMsg;
+  };
+
   switch (status) {
     case 401:
       return {
         type: ApiErrorType.UNAUTHORIZED,
         status,
-        message: 'Unauthorized. Please log in.',
-        data,
+        message: getSecureErrorMessage('Authentication required'),
+        data: isProd ? undefined : data, // Don't include raw data in production
       };
     case 403:
       return {
         type: ApiErrorType.FORBIDDEN,
         status,
-        message: "Forbidden. You don't have permission.",
-        data,
+        message: getSecureErrorMessage('Permission denied'),
+        data: isProd ? undefined : data,
       };
     case 404:
       return {
         type: ApiErrorType.NOT_FOUND,
         status,
-        message: 'Resource not found.',
-        data,
+        message: getSecureErrorMessage('Resource not found'),
+        data: isProd ? undefined : data,
       };
     case 422:
       return {
         type: ApiErrorType.VALIDATION,
         status,
-        message: 'Validation error.',
-        data,
+        message: getSecureErrorMessage('Invalid data provided'),
+        data: isProd ? undefined : data,
       };
     default:
       if (status >= 500) {
         return {
           type: ApiErrorType.SERVER,
           status,
-          message: 'Server error. Please try again later.',
-          data,
+          message: getSecureErrorMessage('Server error'),
+          data: isProd ? undefined : data,
         };
       }
       return {
         type: ApiErrorType.UNKNOWN,
         status,
-        message: 'An unexpected error occurred.',
-        data,
+        message: getSecureErrorMessage('An unexpected error occurred'),
+        data: isProd ? undefined : data,
       };
   }
 };
