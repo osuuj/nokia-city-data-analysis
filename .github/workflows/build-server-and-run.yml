@@ -100,6 +100,7 @@ jobs:
                 "name": "$CONTAINER_NAME",
                 "image": "$IMAGE_URI",
                 "essential": true,
+                "command": ["sh", "-c", "echo 'Starting with debug...' && if [ -n \"$DATABASE_CREDENTIALS\" ]; then export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username); export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password); export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host); export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port); echo \"Extracted credentials from secret\"; fi && env | grep -v PASSWORD && uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"],
                 "portMappings": [
                   {
                     "containerPort": $CONTAINER_PORT,
@@ -190,11 +191,15 @@ jobs:
                       },
                       {
                         "name": "DB_SSL_MODE",
-                        "value": "require"
+                        "value": "prefer"
                       },
                       {
                         "name": "PGSSLMODE",
-                        "value": "no-verify"
+                        "value": "prefer"
+                      },
+                      {
+                        "name": "LOG_LEVEL",
+                        "value": "DEBUG"
                       }
                     ]
                   }
