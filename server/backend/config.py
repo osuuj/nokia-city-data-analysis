@@ -81,10 +81,20 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info) -> str:
         """Assemble the full database URL from environment or secrets."""
+        # DEBUGGING: Check if DATABASE_URL is set directly
+        direct_url = os.environ.get("DATABASE_URL")
+        if direct_url:
+            print(f"⚠️ DATABASE_URL is directly set in environment: {direct_url}")
+            if "sslmode" in direct_url:
+                print("⚠️ WARNING: found 'sslmode' in DATABASE_URL")
+
         if isinstance(v, str):
+            print(f"⚠️ DATABASE_URL is using a pre-set value: {v}")
+            if "sslmode" in v:
+                print("⚠️ WARNING: found 'sslmode' in pre-set DATABASE_URL")
             return v
 
-        # Get SSL mode from environment with fallback to class default
+        # Get values from info data
         values = info.data
 
         # AWS Secrets in production
@@ -105,7 +115,11 @@ class Settings(BaseSettings):
                     # Build connection string WITHOUT sslmode in the URL
                     # SQLAlchemy + asyncpg handle SSL differently
                     # SSL will be configured at engine creation time
-                    return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
+                    result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
+                    print(
+                        f"✅ Built connection string from AWS Secrets: {result.replace(password, '********')}"
+                    )
+                    return result
             except Exception as e:
                 print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
 
@@ -117,11 +131,30 @@ class Settings(BaseSettings):
         db_name = values.get("POSTGRES_DB") or ""
 
         # Return URL without sslmode parameter
-        return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
+        result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
+        print(
+            f"✅ Built connection string from env variables: {result.replace(password, '********')}"
+        )
+        return result
 
 
 # Instantiate settings globally
 settings = Settings()
+
+# Print final DATABASE_URL (with password masked)
+db_url = str(settings.DATABASE_URL)
+masked_url = db_url
+if ":" in db_url and "@" in db_url:
+    # Very basic masking - won't work for all URL formats but should catch most
+    parts = db_url.split("@")
+    if len(parts) >= 2:
+        creds = parts[0].split(":")
+        if len(creds) >= 3:  # protocol:user:pass
+            masked_url = f"{creds[0]}:{creds[1]}:********@{parts[1]}"
+
+print(f"🔌 Final DATABASE_URL: {masked_url}")
+if "sslmode" in db_url:
+    print("⚠️ WARNING: Final DATABASE_URL contains 'sslmode'!")
 
 # Ensure fallback for CORS
 if not settings.BACKEND_CORS_ORIGINS:
