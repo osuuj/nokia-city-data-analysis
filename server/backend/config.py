@@ -20,7 +20,8 @@ class Settings(BaseSettings):
 
     API_V1_STR: str = "/api/v1"
 
-    # DB settings (accept both DB_* and POSTGRES_* for compatibility)
+    # Database settings - we'll override these manually later
+
     POSTGRES_HOST: str = os.getenv("DB_HOST", os.getenv("POSTGRES_HOST", "localhost"))
     POSTGRES_PORT: str = os.getenv("DB_PORT", os.getenv("POSTGRES_PORT", "5432"))
     POSTGRES_USER: str = os.getenv("DB_USER", os.getenv("POSTGRES_USER", "postgres"))
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
         "DATABASE_NAME", os.getenv("POSTGRES_DB", "nokia_city_data")
     )
     DATABASE_URL: Optional[PostgresDsn] = None
+    DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "prefer")  # Use "require" in prod
 
     DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))
     DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
@@ -82,29 +84,43 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v
 
+
+        # Get SSL mode from environment with fallback to class default
+        values = info.data
+        ssl_mode = values.get("DB_SSL_MODE") or "prefer"
+
+        # Always use SSL in production
+        if values.get("ENVIRONMENT") == "production":
+            ssl_mode = "require"
+
         # AWS Secrets in production
-        if os.environ.get("ENVIRONMENT") == "production":
+        if os.environ.get("ENVIRONMENT", "dev") == "production":
             try:
                 if "DATABASE_CREDENTIALS" in os.environ:
-                    creds = json.loads(os.environ["DATABASE_CREDENTIALS"])
-                    user = creds["username"]
-                    pwd = quote_plus(creds["password"])
-                    host = creds["host"]
-                    port = creds.get("port", "5432")
-                    db = os.environ.get("DATABASE_NAME", "nokia_city_data")
+                    db_credentials = json.loads(
+                        os.environ.get("DATABASE_CREDENTIALS", "{}")
+                    )
+                    db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
 
-                    # Construct asyncpg-compatible DSN without 'sslmode'
-                    return f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
+                    # Use quote_plus for password to ensure special characters are encoded
+                    username = db_credentials.get("username")
+                    password = quote_plus(db_credentials.get("password", ""))
+                    host = db_credentials.get("host")
+                    port = int(db_credentials.get("port", 5432))
+
+                    # Build connection string with SSL parameters
+                    return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
             except Exception as e:
                 print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
 
-        # Fallback for development
-        values = info.data
-        return (
-            f"postgresql+asyncpg://{values.get('POSTGRES_USER')}:{quote_plus(values.get('POSTGRES_PASSWORD'))}"
-            f"@{values.get('POSTGRES_HOST')}:{values.get('POSTGRES_PORT')}/{values.get('POSTGRES_DB')}"
-        )
+        # Fallback for development - combine both approaches
+        username = values.get("POSTGRES_USER")
+        password = quote_plus(values.get("POSTGRES_PASSWORD", ""))
+        host = values.get("POSTGRES_HOST")
+        port = values.get("POSTGRES_PORT")
+        db_name = values.get("POSTGRES_DB") or ""
 
+        return f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}?sslmode={ssl_mode}"
 
 # Instantiate settings globally
 settings = Settings()
