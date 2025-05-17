@@ -1,7 +1,7 @@
 name: Deploy Server to AWS
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   build-and-deploy:
@@ -30,11 +30,13 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.FASTAPI_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          echo "🛠 Building Docker image..."
           docker build --no-cache \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             ./server
 
+          echo "📦 Pushing image to ECR..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
@@ -49,15 +51,14 @@ jobs:
           CONTAINER_NAME: "fastapi-container"
           CONTAINER_PORT: "8000"
           TARGET_GROUP_ARN: ${{ secrets.TARGET_GROUP_ARN }}
-          DATABASE_SECRET_ARN: ${{ secrets.DATABASE_SECRET_ARN }}
         run: |
+          echo "🔍 Fetching current task definition..."
           aws ecs describe-task-definition \
             --task-definition $ECS_TASK_DEFINITION \
             --output json > task-definition.json
 
-          jq --arg IMAGE "$IMAGE_URI" \
-             --arg PORT "$CONTAINER_PORT" \
-             --arg DB_SECRET_ARN "$DATABASE_SECRET_ARN" '
+          echo "🛠 Updating container image and port mappings..."
+          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" --arg SECRET_ARN "${{ secrets.DATABASE_SECRET_ARN }}" '
             .taskDefinition
             | {
                 family,
@@ -68,16 +69,26 @@ jobs:
                   .containerDefinitions[0] * {
                     image: $IMAGE,
                     portMappings: [{
-                      containerPort: ($PORT | tonumber),
-                      hostPort: ($PORT | tonumber),
-                      protocol: "tcp",
-                      appProtocol: "http"
+                      "containerPort": ($PORT | tonumber),
+                      "hostPort": ($PORT | tonumber),
+                      "protocol": "tcp",
+                      "appProtocol": "http"
                     }],
                     secrets: [
-                      { name: "DB_USER", valueFrom: "\($DB_SECRET_ARN):username::" },
-                      { name: "DB_PASS", valueFrom: "\($DB_SECRET_ARN):password::" },
-                      { name: "DB_HOST", valueFrom: "\($DB_SECRET_ARN):host::" },
-                      { name: "DB_PORT", valueFrom: "\($DB_SECRET_ARN):port::" }
+                      {
+                        "name": "DATABASE_CREDENTIALS",
+                        "valueFrom": $SECRET_ARN
+                      }
+                    ],
+                    environment: [
+                      {
+                        "name": "ENVIRONMENT",
+                        "value": "production"
+                      },
+                      {
+                        "name": "DATABASE_NAME",
+                        "value": "nokia_city_data"
+                      }
                     ]
                   }
                 ],
@@ -90,9 +101,11 @@ jobs:
             | with_entries(select(.value != null))
           ' task-definition.json > updated-task-definition.json
 
+          echo "📜 Registering new task definition..."
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
+          echo "🚀 Updating service with ALB configuration..."
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
@@ -109,11 +122,16 @@ jobs:
           ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
         run: |
           echo "✅ Deployment started!"
-          TIMEOUT=300
-          INTERVAL=10
+          echo "🔁 ECS Cluster: $ECS_CLUSTER"
+          echo "🚀 ECS Service: $ECS_SERVICE"
+          
+          # Monitor deployment status with timeout
+          TIMEOUT=300  # 5 minutes timeout
+          INTERVAL=10  # Check every 10 seconds
           ELAPSED=0
-
+          
           while [ $ELAPSED -lt $TIMEOUT ]; do
+            # Get deployment status
             STATUS=$(aws ecs describe-services \
               --cluster $ECS_CLUSTER \
               --services $ECS_SERVICE \
@@ -153,7 +171,7 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
             echo "⏳ Waiting for deployment... ($ELAPSED/$TIMEOUT seconds)"
           done
-
+          
           echo "❌ Deployment timed out after ${TIMEOUT} seconds"
           aws ecs describe-services \
             --cluster $ECS_CLUSTER \
