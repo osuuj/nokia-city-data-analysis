@@ -1,11 +1,11 @@
 'use client';
 
+import { CategoryAccordionItem, ResourcesHeader } from '@/features/resources/components';
 import { useResourceCategories } from '@/features/resources/hooks/resourceHooks';
 import { ErrorBoundary, ErrorMessage } from '@/shared/components/error';
 import { StandardFallback } from '@/shared/components/loading';
 import { AnimatedBackground } from '@/shared/components/ui/background';
 import { useEffect, useState } from 'react';
-import { CategoryAccordionItem, ResourcesHeader } from './components';
 import './mobile.css';
 
 /**

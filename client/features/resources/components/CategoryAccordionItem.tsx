@@ -1,10 +1,10 @@
 'use client';
 
-import { ResourceCard } from '@/features/resources/components';
 import type { ResourceCategoryData } from '@/features/resources/types';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
+import { ResourceCard } from './ResourceCard';
 
 interface CategoryAccordionItemProps {
   /** The category data to display */
