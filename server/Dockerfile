@@ -40,7 +40,6 @@ COPY ./db /app/server/db
 COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
 COPY ./__init__.py /app/server/__init__.py
-COPY ./database.conf /app/database.conf
 
 # Create script to parse DATABASE_CREDENTIALS if provided
 RUN echo '#!/bin/bash\n\
