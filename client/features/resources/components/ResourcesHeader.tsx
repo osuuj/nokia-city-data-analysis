@@ -1,15 +1,29 @@
+'use client';
+
+import { motion } from 'framer-motion';
+
 /**
- * @deprecated - Use ResourcesHeader from client/app/resources/components instead.
- * This component will be removed in a future update.
+ * ResourcesHeader component
+ *
+ * Displays the title and description for the resources page.
  */
-export function ResourcesHeader() {
-  return (
-    <div className="text-center mb-10">
-      <h1 className="text-4xl font-bold text-primary mb-4">Resource Center</h1>
-      <p className="text-lg text-default-600 max-w-2xl mx-auto">
-        Find all the tools, guides, and resources you need to help your business thrive in our
-        community.
-      </p>
-    </div>
-  );
-}
+export const ResourcesHeader = () => (
+  <div className="text-center mb-10">
+    <h1 className="text-3xl md:text-4xl font-bold mb-4 inline-block relative text-black dark:text-white">
+      Osuuj Data Resources
+      <motion.span
+        initial={{ width: 0 }}
+        whileInView={{ width: '100%' }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: true }}
+        className="absolute bottom-0 left-0 h-1 bg-primary rounded"
+      />
+    </h1>
+    <p className="text-lg text-default-600 max-w-2xl mx-auto">
+      Documentation and guides to help you get the most out of the Osuuj Data Analysis platform.
+      <span className="block mt-2 text-warning-500 text-sm">
+        Note: This documentation is currently under development.
+      </span>
+    </p>
+  </div>
+);

@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatedBackground } from '@/shared/components/ui/background';
-import { BreadcrumbItem, Breadcrumbs, Card, CardBody, Divider } from '@heroui/react';
+import { Card, CardBody, Divider } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';

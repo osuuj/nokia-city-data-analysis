@@ -73,7 +73,7 @@ export function ProfileExperience({
 
             {/* Final marker - Desktop version */}
             <motion.div
-              className="hidden md:block absolute left-1/2 bottom-0 transform -translate-x-1/2 flex flex-col items-center"
+              className="hidden md:flex absolute left-1/2 bottom-0 transform -translate-x-1/2 flex-col items-center"
               initial={{ scale: 0 }}
               whileInView={{ scale: 1 }}
               transition={{ duration: 0.4, delay: 0.3 }}
