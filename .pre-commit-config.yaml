@@ -110,3 +110,10 @@ repos:
         files: ^client/package.json|^client/package-lock.json$
         pass_filenames: false
 
+      - id: check-env-vars
+        name: 🔍 Check for sensitive public environment variables
+        entry: node client/scripts/check-env-vars.js
+        language: node
+        files: ^\.env.*$|^client/\.env.*$
+        pass_filenames: false
+
