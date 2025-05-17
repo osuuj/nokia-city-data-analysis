@@ -66,7 +66,10 @@ export const FilterGroup = ({
   return (
     <div className="flex items-center gap-1 whitespace-nowrap">
       {/* Industry Filter */}
-      <Tooltip content="Filter by industry" placement="bottom">
+      <Tooltip
+        content={<span className="text-foreground">Filter by industry</span>}
+        placement="bottom"
+      >
         <div>
           <PopoverFilterWrapper
             title="Industry"
@@ -107,7 +110,10 @@ export const FilterGroup = ({
       <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
 
       {/* Distance Filter */}
-      <Tooltip content="Filter by distance" placement="bottom">
+      <Tooltip
+        content={<span className="text-foreground">Filter by distance</span>}
+        placement="bottom"
+      >
         <div>
           <PopoverFilterWrapper
             title="Distance"

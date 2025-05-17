@@ -91,8 +91,8 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover transform transition-transform hover:scale-105"
-            priority={project.featured || imageSrc.includes('ai?w=800&h=500&u=2')}
-            loading={project.featured || imageSrc.includes('ai?w=800&h=500&u=2') ? 'eager' : 'lazy'}
+            priority
+            loading="eager"
           />
         </div>
 

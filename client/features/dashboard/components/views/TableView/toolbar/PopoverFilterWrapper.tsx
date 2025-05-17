@@ -124,7 +124,9 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
           aria-hidden={!isOpen}
         >
           <div className="p-2 xs:p-3 max-h-[80vh] overflow-auto w-full" ref={contentRef}>
-            <h3 className="mb-2 xs:mb-3 text-xs xs:text-sm sm:text-base font-medium">{title}</h3>
+            <h3 className="mb-2 xs:mb-3 text-xs xs:text-sm sm:text-base font-medium text-foreground">
+              {title}
+            </h3>
             <div className="w-full">{children}</div>
           </div>
 

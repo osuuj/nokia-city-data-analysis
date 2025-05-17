@@ -88,7 +88,7 @@ const GalleryViewer = memo(function GalleryViewer({ items, className = '' }: Gal
             isLoading ? 'opacity-0' : 'opacity-100'
           }`}
           priority={currentIndex === 0}
-          onLoadingComplete={() => setIsLoading(false)}
+          onLoad={() => setIsLoading(false)}
         />
 
         {/* Loading overlay */}

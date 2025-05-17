@@ -130,10 +130,10 @@ export function ColumnVisibilityDropdown() {
           {toggleableColumns.map((item: TableColumnConfig) => (
             <DropdownItem
               key={item.key}
-              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800 text-foreground"
               aria-label={`${item.label} column ${selectedKeys.has(item.key) ? 'visible' : 'hidden'}`}
             >
-              {item.label}
+              <span className="text-foreground">{item.label}</span>
             </DropdownItem>
           ))}
         </DropdownSection>
