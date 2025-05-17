@@ -8,7 +8,7 @@ with environment variables.
 import json
 import logging
 import os
-from typing import Any, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from pydantic import PostgresDsn, field_validator
 from pydantic_settings import (  # pyright: ignore[reportMissingImports]
@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "nokia_city_data")
     DATABASE_URL: Optional[PostgresDsn] = None
+    DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "prefer")  # Use "require" in prod
 
     # Database pool settings
     DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))  # Production default
@@ -139,6 +140,17 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return PostgresDsn(v)
 
+        # Get SSL mode from environment with fallback to class default
+        values = info.data
+        ssl_mode = values.get("DB_SSL_MODE") or "prefer"
+
+        # Always use SSL in production
+        if values.get("ENVIRONMENT") == "production":
+            ssl_mode = "require"
+
+        # Prepare SSL query params
+        query_params: Dict[str, str] = {"sslmode": ssl_mode}
+
         # For production environment with AWS Secrets
         if os.environ.get("ENVIRONMENT", "dev") == "production":
             try:
@@ -157,13 +169,13 @@ class Settings(BaseSettings):
                         host=db_credentials.get("host"),
                         port=int(db_credentials.get("port", 5432)),
                         path=f"{db_name}",
+                        query=query_params,
                     )
             except Exception as e:
                 print(f"Error loading AWS Secrets: {e}")
                 # Fall through to default handling
 
         # Default behavior using individual environment variables
-        values = info.data
         return PostgresDsn.build(
             scheme="postgresql+asyncpg",
             username=values.get("POSTGRES_USER"),
@@ -171,6 +183,7 @@ class Settings(BaseSettings):
             host=values.get("POSTGRES_HOST"),
             port=int(values.get("POSTGRES_PORT")),
             path=f"{values.get('POSTGRES_DB') or ''}",
+            query=query_params,
         )
 
 
