@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from typing import Any, List, Optional, Set
+from urllib.parse import quote_plus
 
 from pydantic import PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -76,36 +77,33 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in origins_str.split(",")]
 
     @field_validator("DATABASE_URL", mode="before")
-    def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
-        """Assemble the full Postgres connection URL from secrets or env vars.
-
-        Tries DATABASE_CREDENTIALS (AWS Secrets Manager), then individual env vars.
-        Adds sslmode=require for encrypted RDS connections.
-        """
+    def assemble_db_connection(cls, v: Optional[str], info) -> str:
+        """Assemble the full database URL from environment or secrets."""
         if isinstance(v, str):
-            return PostgresDsn(v)
+            return v
 
-        if os.environ.get("ENVIRONMENT", "dev") == "production":
+        # AWS Secrets in production
+        if os.environ.get("ENVIRONMENT") == "production":
             try:
                 if "DATABASE_CREDENTIALS" in os.environ:
-                    db_credentials = json.loads(os.environ["DATABASE_CREDENTIALS"])
-                    db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
+                    creds = json.loads(os.environ["DATABASE_CREDENTIALS"])
+                    user = creds["username"]
+                    pwd = quote_plus(creds["password"])
+                    host = creds["host"]
+                    port = creds.get("port", "5432")
+                    db = os.environ.get("DATABASE_NAME", "nokia_city_data")
 
-                    url = (
-                        f"postgresql+asyncpg://{db_credentials['username']}:{db_credentials['password']}"
-                        f"@{db_credentials['host']}:{db_credentials['port']}/{db_name}?sslmode=require"
-                    )
-                    return PostgresDsn(url)
+                    # Construct asyncpg-compatible DSN without 'sslmode'
+                    return f"postgresql+asyncpg://{user}:{pwd}@{host}:{port}/{db}"
             except Exception as e:
-                print(f"Error loading DATABASE_CREDENTIALS: {e}")
+                print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
 
-        # Default to individual env vars
+        # Fallback for development
         values = info.data
-        url = (
-            f"postgresql+asyncpg://{values['POSTGRES_USER']}:{values['POSTGRES_PASSWORD']}"
-            f"@{values['POSTGRES_HOST']}:{values['POSTGRES_PORT']}/{values['POSTGRES_DB']}?sslmode=require"
+        return (
+            f"postgresql+asyncpg://{values.get('POSTGRES_USER')}:{quote_plus(values.get('POSTGRES_PASSWORD'))}"
+            f"@{values.get('POSTGRES_HOST')}:{values.get('POSTGRES_PORT')}/{values.get('POSTGRES_DB')}"
         )
-        return PostgresDsn(url)
 
 
 # Instantiate settings globally
