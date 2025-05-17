@@ -77,39 +77,35 @@ class Settings(BaseSettings):
 
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info) -> PostgresDsn:
-        """Assemble the database connection string as a Postgres DSN."""
+        """Assemble the full Postgres connection URL from secrets or env vars.
+
+        Tries DATABASE_CREDENTIALS (AWS Secrets Manager), then individual env vars.
+        Adds sslmode=require for encrypted RDS connections.
+        """
         if isinstance(v, str):
             return PostgresDsn(v)
 
-        # Check if AWS Secrets Manager injected credentials into a single JSON var
         if os.environ.get("ENVIRONMENT", "dev") == "production":
             try:
                 if "DATABASE_CREDENTIALS" in os.environ:
                     db_credentials = json.loads(os.environ["DATABASE_CREDENTIALS"])
                     db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
-                    return PostgresDsn.build(
-                        scheme="postgresql+asyncpg",
-                        username=db_credentials.get("username"),
-                        password=db_credentials.get("password"),
-                        host=db_credentials.get("host"),
-                        port=int(db_credentials.get("port", 5432)),
-                        path=f"/{db_name}",
-                        query={"sslmode": "require"},
+
+                    url = (
+                        f"postgresql+asyncpg://{db_credentials['username']}:{db_credentials['password']}"
+                        f"@{db_credentials['host']}:{db_credentials['port']}/{db_name}?sslmode=require"
                     )
+                    return PostgresDsn(url)
             except Exception as e:
                 print(f"Error loading DATABASE_CREDENTIALS: {e}")
 
         # Default to individual env vars
         values = info.data
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_HOST"),
-            port=int(values.get("POSTGRES_PORT")),
-            path=f"/{values.get('POSTGRES_DB')}",
-            query={"sslmode": "require"},
+        url = (
+            f"postgresql+asyncpg://{values['POSTGRES_USER']}:{values['POSTGRES_PASSWORD']}"
+            f"@{values['POSTGRES_HOST']}:{values['POSTGRES_PORT']}/{values['POSTGRES_DB']}?sslmode=require"
         )
+        return PostgresDsn(url)
 
 
 # Instantiate settings globally
