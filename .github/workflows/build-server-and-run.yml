@@ -83,14 +83,77 @@ jobs:
           TARGET_GROUP_ARN: ${{ secrets.TARGET_GROUP_ARN }}
           SUBNET_IDS: ${{ secrets.SUBNET_ID }}
           SECURITY_GROUP_ID: ${{ secrets.SECURITY_GROUP_ID }}
+          EXECUTION_ROLE_ARN: "arn:aws:iam::802872447524:role/ecsExecutionRole-fastapi"
+          TASK_ROLE_ARN: "arn:aws:iam::802872447524:role/etl-container-role"
+          DATABASE_SECRET_ARN: ${{ secrets.DATABASE_SECRET_ARN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          echo "🔍 Fetching current task definition..."
-          aws ecs describe-task-definition \
-            --task-definition $ECS_TASK_DEFINITION \
-            --output json > task-definition.json
+          echo "🔍 Checking if task definition exists..."
+          if ! aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION >/dev/null 2>&1; then
+            echo "⚠️ Task definition '$ECS_TASK_DEFINITION' not found, creating initial version..."
+            
+            # Create initial task definition JSON
+            cat > initial-task-def.json <<EOF
+          {
+            "containerDefinitions": [
+              {
+                "name": "$CONTAINER_NAME",
+                "image": "$IMAGE_URI",
+                "essential": true,
+                "portMappings": [
+                  {
+                    "containerPort": $CONTAINER_PORT,
+                    "hostPort": $CONTAINER_PORT,
+                    "protocol": "tcp"
+                  }
+                ],
+                "environment": [
+                  {
+                    "name": "ENVIRONMENT",
+                    "value": "production"
+                  }
+                ],
+                "secrets": [
+                  {
+                    "name": "DATABASE_CREDENTIALS",
+                    "valueFrom": "$DATABASE_SECRET_ARN"
+                  }
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/$ECS_TASK_DEFINITION",
+                    "awslogs-region": "$AWS_REGION",
+                    "awslogs-stream-prefix": "ecs"
+                  }
+                }
+              }
+            ],
+            "family": "$ECS_TASK_DEFINITION",
+            "executionRoleArn": "$EXECUTION_ROLE_ARN",
+            "taskRoleArn": "$TASK_ROLE_ARN",
+            "networkMode": "awsvpc",
+            "memory": "512",
+            "cpu": "256",
+            "requiresCompatibilities": [
+              "FARGATE"
+            ]
+          }
+          EOF
+          
+            # Register initial task definition
+            echo "📝 Registering initial task definition..."
+            aws ecs register-task-definition --cli-input-json file://initial-task-def.json
+            
+            # Now get the registered task definition
+            aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
+          else
+            echo "✅ Task definition exists, fetching details..."
+            aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
+          fi
 
           echo "🛠 Updating container image and port mappings..."
-          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" --arg SECRET_ARN "${{ secrets.DATABASE_SECRET_ARN }}" '
+          jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" --arg SECRET_ARN "$DATABASE_SECRET_ARN" '
             .taskDefinition
             | {
                 family,
@@ -149,18 +212,34 @@ jobs:
           IFS=',' read -ra SUBNET_ARRAY <<< "$SUBNET_IDS"
           SUBNET_JSON=$(printf '"%s",' "${SUBNET_ARRAY[@]}" | sed 's/,$//')
           
-          echo "🚀 Updating service with Fargate Spot configuration..."
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION \
-            --force-new-deployment \
-            --desired-count 1 \
-            --capacity-provider-strategy capacityProvider=FARGATE_SPOT,weight=1 \
-            --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_JSON],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
-            --health-check-grace-period-seconds 60 \
-            --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=$CONTAINER_PORT"
+          echo "🔍 Checking if service exists..."
+          if ! aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE | grep -q "ACTIVE"; then
+            echo "⚠️ Service '$ECS_SERVICE' not found in cluster '$ECS_CLUSTER', creating it..."
+            
+            aws ecs create-service \
+              --cluster $ECS_CLUSTER \
+              --service-name $ECS_SERVICE \
+              --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION \
+              --desired-count 1 \
+              --capacity-provider-strategy capacityProvider=FARGATE_SPOT,weight=1 \
+              --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_JSON],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
+              --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=$CONTAINER_PORT" \
+              --health-check-grace-period-seconds 60 \
+              --enable-execute-command
+          else
+            echo "🚀 Updating service with Fargate Spot configuration..."
+            aws ecs update-service \
+              --cluster $ECS_CLUSTER \
+              --service $ECS_SERVICE \
+              --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION \
+              --force-new-deployment \
+              --desired-count 1 \
+              --capacity-provider-strategy capacityProvider=FARGATE_SPOT,weight=1 \
+              --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_JSON],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
+              --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
+              --health-check-grace-period-seconds 60 \
+              --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=$CONTAINER_PORT"
+          fi
 
       - name: Monitor deployment
         env:
