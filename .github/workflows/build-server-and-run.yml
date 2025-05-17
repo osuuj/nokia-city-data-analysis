@@ -81,6 +81,8 @@ jobs:
           CONTAINER_NAME: "fastapi-container"
           CONTAINER_PORT: "8000"
           TARGET_GROUP_ARN: ${{ secrets.TARGET_GROUP_ARN }}
+          SUBNET_IDS: ${{ secrets.SUBNET_ID }}
+          SECURITY_GROUP_ID: ${{ secrets.SECURITY_GROUP_ID }}
         run: |
           echo "🔍 Fetching current task definition..."
           aws ecs describe-task-definition \
@@ -133,8 +135,8 @@ jobs:
                 volumes,
                 placementConstraints,
                 requiresCompatibilities,
-                cpu,
-                memory
+                cpu: "256",
+                memory: "512"
               }
             | with_entries(select(.value != null))
           ' task-definition.json > updated-task-definition.json
@@ -143,13 +145,19 @@ jobs:
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
-          echo "🚀 Updating service with ALB configuration..."
+          # Split subnet IDs by comma
+          IFS=',' read -ra SUBNET_ARRAY <<< "$SUBNET_IDS"
+          SUBNET_JSON=$(printf '"%s",' "${SUBNET_ARRAY[@]}" | sed 's/,$//')
+          
+          echo "🚀 Updating service with Fargate Spot configuration..."
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
             --task-definition $ECS_TASK_DEFINITION:$NEW_REVISION \
             --force-new-deployment \
-            --desired-count 2 \
+            --desired-count 1 \
+            --capacity-provider-strategy capacityProvider=FARGATE_SPOT,weight=1 \
+            --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_JSON],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}" \
             --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
             --health-check-grace-period-seconds 60 \
             --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=$CONTAINER_PORT"
