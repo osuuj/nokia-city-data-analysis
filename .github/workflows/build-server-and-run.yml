@@ -35,6 +35,7 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            -f ./server/Dockerfile.ssl-patch \
             ./server
 
           echo "📦 Pushing image to ECR..."
@@ -100,7 +101,7 @@ jobs:
                 "name": "$CONTAINER_NAME",
                 "image": "$IMAGE_URI",
                 "essential": true,
-                "command": ["sh", "-c", "echo 'Starting with debug...' && if [ -n \"$DATABASE_CREDENTIALS\" ]; then export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username); export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password); export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host); export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port); echo \"Extracted credentials from secret\"; fi && env | grep -v PASSWORD && uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"],
+                "command": ["sh", "-c", "echo 'Starting with debug...' && apt-get update && apt-get install -y postgresql-client && if [ -n \"$DATABASE_CREDENTIALS\" ]; then export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username); export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password); export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host); export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port); echo \"Extracted credentials from secret\"; echo \"Testing direct database connection...\"; PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed\"; fi && env | grep -v PASSWORD && echo \"Disabling SSL for database connection\" && export SQLALCHEMY_WARN_20=1 && export PGSSLMODE=disable && uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"],
                 "portMappings": [
                   {
                     "containerPort": $CONTAINER_PORT,
@@ -191,11 +192,11 @@ jobs:
                       },
                       {
                         "name": "DB_SSL_MODE",
-                        "value": "prefer"
+                        "value": "disable"
                       },
                       {
                         "name": "PGSSLMODE",
-                        "value": "prefer"
+                        "value": "disable"
                       },
                       {
                         "name": "LOG_LEVEL",
