@@ -3,6 +3,10 @@ FROM python:3.12-slim-bookworm AS builder
 WORKDIR /app
 COPY requirements.txt .
 
+# Add build date to bust cache
+ARG BUILD_DATE=unknown
+LABEL build_date=$BUILD_DATE
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
@@ -29,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     openssl \
     curl \
+    postgresql-client \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && adduser --disabled-password --gecos "" appuser
@@ -41,7 +46,7 @@ COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
 COPY ./__init__.py /app/server/__init__.py
 
-# Create script to parse DATABASE_CREDENTIALS if provided
+# Create script to parse DATABASE_CREDENTIALS and test connection
 RUN echo '#!/bin/bash\n\
 # Script to handle database credentials from AWS Secrets Manager\n\
 if [ -n "$DATABASE_CREDENTIALS" ]; then\n\
@@ -52,6 +57,14 @@ if [ -n "$DATABASE_CREDENTIALS" ]; then\n\
   export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host)\n\
   export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port)\n\
   echo "Database connection configured from secret"\n\
+  echo "Testing direct database connection with psql..."\n\
+  PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME -c "SELECT 1 as connection_test;" || echo "Direct psql connection failed!"\n\
+fi\n\
+\n\
+# Check for any DATABASE_URL with sslmode\n\
+if [[ "$DATABASE_URL" == *"sslmode"* ]]; then\n\
+  echo "WARNING: DATABASE_URL contains sslmode parameter which may cause issues with asyncpg!"\n\
+  env | grep -E "DATABASE|POSTGRES"\n\
 fi\n\
 \n\
 # Start the application\n\
