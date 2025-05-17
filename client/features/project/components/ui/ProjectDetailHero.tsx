@@ -78,7 +78,7 @@ export const ProjectDetailHero = ({ project }: ProjectDetailHeroProps) => {
             objectFit: 'cover',
             objectPosition: 'center center',
           }}
-          onLoadingComplete={() => setIsLoading(false)}
+          onLoad={() => setIsLoading(false)}
         />
         {isLoading && <div className="absolute inset-0 bg-gray-700 animate-pulse" />}
       </div>

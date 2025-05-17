@@ -504,7 +504,7 @@ export function AnalyticsView() {
                           alt={industry.name}
                           className="w-4 h-4"
                         />
-                        <span>{`${industry.name} (${industry.total})`}</span>
+                        <span className="text-foreground">{`${industry.name} (${industry.total})`}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -623,7 +623,9 @@ export function AnalyticsView() {
                 {Array.from(selectedCities)
                   .sort()
                   .map((city) => (
-                    <SelectItem key={city}>{city}</SelectItem>
+                    <SelectItem key={city} textValue={city}>
+                      <span className="text-foreground">{city}</span>
+                    </SelectItem>
                   ))}
               </Select>
             )}

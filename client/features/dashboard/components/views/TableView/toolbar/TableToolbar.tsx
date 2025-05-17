@@ -99,7 +99,10 @@ export function TableToolbar({
 
           <div className="flex items-center gap-1 w-full md:w-auto">
             <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
-            <Tooltip content="Sort by column" placement="bottom">
+            <Tooltip
+              content={<span className="text-foreground">Sort by column</span>}
+              placement="bottom"
+            >
               <div>
                 <SortDropdown
                   sortDescriptor={sortDescriptor}
@@ -109,7 +112,10 @@ export function TableToolbar({
               </div>
             </Tooltip>
             <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
-            <Tooltip content="Column Visibility" placement="bottom">
+            <Tooltip
+              content={<span className="text-foreground">Column Visibility</span>}
+              placement="bottom"
+            >
               <div>
                 <ColumnVisibilityDropdown />
               </div>

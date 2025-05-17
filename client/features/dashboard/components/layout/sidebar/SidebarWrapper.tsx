@@ -62,7 +62,10 @@ export const SidebarWrapper = () => {
         </Link>
 
         {showCollapseButton && (
-          <Tooltip content="Collapse sidebar" placement="right">
+          <Tooltip
+            content={<span className="text-foreground">Collapse sidebar</span>}
+            placement="right"
+          >
             <Button
               isIconOnly
               variant="light"
@@ -126,7 +129,10 @@ export const SidebarWrapper = () => {
         </Tooltip>
 
         {isCompact && mounted && !isMobile && (
-          <Tooltip content="Expand sidebar" placement="right">
+          <Tooltip
+            content={<span className="text-foreground">Expand sidebar</span>}
+            placement="right"
+          >
             <Button
               isIconOnly
               variant="light"

@@ -117,12 +117,12 @@ export function SortDropdown({ sortDescriptor, setSortDescriptor }: SortDropdown
           return (
             <DropdownItem
               key={item.key}
-              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800"
+              className="text-[10px] xs:text-xs sm:text-sm h-6 xs:h-7 sm:h-8 focus:outline-none focus:ring-0 data-[selected=true]:bg-default-100 data-[selected=true]:text-default-800 text-foreground"
               textValue={item.label}
               aria-label={itemAriaLabel}
             >
               <div className="flex items-center justify-between w-full">
-                <span className="truncate">{item.label}</span>
+                <span className="truncate text-foreground">{item.label}</span>
                 {sortDescriptor.column === item.key && (
                   <AccessibleIconify
                     icon={

@@ -1,5 +1,4 @@
 /* Import external styles */
-/* Use the standard mapbox-gl CSS - this should still work with our updated webpack config */
 @import 'mapbox-gl/dist/mapbox-gl.css';
 
 /* Tailwind CSS directives */
@@ -7,34 +6,28 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
+/*
  * THEME HANDLING AND BASE STYLES
- * Consolidated from multiple files for consistent theme management
  */
 @layer base {
-  :root {
-    /* Light theme variables */
-    --background-color: #f5f7fa;
-    color-scheme: light dark;
-  }
 
-  [data-theme="dark"] {
-    /* Dark theme variables */
-    --background-color: #121212;
-  }
-
-  html, body {
-    @apply bg-background transition-colors duration-300;
-    /* Ensure the background covers the whole viewport */
+  html,
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
     margin: 0;
     padding: 0;
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    background-color: var(--background-color);
   }
-  
+
+  /* Legacy fallback background color for non-token styles */
+  html,
+  body {
+    background-color: var(--background-color, #ffffff);
+  }
+
   /* Instant theme application to prevent flashing */
   html.dark-theme,
   html.dark-theme body,
@@ -42,33 +35,36 @@
     background-color: #0f0f0f !important;
     color: #ffffff !important;
   }
-  
+
   html.light-theme,
   html.light-theme body,
   .light-content {
     background-color: #ffffff !important;
     color: #000000 !important;
   }
-  
-  /* Change the white flashes to a more gradual transition */
+
+  /* Safe gradient without Tailwind apply (manual fix) */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    @apply bg-gradient-to-b from-primary/5 via-background/50 to-background/90;
+    background-image: linear-gradient(to bottom,
+        rgba(59, 130, 246, 0.05),
+        var(--background-color, #ffffff) 50%,
+        var(--background-color, #ffffff) 90%);
     transition: background-color 0.3s ease;
   }
 }
 
-/* 
- * LAYOUT CLASSES 
+/*
+ * LAYOUT CLASSES
  */
 .content-main {
-  padding-top: 5rem; /* Adds space for the fixed header */
+  padding-top: 5rem;
+  /* Adds space for the fixed header */
 }
 
-/* Dashboard specific styles */
 .dashboard-main {
   height: 100vh;
   display: flex;
@@ -78,7 +74,6 @@
   padding: 0;
 }
 
-/* Dashboard page specific body class */
 .dashboard-page {
   overflow: hidden !important;
   height: 100vh !important;
@@ -86,45 +81,46 @@
   width: 100% !important;
 }
 
-/* 
+/*
  * VIDEO AND HERO COMPONENTS
- * Moved from critical.css
  */
-.video-container { 
-  position: relative; 
-  width: 100%; 
-  height: 100%; 
-  overflow: hidden; 
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
-.video-overlay { 
-  position: absolute; 
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%; 
-  background: rgba(0,0,0,0.4); 
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
 }
 
-.hero-content { 
-  position: relative; 
-  z-index: 10; 
+.hero-content {
+  position: relative;
+  z-index: 10;
 }
 
-.hero-section { 
-  min-height: 45vh; 
+.hero-section {
+  min-height: 45vh;
 }
 
-.video-placeholder { 
-  background-color: #111827; 
+.video-placeholder {
+  background-color: #111827;
 }
 
-/* 
+/*
  * MOTION REDUCTION
- * For users who prefer reduced motion
  */
 @media (prefers-reduced-motion) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

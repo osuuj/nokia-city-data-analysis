@@ -187,7 +187,7 @@ export function TableView({
           base: 'max-h-[680px]',
           table: 'min-h-[400px]',
           th: 'text-xs md:text-sm',
-          td: 'text-xs md:text-sm',
+          td: 'text-xs md:text-sm text-foreground',
           tr: '@media(hover: hover){hover:bg-default-50} data-[selected=true]:bg-primary-50',
         }}
         selectionMode="multiple"
