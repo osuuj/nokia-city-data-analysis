@@ -18,14 +18,13 @@ export function useMapTheme(): MapTheme {
   const [isDark, setIsDark] = useState(resolvedTheme === 'dark');
   const prevThemeRef = useRef(resolvedTheme);
 
-  // Mapbox style URLs from environment variables with fallbacks
-  const lightStyle =
-    process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT ||
-    'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
+  // Mapbox style URLs from environment variables
+  const lightStyle = process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT;
+  const darkStyle = process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK;
 
-  const darkStyle =
-    process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK ||
-    'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq';
+  if (!lightStyle || !darkStyle) {
+    throw new Error('Mapbox style URLs are required. Please check your environment variables.');
+  }
 
   // Get current theme from all sources
   const getCurrentTheme = useCallback(() => {
