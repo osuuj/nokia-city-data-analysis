@@ -131,15 +131,87 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     dataCache.current.visibleFeatureId = null;
   }, []);
 
-  // Simplified map click handler
+  // Debug function to check available layers
+  const debugMapLayers = useCallback((map: mapboxgl.Map) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        'Available map layers:',
+        map.getStyle()?.layers?.map((l) => l.id),
+      );
+    }
+  }, []);
+
+  // Handle map load event and setup
+  const handleMapLoad = useCallback(() => {
+    console.log('🗺️ Map loaded!');
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    // Handle style load
+    const handleStyleLoad = () => {
+      console.log('🎨 Style loaded!');
+      setStyleLoaded(true);
+      debugMapLayers(map);
+    };
+
+    // Handle tile load
+    const handleTileLoad = () => {
+      console.log('🗺️ Tiles loaded!');
+      setTilesLoaded(true);
+    };
+
+    // Handle missing style images with detailed logging
+    map.on('styleimagemissing', (e) => {
+      const id = e.id;
+      console.warn('🎨 Image missing:', id);
+      map.loadImage(`/images/markers/${id.toLowerCase()}.png`, (err, img) => {
+        if (!err && img && !map.hasImage(id)) {
+          map.addImage(id, img);
+          console.log(`✅ Added missing image: ${id}`);
+        } else {
+          console.warn(`❌ Failed to load image for ${id}:`, err);
+        }
+      });
+    });
+
+    // Add event listeners
+    map.on('style.load', handleStyleLoad);
+    map.on('idle', handleTileLoad);
+
+    // Set map as loaded
+    setMapLoaded(true);
+
+    // Cleanup function
+    return () => {
+      map.off('style.load', handleStyleLoad);
+      map.off('idle', handleTileLoad);
+    };
+  }, [debugMapLayers]);
+
+  // Simplified map click handler with safe layer checks
   const handleMapClick = useCallback(
     (e: mapboxgl.MapMouseEvent) => {
       const map = mapRef.current?.getMap();
       if (!map) return;
 
+      // Define layer IDs
+      const layerIds = {
+        companies: 'company-icons',
+        multiMarkers: 'multi-marker-icons',
+        clusters: 'cluster-count-layer',
+      };
+
+      // Check which layers exist and are queryable
+      const queryableLayers = Object.values(layerIds).filter((id) => map.getLayer(id));
+
+      if (queryableLayers.length === 0) {
+        console.warn('No queryable layers found');
+        return;
+      }
+
       // Get rendered features at the clicked point
       const features = map.queryRenderedFeatures(e.point, {
-        layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
+        layers: queryableLayers,
       });
 
       // Check if we clicked a feature
@@ -172,50 +244,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     },
     [closeFeatureCards, showFeature],
   );
-
-  // Handle map load event and setup
-  const handleMapLoad = useCallback(() => {
-    console.log('🗺️ Map loaded!');
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-
-    // Handle style load
-    const handleStyleLoad = () => {
-      console.log('🎨 Style loaded!');
-      setStyleLoaded(true);
-    };
-
-    // Handle tile load
-    const handleTileLoad = () => {
-      console.log('🗺️ Tiles loaded!');
-      setTilesLoaded(true);
-    };
-
-    // Handle missing style images
-    map.on('styleimagemissing', (e) => {
-      const id = e.id;
-      map.loadImage(`/images/markers/${id.toLowerCase()}.png`, (err, img) => {
-        if (!err && img && !map.hasImage(id)) {
-          map.addImage(id, img);
-        } else {
-          console.warn(`Failed to load image for ${id}:`, err);
-        }
-      });
-    });
-
-    // Add event listeners
-    map.on('style.load', handleStyleLoad);
-    map.on('idle', handleTileLoad);
-
-    // Set map as loaded
-    setMapLoaded(true);
-
-    // Cleanup function
-    return () => {
-      map.off('style.load', handleStyleLoad);
-      map.off('idle', handleTileLoad);
-    };
-  }, []);
 
   // Create a handler for theme changes with proper style loading check
   const handleMapThemeChange = useCallback((_newIsDark: boolean) => {
@@ -441,6 +469,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     if (!map.isStyleLoaded()) {
       const handleStyleLoad = () => {
         handleMapUpdate(map);
+        debugMapLayers(map);
       };
       map.once('style.load', handleStyleLoad);
       return () => {
@@ -449,7 +478,8 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     }
 
     handleMapUpdate(map);
-  }, [mapLoaded, handleMapUpdate]);
+    debugMapLayers(map);
+  }, [mapLoaded, handleMapUpdate, debugMapLayers]);
 
   // Fly to a location on the map
   const flyTo = useCallback(
