@@ -8,6 +8,7 @@ import { filters } from '@/features/dashboard/utils/filters';
 import { logger } from '@/shared/utils/logger';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { GeoJSONSource } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxMap from 'react-map-gl/mapbox';
@@ -27,7 +28,10 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     CompanyProperties & { addressType?: string }
   > | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [styleLoaded, setStyleLoaded] = useState(false);
+  const [tilesLoaded, setTilesLoaded] = useState(false);
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
+  const [layersAdded, setLayersAdded] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
 
   // Flag to track if a feature card is visible
@@ -54,10 +58,11 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     };
   }, [geojson, hasSelections, selectedKeys]);
 
-  // Use the environment variable for Mapbox token
+  // Use the environment variable for Mapbox token with validation
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-  if (!mapboxToken && process.env.NODE_ENV === 'development') {
-    // We could show a console warning in development if needed
+  if (!mapboxToken) {
+    console.error('Mapbox access token is required. Please check your environment variables.');
+    // You might want to show a user-friendly error message here
   }
 
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
@@ -95,9 +100,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     isCardCollapsed: false,
     visibleFeatureId: null,
   });
-
-  // Track if layers have been added
-  const [layersAdded, setLayersAdded] = useState(false);
 
   // Function to show a specific feature
   const showFeature = useCallback((feature: Feature<Point, CompanyProperties>) => {
@@ -171,57 +173,27 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     [closeFeatureCards, showFeature],
   );
 
-  // Separate effect to restore the collapsed state only on mount
-  useEffect(() => {
-    // Only restore on mount, not on every render
-    setIsCardCollapsed(dataCache.current.isCardCollapsed);
-
-    // If we had a visible feature, try to restore it
-    if (dataCache.current.visibleFeatureId && filteredGeojson) {
-      const cachedFeature = filteredGeojson.features.find(
-        (f) => f.properties.business_id === dataCache.current.visibleFeatureId,
-      );
-
-      if (cachedFeature) {
-        setSelectedFeatures([cachedFeature]);
-        setActiveFeature(cachedFeature);
-        setIsFeatureCardVisible(true);
-      }
-    }
-  }, [filteredGeojson]);
-
-  // Preserve data during remounts
-  useEffect(() => {
-    return () => {
-      // This cleanup function runs when component unmounts
-
-      // Cache current state
-      if (filteredGeojson && filteredGeojson.features.length > 0) {
-        dataCache.current.geojson = filteredGeojson;
-      }
-
-      if (selectedFeatures.length > 0) {
-        dataCache.current.markers = selectedFeatures;
-      }
-
-      dataCache.current.isCardCollapsed = isCardCollapsed;
-
-      if (activeFeature) {
-        dataCache.current.visibleFeatureId = activeFeature.properties.business_id;
-      }
-    };
-  }, [filteredGeojson, selectedFeatures, isCardCollapsed, activeFeature]);
-
   // Handle map load event and setup
   const handleMapLoad = useCallback(() => {
     console.log('🗺️ Map loaded!');
     const map = mapRef.current?.getMap();
     if (!map) return;
 
+    // Handle style load
+    const handleStyleLoad = () => {
+      console.log('🎨 Style loaded!');
+      setStyleLoaded(true);
+    };
+
+    // Handle tile load
+    const handleTileLoad = () => {
+      console.log('🗺️ Tiles loaded!');
+      setTilesLoaded(true);
+    };
+
     // Handle missing style images
     map.on('styleimagemissing', (e) => {
       const id = e.id;
-      // Try to load from your public directory
       map.loadImage(`/images/markers/${id.toLowerCase()}.png`, (err, img) => {
         if (!err && img && !map.hasImage(id)) {
           map.addImage(id, img);
@@ -231,13 +203,26 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
       });
     });
 
+    // Add event listeners
+    map.on('style.load', handleStyleLoad);
+    map.on('idle', handleTileLoad);
+
+    // Set map as loaded
     setMapLoaded(true);
+
+    // Cleanup function
+    return () => {
+      map.off('style.load', handleStyleLoad);
+      map.off('idle', handleTileLoad);
+    };
   }, []);
 
   // Create a handler for theme changes with proper style loading check
   const handleMapThemeChange = useCallback((_newIsDark: boolean) => {
     setMapLoaded(false);
-    setLayersAdded(false); // Reset layers added flag on theme change
+    setStyleLoaded(false);
+    setTilesLoaded(false);
+    setLayersAdded(false);
 
     // Force reload sources on next render
     setTimeout(() => {
@@ -265,8 +250,12 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
     (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
-      if (layersAdded) {
-        console.log('🎯 Layers already added, skipping...');
+      if (layersAdded || !styleLoaded || !tilesLoaded) {
+        console.log('🎯 Conditions not met for adding layers:', {
+          layersAdded,
+          styleLoaded,
+          tilesLoaded,
+        });
         return;
       }
 
@@ -350,7 +339,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         console.error('❌ Error adding map layers:', err);
       }
     },
-    [layersAdded], // Only depend on layersAdded flag
+    [layersAdded, styleLoaded, tilesLoaded],
   );
 
   // Separate map update logic for better organization
@@ -401,12 +390,12 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             clusterRadius: 50,
           });
 
-          // Add layers only after style is fully loaded
-          map.once('style.load', () => {
-            if (!map.getLayer('company-icons')) {
-              addMapLayers(map, sourceId, textColor, selectedColor as string);
-            }
-          });
+          // Wait for both style and tiles to load before adding layers
+          if (styleLoaded && tilesLoaded) {
+            addMapLayers(map, sourceId, textColor, selectedColor as string);
+          } else {
+            console.log('🕒 Waiting for style and tiles to load before adding layers');
+          }
         } else {
           // Update existing source with new data using debounced function
           debouncedSetData(existingSource, taggedGeojson);
@@ -438,6 +427,8 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
       debouncedSetData,
       addMapLayers,
       layersAdded,
+      styleLoaded,
+      tilesLoaded,
     ],
   );
 
@@ -504,6 +495,8 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         <MapboxMap
           key={`mapbox-${isDark ? 'dark' : 'light'}-${mapStyle}`}
           ref={mapRef}
+          mapLib={mapboxgl}
+          mapboxAccessToken={mapboxToken}
           initialViewState={{
             longitude: 0,
             latitude: 30,
@@ -511,12 +504,16 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
           }}
           style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
           mapStyle={mapStyle}
-          mapboxAccessToken={mapboxToken}
           onLoad={handleMapLoad}
           onClick={handleMapClick}
           interactiveLayerIds={interactiveLayerIds}
           preserveDrawingBuffer={true}
           renderWorldCopies={true}
+          reuseMaps={true}
+          attributionControl={true}
+          maxZoom={16}
+          minZoom={1}
+          cooperativeGestures={true}
         />
       </ThemeAwareMapWrapper>
 
