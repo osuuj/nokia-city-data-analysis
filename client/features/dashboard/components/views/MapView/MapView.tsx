@@ -232,6 +232,11 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
     console.log('👷 Adding layers to map...');
 
+    // Only add layers after style is fully loaded
+    map.once('styledata', () => {
+      addMapLayers(map, 'visiting-companies', textColor, selectedColor as string);
+    });
+
     try {
       // Count overlapping markers
       const coordMap = new Map<string, number>();
@@ -304,66 +309,84 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     textColor: string,
     highlightColor: string,
   ) => {
-    // Add cluster count layer
-    map.addLayer({
-      id: 'cluster-count-layer',
-      type: 'symbol',
-      source: sourceId,
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': ['get', 'point_count_abbreviated'],
-        'text-size': 14,
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-      },
-      paint: {
-        'text-color': textColor,
-      },
-    });
+    console.log('🎯 Adding layers to map');
 
-    // Add multiple markers layer
-    map.addLayer({
-      id: 'multi-marker-icons',
-      type: 'symbol',
-      source: sourceId,
-      filter: ['==', ['get', 'isOverlapping'], true],
-      layout: {
-        'icon-image': 'multi',
-        'icon-size': 1.4,
-        'icon-allow-overlap': true,
-      },
-    });
+    try {
+      if (!map.getSource(sourceId)) {
+        console.warn('⚠️ Source not found:', sourceId);
+        return;
+      }
 
-    // Add individual company markers
-    map.addLayer({
-      id: 'company-icons',
-      type: 'symbol',
-      source: sourceId,
-      filter: ['==', ['get', 'isOverlapping'], false],
-      layout: {
-        'icon-image': ['get', 'industry_letter'],
-        'icon-size': 1.4,
-        'icon-allow-overlap': true,
-      },
-    });
+      // Defensive: skip if layers already exist
+      if (map.getLayer('company-icons')) {
+        console.log('ℹ️ Layers already exist, skipping addMapLayers');
+        return;
+      }
 
-    // Add highlight for active marker
-    map.addLayer({
-      id: 'active-marker-highlight',
-      type: 'circle',
-      source: sourceId,
-      filter: ['==', ['get', 'isActive'], true],
-      paint: {
-        'circle-radius': 25,
-        'circle-color': highlightColor,
-        'circle-opacity': 0.25,
-        'circle-blur': 0.2,
-        'circle-stroke-color': '#333',
-        'circle-stroke-width': 1,
-      },
-    });
+      // Add company-icons layer
+      map.addLayer({
+        id: 'company-icons',
+        type: 'symbol',
+        source: sourceId,
+        filter: ['==', ['get', 'isOverlapping'], false],
+        layout: {
+          'icon-image': ['get', 'industry_letter'], // make sure this matches sprite keys
+          'icon-size': 1.4,
+          'icon-allow-overlap': true,
+        },
+      });
+      console.log('✅ Layer company-icons added!');
 
-    // Ensure highlight appears below the markers
-    map.moveLayer('active-marker-highlight', 'company-icons');
+      // Add cluster count layer
+      map.addLayer({
+        id: 'cluster-count-layer',
+        type: 'symbol',
+        source: sourceId,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-size': 14,
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+        },
+        paint: {
+          'text-color': textColor,
+        },
+      });
+
+      // Add multiple markers layer
+      map.addLayer({
+        id: 'multi-marker-icons',
+        type: 'symbol',
+        source: sourceId,
+        filter: ['==', ['get', 'isOverlapping'], true],
+        layout: {
+          'icon-image': 'multi',
+          'icon-size': 1.4,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      // Add highlight for active marker
+      map.addLayer({
+        id: 'active-marker-highlight',
+        type: 'circle',
+        source: sourceId,
+        filter: ['==', ['get', 'isActive'], true],
+        paint: {
+          'circle-radius': 25,
+          'circle-color': highlightColor,
+          'circle-opacity': 0.25,
+          'circle-blur': 0.2,
+          'circle-stroke-color': '#333',
+          'circle-stroke-width': 1,
+        },
+      });
+
+      // Ensure highlight appears below the markers
+      map.moveLayer('active-marker-highlight', 'company-icons');
+    } catch (err) {
+      console.error('❌ Error adding map layers:', err);
+    }
   };
 
   // Fly to a location on the map
