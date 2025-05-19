@@ -211,6 +211,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
   // Handle map load event
   const handleMapLoad = useCallback(() => {
+    console.log('🗺️ Map loaded!');
     setMapLoaded(true);
   }, []);
 
@@ -228,6 +229,8 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
+
+    console.log('👷 Adding layers to map...');
 
     try {
       // Count overlapping markers

@@ -22,6 +22,7 @@ export function useMapTheme(): MapTheme {
   const lightStyle =
     process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT ||
     'mapbox://styles/superjuuso/cm8q81zh1008q01qq6r334txd';
+
   const darkStyle =
     process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK ||
     'mapbox://styles/superjuuso/cm8q7y3c9000k01s50vbwbaeq';
