@@ -70,10 +70,6 @@ if [[ "$DATABASE_URL" == *"sslmode"* ]]; then
   env | grep -E "DATABASE|POSTGRES|SSL"
 fi
 
-# Ensure SSL is disabled by default
-export PGSSLMODE=disable
-export DB_SSL_MODE=disable
-
 # Start app
 exec "$@"
 EOF
