@@ -427,6 +427,16 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     );
   }, [mapLoaded]);
 
+  // Expose map instance for DevTools debugging
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (map) {
+      // Use a more specific type for window
+      (window as Window & { map?: typeof map }).map = map;
+      console.log('🧪 map exposed to window.map');
+    }
+  }, []);
+
   return (
     <div className="relative w-full h-full">
       <ThemeAwareMapWrapper onThemeChange={handleMapThemeChange}>
