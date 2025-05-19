@@ -70,12 +70,24 @@ class Settings(BaseSettings):
         """Validate and set the CORS origins for the backend."""
         is_production = os.environ.get("ENVIRONMENT", "dev") == "production"
         origins_str = os.getenv("BACKEND_CORS_ORIGINS")
+
         if is_production and not origins_str:
             logging.critical(
                 "SECURITY RISK: BACKEND_CORS_ORIGINS not set in production"
             )
             return ["https://osuuj.ai"]
+
         origins_str = origins_str or "http://localhost:3000,http://localhost:8000"
+
+        try:
+            # Try parsing as JSON list
+            parsed = json.loads(origins_str)
+            if isinstance(parsed, list):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+
+        # Fallback to comma-split
         return [origin.strip() for origin in origins_str.split(",")]
 
     @field_validator("DATABASE_URL", mode="before")
