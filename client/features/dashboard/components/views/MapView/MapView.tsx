@@ -96,6 +96,9 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     visibleFeatureId: null,
   });
 
+  // Track if layers have been added
+  const [layersAdded, setLayersAdded] = useState(false);
+
   // Function to show a specific feature
   const showFeature = useCallback((feature: Feature<Point, CompanyProperties>) => {
     setSelectedFeatures([feature]);
@@ -209,15 +212,32 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     };
   }, [filteredGeojson, selectedFeatures, isCardCollapsed, activeFeature]);
 
-  // Handle map load event
+  // Handle map load event and setup
   const handleMapLoad = useCallback(() => {
     console.log('🗺️ Map loaded!');
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    // Handle missing style images
+    map.on('styleimagemissing', (e) => {
+      const id = e.id;
+      // Try to load from your public directory
+      map.loadImage(`/images/markers/${id.toLowerCase()}.png`, (err, img) => {
+        if (!err && img && !map.hasImage(id)) {
+          map.addImage(id, img);
+        } else {
+          console.warn(`Failed to load image for ${id}:`, err);
+        }
+      });
+    });
+
     setMapLoaded(true);
   }, []);
 
-  // Create a handler for theme changes
+  // Create a handler for theme changes with proper style loading check
   const handleMapThemeChange = useCallback((_newIsDark: boolean) => {
     setMapLoaded(false);
+    setLayersAdded(false); // Reset layers added flag on theme change
 
     // Force reload sources on next render
     setTimeout(() => {
@@ -245,6 +265,11 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
     (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
+      if (layersAdded) {
+        console.log('🎯 Layers already added, skipping...');
+        return;
+      }
+
       console.log('🎯 Adding layers to map');
 
       try {
@@ -307,7 +332,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
           },
         ];
 
-        // Add layers only if they don't exist using for...of instead of forEach
+        // Add layers only if they don't exist
         for (const layer of layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer);
@@ -319,11 +344,13 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         if (map.getLayer('active-marker-highlight') && map.getLayer('company-icons')) {
           map.moveLayer('active-marker-highlight', 'company-icons');
         }
+
+        setLayersAdded(true);
       } catch (err) {
         console.error('❌ Error adding map layers:', err);
       }
     },
-    [], // Empty dependency array since all dependencies are passed as parameters
+    [layersAdded], // Only depend on layersAdded flag
   );
 
   // Separate map update logic for better organization
@@ -374,47 +401,64 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             clusterRadius: 50,
           });
 
-          // Add all required layers
-          addMapLayers(map, sourceId, textColor, selectedColor as string);
+          // Add layers only after style is fully loaded
+          map.once('style.load', () => {
+            if (!map.getLayer('company-icons')) {
+              addMapLayers(map, sourceId, textColor, selectedColor as string);
+            }
+          });
         } else {
           // Update existing source with new data using debounced function
           debouncedSetData(existingSource, taggedGeojson);
 
-          // Update theme-dependent properties
-          if (map.getLayer('cluster-count-layer')) {
-            map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
-          }
+          // Update theme-dependent properties only if layers exist
+          if (layersAdded) {
+            if (map.getLayer('cluster-count-layer')) {
+              map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
+            }
 
-          if (map.getLayer('active-marker-highlight')) {
-            map.setPaintProperty(
-              'active-marker-highlight',
-              'circle-color',
-              selectedColor as string,
-            );
+            if (map.getLayer('active-marker-highlight')) {
+              map.setPaintProperty(
+                'active-marker-highlight',
+                'circle-color',
+                selectedColor as string,
+              );
+            }
           }
         }
       } catch (error) {
         console.error('Error updating map:', error);
       }
     },
-    [filteredGeojson, activeBusinessId, selectedColor, textColor, debouncedSetData, addMapLayers],
+    [
+      filteredGeojson,
+      activeBusinessId,
+      selectedColor,
+      textColor,
+      debouncedSetData,
+      addMapLayers,
+      layersAdded,
+    ],
   );
 
   // Update map sources and layers when data or theme changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
-    if (!map || !mapLoaded || !filteredGeojson) return;
+    if (!map || !mapLoaded) return;
 
     // Ensure style is fully loaded before proceeding
     if (!map.isStyleLoaded()) {
-      map.once('style.load', () => {
+      const handleStyleLoad = () => {
         handleMapUpdate(map);
-      });
-      return;
+      };
+      map.once('style.load', handleStyleLoad);
+      return () => {
+        map.off('style.load', handleStyleLoad);
+      };
     }
 
     handleMapUpdate(map);
-  }, [mapLoaded, filteredGeojson, handleMapUpdate]); // Only depend on what's used in the effect
+  }, [mapLoaded, handleMapUpdate]);
 
   // Fly to a location on the map
   const flyTo = useCallback(
@@ -455,7 +499,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   }, [mapLoaded]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-h-[400px]">
       <ThemeAwareMapWrapper onThemeChange={handleMapThemeChange}>
         <MapboxMap
           key={`mapbox-${isDark ? 'dark' : 'light'}-${mapStyle}`}
