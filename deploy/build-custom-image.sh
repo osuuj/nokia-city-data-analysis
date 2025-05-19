@@ -1,11 +1,26 @@
+#!/bin/bash
+set -e
+
+# Configuration
+ECR_REPOSITORY="osuuj-city-data-api"
+AWS_REGION="eu-north-1"
+IMAGE_TAG="latest"
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "${YELLOW}Building custom Docker image with SSL patch${NC}"
+
+# Create a temporary Dockerfile
+echo -e "${YELLOW}Creating a custom Dockerfile...${NC}"
+cat > Dockerfile.custom << 'EOF'
 FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
-COPY requirements.txt .
-
-# Add build date to bust cache
-ARG BUILD_DATE=unknown
-LABEL build_date=$BUILD_DATE
+COPY server/requirements.txt .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
@@ -39,9 +54,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && adduser --disabled-password --gecos "" appuser
 
-# Copy all application files - server directory structure
-COPY ./backend /app/server/backend
-COPY ../db /app/server/db
+# Copy application files with the correct paths
+COPY server/backend /app/server/backend
+COPY server/db /app/server/db
+COPY server/__init__.py /app/server/__init__.py
 
 # Create SSL patch file
 RUN echo '#!/usr/bin/env python3\n\
@@ -135,3 +151,39 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["uvicorn", "server.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EOF
+
+# Get AWS account ID
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Error: Failed to get AWS account ID. Make sure AWS CLI is configured.${NC}"
+    exit 1
+fi
+
+# ECR repository URL
+ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+
+echo -e "${YELLOW}Logging in to Amazon ECR...${NC}"
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+# Create repository if it doesn't exist
+aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} --region ${AWS_REGION} || aws ecr create-repository --repository-name ${ECR_REPOSITORY} --region ${AWS_REGION}
+
+# Build the image using the SSL-patched Dockerfile
+echo -e "${YELLOW}Building Docker image using custom Dockerfile...${NC}"
+docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.custom .
+
+# Clean up temporary Dockerfile
+rm Dockerfile.custom
+
+# Tag and push the image
+echo -e "${YELLOW}Tagging and pushing image to ECR...${NC}"
+docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REPO_URL}:${IMAGE_TAG}
+docker push ${ECR_REPO_URL}:${IMAGE_TAG}
+
+echo -e "${GREEN}Successfully built and pushed image: ${ECR_REPO_URL}:${IMAGE_TAG}${NC}"
+echo -e "${YELLOW}Now update your ECS task definition with:${NC}"
+echo -e "  - Image: ${ECR_REPO_URL}:${IMAGE_TAG}"
+echo -e "  - Environment variables: DB_SSL_MODE=disable PGSSLMODE=disable"
+
+exit 0 
