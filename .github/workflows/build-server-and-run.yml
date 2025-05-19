@@ -1,7 +1,7 @@
 name: Deploy Server to AWS
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch: # Manual trigger only
 
 jobs:
   build-and-deploy:
@@ -142,7 +142,7 @@ jobs:
             ]
           }
           EOF
-          
+
             # Register initial task definition
             echo "📝 Registering initial task definition..."
             aws ecs register-task-definition --cli-input-json file://initial-task-def.json
@@ -192,11 +192,11 @@ jobs:
                       },
                       {
                         "name": "DB_SSL_MODE",
-                        "value": "require"
+                        "value": "disable"
                       },
                       {
                         "name": "PGSSLMODE",
-                        "value": "require"
+                        "value": "disable"
                       },
                       {
                         "name": "LOG_LEVEL",
@@ -221,7 +221,7 @@ jobs:
           # Split subnet IDs by comma
           IFS=',' read -ra SUBNET_ARRAY <<< "$SUBNET_IDS"
           SUBNET_JSON=$(printf '"%s",' "${SUBNET_ARRAY[@]}" | sed 's/,$//')
-          
+
           echo "🔍 Checking if service exists..."
           if ! aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE | grep -q "ACTIVE"; then
             echo "⚠️ Service '$ECS_SERVICE' not found in cluster '$ECS_CLUSTER', creating it..."
@@ -259,12 +259,12 @@ jobs:
           echo "✅ Deployment started!"
           echo "🔁 ECS Cluster: $ECS_CLUSTER"
           echo "🚀 ECS Service: $ECS_SERVICE"
-          
+
           # Monitor deployment status with timeout
           TIMEOUT=300  # 5 minutes timeout
           INTERVAL=10  # Check every 10 seconds
           ELAPSED=0
-          
+
           while [ $ELAPSED -lt $TIMEOUT ]; do
             # Get deployment status
             STATUS=$(aws ecs describe-services \
@@ -306,7 +306,7 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
             echo "⏳ Waiting for deployment... ($ELAPSED/$TIMEOUT seconds)"
           done
-          
+
           echo "❌ Deployment timed out after ${TIMEOUT} seconds"
           aws ecs describe-services \
             --cluster $ECS_CLUSTER \
