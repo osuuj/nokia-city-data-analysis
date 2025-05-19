@@ -225,169 +225,196 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     }, 500);
   }, []);
 
+  // Add a debounce utility with proper typing
+  const debounce = <T extends unknown[]>(func: (...args: T) => void, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: T) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+
+  // Debounced version of setData with proper typing
+  const debouncedSetData = useCallback(
+    debounce((source: GeoJSONSource, data: FeatureCollection<Point, CompanyProperties>) => {
+      source.setData(data);
+    }, 300),
+    [],
+  );
+
+  // Extract layer creation to a separate function for clarity
+  const addMapLayers = useCallback(
+    (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
+      console.log('🎯 Adding layers to map');
+
+      try {
+        if (!map.getSource(sourceId)) {
+          console.warn('⚠️ Source not found:', sourceId);
+          return;
+        }
+
+        // Define layers configuration with proper types
+        const layers: mapboxgl.AnyLayer[] = [
+          {
+            id: 'company-icons',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['==', ['get', 'isOverlapping'], false] as mapboxgl.FilterSpecification,
+            layout: {
+              'icon-image': ['get', 'industry_letter'] as mapboxgl.Expression,
+              'icon-size': 1.4,
+              'icon-allow-overlap': true,
+            } as mapboxgl.SymbolLayout,
+          },
+          {
+            id: 'cluster-count-layer',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['has', 'point_count'] as mapboxgl.FilterSpecification,
+            layout: {
+              'text-field': ['get', 'point_count_abbreviated'] as mapboxgl.Expression,
+              'text-size': 14,
+              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            } as mapboxgl.SymbolLayout,
+            paint: {
+              'text-color': textColor,
+            } as mapboxgl.SymbolPaint,
+          },
+          {
+            id: 'multi-marker-icons',
+            type: 'symbol',
+            source: sourceId,
+            filter: ['==', ['get', 'isOverlapping'], true] as mapboxgl.FilterSpecification,
+            layout: {
+              'icon-image': 'multi',
+              'icon-size': 1.4,
+              'icon-allow-overlap': true,
+            } as mapboxgl.SymbolLayout,
+          },
+          {
+            id: 'active-marker-highlight',
+            type: 'circle',
+            source: sourceId,
+            filter: ['==', ['get', 'isActive'], true] as mapboxgl.FilterSpecification,
+            paint: {
+              'circle-radius': 25,
+              'circle-color': highlightColor,
+              'circle-opacity': 0.25,
+              'circle-blur': 0.2,
+              'circle-stroke-color': '#333',
+              'circle-stroke-width': 1,
+            } as mapboxgl.CirclePaint,
+          },
+        ];
+
+        // Add layers only if they don't exist using for...of instead of forEach
+        for (const layer of layers) {
+          if (!map.getLayer(layer.id)) {
+            map.addLayer(layer);
+            console.log(`✅ Layer ${layer.id} added!`);
+          }
+        }
+
+        // Ensure highlight appears below the markers
+        if (map.getLayer('active-marker-highlight') && map.getLayer('company-icons')) {
+          map.moveLayer('active-marker-highlight', 'company-icons');
+        }
+      } catch (err) {
+        console.error('❌ Error adding map layers:', err);
+      }
+    },
+    [], // Empty dependency array since all dependencies are passed as parameters
+  );
+
+  // Separate map update logic for better organization
+  const handleMapUpdate = useCallback(
+    (map: mapboxgl.Map) => {
+      if (!map.isStyleLoaded()) {
+        console.warn('Style not fully loaded, skipping update');
+        return;
+      }
+
+      console.log('👷 Updating map data and layers...');
+
+      try {
+        // Count overlapping markers
+        const coordMap = new Map<string, number>();
+        for (const feature of filteredGeojson.features) {
+          const coords = feature.geometry.coordinates.join(',');
+          coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
+        }
+
+        // Tag features with overlap status and active state
+        const taggedGeojson: FeatureCollection<
+          Point,
+          CompanyProperties & { isOverlapping: boolean; isActive: boolean }
+        > = {
+          ...filteredGeojson,
+          features: filteredGeojson.features.map((feature) => ({
+            ...feature,
+            properties: {
+              ...feature.properties,
+              isOverlapping: (coordMap.get(feature.geometry.coordinates.join(',')) ?? 0) > 1,
+              isActive: feature.properties.business_id === activeBusinessId,
+              industry_letter: feature.properties.industry_letter || 'broken',
+            },
+          })),
+        };
+
+        const sourceId = 'visiting-companies';
+        const existingSource = map.getSource(sourceId) as GeoJSONSource;
+
+        if (!existingSource) {
+          // Initial source and layer creation
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: taggedGeojson,
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50,
+          });
+
+          // Add all required layers
+          addMapLayers(map, sourceId, textColor, selectedColor as string);
+        } else {
+          // Update existing source with new data using debounced function
+          debouncedSetData(existingSource, taggedGeojson);
+
+          // Update theme-dependent properties
+          if (map.getLayer('cluster-count-layer')) {
+            map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
+          }
+
+          if (map.getLayer('active-marker-highlight')) {
+            map.setPaintProperty(
+              'active-marker-highlight',
+              'circle-color',
+              selectedColor as string,
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error updating map:', error);
+      }
+    },
+    [filteredGeojson, activeBusinessId, selectedColor, textColor, debouncedSetData, addMapLayers],
+  );
+
   // Update map sources and layers when data or theme changes
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
 
-    console.log('👷 Adding layers to map...');
-
-    // Only add layers after style is fully loaded
-    map.once('styledata', () => {
-      addMapLayers(map, 'visiting-companies', textColor, selectedColor as string);
-    });
-
-    try {
-      // Count overlapping markers
-      const coordMap = new Map<string, number>();
-      for (const feature of filteredGeojson.features) {
-        const coords = feature.geometry.coordinates.join(',');
-        coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
-      }
-
-      // Tag features with overlap status and active state
-      const taggedGeojson: FeatureCollection<
-        Point,
-        CompanyProperties & { isOverlapping: boolean; isActive: boolean }
-      > = {
-        ...filteredGeojson,
-        features: filteredGeojson.features.map((feature) => {
-          const coords = feature.geometry.coordinates.join(',');
-          const isOverlapping = (coordMap.get(coords) ?? 0) > 1;
-          const isActive = feature.properties.business_id === activeBusinessId;
-
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              isOverlapping,
-              isActive,
-              industry_letter: feature.properties.industry_letter || 'broken',
-            },
-          };
-        }),
-      };
-
-      // Source and layer setup
-      const sourceId = 'visiting-companies';
-      const existingSource = map.getSource(sourceId);
-
-      if (!existingSource) {
-        // Initial source and layer creation
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: taggedGeojson,
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50,
-        });
-
-        // Add all required layers
-        addMapLayers(map, sourceId, textColor, selectedColor as string);
-      } else {
-        // Update existing source with new data
-        (existingSource as GeoJSONSource).setData(taggedGeojson);
-
-        // Update theme-dependent properties
-        if (map.getLayer('cluster-count-layer')) {
-          map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
-        }
-
-        if (map.getLayer('active-marker-highlight')) {
-          map.setPaintProperty('active-marker-highlight', 'circle-color', selectedColor as string);
-        }
-      }
-    } catch (error) {
-      // Handle error silently in production
+    // Ensure style is fully loaded before proceeding
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', () => {
+        handleMapUpdate(map);
+      });
+      return;
     }
-  }, [mapLoaded, filteredGeojson, activeBusinessId, selectedColor, textColor]);
 
-  // Extract layer creation to a separate function for clarity
-  const addMapLayers = (
-    map: mapboxgl.Map,
-    sourceId: string,
-    textColor: string,
-    highlightColor: string,
-  ) => {
-    console.log('🎯 Adding layers to map');
-
-    try {
-      if (!map.getSource(sourceId)) {
-        console.warn('⚠️ Source not found:', sourceId);
-        return;
-      }
-
-      // Defensive: skip if layers already exist
-      if (map.getLayer('company-icons')) {
-        console.log('ℹ️ Layers already exist, skipping addMapLayers');
-        return;
-      }
-
-      // Add company-icons layer
-      map.addLayer({
-        id: 'company-icons',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['==', ['get', 'isOverlapping'], false],
-        layout: {
-          'icon-image': ['get', 'industry_letter'], // make sure this matches sprite keys
-          'icon-size': 1.4,
-          'icon-allow-overlap': true,
-        },
-      });
-      console.log('✅ Layer company-icons added!');
-
-      // Add cluster count layer
-      map.addLayer({
-        id: 'cluster-count-layer',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-size': 14,
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        },
-        paint: {
-          'text-color': textColor,
-        },
-      });
-
-      // Add multiple markers layer
-      map.addLayer({
-        id: 'multi-marker-icons',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['==', ['get', 'isOverlapping'], true],
-        layout: {
-          'icon-image': 'multi',
-          'icon-size': 1.4,
-          'icon-allow-overlap': true,
-        },
-      });
-
-      // Add highlight for active marker
-      map.addLayer({
-        id: 'active-marker-highlight',
-        type: 'circle',
-        source: sourceId,
-        filter: ['==', ['get', 'isActive'], true],
-        paint: {
-          'circle-radius': 25,
-          'circle-color': highlightColor,
-          'circle-opacity': 0.25,
-          'circle-blur': 0.2,
-          'circle-stroke-color': '#333',
-          'circle-stroke-width': 1,
-        },
-      });
-
-      // Ensure highlight appears below the markers
-      map.moveLayer('active-marker-highlight', 'company-icons');
-    } catch (err) {
-      console.error('❌ Error adding map layers:', err);
-    }
-  };
+    handleMapUpdate(map);
+  }, [mapLoaded, filteredGeojson, handleMapUpdate]); // Only depend on what's used in the effect
 
   // Fly to a location on the map
   const flyTo = useCallback(
@@ -433,7 +460,11 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         <MapboxMap
           key={`mapbox-${isDark ? 'dark' : 'light'}-${mapStyle}`}
           ref={mapRef}
-          initialViewState={{ longitude: 25.171, latitude: 64.296, zoom: 5 }}
+          initialViewState={{
+            longitude: 0,
+            latitude: 30,
+            zoom: 2.5,
+          }}
           style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}
           mapStyle={mapStyle}
           mapboxAccessToken={mapboxToken}
