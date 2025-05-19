@@ -1,4 +1,4 @@
-FROM python:3.13-alpine AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
 COPY requirements.txt .
@@ -8,15 +8,20 @@ ARG BUILD_DATE=unknown
 LABEL build_date=$BUILD_DATE
 
 # Install build dependencies
-RUN apk add --no-cache gcc musl-dev libpq postgresql-dev python3-dev openssl
-
-# Create venv and install dependencies
-RUN python -m venv /opt/venv \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    python3-dev \
+    ca-certificates \
+    openssl \
+    && python -m venv /opt/venv \
     && /opt/venv/bin/pip install --upgrade pip \
-    && /opt/venv/bin/pip install -r requirements.txt
+    && /opt/venv/bin/pip install -r requirements.txt \
+    && apt-get purge -y --auto-remove gcc \
+    && rm -rf /root/.cache /var/lib/apt/lists/*
 
 # Stage 2: Final runtime
-FROM python:3.13-alpine
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
@@ -24,8 +29,16 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install runtime dependencies
-RUN apk add --no-cache libpq openssl curl postgresql-client jq \
-    && adduser -D appuser
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libpq5 \
+    openssl \
+    curl \
+    postgresql-client \
+    jq \
+    && update-ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser --disabled-password --gecos "" appuser
 
 # Copy all application files
 COPY ./backend /app/server/backend
@@ -65,7 +78,7 @@ EOF
 
 # ✅ Create entrypoint.sh cleanly
 RUN cat <<'EOF' > /app/entrypoint.sh
-#!/bin/sh
+#!/bin/bash
 
 # Apply SSL patch first
 python /app/patch_ssl.py
@@ -83,7 +96,7 @@ if [ -n "$DATABASE_CREDENTIALS" ]; then
 fi
 
 # Warn if sslmode is present in URL
-if echo "$DATABASE_URL" | grep -q "sslmode"; then
+if [[ "$DATABASE_URL" == *"sslmode"* ]]; then
   echo "WARNING: DATABASE_URL contains sslmode parameter which may cause issues with asyncpg!"
   env | grep -E "DATABASE|POSTGRES|SSL"
 fi
