@@ -49,7 +49,7 @@ COPY ./alembic.ini /app/alembic.ini
 COPY ./__init__.py /app/server/__init__.py
 
 # ✅ Write patch_ssl.py cleanly
-RUN cat <<EOF > /app/patch_ssl.py
+RUN cat <<'EOF' > /app/patch_ssl.py
 #!/usr/bin/env python3
 import os
 import re
@@ -61,7 +61,7 @@ def patch_database_file():
     with open(file_path, "r") as f:
         content = f.read()
 
-    pattern = r"# Only enable SSL in production or if explicitly set\\nif settings\\.ENVIRONMENT == \\\"production\\\" or settings\\.DB_SSL_MODE == \\\"require\\\":\\n    # Enable SSL\\n    connect_args\\[\\"ssl\\"\\] = True\\n    logger\\.info\\(\\"SSL enabled for database connection\\"\)"
+    pattern = r"""# Only enable SSL in production or if explicitly set\nif settings\.ENVIRONMENT == \"production\" or settings\.DB_SSL_MODE == \"require\":\n    # Enable SSL\n    connect_args\[\"ssl\"\] = True\n    logger\.info\(\"SSL enabled for database connection\"\)"""
 
     replacement = '''# Check SSL mode setting\nimport ssl\nif settings.DB_SSL_MODE == "disable" or os.environ.get("PGSSLMODE") == "disable":\n    connect_args["ssl"] = False\n    logger.info("SSL disabled for database connection")\nelif settings.ENVIRONMENT == "production" or settings.DB_SSL_MODE == "require":\n    ssl_ctx = ssl.create_default_context()\n    ssl_ctx.check_hostname = False\n    ssl_ctx.verify_mode = ssl.CERT_NONE\n    connect_args["ssl"] = ssl_ctx\n    logger.info("SSL enabled with CERT_NONE")'''
 
