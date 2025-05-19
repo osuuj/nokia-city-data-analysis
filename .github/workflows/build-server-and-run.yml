@@ -192,11 +192,11 @@ jobs:
                       },
                       {
                         "name": "DB_SSL_MODE",
-                        "value": "disable"
+                        "value": "require"
                       },
                       {
                         "name": "PGSSLMODE",
-                        "value": "disable"
+                        "value": "require"
                       },
                       {
                         "name": "LOG_LEVEL",
