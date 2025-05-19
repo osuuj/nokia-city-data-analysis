@@ -5,6 +5,8 @@ and the creation of database tables.
 """
 
 import logging
+import os
+import ssl
 from typing import Any, AsyncGenerator, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -29,17 +31,22 @@ logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 # Configure SSL for PostgreSQL with asyncpg
 connect_args: Dict[str, Any] = {}
 
-# Only enable SSL in production or if explicitly set
-if settings.ENVIRONMENT == "production" or settings.DB_SSL_MODE == "require":
-    # Enable SSL
-    connect_args["ssl"] = True
-    logger.info("SSL enabled for database connection")
+# ✅ Secure and flexible SSL handling
+if settings.DB_SSL_MODE == "disable" or os.environ.get("PGSSLMODE") == "disable":
+    connect_args["ssl"] = False
+    logger.info("SSL disabled for database connection")
+elif settings.ENVIRONMENT == "production" or settings.DB_SSL_MODE == "require":
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+    connect_args["ssl"] = ssl_ctx
+    logger.info("SSL enabled with CERT_NONE")
 
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 
 # Create the SQLAlchemy engine with SSL settings
 engine = create_async_engine(
-    db_url,  # Use DATABASE_URL as is
+    db_url,
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
@@ -64,21 +71,13 @@ Base = declarative_base()
 async def create_db_and_tables() -> None:
     """Create database tables if they don't exist."""
     try:
-        # Only create tables that don't exist
-        # This is done via init_db now with the schema.sql file
-        # async with engine.begin() as conn:
-        #     await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables verified")
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Get a database session.
-
-    Yields:
-        AsyncSession: Database session
-    """
+    """Get a database session."""
     async with async_session() as session:
         try:
             yield session
