@@ -1,7 +1,7 @@
 name: Deploy Server to AWS
 
 on:
-  workflow_dispatch: # Manual trigger only
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -51,12 +51,10 @@ jobs:
         run: |
           if [ -n "$RDS_SG_ID" ]; then
             echo "🔒 Adding ECS security group to RDS ingress rules..."
-            
-            # Check if the rule already exists
             EXISTING_RULE=$(aws ec2 describe-security-groups --group-ids $RDS_SG_ID \
               --query "SecurityGroups[0].IpPermissions[?FromPort==\`5432\` && ToPort==\`5432\` && contains(UserIdGroupPairs[*].GroupId, \`$ECS_SG_ID\`)]" \
               --output text)
-            
+
             if [ -z "$EXISTING_RULE" ]; then
               echo "✅ Adding new security group rule..."
               aws ec2 authorize-security-group-ingress \
@@ -70,7 +68,6 @@ jobs:
             fi
           else
             echo "⚠️ RDS_SECURITY_GROUP_ID not set, skipping security group configuration"
-            echo "⚠️ Make sure ECS security group has access to your RDS instance"
           fi
 
       - name: Update ECS service with new task definition
@@ -92,8 +89,6 @@ jobs:
           echo "🔍 Checking if task definition exists..."
           if ! aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION >/dev/null 2>&1; then
             echo "⚠️ Task definition '$ECS_TASK_DEFINITION' not found, creating initial version..."
-            
-            # Create initial task definition JSON
             cat > initial-task-def.json <<EOF
           {
             "containerDefinitions": [
@@ -101,19 +96,37 @@ jobs:
                 "name": "$CONTAINER_NAME",
                 "image": "$IMAGE_URI",
                 "essential": true,
-                "command": ["sh", "-c", "echo 'Starting with debug...' && apt-get update && apt-get install -y postgresql-client && if [ -n \"$DATABASE_CREDENTIALS\" ]; then export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username); export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password); export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host); export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port); echo \"Extracted credentials from secret\"; echo \"Testing direct database connection...\"; PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed\"; fi && env | grep -v PASSWORD && echo \"Disabling SSL for database connection\" && export SQLALCHEMY_WARN_20=1 && export PGSSLMODE=disable && uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"],
+                "command": [
+                  "sh",
+                  "-c",
+                  "echo 'Starting with debug...' && apt-get update && apt-get install -y postgresql-client && \
+                   if [ -n \"\$DATABASE_CREDENTIALS\" ]; then \
+                     export POSTGRES_USER=\$(echo \$DATABASE_CREDENTIALS | jq -r .username); \
+                     export POSTGRES_PASSWORD=\$(echo \$DATABASE_CREDENTIALS | jq -r .password); \
+                     export POSTGRES_HOST=\$(echo \$DATABASE_CREDENTIALS | jq -r .host); \
+                     export POSTGRES_PORT=\$(echo \$DATABASE_CREDENTIALS | jq -r .port); \
+                     echo \"Extracted credentials from secret\"; \
+                     echo \"Testing direct database connection...\"; \
+                     PGPASSWORD=\$POSTGRES_PASSWORD PGSSLMODE=require psql -h \$POSTGRES_HOST -p \$POSTGRES_PORT -U \$POSTGRES_USER -d \$DATABASE_NAME -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed\"; \
+                   fi && \
+                   export SQLALCHEMY_WARN_20=1 && \
+                   export PGSSLMODE=require && \
+                   uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"
+                ],
                 "portMappings": [
                   {
-                    "containerPort": $CONTAINER_PORT,
-                    "hostPort": $CONTAINER_PORT,
+                    "containerPort": 8000,
+                    "hostPort": 8000,
                     "protocol": "tcp"
                   }
                 ],
                 "environment": [
-                  {
-                    "name": "ENVIRONMENT",
-                    "value": "production"
-                  }
+                  { "name": "ENVIRONMENT", "value": "production" },
+                  { "name": "DATABASE_NAME", "value": "etl_db" },
+                  { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai" },
+                  { "name": "DB_SSL_MODE", "value": "require" },
+                  { "name": "PGSSLMODE", "value": "require" },
+                  { "name": "LOG_LEVEL", "value": "DEBUG" }
                 ],
                 "secrets": [
                   {
@@ -137,24 +150,17 @@ jobs:
             "networkMode": "awsvpc",
             "memory": "512",
             "cpu": "256",
-            "requiresCompatibilities": [
-              "FARGATE"
-            ]
+            "requiresCompatibilities": ["FARGATE"]
           }
           EOF
-
-            # Register initial task definition
-            echo "📝 Registering initial task definition..."
             aws ecs register-task-definition --cli-input-json file://initial-task-def.json
-            
-            # Now get the registered task definition
             aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
           else
             echo "✅ Task definition exists, fetching details..."
             aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --output json > task-definition.json
           fi
 
-          echo "🛠 Updating container image and port mappings..."
+          echo "📜 Registering new task definition..."
           jq --arg IMAGE "$IMAGE_URI" --arg PORT "$CONTAINER_PORT" --arg SECRET_ARN "$DATABASE_SECRET_ARN" '
             .taskDefinition
             | {
@@ -165,43 +171,15 @@ jobs:
                 containerDefinitions: [
                   .containerDefinitions[0] * {
                     image: $IMAGE,
-                    portMappings: [{
-                      "containerPort": ($PORT | tonumber),
-                      "hostPort": ($PORT | tonumber),
-                      "protocol": "tcp",
-                      "appProtocol": "http"
-                    }],
-                    secrets: [
-                      {
-                        "name": "DATABASE_CREDENTIALS",
-                        "valueFrom": $SECRET_ARN
-                      }
-                    ],
+                    portMappings: [{ "containerPort": ($PORT | tonumber), "hostPort": ($PORT | tonumber), "protocol": "tcp", "appProtocol": "http" }],
+                    secrets: [{ "name": "DATABASE_CREDENTIALS", "valueFrom": $SECRET_ARN }],
                     environment: [
-                      {
-                        "name": "ENVIRONMENT",
-                        "value": "production"
-                      },
-                      {
-                        "name": "DATABASE_NAME",
-                        "value": "etl_db"
-                      },
-                      {
-                        "name": "BACKEND_CORS_ORIGINS",
-                        "value": "https://osuuj.ai"
-                      },
-                      {
-                        "name": "DB_SSL_MODE",
-                        "value": "disable"
-                      },
-                      {
-                        "name": "PGSSLMODE",
-                        "value": "disable"
-                      },
-                      {
-                        "name": "LOG_LEVEL",
-                        "value": "DEBUG"
-                      }
+                      { "name": "ENVIRONMENT", "value": "production" },
+                      { "name": "DATABASE_NAME", "value": "etl_db" },
+                      { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai" },
+                      { "name": "DB_SSL_MODE", "value": "require" },
+                      { "name": "PGSSLMODE", "value": "require" },
+                      { "name": "LOG_LEVEL", "value": "DEBUG" }
                     ]
                   }
                 ],
@@ -214,18 +192,15 @@ jobs:
             | with_entries(select(.value != null))
           ' task-definition.json > updated-task-definition.json
 
-          echo "📜 Registering new task definition..."
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
-          # Split subnet IDs by comma
           IFS=',' read -ra SUBNET_ARRAY <<< "$SUBNET_IDS"
           SUBNET_JSON=$(printf '"%s",' "${SUBNET_ARRAY[@]}" | sed 's/,$//')
 
           echo "🔍 Checking if service exists..."
           if ! aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE | grep -q "ACTIVE"; then
             echo "⚠️ Service '$ECS_SERVICE' not found in cluster '$ECS_CLUSTER', creating it..."
-            
             aws ecs create-service \
               --cluster $ECS_CLUSTER \
               --service-name $ECS_SERVICE \
@@ -260,57 +235,33 @@ jobs:
           echo "🔁 ECS Cluster: $ECS_CLUSTER"
           echo "🚀 ECS Service: $ECS_SERVICE"
 
-          # Monitor deployment status with timeout
-          TIMEOUT=300  # 5 minutes timeout
-          INTERVAL=10  # Check every 10 seconds
+          TIMEOUT=300
+          INTERVAL=10
           ELAPSED=0
 
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            # Get deployment status
-            STATUS=$(aws ecs describe-services \
-              --cluster $ECS_CLUSTER \
-              --services $ECS_SERVICE \
-              --query 'services[0].deployments[0].status' \
-              --output text)
-            
-            RUNNING_COUNT=$(aws ecs describe-services \
-              --cluster $ECS_CLUSTER \
-              --services $ECS_SERVICE \
-              --query 'services[0].runningCount' \
-              --output text)
-            
-            DESIRED_COUNT=$(aws ecs describe-services \
-              --cluster $ECS_CLUSTER \
-              --services $ECS_SERVICE \
-              --query 'services[0].desiredCount' \
-              --output text)
-            
+            STATUS=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[0].deployments[0].status' --output text)
+            RUNNING_COUNT=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[0].runningCount' --output text)
+            DESIRED_COUNT=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[0].desiredCount' --output text)
+
             echo "📊 Deployment Status: $STATUS (Running: $RUNNING_COUNT/$DESIRED_COUNT)"
-            
+
             if [ "$STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" = "$DESIRED_COUNT" ]; then
               echo "🎉 Deployment completed successfully!"
               exit 0
             fi
-            
+
             if [ "$STATUS" = "FAILED" ]; then
               echo "❌ Deployment failed!"
-              aws ecs describe-services \
-                --cluster $ECS_CLUSTER \
-                --services $ECS_SERVICE \
-                --query 'services[0].events[0:5]' \
-                --output text
+              aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[0].events[0:5]' --output text
               exit 1
             fi
-            
+
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
             echo "⏳ Waiting for deployment... ($ELAPSED/$TIMEOUT seconds)"
           done
 
           echo "❌ Deployment timed out after ${TIMEOUT} seconds"
-          aws ecs describe-services \
-            --cluster $ECS_CLUSTER \
-            --services $ECS_SERVICE \
-            --query 'services[0].events[0:5]' \
-            --output text
+          aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query 'services[0].events[0:5]' --output text
           exit 1
