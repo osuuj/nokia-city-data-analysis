@@ -116,9 +116,6 @@ class Settings(BaseSettings):
                     # SQLAlchemy + asyncpg handle SSL differently
                     # SSL will be configured at engine creation time
                     result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-                    # Ensure sslmode=require is appended
-                    if "sslmode" not in result:
-                        result += "?sslmode=require"
                     print(
                         f"✅ Built connection string from AWS Secrets: {result.replace(password, '********')}"
                     )
@@ -135,8 +132,6 @@ class Settings(BaseSettings):
 
         # Return URL without sslmode parameter
         result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-        if "sslmode" not in result:
-            result += "?sslmode=require"
         print(
             f"✅ Built connection string from env variables: {result.replace(password, '********')}"
         )

@@ -5,7 +5,6 @@ and the creation of database tables.
 """
 
 import logging
-import urllib.parse
 from typing import Any, AsyncGenerator, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -27,17 +26,6 @@ if ":" in db_url and "@" in db_url:
             masked_url = f"{creds[0]}:{creds[1]}:********@{parts[1]}"
 logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 
-# Remove 'sslmode' from the DATABASE_URL for asyncpg compatibility
-parsed_url = urllib.parse.urlparse(db_url)
-query = urllib.parse.parse_qs(parsed_url.query)
-if "sslmode" in query:
-    query.pop("sslmode")
-    new_query = urllib.parse.urlencode(query, doseq=True)
-    db_url_no_sslmode = parsed_url._replace(query=new_query).geturl()
-    logger.warning("Stripped 'sslmode' from DATABASE_URL for asyncpg compatibility.")
-else:
-    db_url_no_sslmode = db_url
-
 # Configure SSL for PostgreSQL with asyncpg
 connect_args: Dict[str, Any] = {}
 
@@ -51,7 +39,7 @@ logger.info(f"Creating async engine with connect_args: {connect_args}")
 
 # Create the SQLAlchemy engine with SSL settings
 engine = create_async_engine(
-    db_url_no_sslmode,  # Use DATABASE_URL without sslmode
+    db_url,  # Use DATABASE_URL as is
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
