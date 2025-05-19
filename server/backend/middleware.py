@@ -78,7 +78,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                     "script-src 'self'; "  # No unsafe-inline/eval in production
                     "style-src 'self'; "
                     "font-src 'self' data:; "
-                    "connect-src 'self'; "
+                    "connect-src 'self' https://api.osuuj.ai; "  # Allow API calls to backend
                     "frame-ancestors 'none'; "
                     "object-src 'none'; "
                     "base-uri 'self'"
