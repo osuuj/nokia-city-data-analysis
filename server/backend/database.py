@@ -39,7 +39,7 @@ logger.info(f"Creating async engine with connect_args: {connect_args}")
 
 # Create the SQLAlchemy engine with SSL settings
 engine = create_async_engine(
-    db_url,  # Use DATABASE_URL as is, with sslmode if present
+    db_url,  # Use DATABASE_URL as is
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
