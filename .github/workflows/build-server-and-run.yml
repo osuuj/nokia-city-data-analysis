@@ -35,7 +35,7 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            -f ./server/Dockerfile.ssl-patch \
+            -f ./server/Dockerfile \
             ./server
 
           echo "📦 Pushing image to ECR..."
