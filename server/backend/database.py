@@ -26,31 +26,6 @@ if ":" in db_url and "@" in db_url:
             masked_url = f"{creds[0]}:{creds[1]}:********@{parts[1]}"
 logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 
-# CRITICAL FIX: Check for sslmode in URL and remove it
-if "sslmode=" in db_url:
-    logger.warning(
-        "Found 'sslmode=' in DATABASE_URL, removing it to prevent errors with asyncpg"
-    )
-    # Remove sslmode from URL
-    db_url_parts = db_url.split("?")
-    base_url = db_url_parts[0]
-
-    # Handle query parameters if present
-    if len(db_url_parts) > 1:
-        query_params = db_url_parts[1].split("&")
-        filtered_params = [p for p in query_params if not p.startswith("sslmode=")]
-
-        if filtered_params:
-            db_url = f"{base_url}?{'&'.join(filtered_params)}"
-        else:
-            db_url = base_url
-    else:
-        db_url = base_url
-
-    logger.info(
-        f"Modified DATABASE_URL (without sslmode): {masked_url if 'sslmode' not in masked_url else masked_url.split('?')[0]}"
-    )
-
 # Configure SSL for PostgreSQL with asyncpg
 connect_args: Dict[str, Any] = {}
 
@@ -64,7 +39,7 @@ logger.info(f"Creating async engine with connect_args: {connect_args}")
 
 # Create the SQLAlchemy engine with SSL settings
 engine = create_async_engine(
-    db_url,  # Use modified URL without sslmode
+    db_url,  # Use DATABASE_URL as is, with sslmode if present
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
