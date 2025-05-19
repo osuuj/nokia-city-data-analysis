@@ -48,40 +48,9 @@ COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
 COPY ./__init__.py /app/server/__init__.py
 
-# ✅ Write patch_ssl.py cleanly
-RUN cat <<'EOF' > /app/patch_ssl.py
-#!/usr/bin/env python3
-import os
-import re
-
-def patch_database_file():
-    """Patch the database.py file to modify SSL settings"""
-    file_path = "server/backend/database.py"
-
-    with open(file_path, "r") as f:
-        content = f.read()
-
-    pattern = r"""# Only enable SSL in production or if explicitly set\nif settings\.ENVIRONMENT == \"production\" or settings\.DB_SSL_MODE == \"require\":\n    # Enable SSL\n    connect_args\[\"ssl\"\] = True\n    logger\.info\(\"SSL enabled for database connection\"\)"""
-
-    replacement = '''# Check SSL mode setting\nimport ssl\nif settings.DB_SSL_MODE == "disable" or os.environ.get("PGSSLMODE") == "disable":\n    connect_args["ssl"] = False\n    logger.info("SSL disabled for database connection")\nelif settings.ENVIRONMENT == "production" or settings.DB_SSL_MODE == "require":\n    ssl_ctx = ssl.create_default_context()\n    ssl_ctx.check_hostname = False\n    ssl_ctx.verify_mode = ssl.CERT_NONE\n    connect_args["ssl"] = ssl_ctx\n    logger.info("SSL enabled with CERT_NONE")'''
-
-    new_content = re.sub(pattern, replacement, content)
-
-    with open(file_path, "w") as f:
-        f.write(new_content)
-
-    print(f"Patched {file_path} to fix SSL configuration")
-
-if __name__ == "__main__":
-    patch_database_file()
-EOF
-
 # ✅ Create entrypoint.sh cleanly
 RUN cat <<'EOF' > /app/entrypoint.sh
 #!/bin/bash
-
-# Apply SSL patch first
-python /app/patch_ssl.py
 
 # Handle database credentials from AWS Secrets Manager
 if [ -n "$DATABASE_CREDENTIALS" ]; then
@@ -109,7 +78,7 @@ export DB_SSL_MODE=disable
 exec "$@"
 EOF
 
-RUN chmod +x /app/entrypoint.sh /app/patch_ssl.py \
+RUN chmod +x /app/entrypoint.sh \
     && chown -R appuser:appuser /app \
     && chmod -R 755 /app
 USER appuser
