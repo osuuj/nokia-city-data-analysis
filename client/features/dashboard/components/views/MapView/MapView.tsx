@@ -377,8 +377,50 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
     const map = mapRef.current.getMap();
 
+    // Test handler for debugging
+    const testHandler = () => {
+      console.log('🧭 Map loaded (test handler)');
+
+      const sourceId = 'companies';
+      const geojsonSource: mapboxgl.GeoJSONSourceSpecification = {
+        type: 'geojson',
+        data: filteredGeojson,
+        cluster: false, // simplify for debug
+      };
+
+      if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, geojsonSource);
+        console.log(`✅ Source '${sourceId}' added`);
+      } else {
+        console.log(`ℹ️ Source '${sourceId}' exists`);
+        (map.getSource(sourceId) as GeoJSONSource).setData(filteredGeojson);
+      }
+
+      const layerId = 'company-circles';
+
+      if (!map.getLayer(layerId)) {
+        map.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: sourceId,
+          paint: {
+            'circle-radius': 6,
+            'circle-color': '#FF5722',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#FFFFFF',
+          },
+        });
+        console.log(`✅ Layer '${layerId}' added`);
+      } else {
+        console.log(`ℹ️ Layer '${layerId}' already exists`);
+      }
+    };
+
+    map.on('load', testHandler);
+
+    // Original load handler
     const onLoad = () => {
-      console.log('🧭 Map loaded');
+      console.log('🧭 Map loaded (original handler)');
 
       // Validate GeoJSON data
       if (!filteredGeojson) {
@@ -437,6 +479,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
     return () => {
       map.off('load', onLoad);
+      map.off('load', testHandler);
     };
   }, [filteredGeojson, textColor, selectedColor, addMapLayers]);
 
