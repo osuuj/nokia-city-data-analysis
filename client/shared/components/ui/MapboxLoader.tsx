@@ -35,16 +35,11 @@ export function MapboxLoader() {
         // This will execute in the browser environment only
         // Dynamically import the mapbox-gl module
         import('mapbox-gl')
-          .then((mapboxgl) => {
-            // Set the worker URL to the static file we host ourselves
-            // This avoids CORS issues by serving the worker from our own domain
-            (mapboxgl.default as MapboxGL).workerUrl = '/workers/mapbox-gl-csp-worker.js';
-
+          .then(() => {
             // For debugging in development only
             if (process.env.NODE_ENV === 'development') {
-              console.debug('Mapbox GL initialized with self-hosted worker');
+              console.debug('Mapbox GL initialized');
             }
-
             setIsInitialized(true);
           })
           .catch((err) => {
