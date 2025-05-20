@@ -377,46 +377,64 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
     const map = mapRef.current.getMap();
 
-    // Test handler for debugging
+    // Simple test handler with basic layer setup
     const testHandler = () => {
       console.log('🧭 Map loaded (test handler)');
 
-      const sourceId = 'companies';
-      const geojsonSource: mapboxgl.GeoJSONSourceSpecification = {
-        type: 'geojson',
-        data: filteredGeojson,
-        cluster: false, // simplify for debug
-      };
-
-      if (!map.getSource(sourceId)) {
-        map.addSource(sourceId, geojsonSource);
-        console.log(`✅ Source '${sourceId}' added`);
-      } else {
-        console.log(`ℹ️ Source '${sourceId}' exists`);
-        (map.getSource(sourceId) as GeoJSONSource).setData(filteredGeojson);
+      // Step 1: Add a source using the API result
+      if (!map.getSource('companies')) {
+        map.addSource('companies', {
+          type: 'geojson',
+          data: filteredGeojson, // Using our existing data for now
+        });
+        console.log('✅ Added companies source');
       }
 
-      const layerId = 'company-circles';
-
-      if (!map.getLayer(layerId)) {
+      // Step 2: Add a simple circle layer
+      if (!map.getLayer('company')) {
         map.addLayer({
-          id: layerId,
+          id: 'company',
           type: 'circle',
-          source: sourceId,
+          source: 'companies',
           paint: {
             'circle-radius': 6,
-            'circle-color': '#FF5722',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#FFFFFF',
+            'circle-color': '#007cbf',
           },
         });
-        console.log(`✅ Layer '${layerId}' added`);
-      } else {
-        console.log(`ℹ️ Layer '${layerId}' already exists`);
+        console.log('✅ Added company circle layer');
       }
-    };
 
-    map.on('load', testHandler);
+      // Step 3: Add click and hover handlers
+      const handleClick = (
+        e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] },
+      ) => {
+        if (e.features?.[0]) {
+          const props = e.features[0].properties;
+          console.log('🏢 Company clicked:', props);
+        }
+      };
+
+      const handleMouseEnter = () => {
+        map.getCanvas().style.cursor = 'pointer';
+      };
+
+      const handleMouseLeave = () => {
+        map.getCanvas().style.cursor = '';
+      };
+
+      map.on('click', 'company', handleClick);
+      map.on('mouseenter', 'company', handleMouseEnter);
+      map.on('mouseleave', 'company', handleMouseLeave);
+
+      console.log('✅ Added interactivity handlers');
+
+      // Store handlers for cleanup
+      return {
+        handleClick,
+        handleMouseEnter,
+        handleMouseLeave,
+      };
+    };
 
     // Original load handler
     const onLoad = () => {
@@ -475,11 +493,25 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
       addMapLayers(map, sourceId, textColor, selectedColor as string);
     };
 
+    // Add both handlers
+    map.on('load', testHandler);
     map.on('load', onLoad);
 
+    // Store handlers for cleanup
+    const handlers = testHandler();
+
+    // Cleanup function
     return () => {
-      map.off('load', onLoad);
+      // Remove interactivity handlers
+      if (map.getLayer('company')) {
+        map.off('click', 'company', handlers.handleClick);
+        map.off('mouseenter', 'company', handlers.handleMouseEnter);
+        map.off('mouseleave', 'company', handlers.handleMouseLeave);
+      }
+
+      // Remove load handlers
       map.off('load', testHandler);
+      map.off('load', onLoad);
     };
   }, [filteredGeojson, textColor, selectedColor, addMapLayers]);
 
