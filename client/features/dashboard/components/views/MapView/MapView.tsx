@@ -160,6 +160,17 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
       setTilesLoaded(true);
     };
 
+    // Add event listeners with enhanced logging
+    map.on('style.load', () => {
+      console.log('✅ Map style loaded');
+      handleStyleLoad();
+    });
+
+    map.on('idle', () => {
+      console.log('✅ Map idle (tiles loaded)');
+      handleTileLoad();
+    });
+
     // Handle missing style images with detailed logging
     map.on('styleimagemissing', (e) => {
       const id = e.id;
@@ -173,10 +184,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         }
       });
     });
-
-    // Add event listeners
-    map.on('style.load', handleStyleLoad);
-    map.on('idle', handleTileLoad);
 
     // Set map as loaded
     setMapLoaded(true);
@@ -193,6 +200,12 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     (e: mapboxgl.MapMouseEvent) => {
       const map = mapRef.current?.getMap();
       if (!map) return;
+
+      console.log('🖱️ Map clicked! Checking layers:', {
+        company: map.getLayer('company-icons'),
+        multi: map.getLayer('multi-marker-icons'),
+        cluster: map.getLayer('cluster-count-layer'),
+      });
 
       // Define layer IDs
       const layerIds = {
@@ -278,6 +291,12 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
     (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
+      console.log('❓ Trying to add layers:', {
+        layersAdded,
+        styleLoaded,
+        tilesLoaded,
+      });
+
       if (layersAdded || !styleLoaded || !tilesLoaded) {
         console.log('🎯 Conditions not met for adding layers:', {
           layersAdded,
@@ -418,12 +437,9 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             clusterRadius: 50,
           });
 
-          // Wait for both style and tiles to load before adding layers
-          if (styleLoaded && tilesLoaded) {
-            addMapLayers(map, sourceId, textColor, selectedColor as string);
-          } else {
-            console.log('🕒 Waiting for style and tiles to load before adding layers');
-          }
+          // Call addMapLayers directly for testing
+          addMapLayers(map, sourceId, textColor, selectedColor as string);
+          console.log('📍 Called addMapLayers directly after source creation');
         } else {
           // Update existing source with new data using debounced function
           debouncedSetData(existingSource, taggedGeojson);
@@ -455,8 +471,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
       debouncedSetData,
       addMapLayers,
       layersAdded,
-      styleLoaded,
-      tilesLoaded,
     ],
   );
 
