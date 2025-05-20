@@ -50,16 +50,10 @@ const nextConfig = {
   },
   // Keep webpack config for production builds
   webpack: (config) => {
-    // Alias mapbox-gl JS files to use the CSP-compatible version while preserving CSS path
+    // Remove CSP-specific alias for mapbox-gl
     config.resolve.alias = {
       ...config.resolve.alias,
-      // Instead of replacing the entire module, only replace specific imports
-      // This ensures imports for CSS files still work
-      'mapbox-gl$': path.resolve(__dirname, 'node_modules/mapbox-gl/dist/mapbox-gl-csp.js'),
-      'mapbox-gl/dist/mapbox-gl': path.resolve(
-        __dirname,
-        'node_modules/mapbox-gl/dist/mapbox-gl-csp.js',
-      ),
+      // No CSP alias
     };
     return config;
   },
