@@ -18,6 +18,8 @@ interface FeatureCardListProps {
   onClose?: () => void;
   isCollapsed?: boolean;
   onCollapseChange?: (collapsed: boolean) => void;
+  forceListView?: boolean;
+  onBackToList?: () => void;
 }
 
 // Use our shared Address type from the addressTypes.ts file
@@ -67,6 +69,8 @@ export function FeatureCardList({
   onClose,
   isCollapsed = false,
   onCollapseChange,
+  forceListView = false,
+  onBackToList,
 }: FeatureCardListProps) {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -109,14 +113,21 @@ export function FeatureCardList({
 
   // Set the selected business when features or active feature changes
   useEffect(() => {
-    if (activeFeature) {
+    if (forceListView) {
+      // When forceListView is true, always clear selected business to show list
+      setSelectedBusinessId(null);
+    } else if (activeFeature) {
       setSelectedBusinessId(activeFeature.properties.business_id);
-    } else if (features.length > 0) {
+    } else if (features.length === 1) {
+      // Single feature - select it automatically
       setSelectedBusinessId(features[0].properties.business_id);
+    } else if (features.length > 1) {
+      // Multiple features - don't auto-select, show list first
+      setSelectedBusinessId(null);
     } else {
       setSelectedBusinessId(null);
     }
-  }, [features, activeFeature]);
+  }, [features, activeFeature, forceListView]);
 
   // Handle feature list item click
   const handleFeatureSelect = (feature: Feature<Point, CompanyProperties>) => {
@@ -125,7 +136,13 @@ export function FeatureCardList({
 
   // Reset selection to show all features
   const reset = () => {
-    setSelectedBusinessId(null);
+    if (onBackToList) {
+      // Use the handler from the parent component if provided
+      onBackToList();
+    } else {
+      // Fallback to the old behavior
+      setSelectedBusinessId(null);
+    }
   };
 
   const isMulti = features.length > 1;
@@ -134,8 +151,9 @@ export function FeatureCardList({
       ? features.find((f) => f.properties.business_id === selectedBusinessId) || features[0]
       : activeFeature || features[0];
 
-  const showList = isMulti && !selectedBusinessId;
-  const showDetails = selectedFeature != null;
+  // Update the showList logic to respect forceListView
+  const showList = forceListView || (isMulti && !selectedBusinessId);
+  const showDetails = !forceListView && selectedFeature != null;
 
   // Get the letter for the icon
   const letter = selectedFeature

@@ -11,8 +11,10 @@ const PROD_DEFAULT = 'https://api.osuuj.ai';
 const DEV_DEFAULT = 'http://localhost:8000';
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
-// Log the actual API URL being used for debugging
-console.log(`API Base URL: ${BASE_URL}`);
+// Log the actual API URL only in development
+if (process.env.NODE_ENV === 'development') {
+  logger.info(`API Base URL: ${BASE_URL}`);
+}
 
 // Fallback data in case API is down
 const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
@@ -40,7 +42,6 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
   const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
 
   logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
-  console.log(`Fetching companies API URL: ${apiUrl}`);
 
   try {
     const response = await fetch(apiUrl, {
@@ -52,7 +53,7 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     });
 
     if (!response.ok) {
-      console.error(
+      logger.error(
         `Failed to fetch businesses: Status ${response.status} - ${response.statusText}`,
       );
       throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
@@ -60,12 +61,10 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
 
     const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
     logger.info(`Successfully fetched ${geojsonData.features.length} companies for ${city}`);
-    console.log(`Fetched ${geojsonData.features.length} companies for ${city}`);
 
     return geojsonData.features.map((feature) => feature.properties);
   } catch (error) {
     logger.error('Error fetching companies:', error);
-    console.error('Error fetching companies:', error);
     // Return empty array instead of throwing to prevent app from breaking
     return [];
   }
@@ -81,7 +80,6 @@ const fetchCities = async (): Promise<string[]> => {
   const apiUrl = `${BASE_URL}/api/v1/cities`;
 
   logger.info(`Fetching cities from URL: ${apiUrl}`);
-  console.log(`Fetching cities API URL: ${apiUrl}`);
 
   try {
     const response = await fetch(apiUrl, {
@@ -93,22 +91,23 @@ const fetchCities = async (): Promise<string[]> => {
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch cities: Status ${response.status} - ${response.statusText}`);
+      logger.error(`Failed to fetch cities: Status ${response.status} - ${response.statusText}`);
       throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
     }
 
     const cities = await response.json();
     logger.info(`Successfully fetched ${cities.length} cities`);
-    console.log(`Successfully fetched ${cities.length} cities`);
     return cities;
   } catch (error) {
     logger.error('Error fetching cities:', error);
-    console.error('Error fetching cities:', error);
-    // Show more details about the error
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+
+    // Show more details about the error only in development
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      logger.debug('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
     }
     return FALLBACK_CITIES;
   }
