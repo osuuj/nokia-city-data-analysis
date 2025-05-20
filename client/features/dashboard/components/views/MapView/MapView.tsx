@@ -283,51 +283,15 @@ export const MapView = ({
     setMapLoaded(true);
   }, []);
 
-  const handleMapClick = useCallback(
-    (e: mapboxgl.MapMouseEvent) => {
-      const map = mapRef.current?.getMap();
-      if (!map) return;
+  // Add this flag to track theme transitions
+  const isThemeChanging = useRef(false);
 
-      // Get features at the clicked point
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
-      });
-
-      if (features.length > 0) {
-        const clicked = features[0] as unknown as Feature<
-          Point,
-          CompanyProperties & { cluster_id?: number; isOverlapping?: boolean }
-        >;
-
-        // Handle cluster click
-        if ('cluster_id' in clicked.properties && clicked.properties.cluster_id) {
-          const source = map.getSource('visiting-companies') as GeoJSONSource;
-          if (source) {
-            const clusterId = clicked.properties.cluster_id;
-            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-              if (err || !clicked.geometry) return;
-              const [lng, lat] = clicked.geometry.coordinates as [number, number];
-              map.easeTo({ center: [lng, lat], zoom: zoom ?? 10, duration: 500 });
-            });
-          }
-          return;
-        }
-
-        // Simplified approach - let showFeature handle multi-markers
-        // The fromListSelection=false parameter ensures it shows the list for multi-markers
-        showFeature(clicked as Feature<Point, CompanyProperties>, false);
-      } else {
-        // Clicked on empty space
-        setShowListView(false);
-        closeFeatureCards();
-      }
-    },
-    [closeFeatureCards, showFeature],
-  );
-
-  // Theme change handler (simplified)
+  // Update handleMapThemeChange to set the flag during transitions
   const handleMapThemeChange = useCallback(
     (newIsDark: boolean) => {
+      // Set the theme changing flag
+      isThemeChanging.current = true;
+
       // Store current state
       const map = mapRef.current?.getMap();
       if (map) {
@@ -356,9 +320,83 @@ export const MapView = ({
       // After a short delay, mark the map as loaded to trigger re-initialization
       setTimeout(() => {
         setMapLoaded(true);
+
+        // Allow interactions again after a delay to ensure layers are loaded
+        setTimeout(() => {
+          isThemeChanging.current = false;
+        }, 500);
       }, 150);
     },
     [activeFeature, filteredGeojson],
+  );
+
+  // Update handleMapClick to prevent interactions during theme changes and add error handling
+  const handleMapClick = useCallback(
+    (e: mapboxgl.MapMouseEvent) => {
+      // Do nothing if theme is changing
+      if (isThemeChanging.current) {
+        return;
+      }
+
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+
+      try {
+        // Ensure the map style is loaded before querying features
+        if (!map.isStyleLoaded()) {
+          logger.debug('Map style not fully loaded, ignoring click');
+          return;
+        }
+
+        // Check if our layers exist before querying
+        const layersExist = ['company-icons', 'multi-marker-icons', 'cluster-count-layer'].some(
+          (layer) => map.getLayer(layer),
+        );
+
+        if (!layersExist) {
+          logger.debug('Map layers not ready, ignoring click');
+          return;
+        }
+
+        // Get features at the clicked point
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ['company-icons', 'multi-marker-icons', 'cluster-count-layer'],
+        });
+
+        if (features.length > 0) {
+          const clicked = features[0] as unknown as Feature<
+            Point,
+            CompanyProperties & { cluster_id?: number; isOverlapping?: boolean }
+          >;
+
+          // Handle cluster click
+          if ('cluster_id' in clicked.properties && clicked.properties.cluster_id) {
+            const source = map.getSource('visiting-companies') as GeoJSONSource;
+            if (source) {
+              const clusterId = clicked.properties.cluster_id;
+              source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+                if (err || !clicked.geometry) return;
+                const [lng, lat] = clicked.geometry.coordinates as [number, number];
+                map.easeTo({ center: [lng, lat], zoom: zoom ?? 10, duration: 500 });
+              });
+            }
+            return;
+          }
+
+          // Simplified approach - let showFeature handle multi-markers
+          // The fromListSelection=false parameter ensures it shows the list for multi-markers
+          showFeature(clicked as Feature<Point, CompanyProperties>, false);
+        } else {
+          // Clicked on empty space
+          setShowListView(false);
+          closeFeatureCards();
+        }
+      } catch (error) {
+        // Handle errors gracefully
+        logger.debug('Error handling map click:', error);
+      }
+    },
+    [closeFeatureCards, showFeature],
   );
 
   // ======== EFFECTS ========
