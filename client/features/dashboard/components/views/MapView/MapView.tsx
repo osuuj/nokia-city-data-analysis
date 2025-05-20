@@ -7,7 +7,7 @@ import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
 import { logger } from '@/shared/utils/logger';
 import type { Feature, FeatureCollection, Point } from 'geojson';
-import type { ExpressionSpecification, GeoJSONSource, LayerSpecification } from 'mapbox-gl';
+import type { GeoJSONSource, LayerSpecification } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
@@ -64,7 +64,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     console.error('Mapbox access token is required. Please check your environment variables.');
     // You might want to show a user-friendly error message here
   }
-  console.log('✅ Access token:', mapboxToken);
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
   // Get color for the industry based on current theme
@@ -147,29 +146,19 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    // Handle style load
+    // Add event listeners with enhanced logging
     const handleStyleLoad = () => {
-      console.log('🎨 Style loaded!');
+      console.log('✅ style.load fired');
       setStyleLoaded(true);
-      debugMapLayers(map);
     };
 
-    // Handle tile load
-    const handleTileLoad = () => {
-      console.log('🗺️ Tiles loaded!');
+    const handleIdle = () => {
+      console.log('✅ map idle (tiles loaded)');
       setTilesLoaded(true);
     };
 
-    // Add event listeners with enhanced logging
-    map.on('style.load', () => {
-      console.log('✅ Map style loaded');
-      handleStyleLoad();
-    });
-
-    map.on('idle', () => {
-      console.log('✅ Map idle (tiles loaded)');
-      handleTileLoad();
-    });
+    map.on('style.load', handleStyleLoad);
+    map.on('idle', handleIdle);
 
     // Handle missing style images with detailed logging
     map.on('styleimagemissing', (e) => {
@@ -191,9 +180,9 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     // Cleanup function
     return () => {
       map.off('style.load', handleStyleLoad);
-      map.off('idle', handleTileLoad);
+      map.off('idle', handleIdle);
     };
-  }, [debugMapLayers]);
+  }, []);
 
   // Simplified map click handler with safe layer checks
   const handleMapClick = useCallback(
@@ -291,7 +280,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
     (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
-      console.log('❓ Trying to add layers:', {
+      console.log('[🧪 addMapLayers] Called with:', {
         layersAdded,
         styleLoaded,
         tilesLoaded,
