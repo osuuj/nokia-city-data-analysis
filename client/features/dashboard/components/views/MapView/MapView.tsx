@@ -7,7 +7,7 @@ import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
 import { logger } from '@/shared/utils/logger';
 import type { Feature, FeatureCollection, Point } from 'geojson';
-import type { GeoJSONSource } from 'mapbox-gl';
+import type { ExpressionSpecification, GeoJSONSource, LayerSpecification } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/mapbox';
@@ -64,7 +64,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     console.error('Mapbox access token is required. Please check your environment variables.');
     // You might want to show a user-friendly error message here
   }
-
+  console.log('✅ Access token:', mapboxToken);
   const activeBusinessId = activeFeature?.properties?.business_id ?? null;
 
   // Get color for the industry based on current theme
@@ -296,17 +296,17 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         }
 
         // Define layers configuration with proper types
-        const layers: mapboxgl.AnyLayer[] = [
+        const layers: LayerSpecification[] = [
           {
             id: 'company-icons',
             type: 'symbol',
             source: sourceId,
             filter: ['==', ['get', 'isOverlapping'], false] as mapboxgl.FilterSpecification,
             layout: {
-              'icon-image': ['get', 'industry_letter'] as mapboxgl.Expression,
+              'icon-image': ['get', 'industry_letter'],
               'icon-size': 1.4,
               'icon-allow-overlap': true,
-            } as mapboxgl.SymbolLayout,
+            },
           },
           {
             id: 'cluster-count-layer',
@@ -314,13 +314,13 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             source: sourceId,
             filter: ['has', 'point_count'] as mapboxgl.FilterSpecification,
             layout: {
-              'text-field': ['get', 'point_count_abbreviated'] as mapboxgl.Expression,
+              'text-field': ['get', 'point_count_abbreviated'],
               'text-size': 14,
               'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            } as mapboxgl.SymbolLayout,
+            },
             paint: {
               'text-color': textColor,
-            } as mapboxgl.SymbolPaint,
+            },
           },
           {
             id: 'multi-marker-icons',
@@ -331,7 +331,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
               'icon-image': 'multi',
               'icon-size': 1.4,
               'icon-allow-overlap': true,
-            } as mapboxgl.SymbolLayout,
+            },
           },
           {
             id: 'active-marker-highlight',
@@ -345,7 +345,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
               'circle-blur': 0.2,
               'circle-stroke-color': '#333',
               'circle-stroke-width': 1,
-            } as mapboxgl.CirclePaint,
+            },
           },
         ];
 
