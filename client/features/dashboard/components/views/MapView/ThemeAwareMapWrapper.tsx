@@ -15,95 +15,113 @@ interface ThemeAwareMapWrapperProps {
  */
 export const ThemeAwareMapWrapper = ({ children, onThemeChange }: ThemeAwareMapWrapperProps) => {
   const { isDark } = useMapTheme();
-  // Don't use Date.now() in the key as it causes unnecessary remounts
-  // Instead use a stable key per theme that won't change on re-renders
-  const [key, setKey] = useState(`map-${isDark ? 'dark' : 'light'}`);
-
-  // Track theme change status to coordinate with MapView
+  // Use a more specific key with timestamp to guarantee remount
+  const [key, setKey] = useState(`map-${isDark ? 'dark' : 'light'}-${Date.now()}`);
   const [isChangingTheme, setIsChangingTheme] = useState(false);
+  // State to completely unmount and remount children during theme changes
+  const [showChildren, setShowChildren] = useState(true);
 
-  // Create a stable event handler that can be properly cleaned up
+  // Enhanced theme change handler with complete unmount-remount cycle
   const handleThemeChange = useCallback(() => {
     const theme = document.documentElement.getAttribute('data-theme');
     const newIsDark = theme === 'dark';
+    const newKey = `map-${newIsDark ? 'dark' : 'light'}-${Date.now()}`;
 
-    // Only change the key if the theme actually changed
-    const newKey = `map-${newIsDark ? 'dark' : 'light'}`;
-    if (newKey !== key) {
-      console.log('Map wrapper detected theme change, updating map', {
-        theme,
-        oldKey: key,
-        newKey,
-      });
+    if ((newIsDark && !isDark) || (!newIsDark && isDark)) {
+      console.log('ThemeWrapper: Theme change detected, forcing complete remount');
 
-      // Signal that theme is changing before the remount
+      // First signal the change is happening
       setIsChangingTheme(true);
 
-      // First notify the parent component about theme change
+      // Notify parent component before any DOM changes
       if (onThemeChange) {
         onThemeChange(newIsDark);
       }
 
-      // Then update the key to force remount
-      setKey(newKey);
+      // CRITICAL: Fully unmount children first
+      setShowChildren(false);
 
-      // Signal theme change is complete
+      // After a short delay, update the key and remount
       setTimeout(() => {
-        setIsChangingTheme(false);
+        // Update the key to ensure complete remount
+        setKey(newKey);
+
+        // Remount children
+        setTimeout(() => {
+          setShowChildren(true);
+
+          // After children have remounted, complete the theme change
+          setTimeout(() => {
+            setIsChangingTheme(false);
+          }, 100);
+        }, 50);
       }, 50);
     }
-  }, [key, onThemeChange]);
+  }, [isDark, onThemeChange]);
 
-  // Listen for theme change events to force remount
+  // Listen for theme change events
   useEffect(() => {
-    // Add event listeners for both custom theme events and localStorage changes
     document.addEventListener('themechange', handleThemeChange);
     window.addEventListener('storage', handleThemeChange);
 
-    // Clean up listeners on unmount
     return () => {
       document.removeEventListener('themechange', handleThemeChange);
       window.removeEventListener('storage', handleThemeChange);
     };
   }, [handleThemeChange]);
 
-  // Update key when isDark changes from hook (direct theme system changes)
+  // Handle direct theme changes from the theme hook
   useEffect(() => {
-    const newKey = `map-${isDark ? 'dark' : 'light'}`;
+    const newKey = `map-${isDark ? 'dark' : 'light'}-${Date.now()}`;
+    const currentTheme = key.includes('dark') ? 'dark' : 'light';
+    const newTheme = isDark ? 'dark' : 'light';
 
-    // Only update if the key actually changes
-    if (newKey !== key) {
-      console.log('Map theme changed from hook, updating map', {
-        isDark,
-        oldKey: key,
-        newKey,
+    if (currentTheme !== newTheme) {
+      console.log('ThemeWrapper: Direct theme change detected from hook', {
+        currentTheme,
+        newTheme,
       });
 
-      // Signal that theme is changing
+      // Signal change is happening
       setIsChangingTheme(true);
 
-      // First notify parent about theme change
+      // Notify parent
       if (onThemeChange) {
         onThemeChange(isDark);
       }
 
-      // Then update the key
-      setKey(newKey);
+      // Unmount children completely
+      setShowChildren(false);
 
-      // Signal theme change is complete
+      // After a short delay, update key and remount
       setTimeout(() => {
-        setIsChangingTheme(false);
+        setKey(newKey);
+
+        setTimeout(() => {
+          setShowChildren(true);
+
+          setTimeout(() => {
+            setIsChangingTheme(false);
+          }, 100);
+        }, 50);
       }, 50);
     }
-  }, [isDark, onThemeChange, key]);
+  }, [isDark, key, onThemeChange]);
 
   return (
     <div
       key={key}
       className="w-full h-full"
       data-theme-changing={isChangingTheme ? 'true' : 'false'}
+      data-theme={isDark ? 'dark' : 'light'}
     >
-      {children}
+      {showChildren ? (
+        children
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-sm text-default-500">Loading map...</div>
+        </div>
+      )}
     </div>
   );
 };
