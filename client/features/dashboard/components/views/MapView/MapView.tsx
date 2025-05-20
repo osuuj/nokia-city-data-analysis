@@ -280,7 +280,13 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
     (map: mapboxgl.Map, sourceId: string, textColor: string, selectedColor: string) => {
-      console.log('[🧪 addMapLayers] Attempting to add layers');
+      console.log(`[🧪 addMapLayers] Called for source: ${sourceId}`);
+      console.log('🧪 Layers to add:', [
+        'company-icons',
+        'cluster-count-layer',
+        'multi-marker-icons',
+        'active-marker-highlight',
+      ]);
 
       try {
         if (!map.getSource(sourceId)) {
@@ -342,15 +348,19 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
         ];
 
         for (const layer of layers) {
+          console.log(`🔍 Checking layer ${layer.id}`);
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer);
             console.log(`✅ Layer ${layer.id} added!`);
+          } else {
+            console.log(`ℹ️ Layer ${layer.id} already exists`);
           }
         }
 
         // Fix z-order
         if (map.getLayer('active-marker-highlight') && map.getLayer('company-icons')) {
           map.moveLayer('active-marker-highlight', 'company-icons');
+          console.log('✅ Adjusted z-order: active-marker-highlight moved below company-icons');
         }
 
         setLayersAdded(true);
@@ -361,109 +371,74 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
     [],
   );
 
-  // Separate map update logic for better organization
-  const handleMapUpdate = useCallback(
-    (map: mapboxgl.Map) => {
-      if (!map.isStyleLoaded()) {
-        console.warn('Style not fully loaded, skipping update');
+  // Update map sources and layers when data or theme changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current.getMap();
+
+    const onLoad = () => {
+      console.log('🧭 Map loaded');
+
+      // Validate GeoJSON data
+      if (!filteredGeojson) {
+        console.error('❌ GeoJSON data is undefined');
         return;
       }
 
-      console.log('👷 Updating map data and layers...');
-
-      try {
-        // Count overlapping markers
-        const coordMap = new Map<string, number>();
-        for (const feature of filteredGeojson.features) {
-          const coords = feature.geometry.coordinates.join(',');
-          coordMap.set(coords, (coordMap.get(coords) || 0) + 1);
-        }
-
-        // Tag features with overlap status and active state
-        const taggedGeojson: FeatureCollection<
-          Point,
-          CompanyProperties & { isOverlapping: boolean; isActive: boolean }
-        > = {
-          ...filteredGeojson,
-          features: filteredGeojson.features.map((feature) => ({
-            ...feature,
-            properties: {
-              ...feature.properties,
-              isOverlapping: (coordMap.get(feature.geometry.coordinates.join(',')) ?? 0) > 1,
-              isActive: feature.properties.business_id === activeBusinessId,
-              industry_letter: feature.properties.industry_letter || 'broken',
-            },
-          })),
-        };
-
-        const sourceId = 'visiting-companies';
-        const existingSource = map.getSource(sourceId) as GeoJSONSource;
-
-        if (!existingSource) {
-          // Initial source and layer creation
-          map.addSource(sourceId, {
-            type: 'geojson',
-            data: taggedGeojson,
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50,
-          });
-
-          addMapLayers(map, sourceId, textColor, selectedColor as string);
-        } else {
-          // Update existing source with new data using debounced function
-          debouncedSetData(existingSource, taggedGeojson);
-
-          // Update theme-dependent properties only if layers exist
-          if (layersAdded) {
-            if (map.getLayer('cluster-count-layer')) {
-              map.setPaintProperty('cluster-count-layer', 'text-color', textColor);
-            }
-
-            if (map.getLayer('active-marker-highlight')) {
-              map.setPaintProperty(
-                'active-marker-highlight',
-                'circle-color',
-                selectedColor as string,
-              );
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error updating map:', error);
+      if (!filteredGeojson.type || filteredGeojson.type !== 'FeatureCollection') {
+        console.error('❌ Invalid GeoJSON: missing or incorrect "type" property', {
+          type: filteredGeojson.type,
+        });
+        return;
       }
-    },
-    [
-      filteredGeojson,
-      activeBusinessId,
-      selectedColor,
-      textColor,
-      debouncedSetData,
-      addMapLayers,
-      layersAdded,
-    ],
-  );
 
-  // Update map sources and layers when data or theme changes
-  useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (!map || !mapLoaded) return;
+      if (!Array.isArray(filteredGeojson.features)) {
+        console.error('❌ Invalid GeoJSON: "features" is not an array', {
+          features: filteredGeojson.features,
+        });
+        return;
+      }
 
-    // Ensure style is fully loaded before proceeding
-    if (!map.isStyleLoaded()) {
-      const handleStyleLoad = () => {
-        handleMapUpdate(map);
-        debugMapLayers(map);
+      if (filteredGeojson.features.length === 0) {
+        console.warn('⚠️ GeoJSON has no features - map will be empty');
+      } else {
+        console.log('✅ GeoJSON data validated:', {
+          featureCount: filteredGeojson.features.length,
+          firstFeature: filteredGeojson.features[0],
+        });
+      }
+
+      const sourceId = 'visiting-companies';
+      const geojsonSource: mapboxgl.GeoJSONSourceSpecification = {
+        type: 'geojson',
+        data: filteredGeojson,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
       };
-      map.once('style.load', handleStyleLoad);
-      return () => {
-        map.off('style.load', handleStyleLoad);
-      };
-    }
 
-    handleMapUpdate(map);
-    debugMapLayers(map);
-  }, [mapLoaded, handleMapUpdate, debugMapLayers]);
+      if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, geojsonSource);
+        console.log(
+          `✅ Source '${sourceId}' added with ${filteredGeojson.features.length} features`,
+        );
+      } else {
+        console.log(
+          `ℹ️ Source '${sourceId}' already exists, updating with ${filteredGeojson.features.length} features`,
+        );
+        (map.getSource(sourceId) as GeoJSONSource).setData(filteredGeojson);
+      }
+
+      addMapLayers(map, sourceId, textColor, selectedColor as string);
+    };
+
+    map.on('load', onLoad);
+
+    return () => {
+      map.off('load', onLoad);
+    };
+  }, [filteredGeojson, textColor, selectedColor, addMapLayers]);
 
   // Fly to a location on the map
   const flyTo = useCallback(
