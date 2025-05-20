@@ -279,23 +279,8 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
 
   // Extract layer creation to a separate function for clarity
   const addMapLayers = useCallback(
-    (map: mapboxgl.Map, sourceId: string, textColor: string, highlightColor: string) => {
-      console.log('[🧪 addMapLayers] Called with:', {
-        layersAdded,
-        styleLoaded,
-        tilesLoaded,
-      });
-
-      if (layersAdded || !styleLoaded || !tilesLoaded) {
-        console.log('🎯 Conditions not met for adding layers:', {
-          layersAdded,
-          styleLoaded,
-          tilesLoaded,
-        });
-        return;
-      }
-
-      console.log('🎯 Adding layers to map');
+    (map: mapboxgl.Map, sourceId: string, textColor: string, selectedColor: string) => {
+      console.log('[🧪 addMapLayers] Attempting to add layers');
 
       try {
         if (!map.getSource(sourceId)) {
@@ -303,13 +288,12 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
           return;
         }
 
-        // Define layers configuration with proper types
         const layers: LayerSpecification[] = [
           {
             id: 'company-icons',
             type: 'symbol',
             source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], false] as mapboxgl.FilterSpecification,
+            filter: ['==', ['get', 'isOverlapping'], false],
             layout: {
               'icon-image': ['get', 'industry_letter'],
               'icon-size': 1.4,
@@ -320,7 +304,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             id: 'cluster-count-layer',
             type: 'symbol',
             source: sourceId,
-            filter: ['has', 'point_count'] as mapboxgl.FilterSpecification,
+            filter: ['has', 'point_count'],
             layout: {
               'text-field': ['get', 'point_count_abbreviated'],
               'text-size': 14,
@@ -334,7 +318,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             id: 'multi-marker-icons',
             type: 'symbol',
             source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], true] as mapboxgl.FilterSpecification,
+            filter: ['==', ['get', 'isOverlapping'], true],
             layout: {
               'icon-image': 'multi',
               'icon-size': 1.4,
@@ -345,10 +329,10 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             id: 'active-marker-highlight',
             type: 'circle',
             source: sourceId,
-            filter: ['==', ['get', 'isActive'], true] as mapboxgl.FilterSpecification,
+            filter: ['==', ['get', 'isActive'], true],
             paint: {
               'circle-radius': 25,
-              'circle-color': highlightColor,
+              'circle-color': selectedColor,
               'circle-opacity': 0.25,
               'circle-blur': 0.2,
               'circle-stroke-color': '#333',
@@ -357,7 +341,6 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
           },
         ];
 
-        // Add layers only if they don't exist
         for (const layer of layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer);
@@ -365,17 +348,17 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
           }
         }
 
-        // Ensure highlight appears below the markers
+        // Fix z-order
         if (map.getLayer('active-marker-highlight') && map.getLayer('company-icons')) {
           map.moveLayer('active-marker-highlight', 'company-icons');
         }
 
         setLayersAdded(true);
       } catch (err) {
-        console.error('❌ Error adding map layers:', err);
+        console.error('❌ Error in addMapLayers:', err);
       }
     },
-    [layersAdded, styleLoaded, tilesLoaded],
+    [],
   );
 
   // Separate map update logic for better organization
@@ -426,9 +409,7 @@ export const MapView = ({ geojson, selectedBusinesses: _selectedBusinesses }: Ma
             clusterRadius: 50,
           });
 
-          // Call addMapLayers directly for testing
           addMapLayers(map, sourceId, textColor, selectedColor as string);
-          console.log('📍 Called addMapLayers directly after source creation');
         } else {
           // Update existing source with new data using debounced function
           debouncedSetData(existingSource, taggedGeojson);
