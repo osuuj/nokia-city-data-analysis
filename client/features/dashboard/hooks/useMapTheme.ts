@@ -21,6 +21,8 @@ export function useMapTheme(): MapTheme {
   // Mapbox style URLs from environment variables
   const lightStyle = process.env.NEXT_PUBLIC_MAPBOX_STYLE_LIGHT;
   const darkStyle = process.env.NEXT_PUBLIC_MAPBOX_STYLE_DARK;
+  console.log('✅ Map style LIGHT:', lightStyle);
+  console.log('✅ Map style DARK:', darkStyle);
 
   if (!lightStyle || !darkStyle) {
     throw new Error('Mapbox style URLs are required. Please check your environment variables.');
