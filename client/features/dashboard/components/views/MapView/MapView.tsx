@@ -40,6 +40,7 @@ export const MapView = ({
   > | null>(null);
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const [isFeatureCardVisible, setIsFeatureCardVisible] = useState(false);
+  const [showListView, setShowListView] = useState(false);
 
   // References
   const mapRef = useRef<MapRef | null>(null);
@@ -98,6 +99,19 @@ export const MapView = ({
     }
     return '#FAFAFA'; // fallback color
   }, [activeFeature, isDark]);
+
+  // Helper to get all features at the same coordinates as the provided feature
+  const getFeaturesAtSameLocation = useCallback(
+    (feature: Feature<Point, CompanyProperties>) => {
+      const [lng, lat] = feature.geometry.coordinates;
+      const features = filteredGeojson.features.filter((f) => {
+        const [fLng, fLat] = f.geometry.coordinates;
+        return Math.abs(fLng - lng) < 0.00001 && Math.abs(fLat - lat) < 0.00001; // Use a small epsilon for float comparison
+      });
+      return features;
+    },
+    [filteredGeojson.features],
+  );
 
   // ======== MAP SOURCE AND LAYER MANAGEMENT ========
   // Central function to setup/update map source and layers
@@ -225,13 +239,32 @@ export const MapView = ({
 
   // ======== MAP EVENT HANDLERS ========
   // Feature selection handlers
-  const showFeature = useCallback((feature: Feature<Point, CompanyProperties>) => {
-    setSelectedFeatures([feature]);
-    setActiveFeature(feature);
-    setIsCardCollapsed(false);
-    setIsFeatureCardVisible(true);
-    dataCache.current.selectedFeatureId = feature.properties.business_id;
-  }, []);
+  const showFeature = useCallback(
+    (feature: Feature<Point, CompanyProperties>, fromListSelection = false) => {
+      // For a multi-marker, we need to find all features at the same coordinates
+      const featuresAtSameLocation = getFeaturesAtSameLocation(feature);
+
+      // If multiple features at this location AND not coming from list selection,
+      // show the list view
+      if (featuresAtSameLocation.length > 1 && !fromListSelection) {
+        setSelectedFeatures(featuresAtSameLocation);
+        setActiveFeature(null); // No specific feature is active yet
+        setIsCardCollapsed(false);
+        setIsFeatureCardVisible(true);
+        setShowListView(true); // Show list view
+        dataCache.current.selectedFeatureId = null; // No single feature selected
+      } else {
+        // Single feature OR selection from list - show details for this specific feature
+        setSelectedFeatures(featuresAtSameLocation); // Keep all features in case user wants to go back to list
+        setActiveFeature(feature); // Set the active feature to show details for
+        setIsCardCollapsed(false);
+        setIsFeatureCardVisible(true);
+        setShowListView(false); // Turn off list view
+        dataCache.current.selectedFeatureId = feature.properties.business_id;
+      }
+    },
+    [getFeaturesAtSameLocation],
+  );
 
   const toggleCardCollapsed = useCallback((collapsed: boolean) => {
     setIsCardCollapsed(collapsed);
@@ -263,7 +296,7 @@ export const MapView = ({
       if (features.length > 0) {
         const clicked = features[0] as unknown as Feature<
           Point,
-          CompanyProperties & { cluster_id?: number }
+          CompanyProperties & { cluster_id?: number; isOverlapping?: boolean }
         >;
 
         // Handle cluster click
@@ -280,10 +313,12 @@ export const MapView = ({
           return;
         }
 
-        // Show feature card for non-cluster markers
-        showFeature(clicked as Feature<Point, CompanyProperties>);
+        // Simplified approach - let showFeature handle multi-markers
+        // The fromListSelection=false parameter ensures it shows the list for multi-markers
+        showFeature(clicked as Feature<Point, CompanyProperties>, false);
       } else {
         // Clicked on empty space
+        setShowListView(false);
         closeFeatureCards();
       }
     },
@@ -293,8 +328,6 @@ export const MapView = ({
   // Theme change handler (simplified)
   const handleMapThemeChange = useCallback(
     (newIsDark: boolean) => {
-      console.log('Theme change detected:', newIsDark ? 'dark' : 'light');
-
       // Store current state
       const map = mapRef.current?.getMap();
       if (map) {
@@ -367,16 +400,11 @@ export const MapView = ({
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) return;
 
-    console.log('Map update triggered, source added:', sourceAddedRef.current);
-
     // Function to ensure map source and layers are properly added
     const ensureMapSourceAndLayers = () => {
-      console.log('Ensuring map sources and layers');
       if (map.isStyleLoaded()) {
-        const result = setupMapSourceAndLayers(map);
-        console.log('Setup result:', result);
+        setupMapSourceAndLayers(map);
       } else {
-        console.log('Style not loaded, waiting...');
         map.once('style.load', () => {
           setupMapSourceAndLayers(map);
         });
@@ -390,7 +418,6 @@ export const MapView = ({
     if (dataCache.current.mapPosition) {
       const { center, zoom } = dataCache.current.mapPosition;
       if (center && zoom) {
-        console.log('Restoring map position:', center, zoom);
         map.jumpTo({ center, zoom });
         dataCache.current.mapPosition = null;
       }
@@ -399,9 +426,7 @@ export const MapView = ({
     // Add a more robust styledata handler that ensures sources are added
     // This is crucial for theme changes
     const handleStyleData = () => {
-      console.log('Style data changed, source exists:', !!map.getSource('visiting-companies'));
       if (!map.getSource('visiting-companies')) {
-        console.log('Source missing after style change, re-adding');
         sourceAddedRef.current = false;
         setupMapSourceAndLayers(map);
       }
@@ -421,8 +446,6 @@ export const MapView = ({
     // Skip initial render
     if (!mapLoaded) return;
 
-    console.log('Map style changed, ensuring sources and layers');
-
     // Set a timer to check if source was added after style change
     const timer = setTimeout(() => {
       const map = mapRef.current?.getMap();
@@ -430,7 +453,6 @@ export const MapView = ({
 
       // Double-check that the source exists
       if (!map.getSource('visiting-companies')) {
-        console.log('Source still missing after style change, forcing re-add');
         sourceAddedRef.current = false;
         if (map.isStyleLoaded()) {
           setupMapSourceAndLayers(map);
@@ -476,7 +498,8 @@ export const MapView = ({
       });
 
       if (matching) {
-        showFeature(matching);
+        setShowListView(false); // Turn off list view when flying to a specific feature
+        showFeature(matching, true); // Use fromListSelection=true to show details directly
       }
     },
     [filteredGeojson.features, activeBusinessId, showFeature],
@@ -491,6 +514,23 @@ export const MapView = ({
       map.getLayer(layer),
     );
   }, [mapLoaded]);
+
+  // Add this new handler for the "Back to list" button
+  const handleBackToList = useCallback(() => {
+    // Keep the same features, but clear the active one and show the list
+    setActiveFeature(null);
+    setShowListView(true);
+    dataCache.current.selectedFeatureId = null;
+  }, []);
+
+  // Add this function after showFeature and before handleBackToList
+  const handleFeatureSelect = useCallback(
+    (feature: Feature<Point, CompanyProperties>) => {
+      // When a feature is selected from the list, pass true to indicate it's from list selection
+      showFeature(feature, true);
+    },
+    [showFeature],
+  );
 
   // ======== RENDER ========
   return (
@@ -516,17 +556,19 @@ export const MapView = ({
         />
       </ThemeAwareMapWrapper>
 
-      {isFeatureCardVisible && activeFeature && (
+      {isFeatureCardVisible && (activeFeature || showListView) && (
         <FeatureCardList
           features={selectedFeatures}
           activeFeature={activeFeature}
-          onSelect={showFeature}
+          onSelect={handleFeatureSelect}
           selectedColor={selectedColor}
           isDark={isDark}
           flyTo={flyTo}
           onClose={closeFeatureCards}
           isCollapsed={isCardCollapsed}
           onCollapseChange={toggleCardCollapsed}
+          forceListView={showListView}
+          onBackToList={handleBackToList}
         />
       )}
     </div>
