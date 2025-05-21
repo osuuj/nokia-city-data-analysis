@@ -71,10 +71,7 @@ export function AnalyticsView() {
   // Use our custom hook for city selection management
   const {
     selectedCities,
-    searchQuery: citySearchQuery,
-    setSearchQuery: setCitySearchQuery,
     showMaxWarning: showMaxCityWarning,
-    filteredCities: filteredCitiesForSearch,
     focusedCity: pieChartFocusCity,
     handleAddCity: handleCitySelectionAdd,
     handleRemoveCity: handleCitySelectionRemove,
@@ -667,7 +664,6 @@ export function AnalyticsView() {
             ) : topCitiesData && topCitiesData.length > 0 ? (
               <TopCitiesChart
                 data={topCitiesData}
-                currentTheme={currentTheme}
                 onCitySelect={handleTopCitySelect}
                 selectedCities={selectedCities}
               />

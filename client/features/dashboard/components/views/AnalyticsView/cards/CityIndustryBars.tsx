@@ -54,7 +54,7 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
 
   return (
     <ul className="list-none p-0 m-0 flex flex-wrap justify-center items-center gap-x-2 gap-y-1 mt-2 text-[10px] sm:text-xs">
-      {payload.map((entry, index) => {
+      {payload.map((entry) => {
         const industryName = entry.value as string;
         let industryKey = 'broken';
         let iconPath = `/${folder}/broken.svg`;
@@ -77,7 +77,7 @@ const RenderCustomLegend = (props: CustomLegendProps) => {
                 <div className="p-1 text-tiny">
                   <p className="font-bold mb-1">Includes:</p>
                   <ul className="list-none pl-0 max-h-40 overflow-y-auto">
-                    {potentialOthers.map((otherName, otherIndex) => (
+                    {potentialOthers.map((otherName) => (
                       <li key={otherName} className="flex items-center">
                         <img
                           src={`/${folder}/${getIndustryKeyFromName(otherName) ?? 'broken'}.svg`}
@@ -272,7 +272,7 @@ export const CityIndustryBars: React.FC<CityIndustryBarsProps> = ({
               />
             )}
           />
-          {industries.map((industry, index) => (
+          {industries.map((industry) => (
             <Bar
               key={industry}
               dataKey={industry}

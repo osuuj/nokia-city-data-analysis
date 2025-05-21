@@ -41,7 +41,6 @@ interface TableViewProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
-  totalItems?: number;
 }
 
 /**
@@ -62,7 +61,6 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
   pageSize,
-  totalItems = allFilteredData?.length || 0,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
