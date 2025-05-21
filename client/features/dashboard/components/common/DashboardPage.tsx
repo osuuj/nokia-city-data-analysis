@@ -212,6 +212,7 @@ export function DashboardPage() {
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
         pageSize={pageSize}
+        totalItems={filteredCompanies.length}
       />
     ),
     [
