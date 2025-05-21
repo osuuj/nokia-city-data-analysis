@@ -181,6 +181,7 @@ export function ProfileContact({
                 <input
                   type="text"
                   id="name"
+                  name="name"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="Your name"
                 />
@@ -193,6 +194,7 @@ export function ProfileContact({
                 <input
                   type="email"
                   id="email"
+                  name="email"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="your.email@example.com"
                 />
@@ -208,6 +210,7 @@ export function ProfileContact({
                 <input
                   type="text"
                   id="subject"
+                  name="subject"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="What is this regarding?"
                 />
@@ -222,6 +225,7 @@ export function ProfileContact({
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   rows={5}
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="Your message here..."
