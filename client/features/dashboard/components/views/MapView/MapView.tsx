@@ -6,7 +6,6 @@ import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { Filter as AppFilter, FilterOption } from '@/features/dashboard/types/filters';
 import { filters } from '@/features/dashboard/utils/filters';
 import { logger } from '@/shared/utils/logger';
-import { Spinner } from '@heroui/react';
 import type { Feature, FeatureCollection, Point } from 'geojson';
 import type { ExpressionSpecification, FilterSpecification, GeoJSONSource } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
@@ -19,7 +18,6 @@ import { ThemeAwareMapWrapper } from './ThemeAwareMapWrapper';
 export interface MapViewProps {
   geojson: FeatureCollection<Point, CompanyProperties>;
   selectedBusinesses?: CompanyProperties[];
-  isLoading?: boolean;
   /**
    * Coordinates of the selected city, or undefined/null if no city is selected.
    * When set, the map will fly to this city.
@@ -31,7 +29,6 @@ export const MapView = ({
   geojson,
   selectedBusinesses: _selectedBusinesses,
   selectedCityCoords,
-  isLoading,
 }: MapViewProps) => {
   // ======== STATE MANAGEMENT ========
   // Simplify state to the minimum needed
@@ -120,15 +117,7 @@ export const MapView = ({
   // Central function to setup/update map source and layers
   const setupMapSourceAndLayers = useCallback(
     (map: mapboxgl.Map) => {
-      if (!map.isStyleLoaded()) {
-        return false;
-      }
-
-      logger.info('Setting up map source and layers', {
-        hasSource: !!map.getSource('visiting-companies'),
-        features: filteredGeojson.features.length,
-        sourceAdded: sourceAddedRef.current,
-      });
+      if (!map.isStyleLoaded()) return false;
 
       // Get current data with overrides for selected/highlighted states
       const prepareGeoJSON = () => {
@@ -160,100 +149,80 @@ export const MapView = ({
 
       // Source doesn't exist, create it
       if (!existingSource) {
-        logger.info('Creating new source and layers', {
-          features: taggedGeojson.features.length,
+        // Add the source
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: taggedGeojson,
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
         });
 
-        try {
-          // Add the source
-          map.addSource(sourceId, {
-            type: 'geojson',
-            data: taggedGeojson,
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50,
-          });
+        // Add cluster count layer
+        map.addLayer({
+          id: 'cluster-count-layer',
+          type: 'symbol' as const,
+          source: sourceId,
+          filter: ['has', 'point_count'] as FilterSpecification,
+          layout: {
+            'text-field': ['get', 'point_count_abbreviated'] as ExpressionSpecification,
+            'text-size': 14,
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          },
+          paint: {
+            'text-color': textColor,
+          },
+        });
 
-          // Add cluster count layer
-          map.addLayer({
-            id: 'cluster-count-layer',
-            type: 'symbol' as const,
-            source: sourceId,
-            filter: ['has', 'point_count'] as FilterSpecification,
-            layout: {
-              'text-field': ['get', 'point_count_abbreviated'] as ExpressionSpecification,
-              'text-size': 14,
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            },
-            paint: {
-              'text-color': textColor,
-            },
-          });
+        // Add multiple markers layer
+        map.addLayer({
+          id: 'multi-marker-icons',
+          type: 'symbol' as const,
+          source: sourceId,
+          filter: ['==', ['get', 'isOverlapping'], true] as FilterSpecification,
+          layout: {
+            'icon-image': 'multi',
+            'icon-size': 1.4,
+            'icon-allow-overlap': true,
+          },
+        });
 
-          // Add multiple markers layer
-          map.addLayer({
-            id: 'multi-marker-icons',
-            type: 'symbol' as const,
-            source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], true] as FilterSpecification,
-            layout: {
-              'icon-image': 'multi',
-              'icon-size': 1.4,
-              'icon-allow-overlap': true,
-            },
-          });
+        // Add individual company markers
+        map.addLayer({
+          id: 'company-icons',
+          type: 'symbol' as const,
+          source: sourceId,
+          filter: ['==', ['get', 'isOverlapping'], false] as FilterSpecification,
+          layout: {
+            'icon-image': ['get', 'industry_letter'] as ExpressionSpecification,
+            'icon-size': 1.4,
+            'icon-allow-overlap': true,
+          },
+        });
 
-          // Add individual company markers
-          map.addLayer({
-            id: 'company-icons',
-            type: 'symbol' as const,
-            source: sourceId,
-            filter: ['==', ['get', 'isOverlapping'], false] as FilterSpecification,
-            layout: {
-              'icon-image': ['get', 'industry_letter'] as ExpressionSpecification,
-              'icon-size': 1.4,
-              'icon-allow-overlap': true,
-            },
-          });
+        // Add highlight for active marker
+        map.addLayer({
+          id: 'active-marker-highlight',
+          type: 'circle' as const,
+          source: sourceId,
+          filter: ['==', ['get', 'isActive'], true] as FilterSpecification,
+          paint: {
+            'circle-radius': 25,
+            'circle-color': selectedColor,
+            'circle-opacity': 0.25,
+            'circle-blur': 0.2,
+            'circle-stroke-color': '#333',
+            'circle-stroke-width': 1,
+          },
+        });
 
-          // Add highlight for active marker
-          map.addLayer({
-            id: 'active-marker-highlight',
-            type: 'circle' as const,
-            source: sourceId,
-            filter: ['==', ['get', 'isActive'], true] as FilterSpecification,
-            paint: {
-              'circle-radius': 25,
-              'circle-color': selectedColor,
-              'circle-opacity': 0.25,
-              'circle-blur': 0.2,
-              'circle-stroke-color': '#333',
-              'circle-stroke-width': 1,
-            },
-          });
-
-          // Ensure highlight appears below the markers
-          map.moveLayer('active-marker-highlight', 'company-icons');
-          sourceAddedRef.current = true;
-          logger.info('Successfully created source and layers');
-          return true;
-        } catch (error) {
-          logger.error('Error creating map source and layers:', error);
-          return false;
-        }
+        // Ensure highlight appears below the markers
+        map.moveLayer('active-marker-highlight', 'company-icons');
+        sourceAddedRef.current = true;
+        return true;
       }
-
       // Source exists, update it
-      logger.info('Updating existing source with new data', {
-        features: taggedGeojson.features.length,
-      });
-
-      try {
-        (existingSource as GeoJSONSource).setData(taggedGeojson);
-        logger.info('Successfully updated source data');
-      } catch (error) {
-        logger.error('Error updating source data:', error);
-      }
+      (existingSource as GeoJSONSource).setData(taggedGeojson);
 
       // Update theme-dependent properties
       if (map.getLayer('cluster-count-layer')) {
@@ -309,34 +278,10 @@ export const MapView = ({
     dataCache.current.selectedFeatureId = null;
   }, []);
 
-  // Add a ref to track if map is initialized
-  const isInitialized = useRef(false);
-  const hasAddedSource = useRef(false);
-
   // Map event handlers
   const handleMapLoad = useCallback(() => {
-    logger.info('Map loaded event fired');
-    const map = mapRef.current?.getMap();
-    if (map) {
-      logger.info('Map state:', {
-        styleLoaded: map.isStyleLoaded(),
-        style: map.getStyle().name,
-        initialized: isInitialized.current,
-        hasSource: hasAddedSource.current,
-      });
-
-      isInitialized.current = true;
-      setMapLoaded(true);
-
-      // If we have data when map loads, set it up immediately
-      if (filteredGeojson && filteredGeojson.features.length > 0) {
-        logger.info('Setting up data on map load', {
-          features: filteredGeojson.features.length,
-        });
-        setupMapSourceAndLayers(map);
-      }
-    }
-  }, [filteredGeojson, setupMapSourceAndLayers]);
+    setMapLoaded(true);
+  }, []);
 
   // Add this flag to track theme transitions
   const isThemeChanging = useRef(false);
@@ -399,7 +344,7 @@ export const MapView = ({
       try {
         // Ensure the map style is loaded before querying features
         if (!map.isStyleLoaded()) {
-          logger.info('Map style not fully loaded, ignoring click');
+          logger.debug('Map style not fully loaded, ignoring click');
           return;
         }
 
@@ -409,7 +354,7 @@ export const MapView = ({
         );
 
         if (!layersExist) {
-          logger.info('Map layers not ready, ignoring click');
+          logger.debug('Map layers not ready, ignoring click');
           return;
         }
 
@@ -448,7 +393,7 @@ export const MapView = ({
         }
       } catch (error) {
         // Handle errors gracefully
-        logger.error('Error handling map click:', error);
+        logger.debug('Error handling map click:', error);
       }
     },
     [closeFeatureCards, showFeature],
@@ -488,79 +433,18 @@ export const MapView = ({
     };
   }, [filteredGeojson, activeFeature, isCardCollapsed]);
 
-  // Add logging for initial render and data changes
-  useEffect(() => {
-    logger.info('MapView data changed:', {
-      hasData: !!geojson,
-      features: geojson?.features.length,
-      isLoading,
-      mapLoaded,
-    });
-  }, [geojson, isLoading, mapLoaded]);
-
   // Main effect for adding/updating map data
   useEffect(() => {
     const map = mapRef.current?.getMap();
-    if (!map || !mapLoaded || !filteredGeojson) {
-      logger.info('Map not ready:', {
-        hasMap: !!map,
-        mapLoaded,
-        hasData: !!filteredGeojson,
-        features: filteredGeojson?.features.length,
-        initialized: isInitialized.current,
-        hasSource: hasAddedSource.current,
-      });
-      return;
-    }
-
-    // Only proceed if we have features to show
-    if (filteredGeojson.features.length === 0) {
-      logger.info('No features to display');
-      return;
-    }
-
-    logger.info('Attempting to setup map source and layers', {
-      styleLoaded: map.isStyleLoaded(),
-      hasSource: !!map.getSource('visiting-companies'),
-      features: filteredGeojson.features.length,
-      initialized: isInitialized.current,
-      hasAddedSource: hasAddedSource.current,
-    });
+    if (!map || !mapLoaded || !filteredGeojson) return;
 
     // Function to ensure map source and layers are properly added
     const ensureMapSourceAndLayers = () => {
-      if (!isInitialized.current) {
-        logger.info('Map not initialized yet, waiting...');
-        return;
-      }
-
       if (map.isStyleLoaded()) {
-        if (!hasAddedSource.current || !map.getSource('visiting-companies')) {
-          const success = setupMapSourceAndLayers(map);
-          if (success) {
-            hasAddedSource.current = true;
-          }
-          logger.info('Setup result:', { success, hasAddedSource: hasAddedSource.current });
-        } else {
-          // Update existing source
-          const source = map.getSource('visiting-companies');
-          if (source) {
-            logger.info('Updating existing source with new data');
-            (source as mapboxgl.GeoJSONSource).setData(filteredGeojson);
-          }
-        }
+        setupMapSourceAndLayers(map);
       } else {
-        logger.info('Map style not loaded, waiting for style.load event');
         map.once('style.load', () => {
-          logger.info('Style loaded, setting up sources and layers');
-          const success = setupMapSourceAndLayers(map);
-          if (success) {
-            hasAddedSource.current = true;
-          }
-          logger.info('Setup result after style load:', {
-            success,
-            hasAddedSource: hasAddedSource.current,
-          });
+          setupMapSourceAndLayers(map);
         });
       }
     };
@@ -568,12 +452,20 @@ export const MapView = ({
     // Initial setup
     ensureMapSourceAndLayers();
 
+    // Restore map position from cache if available
+    if (dataCache.current.mapPosition) {
+      const { center, zoom } = dataCache.current.mapPosition;
+      if (center && zoom) {
+        map.jumpTo({ center, zoom });
+        dataCache.current.mapPosition = null;
+      }
+    }
+
     // Add a more robust styledata handler that ensures sources are added
+    // This is crucial for theme changes
     const handleStyleData = () => {
-      logger.info('Style data event fired');
       if (!map.getSource('visiting-companies')) {
-        logger.info('Source missing after style change, recreating');
-        hasAddedSource.current = false;
+        sourceAddedRef.current = false;
         setupMapSourceAndLayers(map);
       }
     };
@@ -587,32 +479,29 @@ export const MapView = ({
     };
   }, [mapLoaded, filteredGeojson, setupMapSourceAndLayers]);
 
-  // Reset source flag when unmounting
+  // Ensure sources and layers are added when mapStyle changes
   useEffect(() => {
-    return () => {
-      hasAddedSource.current = false;
-    };
-  }, []);
+    // Skip initial render
+    if (!mapLoaded) return;
 
-  // Reset source when data changes
-  useEffect(() => {
-    if (isLoading) {
-      logger.info('Data loading, resetting source flag');
-      sourceAddedRef.current = false;
-    }
-  }, [isLoading]);
+    // Set a timer to check if source was added after style change
+    const timer = setTimeout(() => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
 
-  // Force source recreation when view becomes visible
-  useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (map && mapLoaded && filteredGeojson) {
-      logger.info('View became visible, checking source');
+      // Double-check that the source exists
       if (!map.getSource('visiting-companies')) {
         sourceAddedRef.current = false;
-        setupMapSourceAndLayers(map);
+        if (map.isStyleLoaded()) {
+          setupMapSourceAndLayers(map);
+        }
       }
-    }
-  }, [mapLoaded, filteredGeojson, setupMapSourceAndLayers]);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [mapLoaded, setupMapSourceAndLayers]);
 
   // Fly to selected city if coordinates are provided
   useEffect(() => {
@@ -631,7 +520,7 @@ export const MapView = ({
     (coords: [number, number], addressType?: string) => {
       const map = mapRef.current?.getMap();
       if (!map || !map.isStyleLoaded()) {
-        logger.info('Map not ready for flyTo command');
+        logger.debug('Map not ready for flyTo command');
         return;
       }
 
@@ -680,20 +569,6 @@ export const MapView = ({
     },
     [showFeature],
   );
-
-  // Show loading state ONLY when loading AND no data available
-  if (isLoading && (!geojson || geojson.features.length === 0)) {
-    return (
-      <div className="relative w-full h-full min-h-[70vh] bg-default-50/50">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" color="primary" />
-            <p className="text-default-500">Loading map data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ======== RENDER ========
   return (
