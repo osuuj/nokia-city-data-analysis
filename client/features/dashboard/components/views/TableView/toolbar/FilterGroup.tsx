@@ -25,11 +25,25 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
   const distanceLimit = useCompanyStore((s) => s.distanceLimit);
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
+  const [isMobile, setIsMobile] = useState(false);
 
   const industryFilter = filters.find((filter: Filter) => filter.key === 'industries');
 
-  // For mobile screens, use a dropdown instead of popovers
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Handle mobile detection with resize listener
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (useLocation) {
@@ -124,29 +138,32 @@ export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterG
             maxWidth={isMobile ? '280px' : undefined}
           >
             <div className="flex flex-col gap-2">
-              <Switch
-                isSelected={useLocation}
-                onValueChange={async (value: boolean) => {
-                  if (value) {
-                    try {
-                      await handleGetLocation();
-                    } catch (error) {
-                      // If location access is denied, the popover will be closed by the onCancel handler
+              <div className="flex items-center gap-2">
+                <Switch
+                  isSelected={useLocation}
+                  onValueChange={async (value: boolean) => {
+                    if (value) {
+                      try {
+                        await handleGetLocation();
+                      } catch (error) {
+                        // If location access is denied, the popover will be closed by the onCancel handler
+                      }
+                    } else {
+                      setUseLocation(false);
+                      setUserLocation(null);
                     }
-                  } else {
-                    setUseLocation(false);
-                    setUserLocation(null);
-                  }
-                }}
-                size={isMobile ? 'sm' : 'md'}
-                classNames={{
-                  base: 'h-5 xs:h-6 sm:h-7',
-                  wrapper: 'h-4 xs:h-5 sm:h-6',
-                  thumb: 'w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5',
-                }}
-              >
-                <span className="text-[10px] xs:text-xs sm:text-sm">Share location</span>
-              </Switch>
+                  }}
+                  size={isMobile ? 'sm' : 'md'}
+                  classNames={{
+                    base: 'h-5 xs:h-6 sm:h-7 min-w-[40px]',
+                    wrapper: 'h-4 xs:h-5 sm:h-6',
+                    thumb: 'w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5',
+                  }}
+                />
+                <span className="text-[10px] xs:text-xs sm:text-sm text-foreground">
+                  Share location
+                </span>
+              </div>
 
               {!useLocation && (
                 <p className="text-[10px] xs:text-xs sm:text-sm text-default-500">

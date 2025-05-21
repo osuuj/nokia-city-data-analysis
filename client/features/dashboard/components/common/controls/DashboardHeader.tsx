@@ -31,7 +31,11 @@ export const DashboardHeader = React.memo(function DashboardHeader({
 }: DashboardHeaderProps) {
   // Memoize the view mode toggle section
   const viewModeToggleSection = useMemo(
-    () => <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />,
+    () => (
+      <div className="flex items-center justify-between gap-4">
+        <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+      </div>
+    ),
     [viewMode, setViewMode],
   );
 

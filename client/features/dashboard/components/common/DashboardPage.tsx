@@ -91,8 +91,8 @@ export function DashboardPage() {
   } = useFetchCompanies(selectedCity);
 
   // Use loading hook to centralize loading states
-  const { isAnySectionLoading } = useDashboardLoading({
-    isDataLoading: isFetching,
+  const { isAnySectionLoading, isTableLoading, isMapLoading } = useDashboardLoading({
+    isDataLoading: isFetching || cityLoading,
     cityLoading,
     tableRows: companies,
     errors: cityError || companyError ? { city: cityError, companies: companyError } : null,
@@ -205,8 +205,15 @@ export function DashboardPage() {
         columns={allColumns}
         currentPage={page}
         totalPages={totalPages}
+        totalItems={filteredCompanies.length}
         onPageChange={handlePageChange}
-        isLoading={isAnySectionLoading}
+        isLoading={
+          viewMode === 'table'
+            ? isTableLoading || isFetching
+            : viewMode === 'map'
+              ? isMapLoading || isFetching
+              : isAnySectionLoading
+        }
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
@@ -224,6 +231,9 @@ export function DashboardPage() {
       totalPages,
       handlePageChange,
       isAnySectionLoading,
+      isTableLoading,
+      isMapLoading,
+      isFetching,
       searchTerm,
       sortDescriptor,
       pageSize,
@@ -254,7 +264,7 @@ export function DashboardPage() {
         <FeatureErrorBoundary featureName="Dashboard" fallback={<DashboardLoadingState />}>
           {dashboardHeader}
 
-          <div className="flex-1 px-6 py-6 md:px-10">
+          <div className="flex-1 px-1 py-4 md:px-10">
             <Suspense fallback={<DashboardLoadingState />}>{viewSwitcherComponent}</Suspense>
           </div>
         </FeatureErrorBoundary>

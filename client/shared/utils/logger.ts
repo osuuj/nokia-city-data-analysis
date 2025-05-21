@@ -19,41 +19,36 @@ class Logger {
   }
 
   /**
-   * Log a debug message - only in development or when debug mode is enabled
+   * Log a debug message - only if debug mode is enabled
    */
   debug(message: string, ...args: unknown[]): void {
-    if (this.isProduction && !this.debugEnabled) return;
+    if (!this.debugEnabled) return;
     if (this.shouldFilter(message)) return;
-
     console.debug(`🔍 ${message}`, ...args);
   }
 
   /**
-   * Log an info message - only in development or when debug mode is enabled
+   * Log an info message - only if debug mode is enabled
    */
   info(message: string, ...args: unknown[]): void {
-    if (this.isProduction && !this.debugEnabled) return;
+    if (!this.debugEnabled) return;
     if (this.shouldFilter(message)) return;
-
     console.info(`ℹ️ ${message}`, ...args);
   }
 
   /**
-   * Log a warning message - filtered in development, all shown in production
+   * Log a warning message - always show in production, filtered in dev
    */
   warn(message: string, ...args: unknown[]): void {
     if (!this.isProduction && this.shouldFilter(message)) return;
-
     console.warn(`⚠️ ${message}`, ...args);
   }
 
   /**
-   * Log an error message - filtered in development, all shown in production
+   * Log an error message - always show in production, filtered in dev
    */
   error(message: string, ...args: unknown[]): void {
-    // Filter out common development-only errors
     if (!this.isProduction && this.shouldFilter(message)) return;
-
     console.error(`❌ ${message}`, ...args);
   }
 }
