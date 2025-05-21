@@ -51,13 +51,8 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
 }: CityAutocompleteProps) {
   // Limit the number of displayed results to improve performance
   const limitedCities = useMemo(() => {
-    // If there's a search term, don't limit results
-    if (localSearchTerm) {
-      return cities;
-    }
-    // Only limit initial view when no search term
     return cities.slice(0, MAX_RENDERED_ITEMS);
-  }, [cities, localSearchTerm]);
+  }, [cities]);
 
   // Custom endContent to avoid nested button issue
   const endContent = useMemo(() => {
@@ -90,22 +85,17 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
   // Memoize the class names
   const classNames = useMemo(
     () => ({
-      base: 'w-full md:max-w-xs min-w-[200px] max-w-[300px]',
+      base: 'md:max-w-xs max-w-[30vw] min-w-[200px]',
       listbox: 'max-h-[300px]',
       listboxWrapper: '',
-      popoverContent: 'w-[calc(100%-2rem)] md:w-auto md:max-w-xs mx-4 md:mx-0 max-w-[300px]',
+      popoverContent: 'max-w-[40vw] md:max-w-xs',
       endContentWrapper: 'flex gap-1',
       selectorButton: '',
       label: 'text-primary-500 font-medium',
       mainWrapper: 'bg-content2 bg-opacity-20 rounded-lg p-2 hover:bg-opacity-30 transition-all',
       inputWrapper: 'border-b-2 border-primary-300',
-      input: 'text-content1-foreground',
-      value: 'text-content1-foreground',
-      clearButton: 'text-content1-foreground',
       item: (active: boolean) =>
-        active
-          ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-          : 'text-content1-foreground',
+        active ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200' : '',
     }),
     [],
   );
@@ -135,6 +125,32 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
     return '';
   }, [cities.length, isLoading, localSearchTerm]);
 
+  // Render function for items
+  const renderItem = useCallback(
+    (item: CityItem) => {
+      const isHighlighted = item.name === highlightedCity;
+      return (
+        <AutocompleteItem
+          key={item.name}
+          textValue={item.name}
+          id={`city-option-${item.name}`}
+          aria-selected={item.name === selectedCity}
+          className={
+            isHighlighted
+              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+              : ''
+          }
+        >
+          <div className="flex items-center gap-2">
+            <Icon icon="lucide:map-pin" className="text-primary-500" width={16} />
+            <span className="text-foreground">{item.name}</span>
+          </div>
+        </AutocompleteItem>
+      );
+    },
+    [highlightedCity, selectedCity],
+  );
+
   return (
     <div className="flex flex-col">
       {/* Status message for screen readers */}
@@ -160,24 +176,7 @@ export const CityAutocomplete = React.memo(function CityAutocomplete({
         {...ariaProps}
         {...props}
       >
-        {(item: CityItem) => (
-          <AutocompleteItem
-            key={item.name}
-            textValue={item.name}
-            id={`city-option-${item.name}`}
-            aria-selected={item.name === selectedCity}
-            className={
-              item.name === highlightedCity
-                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                : 'text-content1-foreground'
-            }
-          >
-            <div className="flex items-center gap-2">
-              <Icon icon="lucide:map-pin" className="text-primary-500" width={16} />
-              <span className="text-content1-foreground">{item.name}</span>
-            </div>
-          </AutocompleteItem>
-        )}
+        {renderItem}
       </HeroUIAutocomplete>
       {showSelectionIndicator && selectionIndicator}
     </div>
