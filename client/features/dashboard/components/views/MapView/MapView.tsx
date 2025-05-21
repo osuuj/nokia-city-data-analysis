@@ -23,12 +23,14 @@ export interface MapViewProps {
    * When set, the map will fly to this city.
    */
   selectedCityCoords?: { latitude: number; longitude: number } | undefined;
+  isLoading?: boolean;
 }
 
 export const MapView = ({
   geojson,
   selectedBusinesses: _selectedBusinesses,
   selectedCityCoords,
+  isLoading,
 }: MapViewProps) => {
   // ======== STATE MANAGEMENT ========
   // Simplify state to the minimum needed
