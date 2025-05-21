@@ -34,19 +34,6 @@ export function TableToolbar({
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
 
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1024,
-  );
-
-  // Update window width on resize
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const industryOptions = filters.find((f: Filter) => f.key === 'industries')?.options ?? [];
 
   const selectedIndustryItems = useMemo(() => {

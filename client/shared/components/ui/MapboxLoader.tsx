@@ -4,14 +4,6 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 /**
- * Type definition for MapboxGL with workerUrl property
- * This extends the default module with the property we need to set
- */
-interface MapboxGL {
-  workerUrl: string;
-}
-
-/**
  * Check if the current page is a map-related page that needs Mapbox
  */
 function isMapRelatedPage(pathname: string): boolean {

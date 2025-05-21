@@ -3,7 +3,7 @@
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { logger } from '@/shared/utils/logger';
 import { useQuery } from '@tanstack/react-query';
-import type { Feature, FeatureCollection, Point } from 'geojson';
+import type { FeatureCollection, Point } from 'geojson';
 
 // Smart default URL based on environment
 const isProd = process.env.NODE_ENV === 'production';
@@ -18,12 +18,6 @@ if (process.env.NODE_ENV === 'development') {
 
 // Fallback data in case API is down
 const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
-
-// Empty GeoJSON structure for fallback
-const EMPTY_GEOJSON: FeatureCollection<Point, CompanyProperties> = {
-  type: 'FeatureCollection',
-  features: [],
-};
 
 /**
  * fetchCompanies

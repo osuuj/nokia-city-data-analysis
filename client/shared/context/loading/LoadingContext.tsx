@@ -200,7 +200,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
   /**
    * Stop loading
    */
-  const stopLoading = useCallback((id: string) => {
+  const stopLoading = useCallback((_id: string) => {
     if (!isMounted.current) return;
 
     setLoadingState((prev) => ({
@@ -229,7 +229,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
   /**
    * Update loading message
    */
-  const updateLoadingMessage = useCallback((id: string, message: string) => {
+  const updateLoadingMessage = useCallback((_id: string, message: string) => {
     if (!isMounted.current) return;
 
     setLoadingState((prev) => ({
@@ -241,7 +241,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
   /**
    * Update loading progress
    */
-  const updateLoadingProgress = useCallback((id: string, progress: number) => {
+  const updateLoadingProgress = useCallback((_id: string, progress: number) => {
     if (!isMounted.current) return;
 
     setLoadingState((prev) => ({
@@ -253,7 +253,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
   /**
    * Set loading error
    */
-  const setError = useCallback((id: string, error: string) => {
+  const setError = useCallback((_id: string, error: string) => {
     if (!isMounted.current) return;
 
     setLoadingState((prev) => ({
@@ -266,7 +266,7 @@ export function LoadingProvider({ children, defaultState = {} }: LoadingProvider
    * Reset loading state
    */
   const clearError = useCallback(
-    (id: string) => {
+    (_id: string) => {
       if (!isMounted.current) return;
 
       setLoadingState({

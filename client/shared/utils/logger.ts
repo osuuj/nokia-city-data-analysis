@@ -3,26 +3,6 @@
  * Debug and info logs only appear in development environment
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-// Common development messages and errors to filter out from console
-const DEVELOPMENT_FILTERS = [
-  // API and network related
-  'Failed to fetch RSC payload',
-  'NetworkError when attempting to fetch resource',
-
-  // React and tooling related
-  'react_devtools_backend.js', // React DevTools errors
-  '[Fast Refresh]', // Next.js Fast Refresh messages
-  'Fast Refresh', // Alternative Fast Refresh messages
-  'rebuilding', // Webpack/Turbopack rebuilding messages
-  'report-hmr-latency', // HMR latency reporting
-
-  // Mapbox specific warnings (common and not actionable)
-  'featureNamespace', // Mapbox feature namespace warnings
-  'Failed to evaluate expression',
-];
-
 class Logger {
   private isProduction = process.env.NODE_ENV === 'production';
   private debugEnabled = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
@@ -86,7 +66,6 @@ if (process.env.NODE_ENV === 'development') {
   const originalConsoleError = console.error;
   const originalConsoleWarn = console.warn;
   const originalConsoleInfo = console.info;
-  const originalConsoleDebug = console.debug;
   const originalConsoleLog = console.log;
 
   // Override console.error
@@ -130,5 +109,23 @@ if (process.env.NODE_ENV === 'development') {
     originalConsoleLog.apply(console, args);
   };
 }
+
+// Common development messages and errors to filter out from console
+const DEVELOPMENT_FILTERS = [
+  // API and network related
+  'Failed to fetch RSC payload',
+  'NetworkError when attempting to fetch resource',
+
+  // React and tooling related
+  'react_devtools_backend.js', // React DevTools errors
+  '[Fast Refresh]', // Next.js Fast Refresh messages
+  'Fast Refresh', // Alternative Fast Refresh messages
+  'rebuilding', // Webpack/Turbopack rebuilding messages
+  'report-hmr-latency', // HMR latency reporting
+
+  // Mapbox specific warnings (common and not actionable)
+  'featureNamespace', // Mapbox feature namespace warnings
+  'Failed to evaluate expression',
+];
 
 export const logger = new Logger();
