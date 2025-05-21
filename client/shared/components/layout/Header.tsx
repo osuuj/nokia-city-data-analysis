@@ -209,10 +209,10 @@ export const Header = () => {
                   <PopoverTrigger>
                     <Button
                       isIconOnly
-                      radius="full"
+                      radius="none"
                       variant="light"
                       aria-label="Notifications"
-                      className="relative"
+                      className="relative hover:rounded-md"
                     >
                       <Icon icon="solar:bell-linear" className="text-default-700" width={24} />
                       {unreadCount > 0 && (
@@ -241,7 +241,11 @@ export const Header = () => {
                   <GithubIcon className="text-default-700" />
                 </Button>
               </NavbarItem>
-              <NavbarItem>{isMounted && <ThemeSwitch aria-label="Toggle theme" />}</NavbarItem>
+              <NavbarItem>
+                {isMounted && (
+                  <ThemeSwitch className="theme-switch-triangle-hover" aria-label="Toggle theme" />
+                )}
+              </NavbarItem>
             </div>
           </NavbarContent>
 

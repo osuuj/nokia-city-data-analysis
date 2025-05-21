@@ -193,7 +193,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
                   <GithubIcon className="text-default-500" width={16} />
                 </Link>
                 <div className="flex items-center justify-center h-10 hover:bg-default-100 rounded-lg transition-colors">
-                  <ThemeSwitch aria-label="Toggle theme" />
+                  <ThemeSwitch className="theme-switch-triangle-hover" aria-label="Toggle theme" />
                 </div>
               </div>
             </PopoverContent>
@@ -239,7 +239,7 @@ export const ViewModeToggle = React.memo(function ViewModeToggle({
             <GithubIcon className="text-default-500" width={16} />
           </Link>
         </Button>
-        <ThemeSwitch aria-label="Toggle theme" />
+        <ThemeSwitch className="theme-switch-triangle-hover" aria-label="Toggle theme" />
       </div>
     </header>
   );

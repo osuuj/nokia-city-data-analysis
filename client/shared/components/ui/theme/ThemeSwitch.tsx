@@ -59,10 +59,13 @@ const ThemeSwitchBase: FC<ThemeSwitchProps> = ({ className }) => {
   return (
     <Button
       isIconOnly
-      radius="full"
+      radius="none"
       variant="light"
       onPress={toggleTheme}
-      className={clsx('cursor-pointer transition-opacity hover:opacity-80', className)}
+      className={clsx(
+        'bg-transparent border-none shadow-none cursor-pointer transition-opacity hover:opacity-80',
+        className,
+      )}
       aria-label={`Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} mode`}
       data-testid="theme-switch"
     >
