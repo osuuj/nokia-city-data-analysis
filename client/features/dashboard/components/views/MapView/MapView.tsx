@@ -124,7 +124,7 @@ export const MapView = ({
         return false;
       }
 
-      logger.error('Setting up map source and layers', {
+      logger.info('Setting up map source and layers', {
         hasSource: !!map.getSource('visiting-companies'),
         features: filteredGeojson.features.length,
         sourceAdded: sourceAddedRef.current,
@@ -160,7 +160,7 @@ export const MapView = ({
 
       // Source doesn't exist, create it
       if (!existingSource) {
-        logger.error('Creating new source and layers', {
+        logger.info('Creating new source and layers', {
           features: taggedGeojson.features.length,
         });
 
@@ -235,7 +235,7 @@ export const MapView = ({
           // Ensure highlight appears below the markers
           map.moveLayer('active-marker-highlight', 'company-icons');
           sourceAddedRef.current = true;
-          logger.error('Successfully created source and layers');
+          logger.info('Successfully created source and layers');
           return true;
         } catch (error) {
           logger.error('Error creating map source and layers:', error);
@@ -244,13 +244,13 @@ export const MapView = ({
       }
 
       // Source exists, update it
-      logger.error('Updating existing source with new data', {
+      logger.info('Updating existing source with new data', {
         features: taggedGeojson.features.length,
       });
 
       try {
         (existingSource as GeoJSONSource).setData(taggedGeojson);
-        logger.error('Successfully updated source data');
+        logger.info('Successfully updated source data');
       } catch (error) {
         logger.error('Error updating source data:', error);
       }
@@ -315,10 +315,10 @@ export const MapView = ({
 
   // Map event handlers
   const handleMapLoad = useCallback(() => {
-    logger.error('Map loaded event fired');
+    logger.info('Map loaded event fired');
     const map = mapRef.current?.getMap();
     if (map) {
-      logger.error('Map state:', {
+      logger.info('Map state:', {
         styleLoaded: map.isStyleLoaded(),
         style: map.getStyle().name,
         initialized: isInitialized.current,
@@ -330,7 +330,7 @@ export const MapView = ({
 
       // If we have data when map loads, set it up immediately
       if (filteredGeojson && filteredGeojson.features.length > 0) {
-        logger.error('Setting up data on map load', {
+        logger.info('Setting up data on map load', {
           features: filteredGeojson.features.length,
         });
         setupMapSourceAndLayers(map);
@@ -399,7 +399,7 @@ export const MapView = ({
       try {
         // Ensure the map style is loaded before querying features
         if (!map.isStyleLoaded()) {
-          logger.error('Map style not fully loaded, ignoring click');
+          logger.info('Map style not fully loaded, ignoring click');
           return;
         }
 
@@ -409,7 +409,7 @@ export const MapView = ({
         );
 
         if (!layersExist) {
-          logger.error('Map layers not ready, ignoring click');
+          logger.info('Map layers not ready, ignoring click');
           return;
         }
 
@@ -490,7 +490,7 @@ export const MapView = ({
 
   // Add logging for initial render and data changes
   useEffect(() => {
-    logger.error('MapView data changed:', {
+    logger.info('MapView data changed:', {
       hasData: !!geojson,
       features: geojson?.features.length,
       isLoading,
@@ -502,7 +502,7 @@ export const MapView = ({
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !mapLoaded || !filteredGeojson) {
-      logger.error('Map not ready:', {
+      logger.info('Map not ready:', {
         hasMap: !!map,
         mapLoaded,
         hasData: !!filteredGeojson,
@@ -515,11 +515,11 @@ export const MapView = ({
 
     // Only proceed if we have features to show
     if (filteredGeojson.features.length === 0) {
-      logger.error('No features to display');
+      logger.info('No features to display');
       return;
     }
 
-    logger.error('Attempting to setup map source and layers', {
+    logger.info('Attempting to setup map source and layers', {
       styleLoaded: map.isStyleLoaded(),
       hasSource: !!map.getSource('visiting-companies'),
       features: filteredGeojson.features.length,
@@ -530,7 +530,7 @@ export const MapView = ({
     // Function to ensure map source and layers are properly added
     const ensureMapSourceAndLayers = () => {
       if (!isInitialized.current) {
-        logger.error('Map not initialized yet, waiting...');
+        logger.info('Map not initialized yet, waiting...');
         return;
       }
 
@@ -540,24 +540,24 @@ export const MapView = ({
           if (success) {
             hasAddedSource.current = true;
           }
-          logger.error('Setup result:', { success, hasAddedSource: hasAddedSource.current });
+          logger.info('Setup result:', { success, hasAddedSource: hasAddedSource.current });
         } else {
           // Update existing source
           const source = map.getSource('visiting-companies');
           if (source) {
-            logger.error('Updating existing source with new data');
+            logger.info('Updating existing source with new data');
             (source as mapboxgl.GeoJSONSource).setData(filteredGeojson);
           }
         }
       } else {
-        logger.error('Map style not loaded, waiting for style.load event');
+        logger.info('Map style not loaded, waiting for style.load event');
         map.once('style.load', () => {
-          logger.error('Style loaded, setting up sources and layers');
+          logger.info('Style loaded, setting up sources and layers');
           const success = setupMapSourceAndLayers(map);
           if (success) {
             hasAddedSource.current = true;
           }
-          logger.error('Setup result after style load:', {
+          logger.info('Setup result after style load:', {
             success,
             hasAddedSource: hasAddedSource.current,
           });
@@ -570,9 +570,9 @@ export const MapView = ({
 
     // Add a more robust styledata handler that ensures sources are added
     const handleStyleData = () => {
-      logger.error('Style data event fired');
+      logger.info('Style data event fired');
       if (!map.getSource('visiting-companies')) {
-        logger.error('Source missing after style change, recreating');
+        logger.info('Source missing after style change, recreating');
         hasAddedSource.current = false;
         setupMapSourceAndLayers(map);
       }
@@ -597,7 +597,7 @@ export const MapView = ({
   // Reset source when data changes
   useEffect(() => {
     if (isLoading) {
-      logger.error('Data loading, resetting source flag');
+      logger.info('Data loading, resetting source flag');
       sourceAddedRef.current = false;
     }
   }, [isLoading]);
@@ -606,7 +606,7 @@ export const MapView = ({
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (map && mapLoaded && filteredGeojson) {
-      logger.error('View became visible, checking source');
+      logger.info('View became visible, checking source');
       if (!map.getSource('visiting-companies')) {
         sourceAddedRef.current = false;
         setupMapSourceAndLayers(map);
@@ -631,7 +631,7 @@ export const MapView = ({
     (coords: [number, number], addressType?: string) => {
       const map = mapRef.current?.getMap();
       if (!map || !map.isStyleLoaded()) {
-        logger.error('Map not ready for flyTo command');
+        logger.info('Map not ready for flyTo command');
         return;
       }
 

@@ -159,6 +159,16 @@ export const NotificationsCard = (props: CardProps) => {
             Archive All
           </Button>
         )}
+        {activeTab === NotificationTabs.Archive && filteredNotifications.length > 0 && (
+          <Button
+            variant="flat"
+            color="danger"
+            size="sm"
+            onPress={() => useNotificationStore.getState().clearArchived()}
+          >
+            Clear Archive
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
