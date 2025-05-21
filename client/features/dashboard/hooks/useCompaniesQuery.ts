@@ -2,6 +2,7 @@
 
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import { logger } from '@/shared/utils/logger';
+import { notifySystemError, notifySystemWarning } from '@/shared/utils/notifications';
 import { useQuery } from '@tanstack/react-query';
 import type { FeatureCollection, Point } from 'geojson';
 
@@ -19,6 +20,8 @@ if (process.env.NODE_ENV === 'development') {
 // Fallback data in case API is down
 const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
 
+// Only use logger.error for critical issues. Debug/info logs are now globally suppressed unless debug mode is enabled.
+
 /**
  * fetchCompanies
  * Fetches businesses for the given city from the backend API.
@@ -30,6 +33,16 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
   if (!city) {
     logger.warn('City is empty, skipping fetch.');
     return [];
+  }
+
+  // List of known large cities that might have performance issues
+  const largeCities = ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Oulu'];
+
+  // Warn about potential performance issues for large cities
+  if (largeCities.includes(city)) {
+    notifySystemWarning(
+      `Data fetching for ${city} might be slower due to the large number of companies.`,
+    );
   }
 
   // Try the original path first (might be the correct one in production)
@@ -47,18 +60,42 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
     });
 
     if (!response.ok) {
-      logger.error(
-        `Failed to fetch businesses: Status ${response.status} - ${response.statusText}`,
-      );
-      throw new Error(`Failed to fetch businesses: ${response.status} ${response.statusText}`);
+      const errorMessage = `Failed to fetch businesses: ${response.status} ${response.statusText}`;
+      logger.error(errorMessage);
+
+      // Notify users about the error
+      if (response.status === 504 || response.status === 408) {
+        notifySystemError(
+          `Data fetching timeout for ${city}. The city might have too many companies to process.`,
+        );
+      } else {
+        notifySystemError(`Unable to load company data for ${city}. Please try again later.`);
+      }
+
+      throw new Error(errorMessage);
     }
 
     const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
-    logger.info(`Successfully fetched ${geojsonData.features.length} companies for ${city}`);
+    const companyCount = geojsonData.features.length;
+
+    logger.info(`Successfully fetched ${companyCount} companies for ${city}`);
+
+    // Notify if the result set is large
+    if (companyCount > 1000) {
+      notifySystemWarning(`${city} has ${companyCount} companies. Performance might be affected.`);
+    }
 
     return geojsonData.features.map((feature) => feature.properties);
   } catch (error) {
     logger.error('Error fetching companies:', error);
+
+    // Handle timeout errors specifically
+    if (error instanceof Error && error.name === 'TimeoutError') {
+      notifySystemError(
+        `Request timeout while fetching data for ${city}. The dataset might be too large.`,
+      );
+    }
+
     // Return empty array instead of throwing to prevent app from breaking
     return [];
   }
@@ -141,7 +178,6 @@ export function useFetchCompanies(city: string) {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    placeholderData: [],
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
