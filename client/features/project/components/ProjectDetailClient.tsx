@@ -91,16 +91,14 @@ export default function ProjectDetailClient({ project }: ProjectDetailClientProp
         <ProjectOverview project={project} />
 
         {/* Tech Stack Section - Lazy Loaded */}
-        {project.tags && project.tags.length > 0 && (
-          <section aria-labelledby="tech-stack-heading" className="tech-stack-section">
-            <h2 className="text-2xl font-semibold mb-6" id="tech-stack-heading">
-              Technologies
-            </h2>
-            <Suspense fallback={<BasicCardSkeleton tagCount={5} descriptionLines={1} />}>
-              <TechStackShowcase tags={project.tags} />
-            </Suspense>
-          </section>
-        )}
+        <section aria-labelledby="tech-stack-heading" className="tech-stack-section">
+          <h2 className="text-2xl font-semibold mb-6" id="tech-stack-heading">
+            Technologies
+          </h2>
+          <Suspense fallback={<BasicCardSkeleton tagCount={5} descriptionLines={1} />}>
+            <TechStackShowcase tags={project.tags ?? []} />
+          </Suspense>
+        </section>
 
         {/* Gallery Section - Lazy Loaded */}
         {galleryItems.length > 0 && (
