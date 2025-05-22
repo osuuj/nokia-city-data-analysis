@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
@@ -32,6 +33,11 @@ class ContactForm(BaseModel):
     profile: str = "unknown"
 
 
+async def send_email(message: MessageSchema):
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+
 @router.post("/contact", status_code=200)
 @rate_limit_if_production("5/minute")
 async def contact(
@@ -52,8 +58,8 @@ async def contact(
             subtype=MessageType.plain,
             reply_to=[form.email],
         )
-        fm = FastMail(conf)
-        await fm.send_message(message, background=background_tasks)
-        return {"success": True, "message": "Message sent."}
+        background_tasks.add_task(send_email, message)
+        return {"success": True, "message": "Message accepted and will be sent shortly"}
     except Exception as e:
+        logging.exception("Failed to send contact form email")
         raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
