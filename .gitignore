@@ -1,6 +1,7 @@
 foam/
 .foam/templates/
-docs/
+/docs/
+!/client/docs/
 # Ignore everything in the etl/data/ directory
 etl/data/*
 # Do not ignore the resources directory itself
