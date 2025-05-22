@@ -1,24 +1,41 @@
 'use client';
 
-import { useAnimationProps } from '@/shared/hooks';
 import { Card, CardBody, Tab, Tabs, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { motion } from 'framer-motion';
-import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import React, { useState } from 'react';
 import { getCategoryForTech, getTechIcon } from '../../data/techStack';
 
 interface TechStackShowcaseProps {
   tags: string[];
 }
 
-export default function TechStackShowcase({ tags }: TechStackShowcaseProps) {
-  const [activeTab, setActiveTab] = React.useState<string>('all');
+export default function TechStackShowcase({ tags = [] }: TechStackShowcaseProps) {
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const prefersReducedMotion = useReducedMotion();
 
   const filteredTags =
     activeTab === 'all' ? tags : tags.filter((tag) => getCategoryForTech(tag) === activeTab);
 
-  // Animation props
-  const containerAnimationProps = useAnimationProps('fadeIn');
+  // Animation config - no hooks
+  const containerAnimation = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.5 },
+      };
+
+  // Item animation - no hooks
+  const getItemAnimation = (index: number) => {
+    if (prefersReducedMotion) return {};
+
+    return {
+      initial: { opacity: 0, scale: 0.8 },
+      animate: { opacity: 1, scale: 1 },
+      transition: { duration: 0.5, delay: 0.05 * index },
+    };
+  };
 
   return (
     <div>
@@ -41,11 +58,11 @@ export default function TechStackShowcase({ tags }: TechStackShowcaseProps) {
 
       <motion.div
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-        {...containerAnimationProps}
+        {...containerAnimation}
       >
         {filteredTags.length > 0 ? (
           filteredTags.map((tech, index) => (
-            <motion.div key={tech} {...useAnimationProps('scale', { delay: 0.05 }, index)}>
+            <motion.div key={tech} {...getItemAnimation(index)}>
               <Tooltip content={tech}>
                 <Card className="hover:shadow-lg transition-shadow duration-300">
                   <CardBody className="flex flex-col items-center justify-center p-4">
