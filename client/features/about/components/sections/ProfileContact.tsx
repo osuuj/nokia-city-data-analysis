@@ -223,7 +223,7 @@ export function ProfileContact({
                   type="text"
                   id="name"
                   name="name"
-                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
+                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50 text-default-900 dark:text-default-50"
                   placeholder="Your name"
                   value={form.name}
                   onChange={handleChange}
@@ -239,7 +239,7 @@ export function ProfileContact({
                   type="email"
                   id="email"
                   name="email"
-                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
+                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50 text-default-900 dark:text-default-50"
                   placeholder="your.email@example.com"
                   value={form.email}
                   onChange={handleChange}
@@ -258,7 +258,7 @@ export function ProfileContact({
                   type="text"
                   id="subject"
                   name="subject"
-                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
+                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50 text-default-900 dark:text-default-50"
                   placeholder="What is this regarding?"
                   value={form.subject}
                   onChange={handleChange}
@@ -277,7 +277,7 @@ export function ProfileContact({
                   id="message"
                   name="message"
                   rows={5}
-                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
+                  className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50 text-default-900 dark:text-default-50"
                   placeholder="Your message here..."
                   value={form.message}
                   onChange={handleChange}
