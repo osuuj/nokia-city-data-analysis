@@ -70,9 +70,10 @@ export function TableView({
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
   const setSelectedKeys = useCompanyStore((state) => state.setSelectedKeys);
   const visibleColumns = useCompanyStore((state) => state.visibleColumns);
+  const useLocation = useCompanyStore((state) => state.useLocation);
+  const setUseLocation = useCompanyStore((state) => state.setUseLocation);
 
   // Local state for toolbar components
-  const [useLocation, setUseLocation] = useState(false);
   const [address, setAddress] = useState('');
 
   // To avoid hydration errors, we'll mount the table only on client-side
@@ -138,6 +139,7 @@ export function TableView({
       setSearchTerm,
       selectedKeys,
       useLocation,
+      setUseLocation,
       address,
       sortDescriptor,
       setSortDescriptor,

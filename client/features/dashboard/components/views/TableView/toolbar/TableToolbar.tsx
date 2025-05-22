@@ -1,5 +1,6 @@
 'use client';
 
+import type { ToolbarProps } from '@/features/dashboard/types/table';
 import { Button, Chip, Divider, Tooltip } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -7,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 // Updated imports with correct paths
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
-import type { ToolbarProps } from '@/features/dashboard/types/table';
+// import type { ToolbarProps } from '@/features/dashboard/types/table';
 import { filters } from '@/features/dashboard/utils/filters';
 
 import { ColumnVisibilityDropdown } from './ColumnVisibilityDropdown';
@@ -20,8 +21,6 @@ export function TableToolbar({
   searchTerm,
   onSearch,
   selectedKeys,
-  useLocation,
-  setUseLocation,
   address,
   setAddress,
   sortDescriptor,
@@ -33,6 +32,8 @@ export function TableToolbar({
   const distanceLimit = useCompanyStore((s) => s.distanceLimit);
   const setDistanceLimit = useCompanyStore((s) => s.setDistanceLimit);
   const setUserLocation = useCompanyStore((s) => s.setUserLocation);
+  const useLocation = useCompanyStore((s) => s.useLocation);
+  const setUseLocation = useCompanyStore((s) => s.setUseLocation);
 
   const industryOptions = filters.find((f: Filter) => f.key === 'industries')?.options ?? [];
 
@@ -108,12 +109,7 @@ export function TableToolbar({
               </div>
             </Tooltip>
             <Divider className="hidden md:block h-4 xs:h-5" orientation="vertical" />
-            <FilterGroup
-              useLocation={useLocation}
-              setUseLocation={setUseLocation}
-              address={address}
-              setAddress={setAddress}
-            />
+            <FilterGroup setAddress={setAddress} />
             {hasActiveFilters && (
               <Button
                 size="sm"
