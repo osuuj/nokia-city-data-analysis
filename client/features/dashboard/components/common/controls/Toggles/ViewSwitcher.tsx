@@ -20,7 +20,7 @@ export interface ViewSwitcherProps {
   columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;
-  totalItems?: number;
+  totalItems: number;
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
   isLoading: boolean;
@@ -117,19 +117,23 @@ function ViewSwitcherBase({
   );
 
   // Memoize the map view with better error handling
-  const renderMapView = useCallback(() => {
-    if (!geojson) return null;
-    return (
+  const renderMapView = useCallback(
+    () => (
       <FeatureErrorBoundary
         featureName="MapView"
         fallback={<ErrorDisplay message="Could not load Map View" showDetails={true} />}
       >
         <Suspense fallback={<MapSkeleton height="h-[400px]" showControls={true} />}>
-          <MapView geojson={geojson} selectedBusinesses={selectedBusinesses} />
+          <MapView
+            geojson={geojson ?? { type: 'FeatureCollection', features: [] }}
+            selectedBusinesses={selectedBusinesses}
+            isLoading={isLoading}
+          />
         </Suspense>
       </FeatureErrorBoundary>
-    );
-  }, [geojson, selectedBusinesses]);
+    ),
+    [geojson, selectedBusinesses, isLoading],
+  );
 
   // Memoize the analytics view with better error handling
   const renderAnalyticsView = useCallback(

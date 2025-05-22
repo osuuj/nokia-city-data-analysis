@@ -13,7 +13,6 @@ const DEV_DEFAULT = 'http://localhost:8000';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
-const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || 'development';
 
 // Maximum number of retries for network errors
 const MAX_RETRIES = 3;

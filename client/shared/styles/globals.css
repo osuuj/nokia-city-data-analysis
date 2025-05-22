@@ -127,3 +127,34 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ThemeSwitch triangle hover background */
+.theme-switch-triangle-hover,
+.theme-switch-triangle-hover:focus,
+.theme-switch-triangle-hover:active,
+.theme-switch-triangle-hover:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.theme-switch-triangle-hover::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%) scale(0);
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 34px solid rgba(0,0,0,0.08); /* Light theme default, bigger triangle */
+  z-index: 0;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+.theme-switch-triangle-hover:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+html.dark-theme .theme-switch-triangle-hover::before,
+html[data-theme="dark"] .theme-switch-triangle-hover::before {
+  border-bottom-color: rgba(255,255,255,0.12) !important;
+}

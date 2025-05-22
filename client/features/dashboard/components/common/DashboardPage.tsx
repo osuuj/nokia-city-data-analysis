@@ -49,7 +49,7 @@ export function DashboardPage() {
   // State
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'company_name',
     direction: 'asc',
@@ -212,6 +212,7 @@ export function DashboardPage() {
         sortDescriptor={sortDescriptor}
         setSortDescriptor={setSortDescriptor}
         pageSize={pageSize}
+        totalItems={filteredCompanies.length}
       />
     ),
     [

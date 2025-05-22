@@ -1,3 +1,5 @@
+.foam/
+docs/
 # Ignore everything in the etl/data/ directory
 etl/data/*
 # Do not ignore the resources directory itself

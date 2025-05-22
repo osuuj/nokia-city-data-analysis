@@ -381,7 +381,7 @@ export function FeatureCardList({
 
                 <ScrollShadow
                   isEnabled={false}
-                  className={isMobile ? (isCompact ? 'max-h-[80px]' : 'max-h-[120px]') : ''}
+                  className={isMobile ? (isCompact ? 'max-h-[300px]' : 'max-h-[350px]') : ''}
                 >
                   {(() => {
                     let rawAddresses: AddressMap = {};
@@ -437,7 +437,7 @@ export function FeatureCardList({
                     );
                   })()}
 
-                  {(!isCompact || !isMobile) && selectedFeature && (
+                  {selectedFeature && (
                     <div className="space-y-2">
                       {hasValidIndustryDescription(selectedFeature.properties) && (
                         <div className="mt-2">

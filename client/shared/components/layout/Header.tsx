@@ -10,11 +10,17 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@heroui/react';
+import { Icon } from '@iconify/react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { NotificationsCard } from '@/shared/components/ui/notifications-card';
 import { ThemeSwitch } from '@/shared/components/ui/theme';
+import { useNotificationStore } from '@/shared/context/notifications/store';
 import { dedupeClasses, siteConfig } from '@shared/config';
 import { GithubIcon, OsuujLogo } from '@shared/icons';
 import Breadcrumbs from './Breadcrumbs';
@@ -38,6 +44,11 @@ export const Header = () => {
   const headerRef = useRef<HTMLElement>(null);
   const currentPathname = usePathname() || '';
   const router = useRouter();
+
+  // Get unread count from notification store
+  const unreadCount = useNotificationStore(
+    (state) => state.notifications.filter((n) => !n.isRead).length,
+  );
 
   // Set mounted state after hydration to prevent mismatch
   useEffect(() => {
@@ -193,6 +204,29 @@ export const Header = () => {
           {/* Right: Actions (search, GitHub, theme) */}
           <NavbarContent justify="end" className="sm:flex max-w-fit">
             <div className="flex items-center gap-1 px-2 py-1">
+              <NavbarItem>
+                <Popover placement="bottom-end">
+                  <PopoverTrigger>
+                    <Button
+                      isIconOnly
+                      radius="none"
+                      variant="light"
+                      aria-label="Notifications"
+                      className="relative hover:rounded-md"
+                    >
+                      <Icon icon="solar:bell-linear" className="text-default-700" width={24} />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-warning-500 rounded-full text-[10px] flex items-center justify-center text-white font-medium px-[2px]">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <NotificationsCard className="border-none shadow-none" />
+                  </PopoverContent>
+                </Popover>
+              </NavbarItem>
               <NavbarItem className="lg:flex">
                 <Button
                   isIconOnly
@@ -207,8 +241,11 @@ export const Header = () => {
                   <GithubIcon className="text-default-700" />
                 </Button>
               </NavbarItem>
-
-              <NavbarItem>{isMounted && <ThemeSwitch aria-label="Toggle theme" />}</NavbarItem>
+              <NavbarItem>
+                {isMounted && (
+                  <ThemeSwitch className="theme-switch-triangle-hover" aria-label="Toggle theme" />
+                )}
+              </NavbarItem>
             </div>
           </NavbarContent>
 

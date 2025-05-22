@@ -71,10 +71,7 @@ export function AnalyticsView() {
   // Use our custom hook for city selection management
   const {
     selectedCities,
-    searchQuery: citySearchQuery,
-    setSearchQuery: setCitySearchQuery,
     showMaxWarning: showMaxCityWarning,
-    filteredCities: filteredCitiesForSearch,
     focusedCity: pieChartFocusCity,
     handleAddCity: handleCitySelectionAdd,
     handleRemoveCity: handleCitySelectionRemove,
@@ -171,7 +168,16 @@ export function AnalyticsView() {
 
     const namesToStore: string[] = [];
     for (const key of currentSelectionKeys) {
-      if (typeof key === 'string') namesToStore.push(key);
+      if (typeof key === 'string') {
+        // If the key is a comma-separated string, split it
+        if (key.includes(',')) {
+          for (const name of key.split(',').map((s) => s.trim())) {
+            if (name) namesToStore.push(name);
+          }
+        } else {
+          namesToStore.push(key);
+        }
+      }
     }
 
     if (namesToStore.length <= MAX_SELECTED_INDUSTRIES) {
@@ -423,14 +429,17 @@ export function AnalyticsView() {
   // Close dropdowns on window resize
   useEffect(() => {
     const handleResize = () => {
-      // Close all dropdowns when window is resized
-      setIsIndustryDropdownOpen(false);
-      setIsCitySearchOpen(false);
-      setIsFocusCityDropdownOpen(false);
+      // Only close dropdowns if we're not on mobile (to prevent virtual keyboard issues)
+      if (window.innerWidth >= 768) {
+        // 768px is the md breakpoint
+        setIsIndustryDropdownOpen(false);
+        setIsCitySearchOpen(false);
+        setIsFocusCityDropdownOpen(false);
 
-      // Also clear any search input focus
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
+        // Also clear any search input focus
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
       }
     };
 
@@ -449,27 +458,51 @@ export function AnalyticsView() {
           {/* Search bars side by side */}
           <div className="flex flex-col md:flex-row gap-4 items-start">
             {/* City search bar */}
-            <div className="w-full md:w-1/2 flex flex-wrap gap-2 items-end" ref={citySearchRef}>
-              <div className="flex-grow min-w-0 flex items-end gap-2">
-                <CitySearch
-                  selectedCity=""
-                  onCityChange={(city) => {
-                    handleCitySelectionAdd(city);
-                    setIsCitySearchOpen(false);
-                  }}
-                  className={isAtMaxCities ? 'opacity-50 pointer-events-none' : ''}
+            <div
+              className="w-full md:w-1/2 flex flex-wrap gap-2 items-end justify-start"
+              ref={citySearchRef}
+            >
+              <div className="flex-grow min-w-0 flex flex-col items-start gap-2 max-w-[300px]">
+                <Select
                   label={`Cities (${selectedCities.size}/${MAX_SELECTED_CITIES})`}
-                />
+                  labelPlacement="outside"
+                  placeholder="Select cities..."
+                  selectionMode="multiple"
+                  className="flex-grow max-w-[300px]"
+                  selectedKeys={Array.from(selectedCities).map(String)}
+                  onSelectionChange={(keys) => {
+                    if (keys instanceof Set) {
+                      // Add new cities
+                      for (const city of keys) {
+                        const cityStr = String(city);
+                        if (!selectedCities.has(cityStr)) handleCitySelectionAdd(cityStr);
+                      }
+                      // Remove unselected cities
+                      for (const city of Array.from(selectedCities)) {
+                        if (!keys.has(city)) handleCitySelectionRemove(city);
+                      }
+                    }
+                  }}
+                  isDisabled={isAtMaxCities}
+                  onOpenChange={setIsCitySearchOpen}
+                  isOpen={isCitySearchOpen}
+                >
+                  {allCities.map((city) => (
+                    <SelectItem key={city} textValue={city}>
+                      <span className="text-foreground">{city}</span>
+                    </SelectItem>
+                  ))}
+                </Select>
 
                 {selectedCities.size > 0 && (
                   <Button
                     size="sm"
                     variant="flat"
                     color="danger"
-                    className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
+                    className="w-full md:w-auto text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
                     onPress={handleClearAllCities}
                   >
-                    Clear
+                    Clear Cities
                   </Button>
                 )}
               </div>
@@ -480,7 +513,7 @@ export function AnalyticsView() {
               className={`w-full md:w-1/2 flex flex-wrap gap-2 items-end ${selectedCities.size === 0 ? 'opacity-60' : ''}`}
               ref={industrySelectRef}
             >
-              <div className="flex-grow min-w-0 flex items-end gap-2">
+              <div className="flex-grow min-w-0 flex flex-col gap-2">
                 <Select
                   label={`Industries (${selectedIndustryNames.length}/${MAX_SELECTED_INDUSTRIES})`}
                   labelPlacement="outside"
@@ -515,13 +548,25 @@ export function AnalyticsView() {
                     size="sm"
                     variant="flat"
                     color="danger"
-                    className="text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
+                    className="md:hidden w-full max-w-[300px] text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap"
                     onPress={handleClearAllIndustries}
                   >
-                    Clear
+                    Clear Industries
                   </Button>
                 )}
               </div>
+
+              {selectedIndustryNames.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  className="hidden md:flex text-xs sm:text-sm px-2 py-1 h-8 whitespace-nowrap flex-shrink-0"
+                  onPress={handleClearAllIndustries}
+                >
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
 
@@ -667,7 +712,6 @@ export function AnalyticsView() {
             ) : topCitiesData && topCitiesData.length > 0 ? (
               <TopCitiesChart
                 data={topCitiesData}
-                currentTheme={currentTheme}
                 onCitySelect={handleTopCitySelect}
                 selectedCities={selectedCities}
               />

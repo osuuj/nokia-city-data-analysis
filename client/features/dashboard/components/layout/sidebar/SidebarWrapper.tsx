@@ -4,7 +4,6 @@ import { OsuujLogo } from '@/shared/icons';
 import { Button, ScrollShadow, Spacer, Tooltip, cn } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Sidebar } from './Sidebar';
@@ -19,7 +18,6 @@ export const SidebarWrapper = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
-  const router = useRouter();
 
   // Set mounted state after hydration
   useEffect(() => {
@@ -47,7 +45,7 @@ export const SidebarWrapper = () => {
   return (
     <nav
       className={cn(
-        'relative flex h-full flex-col border-r border-divider p-6 transition-all duration-300',
+        'relative flex h-screen flex-col border-r border-divider p-6 transition-all duration-300 overflow-y-auto',
         {
           'w-72 md:w-52 sm:w-5 px-4': !isCompact,
           'w-16 items-center px-2 py-6': isCompact,
@@ -56,7 +54,11 @@ export const SidebarWrapper = () => {
       aria-label="Main Navigation"
     >
       {/* Top: Logo + collapse toggle */}
-      <div className={cn('flex items-center gap-3 px-3', { 'justify-center gap-0': isCompact })}>
+      <div
+        className={cn('flex items-center gap-3 px-3 flex-shrink-0', {
+          'justify-center gap-0': isCompact,
+        })}
+      >
         <Link href="/" className="flex h-10 w-10 items-center justify-center">
           <OsuujLogo />
         </Link>
@@ -88,14 +90,16 @@ export const SidebarWrapper = () => {
       <Spacer y={2} />
 
       {/* Middle: Sidebar */}
-      <ScrollShadow className="-mr-6 h-full max-h-full py-6 pr-6">
+      <ScrollShadow className="-mr-6 flex-1 overflow-y-auto py-6 pr-6">
         <Sidebar defaultSelectedKey="dashboard" isCompact={isCompact} items={sectionItems} />
       </ScrollShadow>
 
       <Spacer y={2} />
 
       {/* Bottom: Help + expand toggle */}
-      <div className={cn('mt-auto flex flex-col gap-2', { 'items-center': isCompact })}>
+      <div
+        className={cn('mt-auto flex flex-col gap-2 flex-shrink-0', { 'items-center': isCompact })}
+      >
         <Tooltip content="Help & Feedback" isDisabled={!isCompact} placement="right">
           <Link href="/resources" className="w-full">
             <Button
