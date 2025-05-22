@@ -28,8 +28,9 @@ from prometheus_fastapi_instrumentator import (  # pyright: ignore[reportMissing
 from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
 from .db import init_db
-from .middleware import limiter, setup_middlewares
+from .middleware import setup_middlewares
 from .routers import analytics, companies, contact, geojson_companies
+from .utils.rate_limit import rate_limit_if_production
 
 # Configure logging
 logging.basicConfig(
@@ -132,32 +133,6 @@ app.include_router(
 
 # Check if we're in production environment
 is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
-
-
-# Conditionally create decorator factories
-def rate_limit_if_production(limit_string):
-    """Apply rate limiting only in production environment.
-
-    In test environments, we completely bypass the rate limiter to avoid
-    the 'No request or websocket argument' error during testing.
-    """
-
-    def decorator(func):
-        # Skip rate limiting in test environment
-        if (
-            os.environ.get("ENVIRONMENT") == "test"
-            or os.environ.get("BYPASS_RATE_LIMIT") == "true"
-        ):
-            return func
-
-        # Apply rate limiting in production
-        if is_production:
-            return limiter.limit(limit_string)(func)
-
-        # No rate limiting in development
-        return func
-
-    return decorator
 
 
 @app.get("/", response_model=Dict[str, str])
