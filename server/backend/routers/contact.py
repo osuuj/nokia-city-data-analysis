@@ -17,8 +17,8 @@ conf = ConnectionConfig(
     MAIL_PORT=int(os.getenv("ZOHO_SMTP_PORT", 587)),
     MAIL_SERVER=os.getenv("ZOHO_SMTP_HOST", "smtp.zoho.eu"),
     MAIL_FROM_NAME="Osuuj Contact",
-    MAIL_TLS=True,
-    MAIL_SSL=False,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
 )
