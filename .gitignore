@@ -1,4 +1,5 @@
-.foam/
+foam/
+.foam/templates/
 docs/
 # Ignore everything in the etl/data/ directory
 etl/data/*
