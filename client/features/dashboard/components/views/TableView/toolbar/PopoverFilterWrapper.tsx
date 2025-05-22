@@ -53,17 +53,6 @@ export const PopoverFilterWrapper = React.forwardRef<HTMLDivElement, PopoverFilt
       };
     }, [isOpen]);
 
-    // Close popover on window resize
-    useEffect(() => {
-      const handleResize = () => {
-        if (isOpen) {
-          onClose();
-        }
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, [isOpen, onClose]);
-
     // Handle keyboard navigation - simplified to just escape key
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
