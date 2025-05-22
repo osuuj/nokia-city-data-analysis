@@ -1,6 +1,5 @@
 'use client';
 
-import type { HeroProps } from '@/features/landing/types';
 import { useLoading } from '@/shared/context/loading/LoadingContext';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';

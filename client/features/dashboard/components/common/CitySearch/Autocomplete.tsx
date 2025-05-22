@@ -28,7 +28,7 @@ interface CityAutocompleteProps extends Omit<AutocompleteProps, 'children' | 'it
 }
 
 // Maximum number of items to render in the autocomplete dropdown
-const MAX_RENDERED_ITEMS = 50;
+const MAX_RENDERED_ITEMS = 307;
 
 /**
  * Enhanced City Autocomplete component

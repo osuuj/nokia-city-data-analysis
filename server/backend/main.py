@@ -29,7 +29,7 @@ from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
 from .db import init_db
 from .middleware import limiter, setup_middlewares
-from .routers import analytics, companies, geojson_companies
+from .routers import analytics, companies, contact, geojson_companies
 
 # Configure logging
 logging.basicConfig(
@@ -123,6 +123,11 @@ app.include_router(
     geojson_companies.router,
     prefix=settings.API_V1_STR,
     tags=["GeoJSON"],
+)
+app.include_router(
+    contact.router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Contact"],
 )
 
 # Check if we're in production environment

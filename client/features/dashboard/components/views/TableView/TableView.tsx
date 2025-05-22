@@ -3,9 +3,11 @@
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { CompanyProperties } from '@/features/dashboard/types/business';
 import type { SortDescriptor, TableColumnConfig } from '@/features/dashboard/types/table';
+import { TableSkeleton } from '@/shared/components/loading';
 import {
   Pagination,
   type Selection,
+  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -33,6 +35,7 @@ interface TableViewProps {
   columns: TableColumnConfig[];
   currentPage: number;
   totalPages: number;
+  totalItems: number;
   onPageChange: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   isLoading: boolean;
@@ -41,7 +44,6 @@ interface TableViewProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
-  totalItems?: number;
 }
 
 /**
@@ -54,6 +56,7 @@ export function TableView({
   columns,
   currentPage,
   totalPages,
+  totalItems,
   onPageChange,
   onPageSizeChange: _onPageSizeChange,
   isLoading,
@@ -62,7 +65,6 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
   pageSize,
-  totalItems = allFilteredData?.length || 0,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -239,6 +241,22 @@ export function TableView({
     handleSortChange,
   ]);
 
+  // Show loading state when data is being fetched
+  if (isLoading || !data) {
+    return (
+      <div className="w-full">
+        <MemoizedTableToolbar {...toolbarProps} />
+        <div className="relative min-h-[400px] flex items-center justify-center bg-default-50/50">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner size="lg" color="primary" />
+            <p className="text-default-500">Loading company data...</p>
+          </div>
+        </div>
+        {paginationControls}
+      </div>
+    );
+  }
+
   // Render a placeholder during SSR to prevent layout shift
   if (!isMounted) {
     return (
@@ -252,12 +270,11 @@ export function TableView({
     );
   }
 
-  // Render virtualized table for many rows or always for better performance
+  // Render virtualized table for many rows
   if (shouldUseVirtualizedTable && !isLoading) {
     return (
       <div className="w-full">
         <MemoizedTableToolbar {...toolbarProps} />
-
         <VirtualizedTable
           data={data}
           columns={displayColumns}
@@ -266,7 +283,6 @@ export function TableView({
           selectedKeys={selectedKeys}
           onSelectionChange={handleSelectionChange}
         />
-
         {paginationControls}
       </div>
     );

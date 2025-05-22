@@ -82,6 +82,9 @@ export const CategoryAccordionItem = ({
           className="p-6 pt-1 transition-all"
           aria-labelledby={`category-header-${category.id}`}
         >
+          <h3 id={`category-header-${category.id}`} className="sr-only">
+            {category.title}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5">
             {hasLoaded &&
               category.resources.map((resource) => (

@@ -123,16 +123,14 @@ export default function PlatformOverviewPage() {
 
           <Card className="w-full md:w-1/2 backdrop-blur-md bg-opacity-90">
             <CardBody className="p-6">
-              <Link
-                href="/resources/dashboard-guide"
-                className="flex items-center justify-between gap-2 group"
+              <div
+                className="flex items-center justify-between gap-2 group opacity-50 cursor-not-allowed"
+                aria-disabled="true"
+                tabIndex={-1}
               >
-                <span>Next: Dashboard Guide</span>
-                <Icon
-                  icon="lucide:arrow-right"
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </Link>
+                <span>Next: Dashboard Guide (Coming Soon)</span>
+                <Icon icon="lucide:arrow-right" className="transition-transform" />
+              </div>
             </CardBody>
           </Card>
         </div>

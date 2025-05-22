@@ -26,15 +26,9 @@ export interface PerformanceMonitoringOptions {
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: Record<string, PerformanceMetrics[]> = {};
-  private options: PerformanceMonitoringOptions;
 
-  private constructor(options: PerformanceMonitoringOptions = {}) {
-    this.options = {
-      logToConsole: process.env.NODE_ENV === 'development',
-      trackRenders: true,
-      trackInteractions: true,
-      ...options,
-    };
+  private constructor(_options: PerformanceMonitoringOptions = {}) {
+    // Options parameter is accepted for future extensibility, but not used.
   }
 
   /**

@@ -23,7 +23,6 @@ interface TopCitiesChartProps {
   data: ChartDataItem[];
   onCityClick?: (city: string) => void;
   onCitySelect?: (city: string) => void; // New alias for onCityClick for better naming
-  currentTheme?: 'light' | 'dark'; // Add theme prop
   selectedCities?: Set<string>; // Add selected cities prop
 }
 
@@ -31,7 +30,6 @@ export const TopCitiesChart: React.FC<TopCitiesChartProps> = ({
   data,
   onCityClick,
   onCitySelect,
-  currentTheme,
   selectedCities = new Set(),
 }) => {
   // Use callback from either prop name
