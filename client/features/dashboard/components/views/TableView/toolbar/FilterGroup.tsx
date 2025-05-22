@@ -2,7 +2,7 @@
 
 import { useCompanyStore } from '@/features/dashboard/store/useCompanyStore';
 import type { Filter, FilterOption } from '@/features/dashboard/types/filters';
-import type { FilterGroupProps } from '@/features/dashboard/types/table';
+// import type { FilterGroupProps } from '@/features/dashboard/types/table';
 import { filters } from '@/features/dashboard/utils/filters';
 import { requestBrowserLocation } from '@/features/dashboard/utils/geo';
 import { AccessibleIconify } from '@/shared/icons/AccessibleIconify';
@@ -16,7 +16,9 @@ import { TagGroupItem } from './TagGroupItem';
  * FilterGroup
  * Groups industry and distance filters into a reusable popover component in the toolbar.
  */
-export const FilterGroup = ({ useLocation, setUseLocation, setAddress }: FilterGroupProps) => {
+export const FilterGroup = ({ setAddress }: { setAddress: (address: string) => void }) => {
+  const useLocation = useCompanyStore((s) => s.useLocation);
+  const setUseLocation = useCompanyStore((s) => s.setUseLocation);
   const selectedIndustries = useCompanyStore((s) => s.selectedIndustries);
   const setSelectedIndustries = useCompanyStore((s) => s.setSelectedIndustries);
   const [draftIndustries, setDraftIndustries] = useState<string[]>(selectedIndustries);

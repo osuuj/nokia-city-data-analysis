@@ -89,27 +89,23 @@ export interface SearchInputProps {
  * @description Props for rendering the group of filters above the table.
  */
 export interface FilterGroupProps {
-  useLocation: boolean;
-  setUseLocation: Dispatch<SetStateAction<boolean>>;
   address: string;
   setAddress: Dispatch<SetStateAction<string>>;
 }
 
 /**
  * @interface ToolbarProps
- * @description Props passed to the main table toolbar, including filtering, sorting, and selection.
+ * @description Props for the table toolbar component.
  */
 export interface ToolbarProps {
   searchTerm: string;
   onSearch: (value: string) => void;
   selectedKeys: Set<string>;
-  useLocation: boolean;
-  setUseLocation: Dispatch<SetStateAction<boolean>>;
   address: string;
   setAddress: Dispatch<SetStateAction<string>>;
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
-  setSelectedKeys: (keys: Set<string> | 'all') => void;
+  setSelectedKeys: (keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]) => void;
 }
 
 /**
