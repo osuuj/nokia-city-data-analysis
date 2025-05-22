@@ -39,5 +39,11 @@
   "regions": ["fra1"],
   "github": {
     "silent": true
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/v1/(.*)",
+      "destination": "https://fastapi-osuuj-alb-95876527.eu-north-1.elb.amazonaws.com/api/v1/$1"
+    }
+  ]
 }
