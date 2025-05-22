@@ -12,11 +12,11 @@ router = APIRouter()
 CONTACT_RECIPIENT = os.getenv("CONTACT_RECIPIENT_EMAIL", os.getenv("ZOHO_FROM_EMAIL"))
 
 conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("ZOHO_SMTP_USER"),
-    MAIL_PASSWORD=os.getenv("ZOHO_SMTP_PASS"),
-    MAIL_FROM=os.getenv("ZOHO_FROM_EMAIL"),
-    MAIL_PORT=int(os.getenv("ZOHO_SMTP_PORT", 587)),
-    MAIL_SERVER=os.getenv("ZOHO_SMTP_HOST", "smtp.zoho.eu"),
+    MAIL_USERNAME=os.getenv("MAIL_USERNAME") or os.getenv("ZOHO_SMTP_USER"),
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD") or os.getenv("ZOHO_SMTP_PASS"),
+    MAIL_FROM=os.getenv("MAIL_FROM") or os.getenv("ZOHO_FROM_EMAIL"),
+    MAIL_PORT=int(os.getenv("MAIL_PORT") or os.getenv("ZOHO_SMTP_PORT", 587)),
+    MAIL_SERVER=os.getenv("MAIL_SERVER") or os.getenv("ZOHO_SMTP_HOST", "smtp.zoho.eu"),
     MAIL_FROM_NAME="Osuuj Contact",
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
