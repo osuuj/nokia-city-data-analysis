@@ -126,7 +126,13 @@ jobs:
                   { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                   { "name": "DB_SSL_MODE", "value": "require" },
                   { "name": "PGSSLMODE", "value": "require" },
-                  { "name": "LOG_LEVEL", "value": "DEBUG" }
+                  { "name": "LOG_LEVEL", "value": "DEBUG" },
+                  { "name": "ZOHO_SMTP_USER", "value": "${{ secrets.ZOHO_SMTP_USER }}" },
+                  { "name": "ZOHO_SMTP_PASS", "value": "${{ secrets.ZOHO_SMTP_PASS }}" },
+                  { "name": "ZOHO_FROM_EMAIL", "value": "${{ secrets.ZOHO_FROM_EMAIL }}" },
+                  { "name": "ZOHO_SMTP_HOST", "value": "${{ secrets.ZOHO_SMTP_HOST }}" },
+                  { "name": "ZOHO_SMTP_PORT", "value": "${{ secrets.ZOHO_SMTP_PORT }}" },
+                  { "name": "CONTACT_RECIPIENT_EMAIL", "value": "${{ secrets.CONTACT_RECIPIENT_EMAIL }}" }
                 ],
                 "secrets": [
                   {
@@ -179,7 +185,13 @@ jobs:
                       { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                       { "name": "DB_SSL_MODE", "value": "require" },
                       { "name": "PGSSLMODE", "value": "require" },
-                      { "name": "LOG_LEVEL", "value": "DEBUG" }
+                      { "name": "LOG_LEVEL", "value": "DEBUG" },
+                      { "name": "ZOHO_SMTP_USER", "value": "${{ secrets.ZOHO_SMTP_USER }}" },
+                      { "name": "ZOHO_SMTP_PASS", "value": "${{ secrets.ZOHO_SMTP_PASS }}" },
+                      { "name": "ZOHO_FROM_EMAIL", "value": "${{ secrets.ZOHO_FROM_EMAIL }}" },
+                      { "name": "ZOHO_SMTP_HOST", "value": "${{ secrets.ZOHO_SMTP_HOST }}" },
+                      { "name": "ZOHO_SMTP_PORT", "value": "${{ secrets.ZOHO_SMTP_PORT }}" },
+                      { "name": "CONTACT_RECIPIENT_EMAIL", "value": "${{ secrets.CONTACT_RECIPIENT_EMAIL }}" }
                     ]
                   }
                 ],

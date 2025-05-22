@@ -4,7 +4,7 @@ import { DownloadResumeButton } from '@/features/about/components/ui/DownloadRes
 import { Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 type Contact = {
   email: string;
@@ -38,6 +38,45 @@ export function ProfileContact({
       console.log('ProfileContact mounted with profileId:', profileId);
     }
   }, [profileId]);
+
+  // Form state and handlers
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+    profile: profileId || 'unknown',
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setSuccess('');
+    setError('');
+    try {
+      const res = await fetch('/api/v1/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setSuccess('Message sent! We will get back to you soon.');
+        setForm({ name: '', email: '', subject: '', message: '', profile: profileId || 'unknown' });
+      } else {
+        setError('Failed to send message. Please try again later.');
+      }
+    } catch (err) {
+      setError('Failed to send message. Please try again later.');
+    }
+    setLoading(false);
+  }
 
   return (
     <section id="contact" className="py-24 bg-default-50/50">
@@ -173,7 +212,9 @@ export function ProfileContact({
             transition={{ duration: 0.5, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Hidden profile field */}
+              <input type="hidden" name="profile" value={form.profile} />
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-default-700 mb-1">
                   Name
@@ -184,6 +225,9 @@ export function ProfileContact({
                   name="name"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="Your name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
@@ -197,6 +241,9 @@ export function ProfileContact({
                   name="email"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="your.email@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
@@ -213,6 +260,9 @@ export function ProfileContact({
                   name="subject"
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="What is this regarding?"
+                  value={form.subject}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
@@ -229,6 +279,9 @@ export function ProfileContact({
                   rows={5}
                   className="w-full p-3 border border-default-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-default-50"
                   placeholder="Your message here..."
+                  value={form.message}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
@@ -238,9 +291,12 @@ export function ProfileContact({
                 className="w-full"
                 size="lg"
                 endContent={<Icon icon="lucide:send" />}
+                isDisabled={loading}
               >
-                Send Message
+                {loading ? 'Sending...' : 'Send Message'}
               </Button>
+              {success && <div className="text-green-600 text-center mt-2">{success}</div>}
+              {error && <div className="text-red-600 text-center mt-2">{error}</div>}
             </form>
           </motion.div>
         </div>
