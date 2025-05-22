@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 
-from server.backend.main import rate_limit_if_production
+from server.backend.utils.rate_limit import rate_limit_if_production
 
 router = APIRouter()
 
