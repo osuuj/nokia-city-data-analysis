@@ -18,7 +18,7 @@ export const teamMembers: TeamMember[] = [
         label: 'linkedin.com/in/jutoju',
       },
       {
-        icon: 'logos:github-icon',
+        icon: 'mdi:github',
         href: 'https://github.com/osuuj',
         label: 'github.com/osuuj',
       },
@@ -35,7 +35,7 @@ export const teamMembers: TeamMember[] = [
         label: 'linkedin.com/in/kasperi-rautio',
       },
       {
-        icon: 'logos:github-icon',
+        icon: 'mdi:github',
         href: 'https://github.com/kasperi-r',
         label: 'github.com/kasperi-r',
       },
