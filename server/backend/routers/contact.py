@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from pydantic import BaseModel, EmailStr
 
@@ -34,7 +34,9 @@ class ContactForm(BaseModel):
 
 @router.post("/contact", status_code=200)
 @rate_limit_if_production("5/minute")
-async def contact(form: ContactForm, background_tasks: BackgroundTasks):
+async def contact(
+    request: Request, form: ContactForm, background_tasks: BackgroundTasks
+):
     try:
         message = MessageSchema(
             subject=f"[Contact Form] {form.subject}",
