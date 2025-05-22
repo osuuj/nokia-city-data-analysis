@@ -25,6 +25,7 @@ interface CompanyStore {
   selectedIndustries: string[];
   userLocation: { latitude: number; longitude: number } | null;
   distanceLimit: number | null;
+  useLocation: boolean;
 
   // Actions
   setSelectedCity: (city: string) => void;
@@ -38,6 +39,7 @@ interface CompanyStore {
   clearIndustries: () => void;
   setUserLocation: (coords: { latitude: number; longitude: number } | null) => void;
   setDistanceLimit: (value: number | null) => void;
+  setUseLocation: (value: boolean) => void;
 }
 
 // Initially visible columns from configuration
@@ -56,6 +58,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   selectedIndustries: [],
   userLocation: null,
   distanceLimit: null,
+  useLocation: false,
 
   // City selection
   setSelectedCity: (city: string) => set({ selectedCity: city }),
@@ -124,4 +127,5 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   // Location filters
   setUserLocation: (coords) => set((_state) => ({ userLocation: coords })),
   setDistanceLimit: (value) => set((_state) => ({ distanceLimit: value })),
+  setUseLocation: (value) => set((_state) => ({ useLocation: value })),
 }));
