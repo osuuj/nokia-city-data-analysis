@@ -45,7 +45,7 @@ export const SidebarWrapper = () => {
   return (
     <nav
       className={cn(
-        'relative flex h-screen flex-col border-r border-divider p-6 transition-all duration-300 overflow-y-auto',
+        'relative flex h-screen flex-col border-r border-divider p-6 transition-all duration-300 overflow-y-auto overflow-x-hidden',
         {
           'w-72 md:w-52 sm:w-5 px-4': !isCompact,
           'w-16 items-center px-2 py-6': isCompact,
