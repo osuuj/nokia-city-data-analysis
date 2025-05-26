@@ -8,7 +8,7 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
-log "Setting up FastAPI server development environment..."
+log "Setting up server development environment..."
 
 # Get the script's directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -16,7 +16,7 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 log "Project root: $PROJECT_ROOT"
 
 # Create the virtual environment directory if it doesn't exist
-VENV_DIR="$PROJECT_ROOT/venvs/fastapi_env"
+VENV_DIR="$PROJECT_ROOT/venvs/server_env"
 log "Setting up virtual environment at: $VENV_DIR"
 
 if [[ ! -d "$VENV_DIR" ]]; then
@@ -49,9 +49,9 @@ pip install -r "$PROJECT_ROOT/server/requirements.txt"
 pip install -r "$PROJECT_ROOT/server/requirements-dev.txt"
 
 # Initialize pre-commit if it exists
-if [[ -f "$PROJECT_ROOT/server/.pre-commit-config.yaml" ]]; then
+if [[ -f "$PROJECT_ROOT/.pre-commit-config.yaml" ]]; then
   log "Setting up pre-commit hooks..."
-  cd "$PROJECT_ROOT/server" && pre-commit install
+  cd "$PROJECT_ROOT" && pre-commit install
   cd "$PROJECT_ROOT"
 fi
 
@@ -59,6 +59,6 @@ fi
 log "Verifying installation..."
 pip list
 
-log "FastAPI server development environment setup complete!"
+log "Server development environment setup complete!"
 log "To activate the environment, run:"
 log "source $ACTIVATE_SCRIPT" 

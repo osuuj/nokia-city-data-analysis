@@ -10,34 +10,41 @@ log() {
 
 log "Starting ETL data loading process..."
 
+# Get the script's directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
 # Handle both container and local environment
-# If running locally, activate virtual environment
 if [[ ! -z "${VIRTUAL_ENV:-}" ]]; then
   log "Already in a virtual environment: $VIRTUAL_ENV"
-elif [[ -d "venvs/etl_env" ]]; then
+elif [[ -d "$PROJECT_ROOT/venvs/etl_env" ]]; then
   log "Activating local virtual environment..."
-  source venvs/etl_env/bin/activate
+  source "$PROJECT_ROOT/venvs/etl_env/bin/activate"
   log "Activated: $VIRTUAL_ENV"
 elif [[ -d "/app/venv" ]]; then
   log "Using container virtual environment..."
 else
-  log "ERROR: No virtual environment found. Please create it first."
-  log "Run: python -m venv venvs/etl_env && source venvs/etl_env/bin/activate && pip install -r etl/requirements.txt"
-  exit 1
+  log "Creating and activating virtual environment..."
+  python -m venv "$PROJECT_ROOT/venvs/etl_env"
+  source "$PROJECT_ROOT/venvs/etl_env/bin/activate"
+  log "Installing dependencies..."
+  pip install -r "$PROJECT_ROOT/etl/requirements.txt"
 fi
 
 # Load environment variables (local dev only - containers use environment directly)
 if [[ -z "${ENVIRONMENT:-}" || "$ENVIRONMENT" != "production" ]]; then
-  if [[ -f ".env.compose" ]]; then
+  if [[ -f "$PROJECT_ROOT/.env.compose" ]]; then
     log "Loading environment variables from .env.compose..."
     set -o allexport
-    source .env.compose
+    source "$PROJECT_ROOT/.env.compose"
     set +o allexport
-  elif [[ -f ".env" ]]; then
+  elif [[ -f "$PROJECT_ROOT/.env" ]]; then
     log "Loading environment variables from .env..."
     set -o allexport
-    source .env
+    source "$PROJECT_ROOT/.env"
     set +o allexport
+  else
+    log "WARNING: No .env file found. Make sure environment variables are set."
   fi
 fi
 
@@ -62,7 +69,7 @@ DB_INFO="${POSTGRES_USER:-postgres}@${POSTGRES_HOST:-localhost}:${POSTGRES_PORT:
 log "Database connection: $DB_INFO"
 
 # Create status file for Docker healthcheck
-STATUS_FILE="${ETL_LOG_DIR:-data/logs}/etl_status.txt"
+STATUS_FILE="${ETL_LOG_DIR:-$PROJECT_ROOT/data/logs}/etl_status.txt"
 mkdir -p "$(dirname "$STATUS_FILE")"
 echo "$(date +'%Y-%m-%d %H:%M:%S') started" > "$STATUS_FILE"
 

@@ -49,8 +49,8 @@ Thank you for contributing to this project! We appreciate your time and effort t
    Set up the FastAPI environment:
 
    ```bash
-   python -m venv venvs/fastapi_env
-   source venvs/fastapi_env/bin/activate  # Use `venvs\fastapi_env\Scripts\activate` on Windows
+   python -m venv venvs/server_env
+   source venvs/server_env/bin/activate  # Use `venvs\server_env\Scripts\activate` on Windows
    pip install -r server/requirements.txt
    pip install -r server/requirements-dev.txt  # For development tools
    ```
@@ -92,7 +92,7 @@ Thank you for contributing to this project! We appreciate your time and effort t
 6. Switch to the FastAPI environment:
 
    ```bash
-   source venvs/fastapi_env/bin/activate  # Use `venvs\fastapi_env\Scripts\activate` on Windows
+   source venvs/server_env/bin/activate  # Use `venvs\server_env\Scripts\activate` on Windows
    ```
 
 7. Run the FastAPI server:

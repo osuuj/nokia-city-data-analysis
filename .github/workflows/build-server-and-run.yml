@@ -103,9 +103,10 @@ jobs:
                    if [ -n \"\$DATABASE_CREDENTIALS\" ]; then \
                      export POSTGRES_USER=\$(echo \$DATABASE_CREDENTIALS | jq -r .username); \
                      export POSTGRES_PASSWORD=\$(echo \$DATABASE_CREDENTIALS | jq -r .password); \
-                     export POSTGRES_HOST=\$(echo \$DATABASE_CREDENTIALS | jq -r .host); \
-                     export POSTGRES_PORT=\$(echo \$DATABASE_CREDENTIALS | jq -r .port); \
+                     export POSTGRES_HOST=\$POSTGRES_HOST; \
+                     export POSTGRES_PORT=\$POSTGRES_PORT; \
                      echo \"Extracted credentials from secret\"; \
+                     echo \"Using host: \$POSTGRES_HOST, port: \$POSTGRES_PORT\"; \
                      echo \"Testing direct database connection...\"; \
                      PGPASSWORD=\$POSTGRES_PASSWORD PGSSLMODE=require psql -h \$POSTGRES_HOST -p \$POSTGRES_PORT -U \$POSTGRES_USER -d \$DATABASE_NAME -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed\"; \
                    fi && \
@@ -122,7 +123,9 @@ jobs:
                 ],
                 "environment": [
                   { "name": "ENVIRONMENT", "value": "production" },
-                  { "name": "DATABASE_NAME", "value": "etl_db" },
+                  { "name": "DATABASE_NAME", "value": "${{ secrets.DB_NAME }}" },
+                  { "name": "POSTGRES_HOST", "value": "${{ secrets.DB_HOST }}" },
+                  { "name": "POSTGRES_PORT", "value": "${{ secrets.DB_PORT }}" },
                   { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                   { "name": "DB_SSL_MODE", "value": "require" },
                   { "name": "PGSSLMODE", "value": "require" },
@@ -181,7 +184,9 @@ jobs:
                     secrets: [{ "name": "DATABASE_CREDENTIALS", "valueFrom": $SECRET_ARN }],
                     environment: [
                       { "name": "ENVIRONMENT", "value": "production" },
-                      { "name": "DATABASE_NAME", "value": "etl_db" },
+                      { "name": "DATABASE_NAME", "value": "${{ secrets.DB_NAME }}" },
+                      { "name": "POSTGRES_HOST", "value": "${{ secrets.DB_HOST }}" },
+                      { "name": "POSTGRES_PORT", "value": "${{ secrets.DB_PORT }}" },
                       { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                       { "name": "DB_SSL_MODE", "value": "require" },
                       { "name": "PGSSLMODE", "value": "require" },
