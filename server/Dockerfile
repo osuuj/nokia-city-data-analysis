@@ -52,18 +52,21 @@ COPY ./__init__.py /app/server/__init__.py
 RUN cat <<'EOF' > /app/entrypoint.sh
 #!/bin/bash
 
-# Handle database credentials from AWS Secrets Manager
+# Handle database credentials from RDS managed secret
 if [ -n "$DATABASE_CREDENTIALS" ]; then
-  echo "Processing database credentials from secret..."
+  echo "Processing RDS managed secret..."
   export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username)
   export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password)
-  echo "✅ Username and password set from secret"
+  echo "✅ Username and password set from RDS managed secret"
+else
+  echo "❌ DATABASE_CREDENTIALS not found in RDS managed secret"
+  exit 1
 fi
 
-# Get host, port, and database name from environment
-: "${POSTGRES_HOST:?Missing POSTGRES_HOST}"
-: "${POSTGRES_PORT:?Missing POSTGRES_PORT}"
-: "${POSTGRES_DB:?Missing POSTGRES_DB}"
+# Get connection parameters from GitHub secrets
+: "${POSTGRES_HOST:?Missing POSTGRES_HOST from GitHub secrets}"
+: "${POSTGRES_PORT:?Missing POSTGRES_PORT from GitHub secrets}"
+: "${POSTGRES_DB:?Missing POSTGRES_DB from GitHub secrets}"
 
 echo "🔌 DB Host: $POSTGRES_HOST"
 echo "🔌 DB Port: $POSTGRES_PORT"
