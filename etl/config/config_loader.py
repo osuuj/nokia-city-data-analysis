@@ -170,7 +170,14 @@ def construct_database_url(config: Dict[str, Any]) -> str:
             "Please set these in your environment or .env file."
         )
 
-    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    # Get SSL mode from environment or use 'require' for production
+    ssl_mode = os.getenv(
+        "DB_SSL_MODE",
+        "require" if os.getenv("ENVIRONMENT") == "production" else "prefer",
+    )
+
+    # Construct URL with SSL mode
+    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode={ssl_mode}"
 
 
 # Main configuration loader
