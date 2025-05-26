@@ -8,7 +8,6 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime
 from typing import Dict
 
 from fastapi import (  # pyright: ignore[reportMissingImports]
@@ -24,6 +23,7 @@ from fastapi.responses import RedirectResponse  # pyright: ignore[reportMissingI
 from prometheus_fastapi_instrumentator import (  # pyright: ignore[reportMissingImports]
     Instrumentator,
 )
+from sqlalchemy import text
 
 from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
@@ -173,23 +173,22 @@ async def readiness() -> Response:
         )
 
 
-@app.get("/api/health", tags=["Health"])
+@app.get("/api/v1/health")
 @rate_limit_if_production(settings.RATE_LIMIT_HEALTH)
-async def health_check(request: Request):
-    """Health check endpoint for monitoring and load balancers.
-
-    Args:
-        request: The incoming HTTP request object.
+async def health_check() -> Dict[str, str]:
+    """Health check endpoint for load balancers and monitoring.
 
     Returns:
-        Dict with status information and timestamp
+        Dict[str, str]: A dictionary containing the health status.
     """
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT,
-    }
+    try:
+        # Test database connection
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {"status": "unhealthy", "error": str(e)}
 
 
 @app.get("/api/debug/swagger")
