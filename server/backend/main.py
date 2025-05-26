@@ -151,6 +151,15 @@ async def health_redirect():
     return RedirectResponse(url="/api/health")
 
 
+@app.get("/api/health")
+async def api_health_redirect():
+    """Redirect to the v1 health check endpoint.
+
+    This is kept for backward compatibility.
+    """
+    return RedirectResponse(url="/api/v1/health")
+
+
 @app.get("/ready")
 async def readiness() -> Response:
     """Readiness check endpoint for load balancers and monitoring.
