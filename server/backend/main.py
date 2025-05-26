@@ -69,11 +69,16 @@ logger.info("Prometheus metrics enabled at /metrics")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.PROJECT_NAME} in {settings.ENVIRONMENT} mode")
-    await create_db_and_tables()
-    await init_db(engine)
-    yield
-    logger.info(f"Shutting down {settings.PROJECT_NAME}")
-    await close_db_connection()
+    try:
+        await create_db_and_tables()
+        await init_db(engine)
+        yield
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise
+    finally:
+        logger.info(f"Shutting down {settings.PROJECT_NAME}")
+        await close_db_connection()
 
 
 app.router.lifespan_context = lifespan
@@ -182,7 +187,7 @@ async def health_check() -> Dict[str, str]:
         Dict[str, str]: A dictionary containing the health status.
     """
     try:
-        # Test database connection
+        # Test database connection with SSL
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}

@@ -103,13 +103,16 @@ jobs:
                    if [ -n \"\$DATABASE_CREDENTIALS\" ]; then \
                      export POSTGRES_USER=\$(echo \$DATABASE_CREDENTIALS | jq -r .username); \
                      export POSTGRES_PASSWORD=\$(echo \$DATABASE_CREDENTIALS | jq -r .password); \
-                     export POSTGRES_HOST=\$POSTGRES_HOST; \
-                     export POSTGRES_PORT=\$POSTGRES_PORT; \
-                     echo \"Extracted credentials from secret\"; \
-                     echo \"Using host: \$POSTGRES_HOST, port: \$POSTGRES_PORT\"; \
-                     echo \"Testing direct database connection...\"; \
-                     PGPASSWORD=\$POSTGRES_PASSWORD PGSSLMODE=require psql -h \$POSTGRES_HOST -p \$POSTGRES_PORT -U \$POSTGRES_USER -d \$DATABASE_NAME -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed\"; \
+                     echo \"✅ Username and password set from secret\"; \
                    fi && \
+                   export POSTGRES_HOST=\$POSTGRES_HOST && \
+                   export POSTGRES_PORT=\$POSTGRES_PORT && \
+                   export POSTGRES_DB=\$POSTGRES_DB && \
+                   echo \"🔌 DB Host: \$POSTGRES_HOST\" && \
+                   echo \"🔌 DB Port: \$POSTGRES_PORT\" && \
+                   echo \"🔌 DB Name: \$POSTGRES_DB\" && \
+                   echo \"Testing direct database connection...\" && \
+                   PGPASSWORD=\$POSTGRES_PASSWORD PGSSLMODE=require psql -h \$POSTGRES_HOST -p \$POSTGRES_PORT -U \$POSTGRES_USER -d \$POSTGRES_DB -c \"SELECT 1 as connection_test;\" || echo \"Direct database connection failed!\" && \
                    export SQLALCHEMY_WARN_20=1 && \
                    export PGSSLMODE=require && \
                    uvicorn server.backend.main:app --host 0.0.0.0 --port 8000"
@@ -123,9 +126,9 @@ jobs:
                 ],
                 "environment": [
                   { "name": "ENVIRONMENT", "value": "production" },
-                  { "name": "DATABASE_NAME", "value": "${{ secrets.DB_NAME }}" },
                   { "name": "POSTGRES_HOST", "value": "${{ secrets.DB_HOST }}" },
                   { "name": "POSTGRES_PORT", "value": "${{ secrets.DB_PORT }}" },
+                  { "name": "POSTGRES_DB", "value": "${{ secrets.DB_NAME }}" },
                   { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                   { "name": "DB_SSL_MODE", "value": "require" },
                   { "name": "PGSSLMODE", "value": "require" },
@@ -184,9 +187,9 @@ jobs:
                     secrets: [{ "name": "DATABASE_CREDENTIALS", "valueFrom": $SECRET_ARN }],
                     environment: [
                       { "name": "ENVIRONMENT", "value": "production" },
-                      { "name": "DATABASE_NAME", "value": "${{ secrets.DB_NAME }}" },
                       { "name": "POSTGRES_HOST", "value": "${{ secrets.DB_HOST }}" },
                       { "name": "POSTGRES_PORT", "value": "${{ secrets.DB_PORT }}" },
+                      { "name": "POSTGRES_DB", "value": "${{ secrets.DB_NAME }}" },
                       { "name": "BACKEND_CORS_ORIGINS", "value": "https://osuuj.ai,https://www.osuuj.ai" },
                       { "name": "DB_SSL_MODE", "value": "require" },
                       { "name": "PGSSLMODE", "value": "require" },
