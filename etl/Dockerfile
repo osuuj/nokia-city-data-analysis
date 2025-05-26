@@ -35,7 +35,9 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     SNAPSHOT_DATE=2025-05-11 \
     LANGUAGE=en \
-    ENVIRONMENT=production
+    ENVIRONMENT=production \
+    DB_SSL_MODE=require \
+    PGSSLMODE=require
 
 # Create app directory and user
 WORKDIR /app

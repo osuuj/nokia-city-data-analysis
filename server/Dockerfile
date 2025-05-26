@@ -68,7 +68,7 @@ echo "🔌 DB Host: $POSTGRES_HOST"
 echo "🔌 DB Port: $POSTGRES_PORT"
 
 echo "Testing direct database connection with psql..."
-PGPASSWORD=$POSTGRES_PASSWORD PGSSLMODE=disable \
+PGPASSWORD=$POSTGRES_PASSWORD PGSSLMODE=require \
   psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME \
   -c "SELECT 1 as connection_test;" || echo "Direct psql connection failed!"
 
@@ -95,8 +95,8 @@ ENV PYTHONPATH=/app \
     LOG_LEVEL=DEBUG \
     PORT=8000 \
     WORKERS=4 \
-    DB_SSL_MODE=disable \
-    PGSSLMODE=disable
+    DB_SSL_MODE=require \
+    PGSSLMODE=require
 
 EXPOSE 8000
 
