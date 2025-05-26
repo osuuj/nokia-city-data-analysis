@@ -57,12 +57,20 @@ if [ -n "$DATABASE_CREDENTIALS" ]; then
   echo "Processing database credentials from secret..."
   export POSTGRES_USER=$(echo $DATABASE_CREDENTIALS | jq -r .username)
   export POSTGRES_PASSWORD=$(echo $DATABASE_CREDENTIALS | jq -r .password)
-  export POSTGRES_HOST=$(echo $DATABASE_CREDENTIALS | jq -r .host)
-  export POSTGRES_PORT=$(echo $DATABASE_CREDENTIALS | jq -r .port)
-  echo "Database connection configured from secret"
-  echo "Testing direct database connection with psql..."
-  PGPASSWORD=$POSTGRES_PASSWORD PGSSLMODE=disable psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME -c "SELECT 1 as connection_test;" || echo "Direct psql connection failed!"
+  echo "✅ Username and password set from secret"
 fi
+
+# Get host and port from environment (e.g. GitHub secrets)
+: "${POSTGRES_HOST:?Missing POSTGRES_HOST}"
+: "${POSTGRES_PORT:?Missing POSTGRES_PORT}"
+
+echo "🔌 DB Host: $POSTGRES_HOST"
+echo "🔌 DB Port: $POSTGRES_PORT"
+
+echo "Testing direct database connection with psql..."
+PGPASSWORD=$POSTGRES_PASSWORD PGSSLMODE=disable \
+  psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME \
+  -c "SELECT 1 as connection_test;" || echo "Direct psql connection failed!"
 
 # Warn if sslmode is present in URL
 if [[ "$DATABASE_URL" == *"sslmode"* ]]; then

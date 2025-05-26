@@ -43,14 +43,10 @@ log "Pip version: $(pip --version)"
 log "Upgrading pip..."
 pip install --upgrade pip
 
-# Install dependencies
-log "Installing development dependencies..."
+# Install base and dev dependencies
+log "Installing core and development dependencies..."
+pip install -r "$PROJECT_ROOT/etl/requirements.txt"
 pip install -r "$PROJECT_ROOT/etl/requirements-dev.txt"
-
-# Install ETL package in development mode
-log "Installing ETL package in development mode..."
-cd "$PROJECT_ROOT"
-pip install -e .
 
 # Check installation
 log "Verifying installation..."
@@ -58,4 +54,4 @@ pip list
 
 log "ETL development environment setup complete!"
 log "To activate the environment, run:"
-log "source $ACTIVATE_SCRIPT" 
+log "source $ACTIVATE_SCRIPT"

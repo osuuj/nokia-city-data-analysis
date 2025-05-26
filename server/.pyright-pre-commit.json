@@ -20,7 +20,7 @@
 		"backend/services/company_service.py",
 		"backend/routers/analytics.py"
 	],
-	"reportMissingImports": "warning",
+	"reportMissingImports": true,
 	"reportMissingTypeStubs": false,
 	"reportGeneralTypeIssues": "warning",
 	"reportOptionalMemberAccess": "warning",
@@ -28,10 +28,10 @@
 	"reportArgumentType": "warning",
 	"reportOperatorIssue": "warning",
 	"reportAssignmentType": "warning",
-	"pythonVersion": "3.11",
+	"pythonVersion": "3.12",
 	"typeCheckingMode": "basic",
 	"venvPath": "../venvs",
-	"venv": "etl_env",
+	"venv": "server_env",
 	"extraPaths": [
 		"."
 	]

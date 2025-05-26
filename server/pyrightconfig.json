@@ -26,11 +26,12 @@
 	"reportArgumentType": "warning",
 	"reportOperatorIssue": "warning",
 	"reportAssignmentType": "warning",
-	"pythonVersion": "3.11",
-	"typeCheckingMode": "basic",
+	"pythonVersion": "3.12",
+	"typeCheckingMode": "strict",
 	"venvPath": "../venvs",
-	"venv": "etl_env",
+	"venv": "server_env",
 	"extraPaths": [
-		"."
+		".",
+		"backend"
 	]
 }

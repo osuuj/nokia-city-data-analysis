@@ -59,6 +59,12 @@ server/
 
 ## Environment Setup
 
+### Prerequisites
+
+- Python 3.12+
+- PostgreSQL 14+ (or use the provided Docker setup)
+- Docker and Docker Compose (for local development)
+
 ### Local Development with Docker Compose (Recommended)
 
 The easiest way to get started is using Docker Compose:

@@ -56,6 +56,12 @@ etl/
 
 ## Getting Started
 
+### Prerequisites
+
+- Python 3.12+
+- Docker and Docker Compose (for local development)
+- PostgreSQL 14+ (or use the provided Docker setup)
+
 ### Local Setup
 
 #### Option 1: Using Helper Scripts (Recommended)
