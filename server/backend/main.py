@@ -180,8 +180,11 @@ async def readiness() -> Response:
 
 @app.get("/api/v1/health")
 @rate_limit_if_production(settings.RATE_LIMIT_HEALTH)
-async def health_check() -> Dict[str, str]:
+async def health_check(request: Request) -> Dict[str, str]:
     """Health check endpoint for load balancers and monitoring.
+
+    Args:
+        request: The incoming HTTP request object.
 
     Returns:
         Dict[str, str]: A dictionary containing the health status.
