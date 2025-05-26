@@ -181,7 +181,7 @@ Key benefits of this architecture:
 5. **Start the FastAPI server**:
 
    ```bash
-   source venvs/fastapi_env/bin/activate
+   source venvs/server_env/bin/activate
    uvicorn server.backend.main:app --reload
    ```
 
