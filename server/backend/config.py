@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         "DATABASE_NAME", os.getenv("POSTGRES_DB", "nokia_city_data")
     )
     DATABASE_URL: Optional[PostgresDsn] = None
-    DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "prefer")  # Use "require" in prod
+    DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "require")  # Use "require" in prod
 
     DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))
     DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
@@ -93,20 +93,6 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], info) -> str:
         """Assemble the full database URL from environment or secrets."""
-        # DEBUGGING: Check if DATABASE_URL is set directly
-        direct_url = os.environ.get("DATABASE_URL")
-        if direct_url:
-            print(f"⚠️ DATABASE_URL is directly set in environment: {direct_url}")
-            if "sslmode" in direct_url:
-                print("⚠️ WARNING: found 'sslmode' in DATABASE_URL")
-            return direct_url
-
-        if isinstance(v, str):
-            print(f"⚠️ DATABASE_URL is using a pre-set value: {v}")
-            if "sslmode" in v:
-                print("⚠️ WARNING: found 'sslmode' in pre-set DATABASE_URL")
-            return v
-
         # Get values from info data
         values = info.data
 
@@ -120,7 +106,7 @@ class Settings(BaseSettings):
             raise ValueError("POSTGRES_PORT environment variable is required")
 
         # Get database name from environment
-        db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
+        db_name = os.environ.get("POSTGRES_DB", "nokia_city_data")
 
         # Get username and password from DATABASE_CREDENTIALS in production
         if os.environ.get("ENVIRONMENT", "dev") == "production":
@@ -136,7 +122,7 @@ class Settings(BaseSettings):
                         "DATABASE_CREDENTIALS environment variable is required in production"
                     )
             except Exception as e:
-                print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
+                logging.error(f"Error parsing DATABASE_CREDENTIALS: {e}")
                 raise
         else:
             # Development: use environment variables
@@ -144,10 +130,9 @@ class Settings(BaseSettings):
             password = quote_plus(values.get("POSTGRES_PASSWORD", ""))
 
         # Build connection string WITHOUT sslmode in the URL
-        # SQLAlchemy + asyncpg handle SSL differently
         # SSL will be configured at engine creation time
         result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-        print(f"✅ Built connection string: {result.replace(password, '********')}")
+        logging.info(f"Built connection string: {result.replace(password, '********')}")
         return result
 
 

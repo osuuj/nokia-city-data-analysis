@@ -48,7 +48,7 @@ COPY ./alembic /app/alembic
 COPY ./alembic.ini /app/alembic.ini
 COPY ./__init__.py /app/server/__init__.py
 
-# ✅ Create entrypoint.sh cleanly
+# Create entrypoint.sh
 RUN cat <<'EOF' > /app/entrypoint.sh
 #!/bin/bash
 
@@ -60,23 +60,20 @@ if [ -n "$DATABASE_CREDENTIALS" ]; then
   echo "✅ Username and password set from secret"
 fi
 
-# Get host and port from environment (e.g. GitHub secrets)
+# Get host, port, and database name from environment
 : "${POSTGRES_HOST:?Missing POSTGRES_HOST}"
 : "${POSTGRES_PORT:?Missing POSTGRES_PORT}"
+: "${POSTGRES_DB:?Missing POSTGRES_DB}"
 
 echo "🔌 DB Host: $POSTGRES_HOST"
 echo "🔌 DB Port: $POSTGRES_PORT"
+echo "🔌 DB Name: $POSTGRES_DB"
 
+# Test database connection
 echo "Testing direct database connection with psql..."
 PGPASSWORD=$POSTGRES_PASSWORD PGSSLMODE=require \
-  psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $DATABASE_NAME \
+  psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB \
   -c "SELECT 1 as connection_test;" || echo "Direct psql connection failed!"
-
-# Warn if sslmode is present in URL
-if [[ "$DATABASE_URL" == *"sslmode"* ]]; then
-  echo "WARNING: DATABASE_URL contains sslmode parameter which may cause issues with asyncpg!"
-  env | grep -E "DATABASE|POSTGRES|SSL"
-fi
 
 # Start app
 exec "$@"
