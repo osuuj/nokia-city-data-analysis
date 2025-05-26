@@ -99,6 +99,7 @@ class Settings(BaseSettings):
             print(f"⚠️ DATABASE_URL is directly set in environment: {direct_url}")
             if "sslmode" in direct_url:
                 print("⚠️ WARNING: found 'sslmode' in DATABASE_URL")
+            return direct_url
 
         if isinstance(v, str):
             print(f"⚠️ DATABASE_URL is using a pre-set value: {v}")
@@ -109,44 +110,44 @@ class Settings(BaseSettings):
         # Get values from info data
         values = info.data
 
-        # AWS Secrets in production
+        # Get host and port from environment variables (required)
+        host = os.environ.get("POSTGRES_HOST")
+        if not host:
+            raise ValueError("POSTGRES_HOST environment variable is required")
+
+        port = os.environ.get("POSTGRES_PORT")
+        if not port:
+            raise ValueError("POSTGRES_PORT environment variable is required")
+
+        # Get database name from environment
+        db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
+
+        # Get username and password from DATABASE_CREDENTIALS in production
         if os.environ.get("ENVIRONMENT", "dev") == "production":
             try:
                 if "DATABASE_CREDENTIALS" in os.environ:
                     db_credentials = json.loads(
                         os.environ.get("DATABASE_CREDENTIALS", "{}")
                     )
-                    db_name = os.environ.get("DATABASE_NAME", "nokia_city_data")
-
-                    # Use quote_plus for password to ensure special characters are encoded
                     username = db_credentials.get("username")
                     password = quote_plus(db_credentials.get("password", ""))
-                    host = db_credentials.get("host")
-                    port = int(db_credentials.get("port", 5432))
-
-                    # Build connection string WITHOUT sslmode in the URL
-                    # SQLAlchemy + asyncpg handle SSL differently
-                    # SSL will be configured at engine creation time
-                    result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-                    print(
-                        f"✅ Built connection string from AWS Secrets: {result.replace(password, '********')}"
+                else:
+                    raise ValueError(
+                        "DATABASE_CREDENTIALS environment variable is required in production"
                     )
-                    return result
             except Exception as e:
                 print(f"❌ DATABASE_CREDENTIALS parse error: {e}")
+                raise
+        else:
+            # Development: use environment variables
+            username = values.get("POSTGRES_USER")
+            password = quote_plus(values.get("POSTGRES_PASSWORD", ""))
 
-        # Fallback for development - combine both approaches
-        username = values.get("POSTGRES_USER")
-        password = quote_plus(values.get("POSTGRES_PASSWORD", ""))
-        host = values.get("POSTGRES_HOST")
-        port = values.get("POSTGRES_PORT")
-        db_name = values.get("POSTGRES_DB") or ""
-
-        # Return URL without sslmode parameter
+        # Build connection string WITHOUT sslmode in the URL
+        # SQLAlchemy + asyncpg handle SSL differently
+        # SSL will be configured at engine creation time
         result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-        print(
-            f"✅ Built connection string from env variables: {result.replace(password, '********')}"
-        )
+        print(f"✅ Built connection string: {result.replace(password, '********')}")
         return result
 
 
