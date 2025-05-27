@@ -12,11 +12,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/docker-entrypoint-initdb.d
     healthcheck:
+
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+
       interval: 10s
       timeout: 5s
       retries: 5
-
   server:
     # Build directly in compose for simplicity
     image: fastapi-dev
