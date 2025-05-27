@@ -1,5 +1,7 @@
 # Nokia City Data Analysis
 
+[🌐 Visit the live application at www.osuuj.ai](https://www.osuuj.ai)
+
 A comprehensive data analysis system for companies in cities of Finland, providing ETL capabilities, API services, and interactive data visualizations.
 
 ## Project Overview
@@ -196,6 +198,7 @@ Key benefits of this architecture:
 7. **Access the application**:
    - Web Dashboard: http://localhost:3000
    - API Documentation: http://localhost:8000/docs
+   - **Production Webpage:** [https://www.osuuj.ai](https://www.osuuj.ai)
 
 For detailed setup instructions, refer to component-specific documentation:
 - [ETL System Documentation](etl/README.md)
@@ -289,4 +292,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - The Finnish Patent and Registration Office (PRH) for providing open business data
 - The FastAPI, Next.js, and Python communities for their excellent documentation
 - AWS and Vercel for their robust cloud platforms
+- [osuuj.ai – Project Website](https://www.osuuj.ai)
 - All contributors who have helped shape this project 
