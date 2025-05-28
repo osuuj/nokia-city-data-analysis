@@ -66,6 +66,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Environment-specific Content Security Policy (CSP)
         environment = os.environ.get("ENVIRONMENT", "dev")
         is_docs_path = request.url.path.startswith("/docs")
+        is_health_check = request.url.path == "/api/health"
 
         # Set appropriate CSP based on environment
         if environment == "production" or environment == "staging":
@@ -111,8 +112,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                     "frame-src 'self' *"  # For dev tools
                 )
 
-        # HSTS tells browsers to only use HTTPS (only in production)
-        if request.url.scheme == "https":
+        # HSTS tells browsers to only use HTTPS (only in production and not for health check)
+        if request.url.scheme == "https" and not is_health_check:
             hsts_value = f"max-age={self.hsts_max_age}"
             if self.include_subdomains:
                 hsts_value += "; includeSubDomains"

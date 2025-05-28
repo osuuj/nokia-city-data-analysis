@@ -87,8 +87,23 @@ app.router.lifespan_context = lifespan
 # Configure middlewares (including security headers and rate limiting)
 setup_middlewares(app)
 
+# Set up CORS middleware
+if settings.BACKEND_CORS_ORIGINS:
+    logger.info(
+        f"Setting up CORS middleware with origins: {settings.BACKEND_CORS_ORIGINS}"
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS
+        ],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
-# Add HTTPS redirect middleware
+
+# Add HTTPS redirect middleware (must be last to run first)
 class SmartHTTPSRedirectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Handle HTTP to HTTPS redirection while preserving health check endpoint.
@@ -106,21 +121,6 @@ class SmartHTTPSRedirectMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SmartHTTPSRedirectMiddleware)
-
-# Set up CORS middleware
-if settings.BACKEND_CORS_ORIGINS:
-    logger.info(
-        f"Setting up CORS middleware with origins: {settings.BACKEND_CORS_ORIGINS}"
-    )
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
-            str(origin).strip("/") for origin in settings.BACKEND_CORS_ORIGINS
-        ],
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["*"],
-    )
 
 # Include routers (with rate limiting)
 app.include_router(
