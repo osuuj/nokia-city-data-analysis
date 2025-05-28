@@ -24,6 +24,7 @@ from prometheus_fastapi_instrumentator import (  # pyright: ignore[reportMissing
     Instrumentator,
 )
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
@@ -85,6 +86,26 @@ app.router.lifespan_context = lifespan
 
 # Configure middlewares (including security headers and rate limiting)
 setup_middlewares(app)
+
+
+# Add HTTPS redirect middleware
+class SmartHTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        """Handle HTTP to HTTPS redirection while preserving health check endpoint.
+
+        Args:
+            request (Request): The incoming HTTP request
+            call_next: The next middleware in the chain
+
+        Returns:
+            Response: Either a redirect response to HTTPS or the result of the next middleware
+        """
+        if request.url.scheme == "http" and request.url.path != "/api/health":
+            return RedirectResponse(url=str(request.url.replace(scheme="https")))
+        return await call_next(request)
+
+
+app.add_middleware(SmartHTTPSRedirectMiddleware)
 
 # Set up CORS middleware
 if settings.BACKEND_CORS_ORIGINS:
