@@ -25,6 +25,9 @@ from prometheus_fastapi_instrumentator import (  # pyright: ignore[reportMissing
 )
 from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.proxy_headers import (  # pyright: ignore[reportMissingImports]
+    ProxyHeadersMiddleware,
+)
 
 from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
@@ -60,6 +63,9 @@ app = FastAPI(
     description="API for managing company data from the Finnish Patent and Registration Office (PRH)",
     docs_url="/docs",  # Always enable docs for development, configure via env in production
 )
+
+# Add proxy headers middleware first to handle X-Forwarded-Proto from ALB
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Set up Prometheus metrics endpoint before any startup events
 instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
