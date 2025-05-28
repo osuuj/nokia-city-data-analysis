@@ -163,22 +163,17 @@ async def read_root(request: Request) -> Dict[str, str]:
     return {"message": f"Welcome to {settings.PROJECT_NAME}"}
 
 
-@app.get("/health")
-async def health_redirect():
-    """Redirect to the standardized health check endpoint.
-
-    This is kept for backward compatibility.
-    """
-    return RedirectResponse(url="/api/health")
-
-
 @app.get("/api/health")
-async def api_health_redirect():
-    """Redirect to the v1 health check endpoint.
-
-    This is kept for backward compatibility.
-    """
-    return RedirectResponse(url="/api/v1/health")
+@rate_limit_if_production(settings.RATE_LIMIT_HEALTH)
+async def api_health_check(request: Request) -> Dict[str, str]:
+    """Health check endpoint for load balancer (non-redirect)."""
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {"status": "unhealthy", "error": str(e)}
 
 
 @app.get("/ready")
