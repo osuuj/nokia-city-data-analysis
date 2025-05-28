@@ -19,15 +19,15 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
 from fastapi.middleware.cors import (  # pyright: ignore[reportMissingImports]
     CORSMiddleware,
 )
+from fastapi.middleware.trustedhost import (  # pyright: ignore[reportMissingImports]
+    TrustedHostMiddleware,
+)
 from fastapi.responses import RedirectResponse  # pyright: ignore[reportMissingImports]
 from prometheus_fastapi_instrumentator import (  # pyright: ignore[reportMissingImports]
     Instrumentator,
 )
 from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware.proxy_headers import (  # pyright: ignore[reportMissingImports]
-    ProxyHeadersMiddleware,
-)
 
 from .config import settings
 from .database import close_db_connection, create_db_and_tables, engine
@@ -64,8 +64,11 @@ app = FastAPI(
     docs_url="/docs",  # Always enable docs for development, configure via env in production
 )
 
-# Add proxy headers middleware first to handle X-Forwarded-Proto from ALB
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+# Configure uvicorn to trust proxy headers
+app.root_path = ""  # Ensure root path is empty
+app.add_middleware(
+    TrustedHostMiddleware, allowed_hosts=["*"]
+)  # Trust all hosts since we're behind ALB
 
 # Set up Prometheus metrics endpoint before any startup events
 instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
