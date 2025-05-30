@@ -168,7 +168,7 @@ jobs:
             "executionRoleArn": "$EXECUTION_ROLE_ARN",
             "taskRoleArn": "$TASK_ROLE_ARN",
             "networkMode": "awsvpc",
-            "memory": "1024",
+            "memory": "2048",
             "cpu": "512",
             "requiresCompatibilities": ["FARGATE"]
           }
@@ -215,7 +215,7 @@ jobs:
                 placementConstraints,
                 requiresCompatibilities,
                 cpu: "512",
-                memory: "1024"
+                memory: "2048"
               }
             | with_entries(select(.value != null))
           ' task-definition.json > updated-task-definition.json
