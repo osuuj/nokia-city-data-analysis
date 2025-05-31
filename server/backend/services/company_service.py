@@ -275,3 +275,136 @@ async def get_industries(db: AsyncSession) -> List[str]:
     except Exception as e:
         logger.error(f"Error fetching list of industry codes: {e}")
         raise
+
+
+async def get_business_data_by_city_keyset(
+    db: AsyncSession, city: str, last_id: Optional[str] = None, limit: int = 1000
+) -> List[BusinessData]:
+    """Keyset-based batch fetch for GeoJSON company data.
+
+    Args:
+        db: SQLAlchemy async database session
+        city: Name of the city to filter by
+        last_id: Last seen business_id for pagination
+        limit: Maximum number of records to return
+
+    Returns:
+        List of business data records
+    """
+    try:
+        # First, find all businesses that have an address in the target city
+        companies_with_address_in_city = (
+            select(Address.business_id)
+            .where(
+                and_(
+                    Address.city == city,
+                    Address.address_type.in_(["Postal address", "Visiting address"]),
+                    Address.business_id > (last_id or ""),  # Keyset logic
+                )
+            )
+            .distinct()
+            .order_by(Address.business_id)
+            .limit(limit)
+            .subquery()
+        )
+
+        # Now get all addresses for these businesses
+        stmt = (
+            select(
+                Address.business_id,
+                Address.street,
+                Address.building_number,
+                func.coalesce(Address.entrance, "").label("entrance"),
+                func.cast(Address.postal_code, String).label("postal_code"),
+                Address.city,
+                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
+                Address.address_type,
+                func.cast(Address.active, String).label("active"),
+                Company.company_name,
+                Company.company_type,
+                # Industry info
+                func.coalesce(
+                    select(IndustryClassification.industry_description)
+                    .where(IndustryClassification.business_id == Address.business_id)
+                    .order_by(IndustryClassification.registration_date.desc())
+                    .limit(1)
+                    .scalar_subquery(),
+                    "",
+                ).label("industry_description"),
+                func.coalesce(
+                    select(IndustryClassification.industry_letter)
+                    .where(IndustryClassification.business_id == Address.business_id)
+                    .order_by(IndustryClassification.registration_date.desc())
+                    .limit(1)
+                    .scalar_subquery(),
+                    "",
+                ).label("industry_letter"),
+                func.coalesce(
+                    select(IndustryClassification.industry)
+                    .where(IndustryClassification.business_id == Address.business_id)
+                    .order_by(IndustryClassification.registration_date.desc())
+                    .limit(1)
+                    .scalar_subquery(),
+                    "",
+                ).label("industry"),
+                func.coalesce(
+                    func.cast(
+                        select(IndustryClassification.registration_date)
+                        .where(
+                            IndustryClassification.business_id == Address.business_id
+                        )
+                        .order_by(IndustryClassification.registration_date.desc())
+                        .limit(1)
+                        .scalar_subquery(),
+                        String,
+                    ),
+                    "",
+                ).label("registration_date"),
+                # Website
+                func.coalesce(
+                    select(Website.website)
+                    .where(Website.business_id == Address.business_id)
+                    .order_by(Website.registration_date.desc())
+                    .limit(1)
+                    .scalar_subquery(),
+                    "",
+                ).label("website"),
+            )
+            .join(
+                companies_with_address_in_city,
+                Address.business_id == companies_with_address_in_city.c.business_id,
+            )
+            .join(Company, Address.business_id == Company.business_id)
+        )
+
+        result = await db.execute(stmt)
+        return [BusinessData(**row._mapping) for row in result]
+
+    except Exception as e:
+        logger.error(f"Error fetching business data for city {city}: {e}")
+        raise
+
+
+async def get_company_count_by_city(db: AsyncSession, city: str) -> int:
+    """Get total count of companies in a city.
+
+    Args:
+        db: SQLAlchemy async database session
+        city: Name of the city to count companies for
+
+    Returns:
+        Total number of companies in the city
+    """
+    try:
+        stmt = select(func.count(distinct(Address.business_id))).where(
+            and_(
+                Address.city == city,
+                Address.address_type.in_(["Postal address", "Visiting address"]),
+            )
+        )
+        result = await db.execute(stmt)
+        return result.scalar() or 0
+    except Exception as e:
+        logger.error(f"Error counting companies for city {city}: {e}")
+        raise
