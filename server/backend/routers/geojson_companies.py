@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Any, Dict, Optional
 
@@ -18,6 +19,9 @@ from ..services.company_service import (  # pyright: ignore[reportMissingImports
     get_company_count_by_city,
 )
 from ..services.geojson_service import create_geojson_feature_collection
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # Check if we're in production environment
 is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
@@ -78,6 +82,14 @@ async def get_companies_geojson(
         Dict[str, Any]: GeoJSON FeatureCollection with pagination metadata
     """
     try:
+        # Add detailed logging
+        logger.info(
+            f"[GeoJSON] Request parameters - city='{city}', last_id='{last_id}', limit={limit}"
+        )
+        logger.debug(
+            f"[GeoJSON] Parameter types - city type: {type(city)}, last_id type: {type(last_id)}"
+        )
+
         businesses = await get_business_data_by_city_keyset(db, city, last_id, limit)
 
         # Get total count only on the first page
@@ -86,15 +98,24 @@ async def get_companies_geojson(
         geojson = create_geojson_feature_collection(businesses)
 
         # Add pagination metadata
+        last_business_id = businesses[-1].business_id if businesses else None
+        has_more = len(businesses) == limit
+
+        logger.info(
+            f"[GeoJSON] Response metadata - total={total}, has_more={has_more}, last_id={last_business_id}"
+        )
+        logger.debug(f"[GeoJSON] Number of businesses returned: {len(businesses)}")
+
         geojson["metadata"] = {
             "total": total,
             "limit": limit,
-            "last_id": businesses[-1].business_id if businesses else None,
-            "has_more": len(businesses) == limit,
+            "last_id": last_business_id,
+            "has_more": has_more,
         }
 
         return geojson
     except Exception as e:
+        logger.error(f"[GeoJSON] Error generating GeoJSON for city='{city}': {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Error generating GeoJSON: {str(e)}"
         )

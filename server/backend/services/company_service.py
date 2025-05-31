@@ -6,7 +6,7 @@ This module provides services for retrieving and processing company data.
 import logging
 from typing import List, Optional
 
-from sqlalchemy import String, and_, distinct, func, select
+from sqlalchemy import Float, String, and_, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -57,8 +57,8 @@ async def get_business_data_by_city(db: AsyncSession, city: str) -> List[Busines
                 func.coalesce(Address.entrance, "").label("entrance"),
                 func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
-                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
+                func.cast(Address.latitude_wgs84, Float).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, Float).label("longitude_wgs84"),
                 Address.address_type,
                 func.cast(Address.active, String).label("active"),
                 Company.company_name,
@@ -168,8 +168,8 @@ async def get_companies_by_industry(
                 func.coalesce(Address.entrance, "").label("entrance"),
                 func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
-                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
+                func.cast(Address.latitude_wgs84, Float).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, Float).label("longitude_wgs84"),
                 Address.address_type,
                 func.cast(Address.active, String).label("active"),
                 Company.company_name,
@@ -292,6 +292,12 @@ async def get_business_data_by_city_keyset(
         List of business data records
     """
     try:
+        # Add debug logging
+        logger.info(
+            f"Fetching batch for city='{city}', last_id='{last_id}', limit={limit}"
+        )
+        logger.debug(f"City type: {type(city)}, Last ID type: {type(last_id)}")
+
         # First, find all businesses that have an address in the target city
         companies_with_address_in_city = (
             select(Address.business_id)
@@ -317,8 +323,8 @@ async def get_business_data_by_city_keyset(
                 func.coalesce(Address.entrance, "").label("entrance"),
                 func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
-                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
+                func.cast(Address.latitude_wgs84, Float).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, Float).label("longitude_wgs84"),
                 Address.address_type,
                 func.cast(Address.active, String).label("active"),
                 Company.company_name,
@@ -379,10 +385,19 @@ async def get_business_data_by_city_keyset(
         )
 
         result = await db.execute(stmt)
-        return [BusinessData(**row._mapping) for row in result]
+        businesses = [BusinessData(**row._mapping) for row in result]
+
+        # Log the number of results
+        logger.info(f"Found {len(businesses)} businesses for city='{city}'")
+        if businesses:
+            logger.debug(
+                f"First business ID: {businesses[0].business_id}, Last business ID: {businesses[-1].business_id}"
+            )
+
+        return businesses
 
     except Exception as e:
-        logger.error(f"Error fetching business data for city {city}: {e}")
+        logger.error(f"Error fetching business data for city '{city}': {e}")
         raise
 
 
