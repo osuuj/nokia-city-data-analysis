@@ -198,7 +198,7 @@ def load_data():
     """ETL process to load cleaned CSVs into the database."""
     try:
         logger.info(
-            f"Starting ETL load process with DATABASE_URL: {DATABASE_URL.replace(':'.join(DATABASE_URL.split(':')[2:]), ':*****@')}"
+            f"Starting ETL load process with database host: {os.getenv('POSTGRES_HOST')}, port: {os.getenv('POSTGRES_PORT')}, and database name: {os.getenv('POSTGRES_DB')}"
         )
 
         engine = create_engine(
