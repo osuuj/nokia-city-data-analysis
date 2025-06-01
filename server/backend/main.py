@@ -239,7 +239,7 @@ async def health_check(request: Request) -> Dict[str, str]:
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return {"status": "unhealthy", "error": str(e)}
+        return {"status": "unhealthy", "reason": "internal server error"}
 
 
 @app.get("/api/debug/swagger")
