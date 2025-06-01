@@ -190,8 +190,8 @@ async def api_health_check(request: Request) -> Dict[str, str]:
             await conn.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return {"status": "unhealthy", "error": str(e)}
+        logger.error(f"Health check failed: {e}", exc_info=True)
+        return {"status": "unhealthy", "error": "An internal error occurred"}
 
 
 @app.get("/ready")
@@ -213,9 +213,9 @@ async def readiness() -> Response:
             status_code=status.HTTP_200_OK,
         )
     except Exception as e:
-        logger.error(f"Readiness check failed: {e}")
+        logger.error(f"Readiness check failed: {e}", exc_info=True)
         return Response(
-            content='{"status":"not ready", "reason":"database error"}',
+            content='{"status":"not ready", "reason":"internal server error"}',
             media_type="application/json",
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
@@ -238,8 +238,8 @@ async def health_check(request: Request) -> Dict[str, str]:
             await conn.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return {"status": "unhealthy", "reason": "internal server error"}
+        logger.error(f"Health check failed: {e}", exc_info=True)
+        return {"status": "unhealthy", "reason": "An internal error occurred"}
 
 
 @app.get("/api/debug/swagger")
