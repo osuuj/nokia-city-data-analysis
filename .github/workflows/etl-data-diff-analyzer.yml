@@ -1,7 +1,9 @@
 name: Run Change Detection
 
+permissions:
+  contents: read
+
 on:
-  workflow_dispatch:
     inputs:
       PREV_SNAPSHOT_DATE:
         description: 'Previous snapshot date'
