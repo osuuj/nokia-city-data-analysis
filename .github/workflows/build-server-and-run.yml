@@ -1,6 +1,4 @@
 name: Deploy Server to AWS
-permissions:
-  contents: read
 
 on:
   workflow_dispatch:
