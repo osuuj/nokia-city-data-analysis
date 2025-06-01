@@ -1,5 +1,8 @@
 name: Load Data to DB
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
 
