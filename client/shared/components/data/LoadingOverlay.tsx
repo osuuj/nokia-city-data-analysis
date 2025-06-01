@@ -57,7 +57,7 @@ export function LoadingOverlay({
       aria-label="Loading overlay"
     >
       <div className="flex flex-col items-center gap-4 bg-background p-6 rounded-lg shadow-lg">
-        <LoadingSpinner size="lg" showText text={message} />
+        <LoadingSpinner size="lg" text={message} />
         {progress !== undefined && (
           <p className="text-sm text-default-600 dark:text-default-400">
             {Math.round(progress)}% loaded
