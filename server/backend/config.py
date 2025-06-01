@@ -134,7 +134,7 @@ class Settings(BaseSettings):
         # Build connection string WITHOUT sslmode in the URL
         # SSL will be configured at engine creation time
         result = f"postgresql+asyncpg://{username}:{password}@{host}:{port}/{db_name}"
-        logging.info(f"Built connection string: {result.replace(password, '********')}")
+        logging.info("Database connection string successfully built.")
         return result
 
 
