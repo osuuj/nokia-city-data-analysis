@@ -1,28 +1,24 @@
-"use client";
+'use client';
 
-import type { CompanyProperties } from "@/features/dashboard/types/business";
-import { logger } from "@/shared/utils/logger";
-import {
-  notifySystemError,
-  notifySystemWarning,
-} from "@/shared/utils/notifications";
-import { useQuery } from "@tanstack/react-query";
-import type { FeatureCollection, Point } from "geojson";
+import type { CompanyProperties } from '@/features/dashboard/types/business';
+import { logger } from '@/shared/utils/logger';
+import { notifySystemError, notifySystemWarning } from '@/shared/utils/notifications';
+import { useQuery } from '@tanstack/react-query';
+import type { FeatureCollection, Point } from 'geojson';
 
 // Smart default URL based on environment
-const isProd = process.env.NODE_ENV === "production";
-const PROD_DEFAULT = "https://api.osuuj.ai";
-const DEV_DEFAULT = "http://localhost:8000";
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
+const isProd = process.env.NODE_ENV === 'production';
+const PROD_DEFAULT = 'https://api.osuuj.ai';
+const DEV_DEFAULT = 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 
 // Log the actual API URL only in development
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === 'development') {
   logger.info(`API Base URL: ${BASE_URL}`);
 }
 
 // Fallback data in case API is down
-const FALLBACK_CITIES = ["Helsinki", "Tampere", "Oulu", "Turku", "Espoo"];
+const FALLBACK_CITIES = ['Helsinki', 'Tampere', 'Oulu', 'Turku', 'Espoo'];
 
 // Only use logger.error for critical issues. Debug/info logs are now globally suppressed unless debug mode is enabled.
 
@@ -35,33 +31,30 @@ const FALLBACK_CITIES = ["Helsinki", "Tampere", "Oulu", "Turku", "Espoo"];
  */
 const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
   if (!city) {
-    logger.warn("City is empty, skipping fetch.");
+    logger.warn('City is empty, skipping fetch.');
     return [];
   }
 
   // List of known large cities that might have performance issues
-  const largeCities = ["Helsinki", "Espoo", "Tampere", "Vantaa", "Oulu"];
+  const largeCities = ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Oulu'];
 
   // Warn about potential performance issues for large cities
   if (largeCities.includes(city)) {
     notifySystemWarning(
-      `Data fetching for ${city} might be slower due to the large number of companies.`
+      `Data fetching for ${city} might be slower due to the large number of companies.`,
     );
   }
 
-  // Try the original path first (might be the correct one in production)
-  const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(
-    city
-  )}`;
+  const apiUrl = `${BASE_URL}/api/v1/companies.geojson?city=${encodeURIComponent(city)}`;
 
   logger.info(`Fetching companies from: ${city} using URL: ${apiUrl}`);
 
   try {
     const response = await fetch(apiUrl, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      cache: "no-cache",
+      cache: 'no-cache',
       signal: AbortSignal.timeout(60000),
     });
 
@@ -72,40 +65,39 @@ const fetchCompanies = async (city: string): Promise<CompanyProperties[]> => {
       // Notify users about the error
       if (response.status === 504 || response.status === 408) {
         notifySystemError(
-          `Data fetching timeout for ${city}. The city might have too many companies to process.`
+          `Data fetching timeout for ${city}. The city might have too many companies to process.`,
         );
       } else {
-        notifySystemError(
-          `Unable to load company data for ${city}. Please try again later.`
-        );
+        notifySystemError(`Unable to load company data for ${city}. Please try again later.`);
       }
 
       throw new Error(errorMessage);
     }
 
-    const geojsonData = (await response.json()) as FeatureCollection<
-      Point,
-      CompanyProperties
-    >;
+    const geojsonData = (await response.json()) as FeatureCollection<Point, CompanyProperties>;
+
+    if (!geojsonData || !Array.isArray(geojsonData.features)) {
+      logger.error('Invalid GeoJSON response format');
+      return [];
+    }
+
     const companyCount = geojsonData.features.length;
 
     logger.info(`Successfully fetched ${companyCount} companies for ${city}`);
 
     // Notify if the result set is large
     if (companyCount > 1000) {
-      notifySystemWarning(
-        `${city} has ${companyCount} companies. Performance might be affected.`
-      );
+      notifySystemWarning(`${city} has ${companyCount} companies. Performance might be affected.`);
     }
 
     return geojsonData.features.map((feature) => feature.properties);
   } catch (error) {
-    logger.error("Error fetching companies:", error);
+    logger.error('Error fetching companies:', error);
 
     // Handle timeout errors specifically
-    if (error instanceof Error && error.name === "TimeoutError") {
+    if (error instanceof Error && error.name === 'TimeoutError') {
       notifySystemError(
-        `Request timeout while fetching data for ${city}. The dataset might be too large.`
+        `Request timeout while fetching data for ${city}. The dataset might be too large.`,
       );
     }
 
@@ -128,30 +120,26 @@ const fetchCities = async (): Promise<string[]> => {
   try {
     const response = await fetch(apiUrl, {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      cache: "no-cache",
+      cache: 'no-cache',
       signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
-      logger.error(
-        `Failed to fetch cities: Status ${response.status} - ${response.statusText}`
-      );
-      throw new Error(
-        `Failed to fetch cities: ${response.status} ${response.statusText}`
-      );
+      logger.error(`Failed to fetch cities: Status ${response.status} - ${response.statusText}`);
+      throw new Error(`Failed to fetch cities: ${response.status} ${response.statusText}`);
     }
 
     const cities = await response.json();
     logger.info(`Successfully fetched ${cities.length} cities`);
     return cities;
   } catch (error) {
-    logger.error("Error fetching cities:", error);
+    logger.error('Error fetching cities:', error);
 
     // Show more details about the error only in development
-    if (process.env.NODE_ENV === "development" && error instanceof Error) {
-      logger.debug("Error details:", {
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      logger.debug('Error details:', {
         name: error.name,
         message: error.message,
         stack: error.stack,
@@ -169,7 +157,7 @@ const fetchCities = async (): Promise<string[]> => {
  */
 export function useFetchCities() {
   return useQuery<string[], Error>({
-    queryKey: ["cities"],
+    queryKey: ['cities'],
     queryFn: fetchCities,
     staleTime: 1000 * 60 * 30, // Cache for 30 minutes
     refetchOnWindowFocus: false,
@@ -189,7 +177,7 @@ export function useFetchCities() {
  */
 export function useFetchCompanies(city: string) {
   return useQuery<CompanyProperties[], Error>({
-    queryKey: ["companies", city],
+    queryKey: ['companies', city],
     queryFn: () => fetchCompanies(city),
     enabled: !!city,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes

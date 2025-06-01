@@ -10,7 +10,7 @@ import type { CompanyProperties } from '../types/business';
 interface GeoJSONResponse {
   type: 'FeatureCollection';
   features: Feature<Point, CompanyProperties>[];
-  metadata: {
+  metadata?: {
     total?: number;
     limit: number;
     last_id?: string;
@@ -35,7 +35,7 @@ export async function fetchCompanyPatches(
   let totalCompanies = 0;
   const processedCompanies = new Set<string>(); // Track unique companies processed
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   while (hasMore) {
     const url: string = `${baseUrl}/api/v1/companies.geojson?city=${encodeURIComponent(city)}&limit=1000${lastId ? `&last_id=${lastId}` : ''}`;
@@ -43,9 +43,9 @@ export async function fetchCompanyPatches(
     if (!res.ok) throw new Error(`Failed to fetch companies for ${city}: ${res.statusText}`);
     const data: GeoJSONResponse = await res.json();
 
-    // Get total count from first batch
-    if (lastId === undefined && data.metadata.total) {
-      totalCompanies = data.metadata.total;
+    // Get total count from first batch or use features length as fallback
+    if (lastId === undefined) {
+      totalCompanies = data.metadata?.total || data.features.length;
       logger.info(`Total companies to fetch for ${city}: ${totalCompanies}`);
     }
 
@@ -87,8 +87,8 @@ export async function fetchCompanyPatches(
       }
     }
 
-    lastId = data.metadata.last_id;
-    hasMore = data.metadata.has_more;
+    lastId = data.metadata?.last_id;
+    hasMore = data.metadata?.has_more || false;
 
     // Report progress based on unique companies processed
     if (onProgress) {
@@ -102,14 +102,8 @@ export async function fetchCompanyPatches(
 
     // Only log progress at 25%, 50%, 75%, and 100%
     const progress = (processedCompanies.size / totalCompanies) * 100;
-    if (progress >= 25 && progress < 30) {
-      logger.info(`Progress for ${city}: 25% complete`);
-    } else if (progress >= 50 && progress < 55) {
-      logger.info(`Progress for ${city}: 50% complete`);
-    } else if (progress >= 75 && progress < 80) {
-      logger.info(`Progress for ${city}: 75% complete`);
-    } else if (!hasMore) {
-      logger.info(`Progress for ${city}: 100% complete`);
+    if (progress % 25 < 1) {
+      logger.info(`Progress for ${city}: ${Math.round(progress)}%`);
     }
   }
 
