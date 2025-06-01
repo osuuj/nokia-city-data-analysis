@@ -5,7 +5,6 @@ and the creation of database tables.
 """
 
 import logging
-import os
 import ssl
 from typing import Any, AsyncGenerator, Dict
 
@@ -32,15 +31,17 @@ logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 connect_args: Dict[str, Any] = {}
 
 # ✅ Secure and flexible SSL handling
-if settings.DB_SSL_MODE == "disable" or os.environ.get("PGSSLMODE") == "disable":
-    connect_args["ssl"] = False
-    logger.info("SSL disabled for database connection")
-elif settings.ENVIRONMENT == "production" or settings.DB_SSL_MODE == "require":
+if settings.ENVIRONMENT == "production":
+    # Production: Use strict SSL
     ssl_ctx = ssl.create_default_context()
-    ssl_ctx.check_hostname = False
-    ssl_ctx.verify_mode = ssl.CERT_NONE
+    ssl_ctx.check_hostname = True
+    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
     connect_args["ssl"] = ssl_ctx
-    logger.info("SSL enabled with CERT_NONE")
+    logger.info("SSL enabled with CERT_REQUIRED for production")
+else:
+    # Development: Disable SSL completely
+    connect_args["ssl"] = False
+    logger.info("SSL disabled for development environment")
 
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 

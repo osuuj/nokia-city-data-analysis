@@ -28,17 +28,22 @@ export interface LoadingOverlayProps {
    * @default 50
    */
   zIndex?: number;
+  /**
+   * The progress value (0-100)
+   */
+  progress?: number;
 }
 
 /**
  * LoadingOverlay component
- * A full-screen overlay with a loading spinner and message
+ * A full-screen overlay with a loading spinner and optional progress
  */
 export function LoadingOverlay({
   visible = true,
   message = 'Loading...',
   className,
   zIndex = 50,
+  progress,
 }: LoadingOverlayProps) {
   if (!visible) return null;
 
@@ -51,7 +56,14 @@ export function LoadingOverlay({
       style={{ zIndex }}
       aria-label="Loading overlay"
     >
-      <LoadingSpinner size="lg" showText text={message} />
+      <div className="flex flex-col items-center gap-4 bg-background p-6 rounded-lg shadow-lg">
+        <LoadingSpinner size="lg" text={message} />
+        {progress !== undefined && (
+          <p className="text-sm text-default-600 dark:text-default-400">
+            {Math.round(progress)}% loaded
+          </p>
+        )}
+      </div>
     </output>
   );
 }

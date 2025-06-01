@@ -11,6 +11,7 @@ import { create } from 'zustand';
  * - Table column visibility
  * - Industry filters
  * - Location-based filtering
+ * - Patch-based company loading
  */
 interface CompanyStore {
   // Core selection
@@ -27,6 +28,10 @@ interface CompanyStore {
   distanceLimit: number | null;
   useLocation: boolean;
 
+  // Company data
+  companies: CompanyProperties[];
+  companiesLoaded: boolean;
+
   // Actions
   setSelectedCity: (city: string) => void;
   setSelectedKeys: (keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]) => void;
@@ -40,6 +45,11 @@ interface CompanyStore {
   setUserLocation: (coords: { latitude: number; longitude: number } | null) => void;
   setDistanceLimit: (value: number | null) => void;
   setUseLocation: (value: boolean) => void;
+
+  // Company patch loading
+  setCompanies: (companies: CompanyProperties[]) => void;
+  appendCompanies: (newCompanies: CompanyProperties[]) => void;
+  resetCompanies: () => void;
 }
 
 // Initially visible columns from configuration
@@ -60,10 +70,13 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   distanceLimit: null,
   useLocation: false,
 
-  // City selection
+  // Company data
+  companies: [],
+  companiesLoaded: false,
+
+  // Selection actions
   setSelectedCity: (city: string) => set({ selectedCity: city }),
 
-  // Row selection
   setSelectedKeys: (keys: Set<string> | 'all', allFilteredData?: CompanyProperties[]) =>
     set((state) => {
       if (keys === 'all' && allFilteredData) {
@@ -88,7 +101,11 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedRows: newRows, selectedKeys: newKeys };
     }),
 
-  clearSelection: () => set((_state) => ({ selectedRows: {}, selectedKeys: new Set<string>() })),
+  clearSelection: () =>
+    set((_state) => ({
+      selectedRows: {},
+      selectedKeys: new Set<string>(),
+    })),
 
   // Column visibility
   toggleColumnVisibility: (key: CompanyTableKey) =>
@@ -108,10 +125,16 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { visibleColumns: updatedColumns };
     }),
 
-  resetColumns: () => set((_state) => ({ visibleColumns: initialVisibleColumns })),
+  resetColumns: () =>
+    set((_state) => ({
+      visibleColumns: initialVisibleColumns,
+    })),
 
   // Industry filtering
-  setSelectedIndustries: (values: string[]) => set((_state) => ({ selectedIndustries: values })),
+  setSelectedIndustries: (values: string[]) =>
+    set((_state) => ({
+      selectedIndustries: values,
+    })),
 
   toggleIndustry: (industry: string) =>
     set((state) => {
@@ -122,10 +145,31 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
       return { selectedIndustries: updated };
     }),
 
-  clearIndustries: () => set((_state) => ({ selectedIndustries: [] })),
+  clearIndustries: () =>
+    set((_state) => ({
+      selectedIndustries: [],
+    })),
 
   // Location filters
   setUserLocation: (coords) => set((_state) => ({ userLocation: coords })),
   setDistanceLimit: (value) => set((_state) => ({ distanceLimit: value })),
   setUseLocation: (value) => set((_state) => ({ useLocation: value })),
+
+  // Company patch loading
+  setCompanies: (companies) =>
+    set(() => ({
+      companies,
+      companiesLoaded: true,
+    })),
+
+  appendCompanies: (newCompanies) =>
+    set((state) => ({
+      companies: [...state.companies, ...newCompanies],
+    })),
+
+  resetCompanies: () =>
+    set(() => ({
+      companies: [],
+      companiesLoaded: false,
+    })),
 }));

@@ -24,6 +24,7 @@ export interface ViewSwitcherProps {
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
   isLoading: boolean;
+  progress?: number;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   sortDescriptor: SortDescriptor;
@@ -69,6 +70,7 @@ function ViewSwitcherBase({
   onPageChange,
   onPageSizeChange,
   isLoading,
+  progress,
   searchTerm,
   setSearchTerm,
   sortDescriptor,
@@ -91,6 +93,7 @@ function ViewSwitcherBase({
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
         isLoading={isLoading}
+        progress={progress}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
@@ -108,6 +111,7 @@ function ViewSwitcherBase({
       onPageChange,
       onPageSizeChange,
       isLoading,
+      progress,
       searchTerm,
       setSearchTerm,
       sortDescriptor,
@@ -128,11 +132,12 @@ function ViewSwitcherBase({
             geojson={geojson ?? { type: 'FeatureCollection', features: [] }}
             selectedBusinesses={selectedBusinesses}
             isLoading={isLoading}
+            progress={progress}
           />
         </Suspense>
       </FeatureErrorBoundary>
     ),
-    [geojson, selectedBusinesses, isLoading],
+    [geojson, selectedBusinesses, isLoading, progress],
   );
 
   // Memoize the analytics view with better error handling

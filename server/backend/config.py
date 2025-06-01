@@ -32,7 +32,9 @@ class Settings(BaseSettings):
         "DATABASE_NAME", os.getenv("POSTGRES_DB", "nokia_city_data")
     )
     DATABASE_URL: Optional[PostgresDsn] = None
-    DB_SSL_MODE: str = os.getenv("DB_SSL_MODE", "require")  # Use "require" in prod
+    DB_SSL_MODE: str = os.getenv(
+        "DB_SSL_MODE", "disable"
+    )  # Use "require" in prod, "disable" in dev
 
     DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))
     DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))

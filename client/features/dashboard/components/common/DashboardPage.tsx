@@ -4,7 +4,8 @@ import { DashboardHeader } from '@/features/dashboard/components/common/controls
 import { ViewSwitcher } from '@/features/dashboard/components/common/controls/Toggles/ViewSwitcher';
 import { DashboardLoadingState } from '@/features/dashboard/components/common/loading/DashboardLoadingState';
 import { columns as allColumns } from '@/features/dashboard/config/columns';
-import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { useFetchCities } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { useCompaniesByCity } from '@/features/dashboard/hooks/useCompaniesQueryPatches';
 import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
 import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useFilteredBusinesses } from '@/features/dashboard/hooks/useFilteredBusinesses';
@@ -14,7 +15,6 @@ import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { ErrorDisplay, FeatureErrorBoundary } from '@/shared/components/error';
-import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -85,10 +85,17 @@ export function DashboardPage() {
   // Fetch cities and companies using React Query
   const { data: cities = [], isLoading: cityLoading, error: cityError } = useFetchCities();
   const {
-    data: companies = [],
+    data: companyFeatures = [],
     isLoading: isFetching,
     error: companyError,
-  } = useFetchCompanies(selectedCity);
+    fetchProgress,
+  } = useCompaniesByCity(selectedCity);
+
+  // Extract company properties from features
+  const companies = useMemo(
+    () => companyFeatures.map((feature) => feature.properties),
+    [companyFeatures],
+  );
 
   // Use loading hook to centralize loading states
   const { isAnySectionLoading } = useDashboardLoading({
@@ -165,7 +172,7 @@ export function DashboardPage() {
       .filter(Boolean);
   }, [selectedKeys, selectedRows]);
 
-  // Show loading overlay only during initial data fetch
+  // Show loading state for initial data fetch
   const isInitialLoading = cityLoading && cities.length === 0;
 
   // Check if we have data loading errors
@@ -179,6 +186,13 @@ export function DashboardPage() {
       router.replace('/dashboard?city=Helsinki');
     }
   }, [cities, cityLoading, router, selectedCity, setSelectedCity]);
+
+  // Calculate loading progress
+  const loadingProgress = useMemo(() => {
+    if (!isAnySectionLoading) return 100;
+    if (cityLoading) return 0;
+    return fetchProgress;
+  }, [isAnySectionLoading, cityLoading, fetchProgress]);
 
   // Memoize header component to prevent re-renders
   const dashboardHeader = useMemo(
@@ -207,6 +221,7 @@ export function DashboardPage() {
         totalPages={totalPages}
         onPageChange={handlePageChange}
         isLoading={isAnySectionLoading}
+        progress={loadingProgress}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
@@ -228,13 +243,14 @@ export function DashboardPage() {
       searchTerm,
       sortDescriptor,
       pageSize,
+      loadingProgress,
     ],
   );
 
   return (
     <div className="flex w-full flex-col h-full">
-      {/* Show loading overlay for initial data fetch */}
-      {isInitialLoading && <LoadingOverlay />}
+      {/* Show loading state for initial data fetch */}
+      {isInitialLoading && <DashboardLoadingState />}
 
       {/* Error view when city or company data fails to load */}
       {hasDataErrors && !isInitialLoading ? (

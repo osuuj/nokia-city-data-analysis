@@ -44,6 +44,11 @@ interface TableViewProps {
   sortDescriptor: SortDescriptor;
   setSortDescriptor: Dispatch<SetStateAction<SortDescriptor>>;
   pageSize: number;
+  /**
+   * Loading progress percentage (0-100)
+   * @default 0
+   */
+  progress?: number;
 }
 
 /**
@@ -65,6 +70,7 @@ export function TableView({
   sortDescriptor,
   setSortDescriptor,
   pageSize,
+  progress,
 }: TableViewProps) {
   // Access store values with specific selectors to prevent unnecessary re-renders
   const selectedKeys = useCompanyStore((state) => state.selectedKeys);
@@ -217,10 +223,7 @@ export function TableView({
           ))}
         </TableHeader>
 
-        <TableBody
-          emptyContent={isLoading ? 'Loading...' : 'No companies found'}
-          isLoading={isLoading}
-        >
+        <TableBody emptyContent={isLoading ? 'Loading...' : 'No companies found'} isLoading={false}>
           {data.map((item) => (
             <TableRow key={item.business_id}>
               {displayColumns.map((column: TableColumnConfig) => (
@@ -246,11 +249,16 @@ export function TableView({
   // Show loading state when data is being fetched
   if (isLoading || !data) {
     return (
-      <div className="w-full">
+      <div className="relative w-full">
         <MemoizedTableToolbar {...toolbarProps} />
         <div className="relative min-h-[400px] flex items-center justify-center bg-default-50/50">
           <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" color="primary" />
+            <div className="relative">
+              <Spinner size="lg" color="primary" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">{progress ?? 0}%</span>
+              </div>
+            </div>
             <p className="text-default-500">Loading company data...</p>
           </div>
         </div>

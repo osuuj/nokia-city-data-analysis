@@ -124,8 +124,17 @@ class SmartHTTPSRedirectMiddleware(BaseHTTPMiddleware):
         Returns:
             Response: Either a redirect response to HTTPS or the result of the next middleware
         """
-        if request.url.scheme == "http" and request.url.path != "/api/health":
+        # Skip redirect for health checks and API endpoints
+        if request.url.path.startswith("/api/") or request.url.path == "/health":
+            return await call_next(request)
+
+        # Only redirect if we're in production and the request is HTTP
+        if (
+            os.environ.get("ENVIRONMENT", "dev") == "production"
+            and request.url.scheme == "http"
+        ):
             return RedirectResponse(url=str(request.url.replace(scheme="https")))
+
         return await call_next(request)
 
 

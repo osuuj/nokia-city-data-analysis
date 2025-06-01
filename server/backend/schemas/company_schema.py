@@ -117,8 +117,8 @@ class BusinessData(BaseModel):
     entrance: Optional[str] = None
     postal_code: Optional[str] = None
     city: Optional[str] = None
-    latitude_wgs84: Optional[str] = None
-    longitude_wgs84: Optional[str] = None
+    latitude_wgs84: float
+    longitude_wgs84: float
     address_type: Optional[str] = None
     active: Optional[str] = None
     company_name: Optional[str] = None
