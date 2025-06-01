@@ -5,7 +5,7 @@ and the creation of database tables.
 """
 
 import logging
-import os
+import ssl
 from typing import Any, AsyncGenerator, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -30,18 +30,18 @@ logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 # Configure SSL for PostgreSQL with asyncpg
 connect_args: Dict[str, Any] = {}
 
-# Get SSL mode from environment variables
-ssl_mode = os.getenv("DB_SSL_MODE", "require").lower()
-logger.info(f"Using SSL mode: {ssl_mode}")
-
-if ssl_mode == "require":
-    # Use SSL but don't verify certificate (recommended for RDS)
-    connect_args["ssl"] = True
-    logger.info("SSL enabled without certificate verification")
+# ✅ Secure and flexible SSL handling
+if settings.ENVIRONMENT == "production":
+    # Production: Use strict SSL
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = True
+    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+    connect_args["ssl"] = ssl_ctx
+    logger.info("SSL enabled with CERT_REQUIRED for production")
 else:
     # Development: Disable SSL completely
     connect_args["ssl"] = False
-    logger.info("SSL disabled")
+    logger.info("SSL disabled for development environment")
 
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 
