@@ -42,7 +42,6 @@ services:
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
     volumes:
       - ./server:/app/server
-      - ./server/certs:/app/certs
     command: uvicorn server.backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
