@@ -3,6 +3,9 @@ name: Run ETL Pipeline
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   etl-pipeline:
     runs-on: ubuntu-latest
