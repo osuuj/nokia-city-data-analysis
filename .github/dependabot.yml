@@ -5,14 +5,58 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/client"
+  # Server - Production dependencies
+  - package-ecosystem: "pip"
+    directory: "/server"
     schedule:
       interval: "weekly"
+    requirements-file: "requirements.txt"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
     groups:
-      all-dependencies:
+      server-prod:
+        patterns:
+          - "*"
+
+  # Server - Development dependencies
+  - package-ecosystem: "pip"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    requirements-file: "requirements-dev.txt"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(dev-deps)"
+    groups:
+      server-dev:
+        patterns:
+          - "*"
+
+  # ETL - Production dependencies
+  - package-ecosystem: "pip"
+    directory: "/etl"
+    schedule:
+      interval: "weekly"
+    requirements-file: "requirements.txt"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      etl-prod:
+        patterns:
+          - "*"
+
+  # ETL - Development dependencies
+  - package-ecosystem: "pip"
+    directory: "/etl"
+    schedule:
+      interval: "weekly"
+    requirements-file: "requirements-dev.txt"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(dev-deps)"
+    groups:
+      etl-dev:
         patterns:
           - "*"
