@@ -69,42 +69,32 @@ async def get_companies_geojson(
     ),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Return business data as a GeoJSON FeatureCollection with pagination support.
-
-    Args:
-        request: The incoming HTTP request object.
-        city: City name to filter by
-        last_id: Last seen business_id for pagination
-        limit: Number of records to return per batch
-        db: Database session
-
-    Returns:
-        Dict[str, Any]: GeoJSON FeatureCollection with pagination metadata
-    """
+    """Return business data as a GeoJSON FeatureCollection with pagination support."""
     try:
-        # Add detailed logging
         logger.info(
             f"[GeoJSON] Request parameters - city='{city}', last_id='{last_id}', limit={limit}"
-        )
-        logger.debug(
-            f"[GeoJSON] Parameter types - city type: {type(city)}, last_id type: {type(last_id)}"
         )
 
         businesses = await get_business_data_by_city_keyset(db, city, last_id, limit)
 
-        # Get total count only on the first page
         total = await get_company_count_by_city(db, city) if last_id is None else None
-
         geojson = create_geojson_feature_collection(businesses)
 
-        # Add pagination metadata
-        last_business_id = businesses[-1].business_id if businesses else None
-        has_more = len(businesses) == limit
-
-        logger.info(
-            f"[GeoJSON] Response metadata - total={total}, has_more={has_more}, last_id={last_business_id}"
+        last_business_id = (
+            next(
+                (
+                    row.business_id
+                    for row in reversed(businesses)
+                    if row.business_id is not None
+                ),
+                None,
+            )
+            if businesses
+            else None
         )
-        logger.debug(f"[GeoJSON] Number of businesses returned: {len(businesses)}")
+
+        # Better: don't rely on total row count — use presence of last ID
+        has_more = last_business_id is not None and len(businesses) > 0
 
         geojson["metadata"] = {
             "total": total,
@@ -113,7 +103,11 @@ async def get_companies_geojson(
             "has_more": has_more,
         }
 
+        logger.info(
+            f"[GeoJSON] Response metadata - total={total}, has_more={has_more}, last_id={last_business_id}"
+        )
         return geojson
+
     except Exception as e:
         logger.error(f"[GeoJSON] Error generating GeoJSON for city='{city}': {str(e)}")
         raise HTTPException(

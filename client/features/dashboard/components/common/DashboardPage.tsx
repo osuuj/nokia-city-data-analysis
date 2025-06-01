@@ -4,7 +4,8 @@ import { DashboardHeader } from '@/features/dashboard/components/common/controls
 import { ViewSwitcher } from '@/features/dashboard/components/common/controls/Toggles/ViewSwitcher';
 import { DashboardLoadingState } from '@/features/dashboard/components/common/loading/DashboardLoadingState';
 import { columns as allColumns } from '@/features/dashboard/config/columns';
-import { useFetchCities, useFetchCompanies } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { useFetchCities } from '@/features/dashboard/hooks/useCompaniesQuery';
+import { useCompaniesByCity } from '@/features/dashboard/hooks/useCompaniesQueryPatches';
 import { useDashboardLoading } from '@/features/dashboard/hooks/useDashboardLoading';
 import { useDashboardPagination } from '@/features/dashboard/hooks/useDashboardPagination';
 import { useFilteredBusinesses } from '@/features/dashboard/hooks/useFilteredBusinesses';
@@ -85,10 +86,16 @@ export function DashboardPage() {
   // Fetch cities and companies using React Query
   const { data: cities = [], isLoading: cityLoading, error: cityError } = useFetchCities();
   const {
-    data: companies = [],
+    data: companyFeatures = [],
     isLoading: isFetching,
     error: companyError,
-  } = useFetchCompanies(selectedCity);
+  } = useCompaniesByCity(selectedCity);
+
+  // Extract company properties from features
+  const companies = useMemo(
+    () => companyFeatures.map((feature) => feature.properties),
+    [companyFeatures],
+  );
 
   // Use loading hook to centralize loading states
   const { isAnySectionLoading } = useDashboardLoading({

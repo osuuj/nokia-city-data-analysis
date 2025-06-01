@@ -280,41 +280,28 @@ async def get_industries(db: AsyncSession) -> List[str]:
 async def get_business_data_by_city_keyset(
     db: AsyncSession, city: str, last_id: Optional[str] = None, limit: int = 1000
 ) -> List[BusinessData]:
-    """Keyset-based batch fetch for GeoJSON company data.
-
-    Args:
-        db: SQLAlchemy async database session
-        city: Name of the city to filter by
-        last_id: Last seen business_id for pagination
-        limit: Maximum number of records to return
-
-    Returns:
-        List of business data records
-    """
+    """Keyset-based batch fetch for GeoJSON company data, paginated by business_id."""
     try:
-        # Add debug logging
-        logger.info(
-            f"Fetching batch for city='{city}', last_id='{last_id}', limit={limit}"
-        )
-        logger.debug(f"City type: {type(city)}, Last ID type: {type(last_id)}")
-
-        # First, find all businesses that have an address in the target city
-        companies_with_address_in_city = (
-            select(Address.business_id)
+        # Step 1: Fetch unique business_ids for pagination
+        business_id_rows = await db.execute(
+            select(distinct(Company.business_id))
+            .join(Address, Company.business_id == Address.business_id)
             .where(
                 and_(
                     Address.city == city,
                     Address.address_type.in_(["Postal address", "Visiting address"]),
-                    Address.business_id > (last_id or ""),  # Keyset logic
+                    Company.business_id > (last_id or ""),
                 )
             )
-            .distinct()
-            .order_by(Address.business_id)
+            .order_by(Company.business_id)
             .limit(limit)
-            .subquery()
         )
+        business_ids = business_id_rows.scalars().all()
 
-        # Now get all addresses for these businesses
+        if not business_ids:
+            return []
+
+        # Step 2: Fetch all address rows for the selected business_ids
         stmt = (
             select(
                 Address.business_id,
@@ -329,7 +316,6 @@ async def get_business_data_by_city_keyset(
                 func.cast(Address.active, String).label("active"),
                 Company.company_name,
                 Company.company_type,
-                # Industry info
                 func.coalesce(
                     select(IndustryClassification.industry_description)
                     .where(IndustryClassification.business_id == Address.business_id)
@@ -367,7 +353,6 @@ async def get_business_data_by_city_keyset(
                     ),
                     "",
                 ).label("registration_date"),
-                # Website
                 func.coalesce(
                     select(Website.website)
                     .where(Website.business_id == Address.business_id)
@@ -377,27 +362,20 @@ async def get_business_data_by_city_keyset(
                     "",
                 ).label("website"),
             )
-            .join(
-                companies_with_address_in_city,
-                Address.business_id == companies_with_address_in_city.c.business_id,
-            )
             .join(Company, Address.business_id == Company.business_id)
+            .where(Address.business_id.in_(business_ids))
         )
 
         result = await db.execute(stmt)
         businesses = [BusinessData(**row._mapping) for row in result]
 
-        # Log the number of results
-        logger.info(f"Found {len(businesses)} businesses for city='{city}'")
-        if businesses:
-            logger.debug(
-                f"First business ID: {businesses[0].business_id}, Last business ID: {businesses[-1].business_id}"
-            )
-
+        logger.info(
+            f"Fetched {len(businesses)} address rows for {len(business_ids)} businesses"
+        )
         return businesses
 
     except Exception as e:
-        logger.error(f"Error fetching business data for city '{city}': {e}")
+        logger.error(f"Error fetching business data by keyset: {e}")
         raise
 
 
