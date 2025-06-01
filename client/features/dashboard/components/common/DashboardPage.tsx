@@ -15,7 +15,6 @@ import type { SortDescriptor } from '@/features/dashboard/types/table';
 import type { ViewMode } from '@/features/dashboard/types/view';
 import { transformCompanyGeoJSON } from '@/features/dashboard/utils/geo';
 import { ErrorDisplay, FeatureErrorBoundary } from '@/shared/components/error';
-import { LoadingOverlay } from '@/shared/components/loading/LoadingOverlay';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -89,6 +88,7 @@ export function DashboardPage() {
     data: companyFeatures = [],
     isLoading: isFetching,
     error: companyError,
+    fetchProgress,
   } = useCompaniesByCity(selectedCity);
 
   // Extract company properties from features
@@ -172,7 +172,7 @@ export function DashboardPage() {
       .filter(Boolean);
   }, [selectedKeys, selectedRows]);
 
-  // Show loading overlay only during initial data fetch
+  // Show loading state for initial data fetch
   const isInitialLoading = cityLoading && cities.length === 0;
 
   // Check if we have data loading errors
@@ -186,6 +186,13 @@ export function DashboardPage() {
       router.replace('/dashboard?city=Helsinki');
     }
   }, [cities, cityLoading, router, selectedCity, setSelectedCity]);
+
+  // Calculate loading progress
+  const loadingProgress = useMemo(() => {
+    if (!isAnySectionLoading) return 100;
+    if (cityLoading) return 0;
+    return fetchProgress;
+  }, [isAnySectionLoading, cityLoading, fetchProgress]);
 
   // Memoize header component to prevent re-renders
   const dashboardHeader = useMemo(
@@ -214,6 +221,7 @@ export function DashboardPage() {
         totalPages={totalPages}
         onPageChange={handlePageChange}
         isLoading={isAnySectionLoading}
+        progress={loadingProgress}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         sortDescriptor={sortDescriptor}
@@ -235,13 +243,14 @@ export function DashboardPage() {
       searchTerm,
       sortDescriptor,
       pageSize,
+      loadingProgress,
     ],
   );
 
   return (
     <div className="flex w-full flex-col h-full">
-      {/* Show loading overlay for initial data fetch */}
-      {isInitialLoading && <LoadingOverlay />}
+      {/* Show loading state for initial data fetch */}
+      {isInitialLoading && <DashboardLoadingState />}
 
       {/* Error view when city or company data fails to load */}
       {hasDataErrors && !isInitialLoading ? (
