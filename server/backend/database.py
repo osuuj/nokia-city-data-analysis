@@ -6,6 +6,7 @@ and the creation of database tables.
 
 import logging
 import ssl
+from pathlib import Path
 from typing import Any, AsyncGenerator, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -32,12 +33,37 @@ connect_args: Dict[str, Any] = {}
 
 # ✅ Secure and flexible SSL handling
 if settings.ENVIRONMENT == "production":
-    # Production: Use strict SSL
+    # Production: Use strict SSL with RDS certificate
     ssl_ctx = ssl.create_default_context()
     ssl_ctx.check_hostname = True
     ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+
+    # Try different paths for the RDS certificate
+    cert_paths = [
+        Path("/app/certs/rds-ca.pem"),  # Docker container path
+        Path("server/certs/rds-ca.pem"),  # Local development path
+        Path(__file__).parent.parent.parent
+        / "certs"
+        / "rds-ca.pem",  # Relative to this file
+    ]
+
+    # Find the first valid certificate path
+    cert_path = None
+    for path in cert_paths:
+        if path.exists():
+            cert_path = path
+            break
+
+    if cert_path:
+        ssl_ctx.load_verify_locations(cafile=str(cert_path))
+        logger.info(f"SSL enabled with CERT_REQUIRED using certificate at {cert_path}")
+    else:
+        logger.warning("RDS certificate not found in any of the expected locations")
+        logger.warning(f"Searched paths: {[str(p) for p in cert_paths]}")
+        # Fall back to system certificates
+        logger.info("Falling back to system certificates")
+
     connect_args["ssl"] = ssl_ctx
-    logger.info("SSL enabled with CERT_REQUIRED for production")
 else:
     # Development: Disable SSL completely
     connect_args["ssl"] = False
