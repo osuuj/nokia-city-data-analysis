@@ -12,14 +12,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/docker-entrypoint-initdb.d
     healthcheck:
-
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
-
       interval: 10s
       timeout: 5s
       retries: 5
   server:
-    # Build directly in compose for simplicity
     image: fastapi-dev
     build:
       context: .
@@ -33,9 +30,9 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
-      POSTGRES_HOST: db
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_HOST: ${POSTGRES_HOST:-db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -45,7 +42,6 @@ services:
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
     volumes:
       - ./server:/app/server
-    # Override command to enable hot-reload with mounted code
     command: uvicorn server.backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:

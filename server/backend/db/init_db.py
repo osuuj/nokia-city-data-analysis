@@ -69,6 +69,10 @@ async def init_db(engine: AsyncEngine) -> None:
 
         # Execute each SQL statement separately
         async with engine.begin() as conn:
+            # Test connection first
+            await conn.execute(text("SELECT 1"))
+            logger.info("Database connection test successful")
+
             for statement in sql_statements:
                 if statement.strip():  # Skip empty statements
                     await conn.execute(text(statement))

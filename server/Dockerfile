@@ -9,16 +9,16 @@ LABEL build_date=$BUILD_DATE
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    python3-dev \
-    ca-certificates \
-    openssl \
-    && python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --upgrade pip \
-    && /opt/venv/bin/pip install -r requirements.txt \
-    && apt-get purge -y --auto-remove gcc \
-    && rm -rf /root/.cache /var/lib/apt/lists/*
+  gcc \
+  libpq-dev \
+  python3-dev \
+  ca-certificates \
+  openssl \
+  && python -m venv /opt/venv \
+  && /opt/venv/bin/pip install --upgrade pip \
+  && /opt/venv/bin/pip install -r requirements.txt \
+  && apt-get purge -y --auto-remove gcc \
+  && rm -rf /root/.cache /var/lib/apt/lists/*
 
 # Stage 2: Final runtime
 FROM python:3.12-slim-bookworm
@@ -28,17 +28,28 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    libpq5 \
-    openssl \
-    curl \
-    postgresql-client \
-    jq \
-    && update-ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && adduser --disabled-password --gecos "" appuser
+# Install runtime dependencies & add Amazon RDS root CA
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  ca-certificates \
+  libpq5 \
+  openssl \
+  wget \
+  curl \
+  postgresql-client \
+  jq \
+  \
+  # Download the Amazon “global” RDS root CA bundle into the system CA path
+  && mkdir -p /usr/local/share/ca-certificates/rds \
+  && wget \
+  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  -O /usr/local/share/ca-certificates/rds/rds-global-bundle.crt \
+  \
+  # Merge new CA into /etc/ssl/certs/ca-certificates.crt
+  && update-ca-certificates \
+  \
+  && rm -rf /var/lib/apt/lists/* \
+  && adduser --disabled-password --gecos "" appuser
 
 # Copy all application files
 COPY ./backend /app/server/backend
@@ -83,25 +94,25 @@ exec "$@"
 EOF
 
 RUN chmod +x /app/entrypoint.sh \
-    && chown -R appuser:appuser /app \
-    && chmod -R 755 /app
+  && chown -R appuser:appuser /app \
+  && chmod -R 755 /app
 USER appuser
 
 ENV PYTHONPATH=/app \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHON_HASH_SEED=random \
-    ENVIRONMENT=production \
-    LOG_LEVEL=DEBUG \
-    PORT=8000 \
-    WORKERS=4 \
-    DB_SSL_MODE=require \
-    PGSSLMODE=require
+  PYTHONUNBUFFERED=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHON_HASH_SEED=random \
+  ENVIRONMENT=production \
+  LOG_LEVEL=DEBUG \
+  PORT=8000 \
+  WORKERS=4 \
+  DB_SSL_MODE=require \
+  PGSSLMODE=require
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+  CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["uvicorn", "server.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

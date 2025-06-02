@@ -3,6 +3,8 @@ name: Deploy Server to AWS
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
 jobs:
   build-and-deploy:
     name: Build and Deploy FastAPI to ECS
