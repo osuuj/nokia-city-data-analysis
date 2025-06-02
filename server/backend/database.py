@@ -5,6 +5,7 @@ and the creation of database tables.
 """
 
 import logging
+import os
 import ssl
 from typing import Any, AsyncGenerator, Dict
 
@@ -30,24 +31,27 @@ logger.info(f"Creating engine with DATABASE_URL: {masked_url}")
 # Configure SSL for PostgreSQL with asyncpg
 connect_args: Dict[str, Any] = {}
 
-# ✅ Secure and flexible SSL handling
-if settings.ENVIRONMENT == "production":
-    # Production: Use strict SSL
-    ssl_ctx = ssl.create_default_context()
-    ssl_ctx.check_hostname = True
-    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+# Get SSL mode from environment variables
+ssl_mode = os.getenv("DB_SSL_MODE", "require").lower()
+logger.info(f"Using SSL mode: {ssl_mode}")
+
+if ssl_mode == "require":
+    # Build an SSLContext that trusts the system CA store—
+    # after Docker build, /etc/ssl/certs/ca-certificates.crt includes Amazon’s RDS root CA.
+    ssl_ctx = ssl.create_default_context(cafile="/etc/ssl/certs/ca-certificates.crt")
     connect_args["ssl"] = ssl_ctx
-    logger.info("SSL enabled with CERT_REQUIRED for production")
+    logger.info("SSL enabled with certificate verification using system trust store")
 else:
-    # Development: Disable SSL completely
+    # For local/development: turn off SSL
     connect_args["ssl"] = False
-    logger.info("SSL disabled for development environment")
+    logger.info("SSL disabled (non-production mode)")
 
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 
-# Create the SQLAlchemy engine with SSL settings
+# Create the SQLAlchemy engine with SSL settings.
+# Append '?sslmode=verify-full' so asyncpg both uses TLS and verifies RDS’s cert.
 engine = create_async_engine(
-    db_url,
+    f"{db_url}?sslmode=verify-full",
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
