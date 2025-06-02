@@ -4,7 +4,7 @@ This module provides services for retrieving and processing company data.
 """
 
 import logging
-from typing import List, Optional
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import Float, String, and_, distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -278,12 +278,22 @@ async def get_industries(db: AsyncSession) -> List[str]:
 
 
 async def get_business_data_by_city_keyset(
-    db: AsyncSession, city: str, last_id: Optional[str] = None, limit: int = 1000
-) -> List[BusinessData]:
-    """Keyset-based batch fetch for GeoJSON company data, paginated by business_id."""
+    db: AsyncSession,
+    city: str,
+    last_id: Optional[str] = None,
+    limit: int = 5000,
+) -> Tuple[List[Any], Optional[str]]:
+    """Keyset-based batch fetch for GeoJSON company data.
+
+    Returns a tuple of (all address-rows, last_business_id).
+
+    - `limit` is how many unique business_ids to pull.
+    - The returned `last_business_id` is the business_id of the final row IF
+      exactly `limit` distinct IDs were found; otherwise None.
+    """
     try:
-        # Step 1: Fetch unique business_ids for pagination
-        business_id_rows = await db.execute(
+        # Step 1: fetch the next `limit` distinct business_ids (ordered by business_id)
+        business_id_query = (
             select(distinct(Company.business_id))
             .join(Address, Company.business_id == Address.business_id)
             .where(
@@ -296,12 +306,19 @@ async def get_business_data_by_city_keyset(
             .order_by(Company.business_id)
             .limit(limit)
         )
-        business_ids = business_id_rows.scalars().all()
+        result_ids = await db.execute(business_id_query)
+        business_ids = result_ids.scalars().all()
 
         if not business_ids:
-            return []
+            # No further IDs, so no rows, and no next page.
+            return [], None
 
-        # Step 2: Fetch all address rows for the selected business_ids
+        # If we got exactly `limit` IDs, we know there might be more pages,
+        # so last_business_id = the final ID in business_ids. If fewer than `limit`,
+        # then this page is the final page, so next_last_id = None.
+        next_last_id = business_ids[-1] if len(business_ids) == limit else None
+
+        # Step 2: pull all address rows (plus any joined columns) for those IDs:
         stmt = (
             select(
                 Address.business_id,
@@ -310,13 +327,14 @@ async def get_business_data_by_city_keyset(
                 func.coalesce(Address.entrance, "").label("entrance"),
                 func.cast(Address.postal_code, String).label("postal_code"),
                 Address.city,
-                func.cast(Address.latitude_wgs84, Float).label("latitude_wgs84"),
-                func.cast(Address.longitude_wgs84, Float).label("longitude_wgs84"),
+                func.cast(Address.latitude_wgs84, String).label("latitude_wgs84"),
+                func.cast(Address.longitude_wgs84, String).label("longitude_wgs84"),
                 Address.address_type,
-                func.cast(Address.active, String).label("active"),
+                func.coalesce(func.cast(Address.active, String), "").label("active"),
                 Company.company_name,
                 Company.company_type,
                 func.coalesce(
+                    # latest industry_description
                     select(IndustryClassification.industry_description)
                     .where(IndustryClassification.business_id == Address.business_id)
                     .order_by(IndustryClassification.registration_date.desc())
@@ -325,6 +343,7 @@ async def get_business_data_by_city_keyset(
                     "",
                 ).label("industry_description"),
                 func.coalesce(
+                    # latest industry_letter
                     select(IndustryClassification.industry_letter)
                     .where(IndustryClassification.business_id == Address.business_id)
                     .order_by(IndustryClassification.registration_date.desc())
@@ -333,6 +352,7 @@ async def get_business_data_by_city_keyset(
                     "",
                 ).label("industry_letter"),
                 func.coalesce(
+                    # latest industry
                     select(IndustryClassification.industry)
                     .where(IndustryClassification.business_id == Address.business_id)
                     .order_by(IndustryClassification.registration_date.desc())
@@ -341,6 +361,7 @@ async def get_business_data_by_city_keyset(
                     "",
                 ).label("industry"),
                 func.coalesce(
+                    # latest registration_date
                     func.cast(
                         select(IndustryClassification.registration_date)
                         .where(
@@ -354,6 +375,7 @@ async def get_business_data_by_city_keyset(
                     "",
                 ).label("registration_date"),
                 func.coalesce(
+                    # latest website
                     select(Website.website)
                     .where(Website.business_id == Address.business_id)
                     .order_by(Website.registration_date.desc())
@@ -367,12 +389,11 @@ async def get_business_data_by_city_keyset(
         )
 
         result = await db.execute(stmt)
-        businesses = [BusinessData(**row._mapping) for row in result]
-
+        businesses = [row._mapping for row in result]
         logger.info(
-            f"Fetched {len(businesses)} address rows for {len(business_ids)} businesses"
+            f"Fetched {len(businesses)} rows for {len(business_ids)} businesses"
         )
-        return businesses
+        return businesses, next_last_id
 
     except Exception as e:
         logger.error(f"Error fetching business data by keyset: {e}")
@@ -380,24 +401,31 @@ async def get_business_data_by_city_keyset(
 
 
 async def get_company_count_by_city(db: AsyncSession, city: str) -> int:
-    """Get total count of companies in a city.
+    """Get the total count of companies in a city.
 
     Args:
         db: SQLAlchemy async database session
-        city: Name of the city to count companies for
+        city: Name of the city to count companies in
 
     Returns:
         Total number of companies in the city
     """
     try:
-        stmt = select(func.count(distinct(Address.business_id))).where(
-            and_(
-                Address.city == city,
-                Address.address_type.in_(["Postal address", "Visiting address"]),
+        # Count distinct business_ids that have an address in the target city
+        stmt = (
+            select(func.count(distinct(Company.business_id)))
+            .join(Address, Company.business_id == Address.business_id)
+            .where(
+                and_(
+                    Address.city == city,
+                    Address.address_type.in_(["Postal address", "Visiting address"]),
+                )
             )
         )
+
         result = await db.execute(stmt)
-        return result.scalar() or 0
+        return result.scalar_one() or 0
+
     except Exception as e:
-        logger.error(f"Error counting companies for city {city}: {e}")
+        logger.error(f"Error counting companies in city {city}: {e}")
         raise

@@ -35,7 +35,7 @@ def rate_limit_if_production(limit_string: str):
             # In production, apply the slowapi limiter with the given string
             return limiter.limit(limit_string)(func)
 
-        # In development, don’t rate-limit
+        # In development, don't rate-limit
         return func
 
     return decorator
@@ -53,9 +53,9 @@ async def get_companies_geojson(
         None, description="Last seen business_id for pagination"
     ),
     limit: int = Query(
-        5000,  # ← Default to 5000 instead of 1000
+        5000,  # default and max = 5000
         ge=1,
-        le=5000,  # ← Maximum also 5000
+        le=5000,
         description="Number of records to return per batch (max 5000)",
     ),
     db: AsyncSession = Depends(get_db),
@@ -63,48 +63,36 @@ async def get_companies_geojson(
     """Return business data as a GeoJSON FeatureCollection with pagination support.
 
     Up to `limit` rows are returned per call. When `last_id` is provided,
-    the service returns the “next page” of results after that ID.
+    the service returns the "next page" of results after that ID.
     """
     try:
         logger.info(
             f"[GeoJSON] Request parameters - city='{city}', last_id='{last_id}', limit={limit}"
         )
 
-        # Fetch up to `limit` businesses using keyset pagination
-        businesses = await get_business_data_by_city_keyset(db, city, last_id, limit)
-
-        # Only compute total row count on the first page (last_id is None)
-        total = await get_company_count_by_city(db, city) if last_id is None else None
-
-        # Build the GeoJSON FeatureCollection from those business rows
-        geojson = create_geojson_feature_collection(businesses)
-
-        # Pick out the last business_id in this batch to feed into the next page
-        last_business_id = (
-            next(
-                (
-                    row.business_id
-                    for row in reversed(businesses)
-                    if row.business_id is not None
-                ),
-                None,
-            )
-            if businesses
-            else None
+        # 1) Fetch both the address rows AND the next cursor id in one call:
+        businesses, next_last_id = await get_business_data_by_city_keyset(
+            db, city, last_id, limit
         )
 
-        # Determine if there’s more data
-        has_more = last_business_id is not None and len(businesses) == limit
+        # 2) Only compute total row count on the very first page:
+        total = await get_company_count_by_city(db, city) if last_id is None else None
+
+        # 3) Build the GeoJSON FeatureCollection from these rows:
+        geojson = create_geojson_feature_collection(businesses)
+
+        # 4) If next_last_id is not None, it means we got exactly `limit` IDs
+        has_more = next_last_id is not None
 
         geojson["metadata"] = {
             "total": total,
             "limit": limit,
-            "last_id": last_business_id,
+            "last_id": next_last_id,
             "has_more": has_more,
         }
 
         logger.info(
-            f"[GeoJSON] Response metadata - total={total}, has_more={has_more}, last_id={last_business_id}"
+            f"[GeoJSON] Response metadata - total={total}, has_more={has_more}, last_id={next_last_id}"
         )
         return geojson
 
