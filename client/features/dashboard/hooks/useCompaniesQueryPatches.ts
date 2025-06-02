@@ -35,7 +35,7 @@ export async function fetchCompanyPatches(
   let totalCompanies = 0;
   const processedCompanies = new Set<string>(); // Track unique companies processed
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
   while (hasMore) {
     const url: string = `${baseUrl}/api/v1/companies.geojson?city=${encodeURIComponent(city)}&limit=1000${lastId ? `&last_id=${lastId}` : ''}`;
