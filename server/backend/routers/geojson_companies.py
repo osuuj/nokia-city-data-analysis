@@ -2,52 +2,40 @@ import logging
 import os
 from typing import Any, Dict, Optional
 
-from fastapi import (  # pyright: ignore[reportMissingImports]
-    APIRouter,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config import settings  # pyright: ignore[reportMissingImports]
-from ..database import get_db  # pyright: ignore[reportMissingImports]
-from ..middleware import limiter  # pyright: ignore[reportMissingImports]
-from ..services.company_service import (  # pyright: ignore[reportMissingImports]
+from ..config import settings
+from ..database import get_db
+from ..middleware import limiter
+from ..services.company_service import (
     get_business_data_by_city_keyset,
     get_company_count_by_city,
 )
 from ..services.geojson_service import create_geojson_feature_collection
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
-# Check if we're in production environment
-is_production = os.environ.get("ENVIRONMENT", "dev") != "dev"
+# Detect whether we are in production (anything not explicitly "dev" or "test")
+is_production = os.environ.get("ENVIRONMENT", "dev") not in ("dev", "test")
 
 
-# Conditionally create decorator factories
-def rate_limit_if_production(limit_string):
-    """Apply rate limiting only in production environment.
-
-    In test environments, we completely bypass the rate limiter to avoid
-    the 'No request or websocket argument' error during testing.
-    """
+def rate_limit_if_production(limit_string: str):
+    """Only apply rate limiting in production; bypass in dev/test."""
 
     def decorator(func):
-        # Skip rate limiting in test environment
         if (
             os.environ.get("ENVIRONMENT") == "test"
             or os.environ.get("BYPASS_RATE_LIMIT") == "true"
         ):
+            # Don't wrap in tests or when explicitly bypassing
             return func
 
-        # Apply rate limiting in production
         if is_production:
+            # In production, apply the slowapi limiter with the given string
             return limiter.limit(limit_string)(func)
 
-        # No rate limiting in development
+        # In development, don’t rate-limit
         return func
 
     return decorator
@@ -65,21 +53,33 @@ async def get_companies_geojson(
         None, description="Last seen business_id for pagination"
     ),
     limit: int = Query(
-        1000, ge=1, le=5000, description="Number of records to return per batch"
+        5000,  # ← Default to 5000 instead of 1000
+        ge=1,
+        le=5000,  # ← Maximum also 5000
+        description="Number of records to return per batch (max 5000)",
     ),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Return business data as a GeoJSON FeatureCollection with pagination support."""
+    """Return business data as a GeoJSON FeatureCollection with pagination support.
+
+    Up to `limit` rows are returned per call. When `last_id` is provided,
+    the service returns the “next page” of results after that ID.
+    """
     try:
         logger.info(
             f"[GeoJSON] Request parameters - city='{city}', last_id='{last_id}', limit={limit}"
         )
 
+        # Fetch up to `limit` businesses using keyset pagination
         businesses = await get_business_data_by_city_keyset(db, city, last_id, limit)
 
+        # Only compute total row count on the first page (last_id is None)
         total = await get_company_count_by_city(db, city) if last_id is None else None
+
+        # Build the GeoJSON FeatureCollection from those business rows
         geojson = create_geojson_feature_collection(businesses)
 
+        # Pick out the last business_id in this batch to feed into the next page
         last_business_id = (
             next(
                 (
@@ -93,8 +93,8 @@ async def get_companies_geojson(
             else None
         )
 
-        # Better: don't rely on total row count — use presence of last ID
-        has_more = last_business_id is not None and len(businesses) > 0
+        # Determine if there’s more data
+        has_more = last_business_id is not None and len(businesses) == limit
 
         geojson["metadata"] = {
             "total": total,
@@ -109,7 +109,7 @@ async def get_companies_geojson(
         return geojson
 
     except Exception as e:
-        logger.error(f"[GeoJSON] Error generating GeoJSON for city='{city}': {str(e)}")
+        logger.error(f"[GeoJSON] Error generating GeoJSON for city='{city}': {e}")
         raise HTTPException(
             status_code=500, detail=f"Error generating GeoJSON: {str(e)}"
         )
