@@ -49,9 +49,10 @@ else:
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 
 # Create the SQLAlchemy engine with SSL settings.
-# Append '?sslmode=verify-full' so asyncpg both uses TLS and verifies RDS’s cert.
+# NOTE: We have removed '?sslmode=verify-full' from the URL, because
+# passing ssl=SSLContext is enough for asyncpg to both encrypt and verify.
 engine = create_async_engine(
-    f"{db_url}?sslmode=verify-full",
+    db_url,
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
