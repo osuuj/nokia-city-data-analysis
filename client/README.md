@@ -98,7 +98,7 @@ For detailed best practices, please refer to the [Documentation Guidelines](./do
 1. Create a `.env.local` file in the client directory with the following variables:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_API_VERSION=v1
 NEXT_PUBLIC_ENVIRONMENT=development
 ```
@@ -114,7 +114,7 @@ npm run dev
 In your Vercel project settings, configure the following environment variables:
 
 ```
-NEXT_PUBLIC_API_BASE_URL=https://your-aws-api-gateway-url.amazonaws.com
+NEXT_PUBLIC_BACKEND_URL=https://your-aws-api-gateway-url.amazonaws.com
 NEXT_PUBLIC_API_VERSION=v1
 NEXT_PUBLIC_ENVIRONMENT=production
 ```
@@ -135,7 +135,7 @@ NEXT_PUBLIC_ENVIRONMENT=production
 2. Test with production API (using environment variables):
    ```bash
    # In the client directory
-   NEXT_PUBLIC_API_BASE_URL=https://your-aws-api-gateway-url.amazonaws.com npm run dev
+   NEXT_PUBLIC_BACKEND_URL=https://your-aws-api-gateway-url.amazonaws.com npm run dev
    ```
 
 ### CORS Configuration

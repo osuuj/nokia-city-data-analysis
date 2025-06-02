@@ -10,7 +10,7 @@ const PROD_DEFAULT = 'https://api.osuuj.ai';
 const DEV_DEFAULT = 'http://localhost:8000';
 
 // Define API configuration from environment variables with fallbacks
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || (isProd ? PROD_DEFAULT : DEV_DEFAULT);
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 const API_URL = `${API_BASE_URL}/api/${API_VERSION}`;
 

@@ -16,7 +16,7 @@ const path = require('node:path');
 // List of allowed public variables that are verified safe for client exposure
 const ALLOWED_PUBLIC_VARS = [
   'NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN', // Public Mapbox token for map rendering
-  'NEXT_PUBLIC_API_BASE_URL', // Public API endpoint
+  'NEXT_PUBLIC_BACKEND_URL', // Public API endpoint
   'NEXT_PUBLIC_API_VERSION', // API version identifier
   'NEXT_PUBLIC_ENVIRONMENT', // Current environment name
 ];
