@@ -6,6 +6,7 @@ and the creation of database tables.
 
 import logging
 import os
+import ssl
 from typing import Any, AsyncGenerator, Dict
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -35,19 +36,22 @@ ssl_mode = os.getenv("DB_SSL_MODE", "require").lower()
 logger.info(f"Using SSL mode: {ssl_mode}")
 
 if ssl_mode == "require":
-    # Use SSL but don't verify certificate (recommended for RDS)
-    connect_args["ssl"] = True
-    logger.info("SSL enabled without certificate verification")
+    # Build an SSLContext that trusts the system CA store—
+    # after Docker build, /etc/ssl/certs/ca-certificates.crt includes Amazon’s RDS root CA.
+    ssl_ctx = ssl.create_default_context(cafile="/etc/ssl/certs/ca-certificates.crt")
+    connect_args["ssl"] = ssl_ctx
+    logger.info("SSL enabled with certificate verification using system trust store")
 else:
-    # Development: Disable SSL completely
+    # For local/development: turn off SSL
     connect_args["ssl"] = False
-    logger.info("SSL disabled")
+    logger.info("SSL disabled (non-production mode)")
 
 logger.info(f"Creating async engine with connect_args: {connect_args}")
 
-# Create the SQLAlchemy engine with SSL settings
+# Create the SQLAlchemy engine with SSL settings.
+# Append '?sslmode=verify-full' so asyncpg both uses TLS and verifies RDS’s cert.
 engine = create_async_engine(
-    db_url,
+    f"{db_url}?sslmode=verify-full",
     echo=settings.SQLALCHEMY_ECHO,
     future=True,
     pool_size=settings.DB_POOL_SIZE,
