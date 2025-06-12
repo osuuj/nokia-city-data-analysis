@@ -68,7 +68,13 @@ export function ProfileContact({
       });
       if (res.ok) {
         setSuccess('Message sent! We will get back to you soon.');
-        setForm({ name: '', email: '', subject: '', message: '', profile: profileId || 'unknown' });
+        setForm({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          profile: profileId || 'unknown',
+        });
       } else {
         setError('Failed to send message. Please try again later.');
       }
@@ -78,6 +84,9 @@ export function ProfileContact({
     setLoading(false);
   }
 
+  if (!contact || !socialLinks) {
+    return null;
+  }
   return (
     <section id="contact" className="py-24 bg-default-50/50">
       <div className="container mx-auto px-4 max-w-7xl">

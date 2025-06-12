@@ -43,7 +43,10 @@ export function useProfileData(profileId: string) {
     if (id === 'juuso') {
       return [
         { name: 'logos:react', position: 'bottom-right' as IconPosition },
-        { name: 'logos:typescript-icon', position: 'bottom-left' as IconPosition },
+        {
+          name: 'logos:typescript-icon',
+          position: 'bottom-left' as IconPosition,
+        },
         { name: 'logos:python', position: 'top-right' as IconPosition },
         { name: 'logos:aws', position: 'top-left' as IconPosition },
       ];
@@ -61,15 +64,13 @@ export function useProfileData(profileId: string) {
   const isFrontend = profileId === 'juuso';
   const bio = isFrontend
     ? 'Crafting data-driven, responsive, and intuitive digital experiences. Passionate about design systems, automation, and building solutions where analytics, code, and business insight come together.'
-    : 'Building robust, scalable backend solutions that power modern applications. Specialized in high-performance APIs, database optimization, and cloud infrastructure.';
+    : 'Building robust, scalable backend solutions and user-friendly applications.';
 
   const skillDescription = isFrontend
     ? 'Full Stack expertise and proficiency levels'
-    : 'Backend expertise and proficiency levels';
+    : 'Software development expertise and proficiency levels';
 
-  const projectDescription = isFrontend
-    ? 'Explore some of my recent work'
-    : 'Explore some of my recent backend and infrastructure work';
+  const projectDescription = 'Explore some of my recent work';
 
   // Transform raw data to the format required by components
   const transformedData = {

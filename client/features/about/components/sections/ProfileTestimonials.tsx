@@ -38,18 +38,20 @@ export function ProfileTestimonials({
           <p className="text-default-600 max-w-3xl mx-auto">{description}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard
-              key={`${testimonial.name}-${testimonial.content.substring(0, 20)}`}
-              content={testimonial.content}
-              name={testimonial.name}
-              title={testimonial.title}
-              avatarSrc={testimonial.avatarSrc || '/images/team/default-avatar.svg'}
-              index={index}
-            />
-          ))}
-        </div>
+        {testimonials && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <TestimonialCard
+                key={`${testimonial.name}-${testimonial.content.substring(0, 20)}`}
+                content={testimonial.content}
+                name={testimonial.name}
+                title={testimonial.title}
+                avatarSrc={testimonial.avatarSrc || '/images/team/default-avatar.svg'}
+                index={index}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
